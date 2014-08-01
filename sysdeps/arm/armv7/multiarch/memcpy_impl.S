@@ -327,6 +327,10 @@ ENTRY(memcpy)
 	cmp	tmp1, tmp2
 	bne	.Lcpy_notaligned
 
+	/* Use the non-aligned code for >=16K; faster on A7/A15 (A9 too?) */
+	cmp	count, #0x4000
+	bge	.Lcpy_notaligned
+
 #ifdef USE_VFP
 	/* Magic dust alert!  Force VFP on Cortex-A9.  Experiments show
 	   that the FP pipeline is much better at streaming loads and
