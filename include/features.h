@@ -408,22 +408,12 @@
 # define __USE_GNU	1
 #endif
 
-#if defined _FORTIFY_SOURCE && _FORTIFY_SOURCE > 0
-# if !defined __OPTIMIZE__ || __OPTIMIZE__ <= 0
-#  warning _FORTIFY_SOURCE requires compiling with optimization (-O)
-# elif !__GNUC_PREREQ (4, 1)
-#  warning _FORTIFY_SOURCE requires GCC 4.1 or later
-# elif _FORTIFY_SOURCE > 2 && (__glibc_clang_prereq (9, 0)		      \
+#if defined _FORTIFY_SOURCE && _FORTIFY_SOURCE > 0 \
+    && __GNUC_PREREQ (4, 1) && defined __OPTIMIZE__ && __OPTIMIZE__ > 0
+# if _FORTIFY_SOURCE > 2 && (__glibc_clang_prereq (9, 0)		      \
 			       || __GNUC_PREREQ (12, 0))
-
-#  if _FORTIFY_SOURCE > 3
-#   warning _FORTIFY_SOURCE > 3 is treated like 3 on this platform
-#  endif
 #  define __USE_FORTIFY_LEVEL 3
 # elif _FORTIFY_SOURCE > 1
-#  if _FORTIFY_SOURCE > 2
-#   warning _FORTIFY_SOURCE > 2 is treated like 2 on this platform
-#  endif
 #  define __USE_FORTIFY_LEVEL 2
 # else
 #  define __USE_FORTIFY_LEVEL 1
