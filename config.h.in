@@ -186,6 +186,14 @@
 /* Define if the linker defines __ehdr_start.  */
 #undef HAVE_EHDR_START
 
+/* If compiler supports __builtin_ctz{l} without any external dependencies
+   (libgcc for instance).  */
+#define HAVE_BUILTIN_CTZ 0
+
+/* If compiler supports __builtin_clz{l} without any external dependencies
+   (libgcc for instance).  */
+#define HAVE_BUILTIN_CLZ 0
+
 /*
  */
 
