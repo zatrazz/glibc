@@ -50,10 +50,9 @@ do_tcsets_ioctl (int fd, unsigned long cmd,
   icbaud = (k_termios.c_cflag >> IBSHIFT) & CBAUD;
   ocbaud = k_termios.c_cflag & CBAUD;
 
-  if (icbaud == BOTHER || ocbaud == BOTHER)
-    return retval;
-  if (icbaud != B0 && icbaud != ocbaud)
-    return retval;
+  if (icbaud == BOTHER || ocbaud == BOTHER ||
+      (icbaud != B0 && icbaud != ocbaud))
+    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
 
   cmd += TCSETS - TCSETS2;
   errno = errn;		   /* Don't clobber errno if retry succeeds */
