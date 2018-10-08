@@ -2100,8 +2100,3 @@ GLIBC_2.28 thrd_current F
 GLIBC_2.28 thrd_equal F
 GLIBC_2.28 thrd_sleep F
 GLIBC_2.28 thrd_yield F
-GLIBC_2.29 cfgetibaud F
-GLIBC_2.29 cfgetobaud F
-GLIBC_2.29 cfsetbaud F
-GLIBC_2.29 cfsetibaud F
-GLIBC_2.29 cfsetobaud F

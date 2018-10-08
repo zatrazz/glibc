@@ -32,10 +32,6 @@ typedef unsigned int	tcflag_t;
 /* Same as the -speed functions, but returns an integer baud rate */
 #ifdef __USE_MISC
 typedef __baud_t baud_t;
-extern baud_t cfgetobaud (const struct termios *__termios_p) __THROW;
-extern baud_t cfgetibaud (const struct termios *__termios_p) __THROW;
-extern int cfsetobaud (struct termios *__termios_p, baud_t __speed) __THROW;
-extern int cfsetibaud (struct termios *__termios_p, baud_t __speed) __THROW;
 
 # define IBSHIFT	16
 # define CIBAUD  (CBAUD << IBSHIFT)

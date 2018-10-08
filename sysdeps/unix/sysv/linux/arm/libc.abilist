@@ -2165,8 +2165,3 @@ GLIBC_2.9 dup3 F
 GLIBC_2.9 epoll_create1 F
 GLIBC_2.9 inotify_init1 F
 GLIBC_2.9 pipe2 F
-GLIBC_2.29 cfgetibaud F
-GLIBC_2.29 cfgetobaud F
-GLIBC_2.29 cfsetbaud F
-GLIBC_2.29 cfsetibaud F
-GLIBC_2.29 cfsetobaud F
