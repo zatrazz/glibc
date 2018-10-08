@@ -399,8 +399,9 @@ cfgetospeed (const struct termios *termios_p)
 
   if (ospeed != BOTHER)
     return ospeed;
-  else
-    return __baud_to_speed_t (termios_p->c_ospeed);
+
+  ospeed = __baud_to_speed_t (termios_p->c_ospeed);
+  return (ospeed == BOTHER) ? termios_p->c_ospeed : ospeed;
 }
 libc_hidden_def (cfgetospeed)
 
@@ -412,8 +413,9 @@ cfgetispeed (const struct termios *termios_p)
 
   if (ispeed != BOTHER)		/* This includes == B0 */
     return ispeed;
-  else
-    return __baud_to_speed_t (termios_p->c_ispeed);
+
+  ispeed = __baud_to_speed_t (termios_p->c_ispeed);
+  return (speed == BOTHER) ? termios_p->c_ispeed : ispeed;
 }
 
 /* Set the output baud rate stored in *TERMIOS_P to the symbol SPEED
@@ -421,14 +423,7 @@ cfgetispeed (const struct termios *termios_p)
 int
 cfsetospeed (struct termios *termios_p, speed_t speed)
 {
-  baud_t baud;
-
-  if (speed == BOTHER)
-    baud = termios_p->c_ospeed;
-  else
-    baud = __speed_t_to_baud (speed);
-
-  return cfsetobaud (baud);
+  return cfsetobaud (__speed_t_to_baud (speed));
 }
 libc_hidden_def (cfsetospeed)
 
@@ -437,13 +432,6 @@ libc_hidden_def (cfsetospeed)
 int
 cfsetispeed (struct termios *termios_p, speed_t speed)
 {
-  baud_t baud;
-
-  if (speed == BOTHER)
-    baud = termios_p->c_ispeed;
-  else
-    baud = __speed_t_to_baud (speed);
-
-  return cfsetibaud (baud);
+  return cfsetibaud (__speed_t_to_baud (speed));
 }
 libc_hidden_def (cfsetispeed)
