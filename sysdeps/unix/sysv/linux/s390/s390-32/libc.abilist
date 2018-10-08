@@ -2480,3 +2480,8 @@ GLIBC_2.9 pututline F
 GLIBC_2.9 pututxline F
 GLIBC_2.9 updwtmp F
 GLIBC_2.9 updwtmpx F
+GLIBC_2.29 cfgetibaud F
+GLIBC_2.29 cfgetobaud F
+GLIBC_2.29 cfsetbaud F
+GLIBC_2.29 cfsetibaud F
+GLIBC_2.29 cfsetobaud F

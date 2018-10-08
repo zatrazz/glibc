@@ -20,11 +20,9 @@
 # error "Never include <bits/termios.h> directly; use <termios.h> instead."
 #endif
 
-typedef unsigned char cc_t;
-typedef unsigned int speed_t;
-typedef unsigned int tcflag_t;
+#include <bits/termios_comomn.h>
 
-#define NCCS 17
+#define NCCS 32
 struct termios
   {
     tcflag_t c_iflag;		/* input mode flags */
@@ -33,6 +31,8 @@ struct termios
     tcflag_t c_lflag;		/* local mode flags */
     cc_t c_line;		/* line discipline */
     cc_t c_cc[NCCS];		/* control characters */
+    __baud_t c_ispeed;
+    __baud_t c_ospeed;
   };
 
 /* c_cc characters */

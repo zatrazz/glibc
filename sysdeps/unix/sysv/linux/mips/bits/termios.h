@@ -20,11 +20,15 @@
 # error "Never include <bits/termios.h> directly; use <termios.h> instead."
 #endif
 
-typedef unsigned char	cc_t;
-typedef unsigned int	speed_t;
-typedef unsigned int	tcflag_t;
+#include <bits/termios_linux.h>
 
-#define NCCS 32
+/*
+ * The legacy MIPS glibc had this as 32, but lacked the c_ispeed and c_ospeed
+ * fields, as sole Linux glibc architecture. Thus, this was reduced to 24
+ * to keep the size of the structure the same; the kernel supports 23
+ * c_cc fields on MIPS so it should be OK.
+ */
+#define NCCS 24
 struct termios
   {
     tcflag_t c_iflag;		/* input mode flags */
@@ -33,6 +37,8 @@ struct termios
     tcflag_t c_lflag;		/* local mode flags */
     cc_t c_line;		/* line discipline */
     cc_t c_cc[NCCS];		/* control characters */
+    __baud_t c_ispeed;		/* input speed */
+    __baud_t c_ospeed;		/* output speed */
   };
 
 /* c_cc characters */

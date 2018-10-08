@@ -26,56 +26,85 @@
    kernel is not the same as we use in the libc.  Therefore we must
    translate it here.  */
 #include <kernel_termios.h>
+#include <speed.h>
 
+static inline int
+do_tcsets_ioctl (int fd, unsigned long cmd,
+		 const struct __kernel_termios2 *k_termios)
+{
+  int __attribute_used__ errn = errno;
+  int retval = INLINE_SYSCALL (ioctl, 3, fd, cmd, &k_termios);
 
-/* This is a gross hack around a kernel bug.  If the cfsetispeed functions
-   is called with the SPEED argument set to zero this means use the same
-   speed as for output.  But we don't have independent input and output
-   speeds and therefore cannot record this.
+  /*
+   * If the BOTHER-aware ioctl() didn't work, try the legacy one.
+   * This is only necessary on Alpha, all other architectures
+   * have the BOTHER-aware ioctls since ancient days.
+   */
+#ifdef __alpha__
+  speed_t icbaud, ocbaud;
 
-   We use an unused bit in the `c_iflag' field to keep track of this
-   use of `cfsetispeed'.  The value here must correspond to the one used
-   in `speed.c'.  */
-#define IBAUD0	020000000000
+  if (retval != -1 || errno != ENOTTY)
+    return retval;
 
+  /* If this is a legacy Alpha kernel, it supports neither BOTHER nor IBSHIFT */
+  icbaud = (k_termios.c_cflag >> IBSHIFT) & CBAUD;
+  ocbaud = k_termios.c_cflag & CBAUD;
+
+  if (icbaud == BOTHER || ocbaud == BOTHER)
+    return retval;
+  if (icbaud != B0 && icbaud != ocbaud)
+    return retval;
+
+  cmd += TCSETS - TCSETS2;
+  errno = errn;		   /* Don't clobber errno if retry succeeds */
+  retval = INLINE_SYSCALL (ioctl, 3, fd, cmd, &k_termios);
+#endif
+
+  return retval;
+}
 
 /* Set the state of FD to *TERMIOS_P.  */
 int
 __tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
 {
-  struct __kernel_termios k_termios;
+  struct __kernel_termios2 k_termios;
   unsigned long int cmd;
+  tcflag_t c_cflag;
+  int errn, retval;
 
-  switch (optional_actions)
-    {
-    case TCSANOW:
-      cmd = TCSETS;
-      break;
-    case TCSADRAIN:
-      cmd = TCSETSW;
-      break;
-    case TCSAFLUSH:
-      cmd = TCSETSF;
-      break;
-    default:
-      return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
-    }
+  /*
+   * These relationships are guaranteed on all Linux architectures,
+   * present and future.
+   */
+  cmd = optional_actions - TCSANOW;
+  if (cmd > (TCAFLUSH - TCSANOW))
+    return INLINE_SYSCALL_ERROR_RETURN_VALUE (EINVAL);
+  cmd += TCSETS2;
 
-  k_termios.c_iflag = termios_p->c_iflag & ~IBAUD0;
+  k_termios.c_iflag = termios_p->c_iflag;
   k_termios.c_oflag = termios_p->c_oflag;
-  k_termios.c_cflag = termios_p->c_cflag;
+  k_termios.c_cflag = c_cflag = termios_p->c_cflag;
   k_termios.c_lflag = termios_p->c_lflag;
   k_termios.c_line = termios_p->c_line;
-#if defined _HAVE_C_ISPEED && defined _HAVE_STRUCT_TERMIOS_C_ISPEED
   k_termios.c_ispeed = termios_p->c_ispeed;
-#endif
-#if defined _HAVE_C_OSPEED && defined _HAVE_STRUCT_TERMIOS_C_OSPEED
   k_termios.c_ospeed = termios_p->c_ospeed;
-#endif
-  memcpy (&k_termios.c_cc[0], &termios_p->c_cc[0],
-	  __KERNEL_NCCS * sizeof (cc_t));
+  memcpy (k_termios.c_cc, termios_p->c_cc, sizeof(k_termios.c_cc));
 
-  return INLINE_SYSCALL (ioctl, 3, fd, cmd, &k_termios);
+  /* If the speed is set to BOTHER, *try* to convert it to a legacy flag */
+  if (c_ispeed(termios_p) == BOTHER)
+    {
+      speed_t ispeed = __baud_to_c_cflag (termios_p->c_ispeed);
+      k_termios.c_cflag &= ~CIBAUD;
+      k_termios.c_cflag |= ispeed << IBSHIFT;
+    }
+  if (c_ospeed(termios_p) == BOTHER)
+    {
+      speed_t ospeed = __baud_to_speed_t (termios_p->c_ospeed);
+      k_termios.c_cflag &= ~CBAUD;
+      k_termios.c_cflag |= ospeed;
+    }
+
+  return do_tcsets_ioctl(fd, cmd, &k_termios);
 }
 weak_alias (__tcsetattr, tcsetattr)
 libc_hidden_def (tcsetattr)

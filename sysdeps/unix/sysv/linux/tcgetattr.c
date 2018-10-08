@@ -27,6 +27,35 @@
    kernel is not the same as we use in the libc.  Therefore we must
    translate it here.  */
 #include <kernel_termios.h>
+#include <speed.h>
+
+static inline int
+do_tcgets_ioctl (int fd, struct __kernel_termios2 *k_termios)
+{
+  int __attribute_used__ errn = errno;
+  int retval = INLINE_SYSCALL (ioctl, 3, fd, TCGETS2, k_termios);
+
+#ifdef __alpha__
+  /*
+   * If the BOTHER-aware ioctl() didn't work, try the legacy one.
+   * This is only necessary on Alpha, all other architectures
+   * have the BOTHER-aware ioctls since ancient days.
+   */
+  if (retval != -1 || errno != ENOTTY)
+    return retval;
+
+  errno = errn;	 /* Don't clobber errno if retry successful */
+  retval = INLINE_SYSCALL (ioctl, 3, fd, TCGETS, k_termios);
+  if (retval != 0)
+    return retval;
+
+  k_termios.c_ospeed = __c_cflag_to_baud (k_termios.c_cflag);
+  /* These legacy Alpha kernels don't support split speed at all */
+  k_termios.c_ispeed = k_termios.c_ospeed;
+#endif
+
+  return retval;
+}
 
 /* Put the state of FD into *TERMIOS_P.  */
 int
@@ -34,46 +63,36 @@ __tcgetattr (int fd, struct termios *termios_p)
 {
   struct __kernel_termios k_termios;
   int retval;
+  speed_t ocflag, icflag;
 
-  retval = INLINE_SYSCALL (ioctl, 3, fd, TCGETS, &k_termios);
+  memset(&k_termios, 0, sizeof k_termios);
 
-  if (__glibc_likely (retval == 0))
-    {
-      termios_p->c_iflag = k_termios.c_iflag;
-      termios_p->c_oflag = k_termios.c_oflag;
-      termios_p->c_cflag = k_termios.c_cflag;
-      termios_p->c_lflag = k_termios.c_lflag;
-      termios_p->c_line = k_termios.c_line;
-#ifdef _HAVE_STRUCT_TERMIOS_C_ISPEED
-# ifdef _HAVE_C_ISPEED
-      termios_p->c_ispeed = k_termios.c_ispeed;
-# else
-      termios_p->c_ispeed = k_termios.c_cflag & (CBAUD | CBAUDEX);
-# endif
+  errn = errno;
+  retval = INLINE_SYSCALL (ioctl, 3, fd, TCGETS2, &k_termios);
+#ifdef __alpha__		/* Only arch needing this for recent kernels */
+  if (__glibc_unlikely (retval == -1 && errno == ENOTTY)) {
+    errno = errn;		/* Don't clobber errno if retry successful */
+    retval = INLINE_SYSCALL (ioctl, 3, fd, TCGETS, &k_termios);
+  }
 #endif
-#ifdef _HAVE_STRUCT_TERMIOS_C_OSPEED
-# ifdef _HAVE_C_OSPEED
-      termios_p->c_ospeed = k_termios.c_ospeed;
-# else
-      termios_p->c_ospeed = k_termios.c_cflag & (CBAUD | CBAUDEX);
-# endif
-#endif
-      if (sizeof (cc_t) == 1 || _POSIX_VDISABLE == 0
-	  || (unsigned char) _POSIX_VDISABLE == (unsigned char) -1)
-	memset (__mempcpy (&termios_p->c_cc[0], &k_termios.c_cc[0],
-			   __KERNEL_NCCS * sizeof (cc_t)),
-		_POSIX_VDISABLE, (NCCS - __KERNEL_NCCS) * sizeof (cc_t));
-      else
-	{
-	  memcpy (&termios_p->c_cc[0], &k_termios.c_cc[0],
-		  __KERNEL_NCCS * sizeof (cc_t));
 
-	  for (size_t cnt = __KERNEL_NCCS; cnt < NCCS; ++cnt)
-	    termios_p->c_cc[cnt] = _POSIX_VDISABLE;
-	}
-    }
+  if (__glibc_unlikely (retval))
+    return retval;
 
-  return retval;
+  termios_p->c_iflag = k_termios.c_iflag;
+  termios_p->c_oflag = k_termios.c_oflag;
+  termios_p->c_cflag = k_termios.c_cflag;
+  termios_p->c_lflag = k_termios.c_lflag;
+  termios_p->c_line  = k_termios.c_line;
+
+  termios_p->c_ospeed = k_termios.c_ospeed;
+  termios_p->c_ispeed = k_termios.c_ispeed;
+
+  /* sizeof(cc_t) == 1 and _POSIX_VDISABLE == 0 on all Linux architectures */
+  memset (__mempcpy (termios_p->c_cc, k_termios.c_cc, sizeof(k_termios.c_cc))
+	  _POSIX_VDISABLE, sizeof(termios_p->c_cc) - sizeof(k_termios.c_cc));
+
+  return 0;
 }
 
 libc_hidden_def (__tcgetattr)
