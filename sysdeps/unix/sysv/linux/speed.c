@@ -390,6 +390,7 @@ cfsetbaud (struct termios *termios_p, baud_t baud)
 {
   return cfsetobaud(termios_p, baud) | cfsetibaud(termios_p, baud);
 }
+libc_hidden_def (cfsetbaud)
 
 /* Return the output baud rate stored in *TERMIOS_P as a symbol. */
 speed_t
