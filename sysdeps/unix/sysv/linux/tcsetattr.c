@@ -41,14 +41,12 @@ do_tcsets_ioctl (int fd, unsigned long cmd,
    * have the BOTHER-aware ioctls since ancient days.
    */
 #ifdef __alpha__
-  speed_t icbaud, ocbaud;
-
   if (retval != -1 || errno != ENOTTY)
     return retval;
 
   /* If this is a legacy Alpha kernel, it supports neither BOTHER nor IBSHIFT */
-  icbaud = (k_termios.c_cflag >> IBSHIFT) & CBAUD;
-  ocbaud = k_termios.c_cflag & CBAUD;
+  speed_t icbaud = c_ispeed (k_termios->c_cflag);
+  speed_t ocbaud = c_ospeed (k_termios->c_cflag);
 
   if (icbaud == BOTHER || ocbaud == BOTHER ||
       (icbaud != B0 && icbaud != ocbaud))
@@ -90,13 +88,13 @@ __tcsetattr (int fd, int optional_actions, const struct termios *termios_p)
   memcpy (k_termios.c_cc, termios_p->c_cc, sizeof(k_termios.c_cc));
 
   /* If the speed is set to BOTHER, *try* to convert it to a legacy flag */
-  if (c_ispeed(termios_p) == BOTHER)
+  if (c_ispeed (termios_p->c_cflag) == BOTHER)
     {
-      speed_t ispeed = __baud_to_c_cflag (termios_p->c_ispeed);
+      speed_t ispeed = __baud_to_speed_t (termios_p->c_ispeed);
       k_termios.c_cflag &= ~CIBAUD;
       k_termios.c_cflag |= ispeed << IBSHIFT;
     }
-  if (c_ospeed(termios_p) == BOTHER)
+  if (c_ospeed (termios_p->c_cflag) == BOTHER)
     {
       speed_t ospeed = __baud_to_speed_t (termios_p->c_ospeed);
       k_termios.c_cflag &= ~CBAUD;

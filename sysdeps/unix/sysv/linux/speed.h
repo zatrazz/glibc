@@ -3,14 +3,14 @@
 
 /* Macros to extract the symbolic speed constants from struct termios */
 static inline speed_t
-c_ospeed (const struct termios *termios_p)
+c_ospeed (tcflag_t c_cflag)
 {
-  return termios_p->c_cflag & CBAUD;
+  return c_cflag & CBAUD;
 }
 static inline speed_t
-c_ispeed (const struct termios *termios_p)
+c_ispeed (tcflag_t c_cflag)
 {
-  return (termios_p->c_cflag >> IBSHIFT) & CBAUD;
+  return (c_cflag >> IBSHIFT) & CBAUD;
 }
   
 /* Internal conversion functions for termios */

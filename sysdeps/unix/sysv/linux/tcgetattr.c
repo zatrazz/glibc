@@ -49,7 +49,7 @@ do_tcgets_ioctl (int fd, struct __kernel_termios2 *k_termios)
   if (retval != 0)
     return retval;
 
-  k_termios.c_ospeed = __c_cflag_to_baud (k_termios.c_cflag);
+  k_termios.c_ospeed = __speed_t_to_baud (k_termios.c_cflag);
   /* These legacy Alpha kernels don't support split speed at all */
   k_termios.c_ispeed = k_termios.c_ospeed;
 #endif
