@@ -26,8 +26,8 @@ typedef unsigned int	speed_t;
 typedef unsigned int	__baud_t;
 typedef unsigned int	tcflag_t;
 
-# define _HAVE_STRUCT_TERMIOS_C_ISPEED 1
-# define _HAVE_STRUCT_TERMIOS_C_OSPEED 1
+#define _HAVE_STRUCT_TERMIOS_C_ISPEED 1
+#define _HAVE_STRUCT_TERMIOS_C_OSPEED 1
 
 /* Same as the -speed functions, but returns an integer baud rate */
 #ifdef __USE_MISC
@@ -36,4 +36,8 @@ extern baud_t cfgetobaud (const struct termios *__termios_p) __THROW;
 extern baud_t cfgetibaud (const struct termios *__termios_p) __THROW;
 extern int cfsetobaud (struct termios *__termios_p, baud_t __speed) __THROW;
 extern int cfsetibaud (struct termios *__termios_p, baud_t __speed) __THROW;
+
+# define IBSHIFT	16
+# define CIBAUD  (CBAUD << IBSHIFT)
+
 #endif /* __USE_MISC */

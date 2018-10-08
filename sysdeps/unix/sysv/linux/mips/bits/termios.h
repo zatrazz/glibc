@@ -156,6 +156,7 @@ struct termios
 #define CLOCAL	0004000		/* Ignore modem status lines.  */
 #ifdef __USE_MISC
 # define CBAUDEX   0010000
+# define BOTHER    0010000
 #endif
 #define  B57600   0010001
 #define  B115200  0010002
@@ -174,7 +175,6 @@ struct termios
 #define  B4000000 0010017
 #define __MAX_BAUD B4000000
 #ifdef __USE_MISC
-# define CIBAUD	  002003600000	/* input baud rate (not used) */
 # define CRTSCTS  020000000000		/* flow control */
 #endif
 

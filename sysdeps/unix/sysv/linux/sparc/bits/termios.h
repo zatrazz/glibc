@@ -154,6 +154,7 @@ struct termios
 #define CLOCAL	0x00000800
 #ifdef __USE_MISC
 # define CBAUDEX 0x00001000
+# define BOTHER  0x00001000
 #endif
 #define  B57600  0x00001001
 #define  B115200 0x00001002
@@ -173,7 +174,6 @@ struct termios
 #define __MAX_BAUD B2000000
 
 #ifdef __USE_MISC
-# define CIBAUD	 0x100f0000	/* input baud rate (not used) */
 # define CMSPAR	 0x40000000	/* mark or space (stick) parity */
 # define CRTSCTS 0x80000000	/* flow control */
 #endif

@@ -140,6 +140,7 @@ struct termios
 # define EXTA B19200
 # define EXTB B38400
 # define CBAUDEX 0000000
+# define BOTHER  00037
 #endif
 #define  B57600   00020
 #define  B115200  00021
