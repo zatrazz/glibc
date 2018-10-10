@@ -366,7 +366,10 @@ cfsetispeed (struct termios *termios_p, speed_t speed)
       return -1;
     }
 
-  termios_p->c_ispeed = speed_kernel_from_user (speed);
+  if ( speed == B0 )
+    termios_p->c_ispeed = termios_p->c_ospeed;
+  else
+    termios_p->c_ispeed = speed_kernel_from_user (speed);
 
   if ( (speed & ~CBAUD) != 0 || speed > _MAX_BAUD )
     speed = BOTHER;
