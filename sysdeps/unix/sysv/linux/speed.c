@@ -343,7 +343,7 @@ cfsetospeed (struct termios *termios_p, speed_t speed)
   if ( c_ispeed (termios_p->c_cflag) == B0 )
     termios_p->c_ispeed = termios_p->c_ospeed;
 
-  if ( (speed & ~CBAUD) != 0 || speed == BOTHER || speed > _MAX_BAUD )
+  if ( (speed & ~CBAUD) != 0 || speed > _MAX_BAUD )
     speed = BOTHER;
 
   /*
@@ -368,7 +368,7 @@ cfsetispeed (struct termios *termios_p, speed_t speed)
 
   termios_p->c_ispeed = speed_kernel_from_user (speed);
 
-  if ( (speed & ~CBAUD) != 0 || speed == BOTHER || speed > _MAX_BAUD )
+  if ( (speed & ~CBAUD) != 0 || speed > _MAX_BAUD )
     speed = BOTHER;
 
   termios_p->c_cflag = (termios_p->c_cflag & ~CIBAUD) | (speed << IBSHIFT);
