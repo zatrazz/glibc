@@ -29,7 +29,7 @@
 #if (defined __x86_64__							\
      ? __GNUC_PREREQ (4, 3)						\
      : (defined __GNU__ ? __GNUC_PREREQ (4, 5) : __GNUC_PREREQ (4, 4)))
-# define __HAVE_FLOAT128 1
+# define __HAVE_FLOAT128 0
 #else
 # define __HAVE_FLOAT128 0
 #endif
@@ -37,7 +37,7 @@
 /* Defined to 1 if __HAVE_FLOAT128 is 1 and the type is ABI-distinct
    from the default float, double and long double types in this glibc.  */
 #if __HAVE_FLOAT128
-# define __HAVE_DISTINCT_FLOAT128 1
+# define __HAVE_DISTINCT_FLOAT128 0
 #else
 # define __HAVE_DISTINCT_FLOAT128 0
 #endif
