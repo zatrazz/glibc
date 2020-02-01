@@ -667,8 +667,9 @@ struct rtld_global_ro
 				   const ElfW(Sym) **, struct r_scope_elem *[],
 				   const struct r_found_version *, int, int,
 				   struct link_map *);
-  void *(*_dl_open) (const char *file, int mode, const void *caller_dlopen,
-		     Lmid_t nsid, int argc, char *argv[], char *env[]);
+  void *(*_dl_open) (const char *file, off_t offset, int mode,
+		     const void *caller_dlopen, Lmid_t nsid,
+		     int argc, char *argv[], char *env[]);
   void (*_dl_close) (void *map);
   /* libdl in a secondary namespace (after dlopen) must use
      _dl_catch_error from the main namespace, so it has to be
@@ -918,10 +919,12 @@ int _dl_catch_exception (struct dl_exception *exception,
 rtld_hidden_proto (_dl_catch_exception)
 
 /* Open the shared object NAME and map in its segments.
+   ELF header is at OFFSET into the file.
    LOADER's DT_RPATH is used in searching for NAME.
    If the object is already opened, returns its existing map.  */
 extern struct link_map *_dl_map_object (struct link_map *loader,
 					const char *name,
+					off_t offset,
 					int type, int trace_mode, int mode,
 					Lmid_t nsid) attribute_hidden;
 
@@ -1245,8 +1248,9 @@ extern char *_dl_dst_substitute (struct link_map *l, const char *name,
 /* Open the shared object NAME, relocate it, and run its initializer if it
    hasn't already been run.  MODE is as for `dlopen' (see <dlfcn.h>).  If
    the object is already opened, returns its existing map.  */
-extern void *_dl_open (const char *name, int mode, const void *caller,
-		       Lmid_t nsid, int argc, char *argv[], char *env[])
+extern void *_dl_open (const char *name, off_t offset, int mode,
+		       const void *caller, Lmid_t nsid,
+		       int argc, char *argv[], char *env[])
      attribute_hidden;
 
 /* Free or queue for freeing scope OLD.  If other threads might be

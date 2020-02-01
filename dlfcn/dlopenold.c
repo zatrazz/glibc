@@ -51,7 +51,7 @@ dlopen_doit (void *a)
 {
   struct dlopen_args *args = (struct dlopen_args *) a;
 
-  args->new = GLRO(dl_open) (args->file ?: "", args->mode | __RTLD_DLOPEN,
+  args->new = GLRO(dl_open) (args->file ?: "", 0, args->mode | __RTLD_DLOPEN,
 			     args->caller,
 			     args->file == NULL ? LM_ID_BASE : NS,
 			     __libc_argc, __libc_argv, __environ);

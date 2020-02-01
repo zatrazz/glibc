@@ -10,6 +10,12 @@ libc {
     dlopen;
     dlvsym;
   }
+  GLIBC_2.15 {
+    __google_dlopen_with_offset; __google_dlmopen_with_offset;
+  }
+  GLIBC_2.27 {
+    __google_dlopen_with_offset64;
+  }
   GLIBC_2.3.3 {
     dladdr1;
     dlinfo;

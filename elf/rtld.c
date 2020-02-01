@@ -645,7 +645,7 @@ map_doit (void *a)
 {
   struct map_args *args = (struct map_args *) a;
   int type = (args->mode == __RTLD_OPENEXEC) ? lt_executable : lt_library;
-  args->map = _dl_map_object (args->loader, args->str, type, 0,
+  args->map = _dl_map_object (args->loader, args->str, 0, type, 0,
 			      args->mode, LM_ID_BASE);
 }
 
@@ -653,7 +653,7 @@ static void
 dlmopen_doit (void *a)
 {
   struct dlmopen_args *args = (struct dlmopen_args *) a;
-  args->map = _dl_open (args->fname,
+  args->map = _dl_open (args->fname, 0,
 			(RTLD_LAZY | __RTLD_DLOPEN | __RTLD_AUDIT
 			 | __RTLD_SECURE),
 			dl_main, LM_ID_NEWLM, _dl_argc, _dl_argv,
@@ -1592,7 +1592,7 @@ dl_main (const ElfW(Phdr) *phdr,
 	{
 	  RTLD_TIMING_VAR (start);
 	  rtld_timer_start (&start);
-	  _dl_map_object (NULL, rtld_progname, lt_executable, 0,
+	  _dl_map_object (NULL, rtld_progname, 0, lt_executable, 0,
 			  __RTLD_OPENEXEC, LM_ID_BASE);
 	  rtld_timer_stop (&load_time, start);
 	}

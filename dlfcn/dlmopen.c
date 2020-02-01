@@ -28,6 +28,8 @@ struct dlmopen_args
 {
   /* Namespace ID.  */
   Lmid_t nsid;
+  /* ELF header at offset in file.  */
+  off_t offset;
   /* The arguments for dlopen_doit.  */
   const char *file;
   int mode;
@@ -58,18 +60,19 @@ dlmopen_doit (void *a)
 	_dl_signal_error (EINVAL, NULL, NULL, N_("invalid mode"));
     }
 
-  args->new = GLRO(dl_open) (args->file ?: "", args->mode | __RTLD_DLOPEN,
+  args->new = GLRO(dl_open) (args->file ?: "", args->offset, args->mode | __RTLD_DLOPEN,
 			     args->caller,
 			     args->nsid, __libc_argc, __libc_argv, __environ);
 }
 
 static void *
-dlmopen_implementation (Lmid_t nsid, const char *file, int mode,
-			void *dl_caller)
+dlmopen_implementation (Lmid_t nsid, const char *file, off_t offset,
+			int mode, void *dl_caller)
 {
   struct dlmopen_args args;
   args.nsid = nsid;
   args.file = file;
+  args.offset = offset;
   args.mode = mode;
   args.caller = dl_caller;
 
@@ -83,7 +86,7 @@ ___dlmopen (Lmid_t nsid, const char *file, int mode)
   if (GLRO (dl_dlfcn_hook) != NULL)
     return GLRO (dl_dlfcn_hook)->dlmopen (nsid, file, mode, RETURN_ADDRESS (0));
   else
-    return dlmopen_implementation (nsid, file, mode, RETURN_ADDRESS (0));
+    return dlmopen_implementation (nsid, file, 0, mode, RETURN_ADDRESS (0));
 }
 versioned_symbol (libc, ___dlmopen, dlmopen, GLIBC_2_34);
 
@@ -95,7 +98,7 @@ compat_symbol (libdl, ___dlmopen, dlmopen, GLIBC_2_3_4);
 void *
 __dlmopen (Lmid_t nsid, const char *file, int mode, void *dl_caller)
 {
-  return dlmopen_implementation (nsid, file, mode, RETURN_ADDRESS (0));
+  return dlmopen_implementation (nsid, file, 0, mode, RETURN_ADDRESS (0));
 }
 
 void *
@@ -106,3 +109,30 @@ ___dlmopen (Lmid_t nsid, const char *file, int mode)
 weak_alias (___dlmopen, dlmopen)
 static_link_warning (dlmopen)
 #endif /* !SHARED */
+
+# ifdef SHARED
+void *
+___dlmopen_with_offset (Lmid_t nsid, const char *file, off_t offset, int mode)
+{
+  if (GLRO (dl_dlfcn_hook) != NULL)
+    return GLRO (dl_dlfcn_hook)->dlmopen_with_offset (nsid, file, offset, mode, RETURN_ADDRESS (0));
+  else
+    return dlmopen_implementation (nsid, file, offset, mode, RETURN_ADDRESS (0));
+}
+versioned_symbol (libc, ___dlmopen_with_offset, __google_dlmopen_with_offset, GLIBC_2_15);
+#else /* !SHARED */
+/* Also used with _dlfcn_hook.  */
+void *
+__dlmopen_with_offset (Lmid_t nsid, const char *file, off_t offset,
+		       int mode, void *dl_caller)
+{
+  return dlmopen_implementation (nsid, file, offset, mode, RETURN_ADDRESS (0));
+}
+void *
+___dlmopen_with_offset (Lmid_t nsid, const char *file, off_t offset, int mode)
+{
+  return __dlmopen_with_offset (nsid, file, offset, mode, RETURN_ADDRESS (0));
+}
+weak_alias (___dlmopen_with_offset, __google_dlmopen_with_offset)
+static_link_warning (__google_dlmopen_with_offset)
+# endif /* !SHARED */

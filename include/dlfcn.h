@@ -1,5 +1,6 @@
 #ifndef _DLFCN_H
 #include <dlfcn/dlfcn.h>
+#include <sys/types.h>
 #ifndef _ISOMAC
 #include <link.h>		/* For ElfW.  */
 #include <stdbool.h>
@@ -100,6 +101,8 @@ struct dlfcn_hook
 {
   /* Public interfaces.  */
   void *(*dlopen) (const char *file, int mode, void *dl_caller);
+  void *(*dlopen_with_offset) (const char *file, off_t offset,
+			       int mode, void *dl_caller);
   int (*dlclose) (void *handle);
   void *(*dlsym) (void *handle, const char *name, void *dl_caller);
   void *(*dlvsym) (void *handle, const char *name, const char *version,
@@ -110,6 +113,8 @@ struct dlfcn_hook
 		  void **extra_info, int flags);
   int (*dlinfo) (void *handle, int request, void *arg);
   void *(*dlmopen) (Lmid_t nsid, const char *file, int mode, void *dl_caller);
+  void *(*dlmopen_with_offset) (Lmid_t nsid, const char *file, off_t offset,
+				int mode, void *dl_caller);
 
   /* Internal interfaces.  */
   void* (*libc_dlopen_mode)  (const char *__name, int __mode);
@@ -123,8 +128,12 @@ struct dlfcn_hook
    the __libc_dl* functions defined in elf/dl-libc.c instead.  */
 
 extern void *__dlopen (const char *file, int mode, void *caller);
+extern void *__dlopen_with_offset (const char *file, off_t offset, int mode,
+				   void *caller);
 extern void *__dlmopen (Lmid_t nsid, const char *file, int mode,
 			void *dl_caller);
+extern void *__dlmopen_with_offset (Lmid_t nsid, const char *file, off_t offset,
+			int mode, void *dl_caller);
 extern int __dlclose (void *handle);
 extern void *__dlsym (void *handle, const char *name, void *dl_caller);
 extern void *__dlvsym (void *handle, const char *name, const char *version,
