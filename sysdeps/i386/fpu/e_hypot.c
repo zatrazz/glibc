@@ -20,14 +20,17 @@
 #include <math_private.h>
 #include <math-underflow.h>
 #include <math-narrow-eval.h>
+#include <math-svid-compat.h>
 #include <libm-alias-finite.h>
+#include <libm-alias-double.h>
 #include <math_config.h>
+#include <errno.h>
 
 /* The i386 allows ot use the default excess of precision to optimize the
    hypot implementation, since internal multiplication and sqrt is carried
    with 80-bit FP type.  */
 double
-__ieee754_hypot (double x, double y)
+__hypot (double x, double y)
 {
   if ((isinf (x) || isinf (y))
       && !issignaling (x) && !issignaling (y))
@@ -37,6 +40,15 @@ __ieee754_hypot (double x, double y)
 
   double r = math_narrow_eval (sqrt (x * x + y * y));
   math_check_force_underflow_nonneg (r);
+  if (isinf (r))
+    __set_errno (ERANGE);
   return r;
 }
+strong_alias (__hypot, __ieee754_hypot)
+#if LIBM_SVID_COMPAT
+versioned_symbol (libm, __hypot, hypot, GLIBC_2_34);
 libm_alias_finite (__ieee754_hypot, __hypot)
+libm_alias_double_other (__hypot, hypot)
+#else
+libm_alias_double (__hypot, hypot)
+#endif

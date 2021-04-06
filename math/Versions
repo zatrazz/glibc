@@ -593,4 +593,8 @@ libm {
   GLIBC_2.32 {
     exp10f;
   }
+  GLIBC_2.34 {
+    # No SVID compatbiel error handling.
+    hypotf; hypot;
+  }
 }

@@ -23,9 +23,9 @@
 #include <libm-alias-float.h>
 
 
-#if LIBM_SVID_COMPAT
+#if LIBM_SVID_COMPAT  && SHLIB_COMPAT (libm, GLIBC_2_0, GLIBC_2_34)
 float
-__hypotf(float x, float y)
+__hypotf_compat (float x, float y)
 {
 	float z = __ieee754_hypotf(x,y);
 	if(__builtin_expect(!isfinite(z), 0)
@@ -35,5 +35,5 @@ __hypotf(float x, float y)
 
 	return z;
 }
-libm_alias_float (__hypot, hypot)
+compat_symbol (libm, __hypotf_compat, hypotf, GLIBC_2_0);
 #endif

@@ -33,7 +33,18 @@
 #include <math-underflow.h>
 #include <math-narrow-eval.h>
 #include <libm-alias-finite.h>
+#include <libm-alias-double.h>
 #include <math_config.h>
+#include <math-svid-compat.h>
+#include <errno.h>
+
+static inline double
+handle_errno (double r)
+{
+  if (isinf (r))
+    __set_errno (ERANGE);
+  return r;
+}
 
 /* sqrt (DBL_EPSILON / 2.0)  */
 #define SQRT_EPS_DIV_2     0x1.6a09e667f3bcdp-27
@@ -49,7 +60,7 @@
 #define SQRT_DBL_MIN       0x1p-511
 
 double
-__ieee754_hypot (double x, double y)
+__hypot (double x, double y)
 {
   if ((isinf (x) || isinf (y))
       && !issignaling (x) && !issignaling (y))
@@ -69,7 +80,9 @@ __ieee754_hypot (double x, double y)
   /* Widely varying operands.  The DBL_MIN_THRESHOLD check is used to avoid
      an spurious underflow from the multiplication.  */
   if (ax >= DBL_MIN_THRESHOLD && ay <= ax * SQRT_EPS_DIV_2)
-    return (ay == 0.0) ? ax : math_narrow_eval (ax + DBL_DENORM_MIN);
+    return (ay == 0.0)
+	   ? ax
+	   : handle_errno (math_narrow_eval (ax + DBL_DENORM_MIN));
 
   double scale = SCALE;
   if (ax > SQRT_DBL_MAX)
@@ -106,8 +119,13 @@ __ieee754_hypot (double x, double y)
   h -= (t1 + t2) / (2.0 * h);
   h = math_narrow_eval (h * scale);
   math_check_force_underflow_nonneg (h);
-  return h;
+  return handle_errno (h);
 }
-#ifndef __ieee754_hypot
+strong_alias (__hypot, __ieee754_hypot)
 libm_alias_finite (__ieee754_hypot, __hypot)
+#if LIBM_SVID_COMPAT
+versioned_symbol (libm, __hypot, hypot, GLIBC_2_34);
+libm_alias_double_other (__hypot, hypot)
+#else
+libm_alias_double (__hypot, hypot)
 #endif
