@@ -12,6 +12,10 @@
 
 #include_next <float.h>
 
+#define FLT_DENORM_MIN          __FLT_DENORM_MIN__
+#define DBL_DENORM_MIN          __DBL_DENORM_MIN__
+#define LDBL_DENORM_MIN         __LDBL_DENORM_MIN__
+
 /* Supplement float.h macros for _FloatN and _FloatNx for older
    compilers which do not yet support the type.  These are described
    in TS 18661-3.  */
