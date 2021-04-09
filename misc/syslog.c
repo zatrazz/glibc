@@ -58,7 +58,7 @@
 
 static int LogType = SOCK_DGRAM;        /* Type of socket connection  */
 static int LogFile = -1;                /* fd for log  */
-static int connected;                   /* Have done connect */
+static bool connected;                  /* Have done connect */
 static int LogStat;                     /* Status bits, set by openlog()  */
 static const char *LogTag;              /* String to tag the entry with  */
 static int LogFacility = LOG_USER;      /* Default facility code  */
@@ -374,7 +374,7 @@ openlog_internal (const char *ident, int logstat, int logfac)
                 }
             }
           else
-            connected = 1;
+            connected = true;
         }
       break;
     }
@@ -408,7 +408,7 @@ closelog_internal (void)
 
   __close (LogFile);
   LogFile = -1;
-  connected = 0;
+  connected = false;
 }
 
 void
