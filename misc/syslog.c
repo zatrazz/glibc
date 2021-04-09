@@ -27,34 +27,16 @@
  * SUCH DAMAGE.
  */
 
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <sys/syslog.h>
-#include <sys/uio.h>
-#include <sys/un.h>
-#include <netdb.h>
-
-#include <errno.h>
-#include <fcntl.h>
-#include <paths.h>
-#include <stdio.h>
-#include <stdio_ext.h>
-#include <string.h>
-#include <time.h>
-#include <unistd.h>
-#include <stdlib.h>
 #include <libc-lock.h>
-#include <signal.h>
-#include <locale.h>
-
-#include <stdarg.h>
-
 #include <libio/libioP.h>
 #include <math_ldbl_opt.h>
-
-#include <kernel-features.h>
-
-#define ftell(s) _IO_ftell (s)
+#include <paths.h>
+#include <stdarg.h>
+#include <sys/socket.h>
+#include <syslog.h>
+#include <sys/uio.h>
+#include <sys/un.h>
+#include <stdio_ext.h>
 
 static int LogType = SOCK_DGRAM;        /* Type of socket connection  */
 static int LogFile = -1;                /* fd for log  */
@@ -133,13 +115,10 @@ void
 __vsyslog_internal (int pri, const char *fmt, va_list ap,
                     unsigned int mode_flags)
 {
-  struct tm now_tm;
-  time_t now;
-  int fd;
   FILE *f;
   char *buf = 0;
   size_t bufsize = 0;
-  size_t msgoff;
+  int msgoff;
   int saved_errno = errno;
   char failbuf[3 * sizeof (pid_t) + sizeof "out of memory []"];
 
@@ -153,9 +132,7 @@ __vsyslog_internal (int pri, const char *fmt, va_list ap,
 
   /* Prepare for multiple users.  We have to take care: most
      syscalls we are using are cancellation points.  */
-  struct cleanup_arg clarg;
-  clarg.buf = NULL;
-  clarg.oldaction = NULL;
+  struct cleanup_arg clarg = { NULL, NULL };
   __libc_cleanup_push (cancel_handler, &clarg);
   __libc_lock_lock (syslog_lock);
 
@@ -169,86 +146,46 @@ __vsyslog_internal (int pri, const char *fmt, va_list ap,
 
   /* Build the message in a memory-buffer stream.  */
   f = __open_memstream (&buf, &bufsize);
-  if (f == NULL)
-    {
-      /* We cannot get a stream.  There is not much we can do but
-         emitting an error messages.  */
-      char numbuf[3 * sizeof (pid_t)];
-      char *nump;
-      char *endp = __stpcpy (failbuf, "out of memory [");
-      pid_t pid = __getpid ();
-
-      nump = numbuf + sizeof (numbuf);
-      /* The PID can never be zero.  */
-      do
-        *--nump = '0' + pid % 10;
-      while ((pid /= 10) != 0);
-
-      endp = __mempcpy (endp, nump, (numbuf + sizeof (numbuf)) - nump);
-      *endp++ = ']';
-      *endp = '\0';
-      buf = failbuf;
-      bufsize = endp - failbuf;
-      msgoff = 0;
-    }
-  else
+  if (f != NULL)
     {
       __fsetlocking (f, FSETLOCKING_BYCALLER);
-      fprintf (f, "<%d>", pri);
-      now = time_now ();
-      f->_IO_write_ptr += __strftime_l (f->_IO_write_ptr,
-                    f->_IO_write_end
-                    - f->_IO_write_ptr,
-                    "%h %e %T ",
-                    __localtime_r (&now, &now_tm),
-                    _nl_C_locobj_ptr);
-      msgoff = ftell (f);
-      if (LogTag == NULL)
-        LogTag = __progname;
-      if (LogTag != NULL)
-        __fputs_unlocked (LogTag, f);
-      if (LogStat & LOG_PID)
-        fprintf (f, "[%d]", (int) __getpid ());
-      if (LogTag != NULL)
-        {
-          __putc_unlocked (':', f);
-          __putc_unlocked (' ', f);
-        }
 
+      /* "%h %e %H:%M:%S "  */
+      char timebuf[3+1                   /* "%h "  */
+                   + 2+1                 /* "%e "  */
+                   + 2+1 + 2+1 + 2+1 + 1 /* "%T "  */];
+      time_t now = time_now ();
+      struct tm now_tm;
+      __localtime_r (&now, &now_tm);
+      __strftime_l (timebuf, sizeof (timebuf), "%h %e %T ", &now_tm,
+                    _nl_C_locobj_ptr);
+
+      pid_t pid = LogStat & LOG_PID ? __getpid () : 0;
+
+      fprintf (f, "<%d>%s %n%s%s%.0d%s: ", pri, timebuf, &msgoff,
+               LogTag == NULL ? __progname : LogTag,
+               pid != 0 ? "[" : "", pid, pid != 0 ? "]" : "");
       /* Restore errno for %m format.  */
       __set_errno (saved_errno);
-
-      /* We have the header.  Print the user's format into the
-         buffer.  */
       __vfprintf_internal (f, fmt, ap, mode_flags);
-
-      /* Close the memory stream; this will finalize the data
-         into a malloc'd buffer in BUF.  */
       fclose (f);
 
       /* Tell the cancellation handler to free this buffer.  */
       clarg.buf = buf;
     }
+  else
+    {
+      /* We cannot get a stream.  There is not much we can do but emitting an
+         error messages.  */
+      bufsize = __snprintf (failbuf, sizeof failbuf, "out of memory[%d]",
+                            __getpid ());
+      buf = failbuf;
+    }
 
   /* Output to stderr if requested.  */
   if (LogStat & LOG_PERROR)
-    {
-      struct iovec iov[2];
-      struct iovec *v = iov;
-
-      v->iov_base = buf + msgoff;
-      v->iov_len = bufsize - msgoff;
-      /* Append a newline if necessary.  */
-      if (buf[bufsize - 1] != '\n')
-        {
-          ++v;
-          v->iov_base = (char *) "\n";
-          v->iov_len = 1;
-        }
-
-      /* writev is a cancellation point.   */
-      (void) __writev (STDERR_FILENO, iov, v - iov + 1);
-    }
+    __dprintf (STDERR_FILENO, "%s%s", buf + msgoff,
+               buf[bufsize - 1] != '\n' ? "\n" : "");
 
   /* Get connected, output the message to the local logger.  */
   if (!connected)
@@ -277,11 +214,12 @@ __vsyslog_internal (int pri, const char *fmt, va_list ap,
            * Make sure the error reported is the one from the
            * syslogd failure.
            */
+          int fd;
           if (LogStat & LOG_CONS &&
               (fd = __open (_PATH_CONSOLE, O_WRONLY | O_NOCTTY, 0)) >= 0)
             {
               __dprintf (fd, "%s\r\n", buf + msgoff);
-              (void) __close (fd);
+              __close (fd);
             }
         }
     }
@@ -312,8 +250,8 @@ openlog_internal (const char *ident, int logstat, int logfac)
       if (LogFile == -1)
         {
           SyslogAddr.sun_family = AF_UNIX;
-          (void) strncpy (SyslogAddr.sun_path, _PATH_LOG,
-                          sizeof (SyslogAddr.sun_path));
+          strncpy (SyslogAddr.sun_path, _PATH_LOG,
+                   sizeof (SyslogAddr.sun_path));
           if (LogStat & LOG_NDELAY)
             {
               LogFile = __socket (AF_UNIX, LogType | SOCK_CLOEXEC, 0);
@@ -329,7 +267,7 @@ openlog_internal (const char *ident, int logstat, int logfac)
               int saved_errno = errno;
               int fd = LogFile;
               LogFile = -1;
-              (void) __close (fd);
+              __close (fd);
               __set_errno (old_errno);
               if (saved_errno == EPROTOTYPE)
                 {
