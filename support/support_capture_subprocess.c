@@ -84,6 +84,7 @@ support_capture_subprocess (void (*callback) (void *), void *closure)
   xopen_memstream (&result.err);
 
   struct support_subprocess proc = support_subprocess (callback, closure);
+  result.pid = proc.pid;
 
   support_capture_poll (&result, &proc);
   return result;
@@ -97,6 +98,7 @@ support_capture_subprogram (const char *file, char *const argv[])
   xopen_memstream (&result.err);
 
   struct support_subprocess proc = support_subprogram (file, argv);
+  result.pid = proc.pid;
 
   support_capture_poll (&result, &proc);
   return result;

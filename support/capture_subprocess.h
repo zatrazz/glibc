@@ -20,11 +20,13 @@
 #define SUPPORT_CAPTURE_SUBPROCESS_H
 
 #include <support/xmemstream.h>
+#include <sys/types.h>
 
 struct support_capture_subprocess
 {
   struct xmemstream out;
   struct xmemstream err;
+  pid_t pid;
   int status;
 };
 
