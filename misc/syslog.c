@@ -250,7 +250,8 @@ __vsyslog_internal (int pri, const char *fmt, va_list ap,
            */
           int fd;
           if (LogStat & LOG_CONS &&
-              (fd = __open (_PATH_CONSOLE, O_WRONLY | O_NOCTTY, 0)) >= 0)
+              (fd = __open (_PATH_CONSOLE, O_WRONLY | O_NOCTTY | O_CLOEXEC,
+                            0)) >= 0)
             {
               __dprintf (fd, "%s\r\n", buf + msgoff);
               __close (fd);
