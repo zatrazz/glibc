@@ -18,6 +18,7 @@
 
 #include <array_length.h>
 #include <fcntl.h>
+#include <intprops.h>
 #include <paths.h>
 #include <netinet/in.h>
 #include <support/capture_subprocess.h>
@@ -201,7 +202,7 @@ check_openlog_message (const struct msg_t *msg, int msgnum,
     {
       if (options & LOG_PID)
         TEST_COMPARE (msg->pid, pid);
-      TEST_COMPARE_STRING (msg->ident, expected_ident);
+      TEST_COMPARE_STRING (msg->ident, OPENLOG_IDENT);
       TEST_COMPARE (msg->facility, LOG_LOCAL0);
     }
   else if (msgnum < 2 * array_length (priorities))
@@ -218,28 +219,25 @@ check_openlog_message (const struct msg_t *msg, int msgnum,
   return true;
 }
 
+#define NILVALUE "-"
+
 static struct msg_t
 parse_syslog_msg (const char *msg)
 {
   struct msg_t r = { .pid = -1 };
   int number;
+  char procid[INT_BUFSIZE_BOUND (pid_t)];
 
   /* The message in the form:
-     <179>Apr  8 14:51:19 tst-syslog: syslog message 176 3  */
-  int n = sscanf (msg, "<%3d>%*s %*d %*d:%*d:%*d %32s %64s %*d %*d",
-                  &number, r.ident, r.msg);
-  TEST_COMPARE (n, 3);
+     <34>1 2003-10-11T22:14:15.003Z mymachine openlog_ident PID - MSG  */
+  int n = sscanf (msg, "<%6d>1 %*s %*s %32s %s - - %s",
+                  &number, r.ident, procid, r.msg);
+  TEST_COMPARE (n, 4);
 
   r.facility = number & LOG_FACMASK;
   r.priority = number & LOG_PRIMASK;
-
-  char *pid_start = strchr (r.ident, '[');
-  if (pid_start != NULL)
-    {
-       char *pid_end = strchr (r.ident, ']');
-       if (pid_end != NULL)
-         r.pid = strtoul (pid_start + 1, NULL, 10);
-    }
+  r.pid = strcmp (procid, NILVALUE) == 0
+          ? 0 : strtoul (procid, NULL, 10);
 
   return r;
 }
@@ -252,8 +250,8 @@ parse_syslog_console (const char *msg)
   struct msg_t r;
 
   /* The message in the form:
-     openlog_ident: syslog_message 128 0  */
-  int n = sscanf (msg, "%32s %64s %d %d",
+     mymachine openlog_ident PID - syslog_message 128 0  */
+  int n = sscanf (msg, "%*s %32s %*s - - %s %d %d",
       r.ident, r.msg, &facility, &priority);
   TEST_COMPARE (n, 4);
 
@@ -390,7 +388,7 @@ check_syslog_console_read (FILE *fp)
   while (fgets (buf, sizeof (buf), fp) != NULL)
     {
       struct msg_t msg = parse_syslog_console (buf);
-      TEST_COMPARE_STRING (msg.ident, OPENLOG_IDENT ":");
+      TEST_COMPARE_STRING (msg.ident, OPENLOG_IDENT);
       TEST_COMPARE (msg.priority, priorities[msgnum]);
       TEST_COMPARE (msg.facility, LOG_LOCAL0);
 

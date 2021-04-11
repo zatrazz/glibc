@@ -38,6 +38,10 @@
 #include <sys/un.h>
 #include <stdio_ext.h>
 
+#ifndef HOST_NAME_MAX
+# define HOST_NAME_MAX 64
+#endif
+
 static int LogType = SOCK_DGRAM;        /* Type of socket connection  */
 static int LogFile = -1;                /* fd for log  */
 static bool connected;                  /* Have done connect */
@@ -111,6 +115,30 @@ __vsyslog_chk (int pri, int flag, const char *fmt, va_list ap)
   __vsyslog_internal (pri, fmt, ap, (flag > 0) ? PRINTF_FORTIFY : 0);
 }
 
+/* Defined by RFC5424.  */
+#define NILVALUE "-"
+
+struct timebuf_t
+{
+  char b[sizeof ("YYYY-MM-DDThh:mm:ss.nnnnnnZ")];
+};
+
+/* Fill TIMEBUF with a RFC3339 timestamp.  Use UTC time and maximum
+   TIME-SECFRAC accurancy allowed (6 digits for microseconds).  */
+static void
+syslog_rfc3339_timestamp (struct timebuf_t *timebuf)
+{
+  struct __timespec64 ts = timespec64_now ();
+  struct tm now_tm;
+  __gmtime64_r (&ts.tv_sec, &now_tm);
+
+  __snprintf (timebuf->b, sizeof (timebuf->b),
+              "%04d-%02d-%02dT%02d:%02d:%02d.%06dZ",
+              now_tm.tm_year + 1900, now_tm.tm_mon + 1, now_tm.tm_mday,
+              now_tm.tm_hour, now_tm.tm_min, now_tm.tm_sec,
+              (int32_t) ts.tv_nsec / 1000);
+}
+
 void
 __vsyslog_internal (int pri, const char *fmt, va_list ap,
                     unsigned int mode_flags)
@@ -143,35 +171,30 @@ __vsyslog_internal (int pri, const char *fmt, va_list ap,
   if ((pri & LOG_FACMASK) == 0)
     pri |= LogFacility;
 
+  struct timebuf_t timestamp;
+  syslog_rfc3339_timestamp (&timestamp);
+
+  char hostname[HOST_NAME_MAX];
+  if (__gethostname (hostname, sizeof (hostname)) == -1)
+    strcpy (hostname, NILVALUE);
+
   pid_t pid = LogStat & LOG_PID ? __getpid () : 0;
 
-  enum
-    {
-      timebuf_size = 3+1                     /* "%h "  */
-                     + 2+1                   /* "%e "  */
-                     + 2+1 + 2+1 + 2+1 + 1,  /* "%T "  */
-
-      bufs_size    = 1024
-    };
-
-  /* "%h %e %H:%M:%S "  */
-  char timestamp[timebuf_size];
-  time_t now = time_now ();
-  struct tm now_tm;
-  __localtime_r (&now, &now_tm);
-  __strftime_l (timestamp, sizeof (timestamp), "%h %e %T ", &now_tm,
-                _nl_C_locobj_ptr);
-
-#define SYSLOG_HEADER(__pri, __timestamp, __msgoff, pid) \
-  "<%d>%s %n%s%s%.0d%s: ",                               \
-  __pri, __timestamp, __msgoff,                          \
-  LogTag == NULL ? __progname : LogTag,                  \
-  pid != 0 ? "[" : "", pid, pid != 0 ? "]" : ""
+#define SYSLOG_HEADER(__pri, __timestamp, __msgoff, __hostname, __pid) \
+  "<%d>1 %s %n%s %s %s%.0d %s %s ",                      \
+  __pri,                                /* PRI  */       \
+  __timestamp.b,                        /* TIMESTAMP  */ \
+  __msgoff, __hostname,                 /* HOSTNAME  */  \
+  LogTag == NULL ? __progname : LogTag, /* APP-NAME  */  \
+  NILVALUE + !!__pid, __pid,            /* PROCID  */    \
+  NILVALUE,                             /* MSGID  */     \
+  NILVALUE                              /* STRUCT-DATA */
 
   /* Try to use a static buffer as an optimization.  */
+  enum { bufs_size  = 1024 };
   char bufs[bufs_size];
   int l = __snprintf (bufs, sizeof bufs,
-                      SYSLOG_HEADER (pri, timestamp, &msgoff, pid));
+                      SYSLOG_HEADER (pri, timestamp, &msgoff, hostname, pid));
   if (l < sizeof (bufs))
     {
       va_list apc;
@@ -198,7 +221,7 @@ __vsyslog_internal (int pri, const char *fmt, va_list ap,
       if (f != NULL)
         {
           __fsetlocking (f, FSETLOCKING_BYCALLER);
-          fprintf (f, SYSLOG_HEADER (pri, timestamp, &msgoff, pid));
+          fprintf (f, SYSLOG_HEADER (pri, timestamp, &msgoff, hostname, pid));
           /* Restore errno for %m format.  */
           __set_errno (saved_errno);
           __vfprintf_internal (f, fmt, ap, mode_flags);

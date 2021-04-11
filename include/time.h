@@ -502,6 +502,14 @@ time_now (void)
   __clock_gettime (TIME_CLOCK_GETTIME_CLOCKID, &ts);
   return ts.tv_sec;
 }
+
+static inline struct __timespec64
+timespec64_now (void)
+{
+  struct __timespec64 ts64;
+  __clock_gettime64 (TIME_CLOCK_GETTIME_CLOCKID, &ts64);
+  return ts64;
+}
 #endif
 
 #endif
