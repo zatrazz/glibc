@@ -115,12 +115,11 @@ void
 __vsyslog_internal (int pri, const char *fmt, va_list ap,
                     unsigned int mode_flags)
 {
-  FILE *f;
-  char *buf = 0;
+  char *buf = NULL;
   size_t bufsize = 0;
+  bool buf_to_free = false;
   int msgoff;
   int saved_errno = errno;
-  char failbuf[3 * sizeof (pid_t) + sizeof "out of memory []"];
 
 #define INTERNALLOG LOG_ERR|LOG_CONS|LOG_PERROR|LOG_PID
   /* Check for invalid bits.  */
@@ -144,42 +143,77 @@ __vsyslog_internal (int pri, const char *fmt, va_list ap,
   if ((pri & LOG_FACMASK) == 0)
     pri |= LogFacility;
 
-  /* Build the message in a memory-buffer stream.  */
-  f = __open_memstream (&buf, &bufsize);
-  if (f != NULL)
+  pid_t pid = LogStat & LOG_PID ? __getpid () : 0;
+
+  enum
     {
-      __fsetlocking (f, FSETLOCKING_BYCALLER);
+      timebuf_size = 3+1                     /* "%h "  */
+                     + 2+1                   /* "%e "  */
+                     + 2+1 + 2+1 + 2+1 + 1,  /* "%T "  */
 
-      /* "%h %e %H:%M:%S "  */
-      char timebuf[3+1                   /* "%h "  */
-                   + 2+1                 /* "%e "  */
-                   + 2+1 + 2+1 + 2+1 + 1 /* "%T "  */];
-      time_t now = time_now ();
-      struct tm now_tm;
-      __localtime_r (&now, &now_tm);
-      __strftime_l (timebuf, sizeof (timebuf), "%h %e %T ", &now_tm,
-                    _nl_C_locobj_ptr);
+      bufs_size    = 1024
+    };
 
-      pid_t pid = LogStat & LOG_PID ? __getpid () : 0;
+  /* "%h %e %H:%M:%S "  */
+  char timestamp[timebuf_size];
+  time_t now = time_now ();
+  struct tm now_tm;
+  __localtime_r (&now, &now_tm);
+  __strftime_l (timestamp, sizeof (timestamp), "%h %e %T ", &now_tm,
+                _nl_C_locobj_ptr);
 
-      fprintf (f, "<%d>%s %n%s%s%.0d%s: ", pri, timebuf, &msgoff,
-               LogTag == NULL ? __progname : LogTag,
-               pid != 0 ? "[" : "", pid, pid != 0 ? "]" : "");
+#define SYSLOG_HEADER(__pri, __timestamp, __msgoff, pid) \
+  "<%d>%s %n%s%s%.0d%s: ",                               \
+  __pri, __timestamp, __msgoff,                          \
+  LogTag == NULL ? __progname : LogTag,                  \
+  pid != 0 ? "[" : "", pid, pid != 0 ? "]" : ""
+
+  /* Try to use a static buffer as an optimization.  */
+  char bufs[bufs_size];
+  int l = __snprintf (bufs, sizeof bufs,
+                      SYSLOG_HEADER (pri, timestamp, &msgoff, pid));
+  if (l < sizeof (bufs))
+    {
+      va_list apc;
+      va_copy (apc, ap);
+
       /* Restore errno for %m format.  */
       __set_errno (saved_errno);
-      __vfprintf_internal (f, fmt, ap, mode_flags);
-      fclose (f);
+      int vl = __vsnprintf_internal (bufs + l, sizeof (bufs) - l, fmt, apc,
+                                     mode_flags);
+      if (l + vl < sizeof (bufs))
+        {
+          buf = bufs;
+          bufsize = l + vl;
+        }
 
-      /* Tell the cancellation handler to free this buffer.  */
-      clarg.buf = buf;
+      va_end (apc);
     }
-  else
+
+  /* If the required size is larger than buffer size fallbacks to
+     open_memstream.  */
+  if (buf == NULL)
     {
-      /* We cannot get a stream.  There is not much we can do but emitting an
-         error messages.  */
-      bufsize = __snprintf (failbuf, sizeof failbuf, "out of memory[%d]",
-                            __getpid ());
-      buf = failbuf;
+      FILE *f = __open_memstream (&buf, &bufsize);
+      if (f != NULL)
+        {
+          __fsetlocking (f, FSETLOCKING_BYCALLER);
+          fprintf (f, SYSLOG_HEADER (pri, timestamp, &msgoff, pid));
+          /* Restore errno for %m format.  */
+          __set_errno (saved_errno);
+          __vfprintf_internal (f, fmt, ap, mode_flags);
+          fclose (f);
+
+          /* Tell the cancellation handler to free this buffer.  */
+          buf_to_free = true;
+          clarg.buf = buf;
+        }
+      else
+        {
+          bufsize = __snprintf (bufs, sizeof bufs,
+                                "out of memory[%d]", __getpid ());
+          buf = bufs;
+        }
     }
 
   /* Output to stderr if requested.  */
@@ -229,7 +263,7 @@ out:
   __libc_cleanup_pop (0);
   __libc_lock_unlock (syslog_lock);
 
-  if (buf != failbuf)
+  if (buf_to_free)
     free (buf);
 }
 
