@@ -72,7 +72,7 @@ __tls_init_tp (void)
   list_add (&pd->list, &GL (dl_stack_user));
 
    /* Early initialization of the TCB.   */
-   pd->tid = INTERNAL_SYSCALL_CALL (set_tid_address, &pd->tid);
+   pd->tid = INTERNAL_SYSCALL_CALL (set_tid_address, &pd->joinstate);
    THREAD_SETMEM (pd, specific[0], &pd->specific_1stblock[0]);
    THREAD_SETMEM (pd, user_stack, true);
 
@@ -128,4 +128,6 @@ __tls_init_tp (void)
      It will be bigger than it actually is, but for unwind.c/pt-longjmp.c
      purposes this is good enough.  */
   THREAD_SETMEM (pd, stackblock_size, (size_t) __libc_stack_end);
+
+  THREAD_SETMEM (pd, joinstate, THREAD_STATE_JOINABLE);
 }
