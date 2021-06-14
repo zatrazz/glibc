@@ -17,7 +17,7 @@ getpid          -       getpid          Ei:     __getpid        getpid
 getegid		-	getegid		Ei:	__getegid	getegid
 geteuid		-	geteuid		Ei:	__geteuid	geteuid
 getpgid		-	getpgid		i:i	__getpgid	getpgid
-getpgrp		-	getpgrp		Ei:	getpgrp
+getpgrp		-	getpgrp		Ei:	__getpgrp	getpgrp
 getppid		-	getppid		Ei:	__getppid	getppid
 getresuid	-	getresuid	i:ppp	getresuid
 getresgid	-	getresgid	i:ppp	getresgid

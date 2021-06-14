@@ -2229,6 +2229,8 @@ GLIBC_2.34 dlopen F
 GLIBC_2.34 dlsym F
 GLIBC_2.34 dlvsym F
 GLIBC_2.34 execveat F
+GLIBC_2.34 posix_spawnattr_tcgetpgrp_np F
+GLIBC_2.34 posix_spawnattr_tcsetpgrp_np F
 GLIBC_2.34 shm_open F
 GLIBC_2.34 shm_unlink F
 GLIBC_2.34 timespec_getres F

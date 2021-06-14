@@ -154,6 +154,8 @@ libc {
   GLIBC_2.34 {
     _Fork;
     execveat;
+    posix_spawnattr_tcgetpgrp_np;
+    posix_spawnattr_tcsetpgrp_np;
   }
   GLIBC_PRIVATE {
     __libc_fork; __libc_pread; __libc_pwrite;

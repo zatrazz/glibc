@@ -33,6 +33,9 @@
 #include <ldsodefs.h>
 #include "spawn_int.h"
 
+_Static_assert (sizeof (posix_spawnattr_t) == 336,
+		"sizeof (posix_spawnattr_t) != 336");
+
 /* The Linux implementation of posix_spawn{p} uses the clone syscall directly
    with CLONE_VM and CLONE_VFORK flags and an allocated stack.  The new stack
    and start function solves most the vfork limitation (possible parent
@@ -183,6 +186,17 @@ __spawni_child (void *arguments)
   if ((attr->__flags & POSIX_SPAWN_SETPGROUP) != 0
       && __setpgid (0, attr->__pgrp) != 0)
     goto fail;
+
+  /* Set the controlling terminal.  */
+  if ((attr->__flags & POSIX_SPAWN_TCSETPGROUP) != 0)
+    {
+      /* Check if it is possible to avoid an extra syscall.  */
+      pid_t pgrp = (attr->__flags & POSIX_SPAWN_SETPGROUP) != 0
+		    && attr->__pgrp != 0
+		   ? attr->__pgrp : __getpgrp ();
+      if (__tcsetpgrp (attr->__ctty_fd, pgrp) != 0)
+	goto fail;
+    }
 
   /* Set the effective user and group IDs.  */
   if ((attr->__flags & POSIX_SPAWN_RESETIDS) != 0

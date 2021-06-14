@@ -1,0 +1,2 @@
+GLIBC_2.34 posix_spawnattr_tcgetpgrp_np F
+GLIBC_2.34 posix_spawnattr_tcsetpgrp_np F

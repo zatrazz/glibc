@@ -60,6 +60,11 @@ Major new features:
   to call async-signal-safe functions (such as raise or execve).  This function
   is currently a GNU extension.
 
+* The functions posix_spawnattr_tcsetpgrp_np and posix_spawnattr_tcgetpgrp_np
+  have benn added, enabling posix_spawn and posix_spawnp to set the
+  controlling terminal in the new process in a non race manner.  These
+  functions are GNU extensions.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The function pthread_mutex_consistent_np has been deprecated; programs
