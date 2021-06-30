@@ -181,7 +181,18 @@ _dl_relocate_object (struct link_map *l, struct r_scope_elem *scope[],
 #ifdef SHARED
   /* If we are auditing, install the same handlers we need for profiling.  */
   if ((reloc_mode & __RTLD_AUDIT) == 0)
-    consider_profiling |= GLRO(dl_audit) != NULL;
+    {
+      struct audit_ifaces *afct = GLRO(dl_audit);
+      for (unsigned int cnt = 0; cnt < GLRO(dl_naudit); ++cnt)
+	{
+	  /* Profiling is needed only if PLT hooks are provided.  */
+	  if (afct->symbind != NULL
+	      || afct->ARCH_LA_PLTENTER != NULL
+	      || afct->ARCH_LA_PLTEXIT != NULL)
+	    consider_profiling = 1;
+	  afct = afct->next;
+	}
+    }
 #elif defined PROF
   /* Never use dynamic linker profiling for gprof profiling code.  */
 # define consider_profiling 0
