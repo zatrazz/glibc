@@ -771,7 +771,7 @@ dl_open_worker (void *a)
     {
       struct link_map *libc_map = GL(dl_ns)[args->nsid].libc_map;
 #ifdef SHARED
-      bool initial = libc_map->l_ns == LM_ID_BASE;
+      bool initial = libc_map != NULL ? libc_map->l_ns == LM_ID_BASE : false;
 #else
       /* In the static case, there is only one namespace, but it
 	 contains a secondary libc (the primary libc is statically
