@@ -220,7 +220,7 @@ tests += restest1 preloadtest loadfail multiload origtest resolvfail \
 	 tst-dlopenfail-2 \
 	 tst-filterobj tst-filterobj-dlopen tst-auxobj tst-auxobj-dlopen \
 	 tst-audit14 tst-audit15 tst-audit16 tst-audit17 tst-audit18a \
-	 tst-audit18b \
+	 tst-audit18b tst-audit19 \
 	 tst-single_threaded tst-single_threaded-pthread \
 	 tst-tls-ie tst-tls-ie-dlmopen argv0test \
 	 tst-glibc-hwcaps tst-glibc-hwcaps-prepend tst-glibc-hwcaps-mask \
@@ -295,7 +295,7 @@ modules-names = testobj1 testobj2 testobj3 testobj4 testobj5 testobj6 \
 		tst-unique1mod1 tst-unique1mod2 \
 		tst-unique2mod1 tst-unique2mod2 \
 		tst-auditmod9a tst-auditmod9b \
-		tst-auditmod18a tst-audit18bmod tst-auditmod18b \
+		tst-auditmod18a tst-audit18bmod tst-auditmod18b tst-auditmod19 \
 		$(if $(CXX),tst-unique3lib tst-unique3lib2 tst-unique4lib \
 		  tst-nodelete-uniquemod tst-nodelete-rtldmod \
 		  tst-nodelete-zmod \
@@ -1501,6 +1501,9 @@ $(objpfx)tst-audit18b: $(objpfx)tst-audit18bmod.so
 LDFLAGS-tst-audit18bmod.so = -Wl,-z,now
 LDFLAGS-tst-audit18b = -Wl,-z,now
 tst-audit18b-ENV = LD_AUDIT=$(objpfx)tst-auditmod18b.so
+
+$(objpfx)tst-audit19.out: $(objpfx)tst-auditmod19.so
+tst-audit19-ENV = LD_AUDIT=$(objpfx)tst-auditmod19.so
 
 # tst-sonamemove links against an older implementation of the library.
 LDFLAGS-tst-sonamemove-linkmod1.so = \
