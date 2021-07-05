@@ -237,8 +237,8 @@ sysdep_routines += cmsg_nxthdr
 CFLAGS-recvmmsg.c = -fexceptions -fasynchronous-unwind-tables
 CFLAGS-sendmmsg.c = -fexceptions -fasynchronous-unwind-tables
 
-tests += tst-recvmsg
-tests-time64 += tst-recvmsg-time64
+tests += tst-recvmsg tst-recvmmsg
+tests-time64 += tst-recvmsg-time64 tst-recvmmsg-time64
 
 tests-special += $(objpfx)tst-socket-consts.out
 $(objpfx)tst-socket-consts.out: ../sysdeps/unix/sysv/linux/tst-socket-consts.py
