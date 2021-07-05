@@ -154,6 +154,9 @@ extern bool support_select_modifies_timeout (void);
    tv_usec larger than 1000000.  */
 extern bool support_select_normalizes_timeout (void);
 
+/* Return true if socket FD supports 64-bit timestamps.  */
+extern bool support_socket_time64_timestamp (int fd);
+
 /* Create a timer that trigger after SEC seconds and NSEC nanoseconds.  If
    REPEAT is true the timer will repeat indefinitely.  If CALLBACK is not
    NULL, the function will be called when the timer expires; otherwise a
