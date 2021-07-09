@@ -588,6 +588,15 @@ __pthread_cond_wait_common (pthread_cond_t *cond, pthread_mutex_t *mutex,
 		     the signal from, which cause it to block using the
 		     futex).  */
 		  futex_wake (cond->__data.__g_signals + g, 1, private);
+
+		  /* We might be wrong about stealing, we got the signal
+		     from the an old g1, but ended up returning it to
+		     a different g1. We can't tell whether it is the case.
+		     If it is, we now caused another issue:
+		     now g_refs[g1] is one less than g_size[g1].
+		     The mitigation step is to broadcast g1 and g2, let every
+		     waiter wake up spuriosly. */
+		  __pthread_cond_broadcast(cond);
 		  break;
 		}
 	      /* TODO Back off.  */
