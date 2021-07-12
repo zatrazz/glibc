@@ -74,6 +74,9 @@ do_test (void)
 	{
 	  TEST_COMPARE (it_old.it_interval.tv_sec, 10);
 	  TEST_COMPARE (it_old.it_interval.tv_usec, 20);
+	  /* Some systems might use a different precision for ITIMER_VIRTUAL
+	     and ITIMER_iPROF and thus the value might be adjusted.  To avoid
+	     trying to guess the resolution, we do not check it.  */
 	}
 
       /* Create a periodic timer and check if the return value is the one
@@ -87,7 +90,8 @@ do_test (void)
       TEST_COMPARE (setitimer (timers[i], &(struct itimerval) { 0 }, &it_old),
 		    0);
       TEST_COMPARE (it.it_interval.tv_sec, it_old.it_interval.tv_sec);
-      TEST_COMPARE (it.it_interval.tv_usec, it_old.it_interval.tv_usec);
+      if (timers[i] == ITIMER_REAL)
+	TEST_COMPARE (it.it_interval.tv_usec, it_old.it_interval.tv_usec);
 
       if (sizeof (time_t) == 4)
 	continue;
