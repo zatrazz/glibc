@@ -5800,7 +5800,7 @@ int
 main (void)
 {
 
-#if !defined __GNUC__ || __GNUC__ < 12 || (__GNUC__ == 12 && __GNUC_MINOR__ < 1)
+#if (!defined __GNUC__ || __GNUC__ < 12 || (__GNUC__ == 12 && __GNUC_MINOR__ < 1)) && (!defined __clang__ || __clang_major__ < 18)
 #error insufficient compiler
 #endif
   ;
@@ -7515,8 +7515,7 @@ $conftest_code
 EOF
 
 saved_CC="$CC"
-saved_CFLAGS="$CFLAGS"
-CC="$TEST_CC -Wno-unused-command-line-argument"
+CC="$TEST_CC"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for traditional tls support in testing" >&5
 printf %s "checking for traditional tls support in testing... " >&6; }
 if test ${libc_cv_test_mtls_traditional+y}
@@ -7739,7 +7738,7 @@ else case e in #(
 extern char *strstr (const char *, const char *) __asm ("my_strstr");
 char *foo (const char *a, const char *b)
 {
-  return __builtin_strstr (a, b);
+  return strstr (a, b);
 }
 EOF
 if { ac_try='${CC-cc} -O3 -S conftest.c -o - | grep -F "my_strstr" > /dev/null'
@@ -8110,8 +8109,7 @@ if test "$TEST_CC" = "$CC"; then
 else
 
 saved_CC="$CC"
-saved_CFLAGS="$CFLAGS"
-CC="$TEST_CC -Wno-unused-command-line-argument"
+CC="$TEST_CC"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for -Wfree-labels in testing" >&5
 printf %s "checking for -Wfree-labels in testing... " >&6; }
 if test ${libc_cv_test_cc_wfree_labels+y}
@@ -8171,8 +8169,7 @@ if test "$TEST_CC" = "$CC"; then
 else
 
 saved_CC="$CC"
-saved_CFLAGS="$CFLAGS"
-CC="$TEST_CC -Wno-unused-command-line-argument"
+CC="$TEST_CC"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for -Wmissing-parameter-name in testing" >&5
 printf %s "checking for -Wmissing-parameter-name in testing... " >&6; }
 if test ${libc_cv_test_cc_wmissing_parameter_name+y}
