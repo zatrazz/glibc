@@ -56,7 +56,7 @@ do_test (void)
      in local variables being clobbered on the second return from
      getcontext), in fact an uninitialized use is not possible.  */
   DIAG_PUSH_NEEDS_COMMENT;
-  DIAG_IGNORE_NEEDS_COMMENT (5, "-Wmaybe-uninitialized");
+  DIAG_IGNORE_NEEDS_COMMENT_GCC (5, "-Wmaybe-uninitialized");
   int mask = fegetexcept ();
   if (mask != except_mask)
     {
