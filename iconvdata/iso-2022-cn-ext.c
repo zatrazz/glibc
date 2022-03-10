@@ -387,6 +387,10 @@ enum
 #define LOOP_NEED_FLAGS
 #include <iconv/loop.c>
 
+/* clang issues an warning adding 'int' to a string does not append
+   to the string, however it is exactly what code means here.  */
+DIAG_PUSH_NEEDS_COMMENT_CLANG;
+DIAG_IGNORE_NEEDS_COMMENT_CLANG (18, "-Wstring-plus-int");
 
 /* Next, define the other direction.  */
 #define MIN_NEEDED_INPUT	TO_LOOP_MIN_NEEDED_FROM
@@ -404,6 +408,7 @@ enum
    tmpbuf[2] is initialized.  */
 DIAG_PUSH_NEEDS_COMMENT;
 DIAG_IGNORE_Os_NEEDS_COMMENT_GCC (5, "-Wmaybe-uninitialized");
+
 #define BODY \
   {									      \
     uint32_t ch;							      \
@@ -681,6 +686,7 @@ DIAG_POP_NEEDS_COMMENT;
 #define LOOP_NEED_FLAGS
 #include <iconv/loop.c>
 
+DIAG_POP_NEEDS_COMMENT_CLANG;
 
 /* Now define the toplevel functions.  */
 #include <iconv/skeleton.c>
