@@ -455,9 +455,9 @@ CFLAGS-test-math-iszero.cc += -std=gnu++11
 CFLAGS-test-math-issignaling.cc += -std=gnu++11
 CFLAGS-test-math-iscanonical.cc += -std=gnu++11
 
-CFLAGS-test-iszero-excess-precision.c += -fexcess-precision=standard
-CFLAGS-test-iseqsig-excess-precision.c += -fexcess-precision=standard
-CFLAGS-test-flt-eval-method.c += -fexcess-precision=standard
+CFLAGS-test-iszero-excess-precision.c += $(config-cflags-fexcess-precision-standard)
+CFLAGS-test-iseqsig-excess-precision.c += $(config-cflags-fexcess-precision-standard)
+CFLAGS-test-flt-eval-method.c += $(config-cflags-fexcess-precision-standard)
 
 CFLAGS-test-fe-snans-always-signal.c += $(config-cflags-signaling-nans)
 
