@@ -61,5 +61,14 @@ elif test $enable_cet = permissive; then
 fi
 LIBC_CONFIG_VAR([enable-cet], [$enable_cet])
 
+dnl Check if compiler supports -msse2avx
+AC_CACHE_CHECK(-msse2avx, libc_cv_cc_msse2avx, [dnl
+LIBC_TRY_CC_OPTION([-msse2avx],
+		   [libc_cv_cc_msse2avx=-msse2avx],
+		   [libc_cv_cc_msse2avx=])
+])
+LIBC_CONFIG_VAR([config-cflags-msse2avx],
+		[$libc_cv_cc_msse2avx])
+
 test -n "$critic_missing" && AC_MSG_ERROR([
 *** $critic_missing])
