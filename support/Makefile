@@ -249,8 +249,8 @@ CFLAGS-.oS += -fexceptions -fasynchronous-unwind-tables
 # being within the observed range.  The code uses double internally
 # in support_timespec_check_in_range and for that computation we use
 # -fexcess-precision=standard.
-CFLAGS-timespec.c += -fexcess-precision=standard
-CFLAGS-timespec-time64.c += -fexcess-precision=standard
+CFLAGS-timespec.c += $(config-cflags-fexcess-precision-standard)
+CFLAGS-timespec-time64.c += $(config-cflags-fexcess-precision-standard)
 
 # Ensure that general support files use 64-bit time_t
 CFLAGS-delayed_exit.c += -D_FILE_OFFSET_BITS=64 -D_TIME_BITS=64
