@@ -33,6 +33,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <pointer_guard.h>
+#include <sysdep.h>
 
 /* Suffix after .so of NSS service modules.  This is a bit of magic,
    but we assume LIBNSS_FILES_SO looks like "libnss_files.so.2" and we
@@ -41,7 +42,7 @@
    pointer manipulation.  The "-1" accounts for the trailing NUL
    included in the sizeof.  */
 static const char *const __nss_shlib_revision
-	= LIBNSS_FILES_SO + sizeof("libnss_files.so") - 1;
+	= &LIBNSS_FILES_SO[sizeof("libnss_files.so") - 1];
 
 /* A single-linked list used to implement a mapping from service names
    to NSS modules.  (Most systems only use five or so modules, so a
