@@ -665,7 +665,7 @@ hunt(timezone_t tz, char *name, time_t lot, time_t hit)
 		else if (t >= hit)
 			--t;
 		tm_ok = my_localtime_rz(tz, &t, &tm) != NULL;
-		if (lotm_ok & tm_ok
+		if ((lotm_ok & tm_ok)
 		    ? (delta(&tm, &lotm) == t - lot
 		       && tm.tm_isdst == lotm.tm_isdst
 		       && strcmp(abbr(&tm), ab) == 0)
