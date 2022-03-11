@@ -7093,6 +7093,36 @@ printf "%s\n" "$libc_cv_wno_maybe_uninitialized" >&6; }
 config_vars="$config_vars
 config-cflags-wno-maybe-uninitialized = $libc_cv_wno_maybe_uninitialized"
 
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if -Wno-ignored-attributes is required for aliases" >&5
+printf %s "checking if -Wno-ignored-attributes is required for aliases... " >&6; }
+if test ${libc_cv_wno_ignored_attributes+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  cat > conftest.c <<EOF
+void __foo (void)
+{
+}
+extern __typeof (__foo) foo __attribute__ ((weak, alias ("__foo")));
+extern __typeof (__foo) bar __attribute__ ((weak, alias ("foo")));
+EOF
+libc_cv_wno_ignored_attributes=""
+if ! { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -Werror -c conftest.c'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then
+  libc_cv_wno_ignored_attributes="-Wno-ignored-attributes"
+fi
+rm -f conftest*
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_wno_ignored_attributes" >&5
+printf "%s\n" "$libc_cv_wno_ignored_attributes" >&6; }
+config_vars="$config_vars
+config-cflags-wno-ignored-attributes = $libc_cv_wno_ignored_attributes"
+
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether cc puts quotes around section names" >&5
 printf %s "checking whether cc puts quotes around section names... " >&6; }
 if test ${libc_cv_have_section_quotes+y}

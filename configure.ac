@@ -1337,6 +1337,28 @@ AC_CACHE_CHECK([for -Wno-maybe-uninitialized], libc_cv_wno_maybe_uninitialized, 
 LIBC_CONFIG_VAR([config-cflags-wno-maybe-uninitialized],
 		[$libc_cv_wno_maybe_uninitialized])
 
+dnl clang emits an warning when a double alias redirection is used, to warn
+dnl the the original symbol will be used even when weak definition is overridden.
+dnl This is a common pattern for weak_alias, where multiple alias are set to
+dnl same symbol.
+AC_CACHE_CHECK([if -Wno-ignored-attributes is required for aliases],
+	       libc_cv_wno_ignored_attributes, [dnl
+cat > conftest.c <<EOF
+void __foo (void)
+{
+}
+extern __typeof (__foo) foo __attribute__ ((weak, alias ("__foo")));
+extern __typeof (__foo) bar __attribute__ ((weak, alias ("foo")));
+EOF
+libc_cv_wno_ignored_attributes=""
+if ! AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS -Werror -c conftest.c])
+then
+  libc_cv_wno_ignored_attributes="-Wno-ignored-attributes"
+fi
+rm -f conftest*])
+LIBC_CONFIG_VAR([config-cflags-wno-ignored-attributes],
+		[$libc_cv_wno_ignored_attributes])
+
 AC_CACHE_CHECK(whether cc puts quotes around section names,
 	       libc_cv_have_section_quotes,
 	       [cat > conftest.c <<EOF

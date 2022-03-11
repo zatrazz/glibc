@@ -44,6 +44,8 @@ libm-sysdep_routines += \
   s_tan-fma \
 # libm-sysdep_routines
 
+CFLAGS-s_sincos.c += $(config-cflags-wno-ignored-attributes)
+
 CFLAGS-e_asin-fma.c = -mfma -mavx2
 CFLAGS-e_atan2-fma.c = -mfma -mavx2
 CFLAGS-e_exp-fma.c = -mfma -mavx2
