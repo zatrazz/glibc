@@ -34,7 +34,6 @@
 #include "string/strstr.c"
 
 extern __typeof (__redirect_strstr) __strstr_sse2_unaligned attribute_hidden;
-extern __typeof (__redirect_strstr) __strstr_generic attribute_hidden;
 extern __typeof (__redirect_strstr) __strstr_avx512 attribute_hidden;
 
 #include "init-arch.h"
