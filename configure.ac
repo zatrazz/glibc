@@ -1469,6 +1469,15 @@ LIBC_TRY_CC_OPTION([-Werror -fsignaling-nans],
 LIBC_CONFIG_VAR([config-cflags-signaling-nans],
 		[$libc_cv_cc_signaling_nans])
 
+dnl Determina if compiler support -frounding-math
+AC_CACHE_CHECK([for compiler option -frounding-math], libc_cv_cc_rounding_math, [dnl
+LIBC_TRY_CC_OPTION([-Werror -frounding-math],
+		   [libc_cv_cc_rounding_math=-frounding-math],
+		   [libc_cv_cc_rounding_math=])
+])
+LIBC_CONFIG_VAR([config-cflags-frounding-math],
+		[$libc_cv_cc_rounding_math])
+
 AC_CACHE_CHECK(if $CC accepts -fno-tree-loop-distribute-patterns with \
 __attribute__ ((__optimize__)), libc_cv_cc_loop_to_function, [dnl
 cat > conftest.c <<EOF
