@@ -113,7 +113,7 @@ __pathconf (const char *path, int name)
       return _POSIX_NO_TRUNC;
 
     case _PC_VDISABLE:
-#if _POSIX_VDISABLE == -1
+#if _POSIX_VDISABLE == -1U
 # error "Invalid value for _POSIX_VDISABLE"
 #endif
       return _POSIX_VDISABLE;
