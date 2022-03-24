@@ -16,6 +16,6 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include_next <test-float-vlen16.h>
+#include <math/test-float-vlen16.h>
 
 #define REQUIRE_AVX512F
