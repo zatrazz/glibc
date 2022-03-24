@@ -22,7 +22,7 @@
 #define STRING_SIZE 1024
 char string1[STRING_SIZE];
 
-__attribute__ ((noinline, noclone))
+__attribute__ ((noinline)) __attribute_noclone__
 static int
 prepare (void)
 {
@@ -30,7 +30,7 @@ prepare (void)
   return EXIT_SUCCESS;
 }
 
-__attribute__ ((noinline, noclone))
+__attribute__ ((noinline)) __attribute_noclone__
 static int
 function (void)
 {
