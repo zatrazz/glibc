@@ -19,6 +19,7 @@
 /* Defining _LIBC_TEST ensures long double math functions are
    declared in the headers.  */
 #define _LIBC_TEST 1
+#define NO_MATH_REDIRECT
 #include <locale.h>
 #include <stdio.h>
 #include <stdlib.h>
