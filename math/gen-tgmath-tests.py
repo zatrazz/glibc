@@ -53,6 +53,7 @@
 # supported on any given configuration of glibc, the MANT_DIG value
 # uniquely determines the format.
 
+import argparse
 import string
 import sys
 
@@ -182,7 +183,7 @@ class Type(object):
         return self.name
 
     @staticmethod
-    def init_types():
+    def init_types(complex_int128):
         """Initialize all the known types."""
         Type.create_type('_Float16', 'f16', 'FLT16_MANT_DIG',
                          complex_name='__CFLOAT16',
@@ -219,9 +220,11 @@ class Type(object):
         Type.create_type('long long int', integer=True)
         Type.create_type('unsigned long long int', integer=True)
         Type.create_type('__int128', integer=True,
-                         condition='defined __SIZEOF_INT128__')
+                         condition='defined __SIZEOF_INT128__',
+                         complex_ok=complex_int128)
         Type.create_type('unsigned __int128', integer=True,
-                         condition='defined __SIZEOF_INT128__')
+                         condition='defined __SIZEOF_INT128__',
+                         complex_ok=complex_int128)
         Type.create_type('enum e', integer=True, complex_ok=False)
         Type.create_type('_Bool', integer=True, complex_ok=False)
         Type.create_type('bit_field', integer=True, complex_ok=False)
@@ -834,15 +837,32 @@ class Tests(object):
             print('error: macro list mismatch')
             sys.exit(1)
 
-def main():
+def get_parser():
+    def strbool(string):
+        return True if string.lower() == 'yes' else False
+
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument('--complex-int128', dest='complex_int128',
+                        help='Generate tests for _Complex __int128',
+                        type=strbool)
+    parser.add_argument('--check-list', action='store_true',
+                        help='Verify that the list of supported macros')
+    parser.add_argument('macro',
+                        help='macro to test',
+                        nargs='*')
+    return parser
+
+def main(argv):
     """The main entry point."""
-    Type.init_types()
+    parser = get_parser()
+    opts = parser.parse_args(argv)
+    Type.init_types(True if opts.complex_int128 == 'yes' else False)
     t = Tests()
-    if sys.argv[1] == 'check-list':
+    if opts.check_list:
         macro = None
-        macro_list = sys.argv[2:]
+        macro_list = opts.macro
     else:
-        macro = sys.argv[1]
+        macro = opts.macro
         macro_list = []
     t.add_all_tests(macro)
     if macro:
@@ -851,4 +871,4 @@ def main():
         t.check_macro_list(macro_list)
 
 if __name__ == '__main__':
-    main()
+    main(sys.argv[1:])

@@ -396,7 +396,7 @@ $(tgmath3-macro-tests:%=$(objpfx)%.o): CFLAGS += -fno-builtin
 $(foreach m,$(tgmath3-macros),\
 	    $(objpfx)test-tgmath3-$(m).c): $(objpfx)test-tgmath3-%.c: \
 					   gen-tgmath-tests.py
-	$(PYTHON) gen-tgmath-tests.py $* > $@
+	$(PYTHON) gen-tgmath-tests.py --complex-int128 $(config-complex-int128) $* > $@
 
 # Verify that the list of supported macros is in sync between the
 # Makefile and gen-tgmath-tests.py.

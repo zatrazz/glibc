@@ -1488,6 +1488,23 @@ LIBC_TRY_CC_OPTION([-Werror -ffloat-store],
 LIBC_CONFIG_VAR([config-cflags-float-store],
 		[$libc_cv_cc_float_store])
 
+AC_CACHE_CHECK([whether compiler supports _Complex with __int128],
+	       [libc_cv_complex_int128], [dnl
+cat > conftest.c <<EOF
+#ifndef __SIZEOF_INT128__
+# error "__int128 not supported"
+#endif
+_Complex __int128 var;
+EOF
+libc_cv_complex_int128=no
+if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS -c conftest.c 1>&AS_MESSAGE_LOG_FD])
+then
+  libc_cv_complex_int128=yes
+fi
+rm -f conftest*])
+LIBC_CONFIG_VAR([config-complex-int128],
+                [$libc_cv_complex_int128])
+
 AC_CACHE_CHECK(if $CC accepts -fno-tree-loop-distribute-patterns with \
 __attribute__ ((__optimize__)), libc_cv_cc_loop_to_function, [dnl
 cat > conftest.c <<EOF

@@ -7389,6 +7389,35 @@ printf "%s\n" "$libc_cv_cc_float_store" >&6; }
 config_vars="$config_vars
 config-cflags-float-store = $libc_cv_cc_float_store"
 
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether compiler supports _Complex with __int128" >&5
+printf %s "checking whether compiler supports _Complex with __int128... " >&6; }
+if test ${libc_cv_complex_int128+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  cat > conftest.c <<EOF
+#ifndef __SIZEOF_INT128__
+# error "__int128 not supported"
+#endif
+_Complex __int128 var;
+EOF
+libc_cv_complex_int128=no
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -c conftest.c 1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then
+  libc_cv_complex_int128=yes
+fi
+rm -f conftest*
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_complex_int128" >&5
+printf "%s\n" "$libc_cv_complex_int128" >&6; }
+config_vars="$config_vars
+config-complex-int128 = $libc_cv_complex_int128"
+
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if $CC accepts -fno-tree-loop-distribute-patterns with \
 __attribute__ ((__optimize__))" >&5
 printf %s "checking if $CC accepts -fno-tree-loop-distribute-patterns with \
