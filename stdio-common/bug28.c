@@ -5,6 +5,10 @@
 int
 do_test (void)
 {
+#ifdef __clang__
+  /* It triggers an infinite loop on clang.  */
+  return 77;
+#else
   size_t instances = 16384;
 #define X0 "\n%1$s\n" "%1$s" "%2$s" "%2$s" "%3$s" "%4$s" "%5$d" "%5$d"
   const char *item = "\na\nabbcd55";
@@ -45,6 +49,7 @@ do_test (void)
     }
   free (buf);
   return 0;
+#endif
 }
 #define TEST_FUNCTION do_test ()
 #include "../test-skeleton.c"
