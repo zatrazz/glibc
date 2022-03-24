@@ -1478,6 +1478,16 @@ LIBC_TRY_CC_OPTION([-Werror -frounding-math],
 LIBC_CONFIG_VAR([config-cflags-frounding-math],
 		[$libc_cv_cc_rounding_math])
 
+dnl Determine if compiler supports -ffloat-store
+AC_CACHE_CHECK([for compiler option that -ffloat-store],
+	       libc_cv_cc_float_store, [dnl
+LIBC_TRY_CC_OPTION([-Werror -ffloat-store],
+		   [libc_cv_cc_float_store=-ffloat-store],
+		   [libc_cv_cc_float_store=])
+])
+LIBC_CONFIG_VAR([config-cflags-float-store],
+		[$libc_cv_cc_float_store])
+
 AC_CACHE_CHECK(if $CC accepts -fno-tree-loop-distribute-patterns with \
 __attribute__ ((__optimize__)), libc_cv_cc_loop_to_function, [dnl
 cat > conftest.c <<EOF
