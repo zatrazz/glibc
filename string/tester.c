@@ -380,11 +380,19 @@ test_strncat (void)
      mechanism.  */
   it = "strncat";
   (void) strcpy (one, "ijk");
+  /* clang complains that size argument is too large for the destination
+     buffer.  */
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wfortify-source");
   check (strncat (one, "lmn", 99) == one, 1);	/* Returned value. */
+  DIAG_POP_NEEDS_COMMENT_CLANG;
   equal (one, "ijklmn", 2);		/* Basic test. */
 
   (void) strcpy (one, "x");
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wfortify-source");
   (void) strncat (one, "yz", 99);
+  DIAG_POP_NEEDS_COMMENT_CLANG;
   equal (one, "xyz", 3);		/* Writeover. */
   equal (one+4, "mn", 4);		/* Wrote too much? */
 
@@ -397,6 +405,7 @@ test_strncat (void)
      GCC 7 or newer.  */
 #if __GNUC_PREREQ (7, 0)
   (void) strncat (one, two, 99);
+  DIAG_POP_NEEDS_COMMENT_CLANG;
   equal (one, "ghef", 5);			/* Basic test encore. */
 #else
   equal (one, "gh", 2);
@@ -404,13 +413,22 @@ test_strncat (void)
   equal (two, "ef", 6);			/* Stomped on source? */
 
   (void) strcpy (one, "");
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wfortify-source");
   (void) strncat (one, "", 99);
+  DIAG_POP_NEEDS_COMMENT_CLANG;
   equal (one, "", 7);			/* Boundary conditions. */
   (void) strcpy (one, "ab");
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wfortify-source");
   (void) strncat (one, "", 99);
+  DIAG_POP_NEEDS_COMMENT_CLANG;
   equal (one, "ab", 8);
   (void) strcpy (one, "");
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wfortify-source");
   (void) strncat (one, "cd", 99);
+  DIAG_POP_NEEDS_COMMENT_CLANG;
   equal (one, "cd", 9);
 
   (void) strcpy (one, "ab");
@@ -423,7 +441,10 @@ test_strncat (void)
   (void) strncat (one, "gh", 2);
   equal (one, "abcdgh", 12);		/* Count and length equal. */
 
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wfortify-source");
   (void) strncat (one, "ij", (size_t)-1);	/* set sign bit in count */
+  DIAG_POP_NEEDS_COMMENT_CLANG;
   equal (one, "abcdghij", 13);
 
   int ntest = 14;
@@ -1427,7 +1448,12 @@ test_bzero (void)
   equal(one+4, "ef", 3);
 
   (void) strcpy(one, "abcdef");
+
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  /* clang complains about the 0 size argument for bzero.  */
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wsuspicious-bzero");
   bzero(one+2, 0);
+  DIAG_POP_NEEDS_COMMENT_CLANG
   equal(one, "abcdef", 4);		/* Zero-length copy. */
 }
 
