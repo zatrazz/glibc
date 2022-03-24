@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <tgmath.h>
+#include <libc-diag.h>
 
 
 int
@@ -29,6 +30,12 @@ main (void)
   TEST (cimag (1.0f), sizeof (float));
   TEST (cimag (1.0f + 1.0fi), sizeof (float));
 
+  /* The type generic fabs expansion issues the floating point absolute with
+     the wrong argument type (for instance cabs with floating point or fabs
+     with a complex type) and clang warns that implicit conversion might
+     incur in unexpected behavior.  */
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wabsolute-value");
   TEST (fabs (1.0), sizeof (double));
   TEST (fabs (1.0 + 1.0i), sizeof (double));
   TEST (fabs (1.0l), sizeof (long double));
