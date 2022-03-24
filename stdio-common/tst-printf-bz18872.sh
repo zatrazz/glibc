@@ -31,7 +31,13 @@ cat <<'EOF'
   Compile do_test without optimization: GCC 4.9/5.0/6.0 takes a long time
   to build this source. https://gcc.gnu.org/bugzilla/show_bug.cgi?id=67396  */
 
-__attribute__ ((optimize ("-O0")))
+#if __GNUC_PREREQ (4, 4) || __glibc_has_attribute (__optimize__)
+# define attribute_optimize(level) __attribute__ ((optimize (level)))
+#else
+# define attribute_optimize(level)
+#endif
+
+attribute_optimize ("-O0")
 int do_test (void)
 {
     mtrace ();
