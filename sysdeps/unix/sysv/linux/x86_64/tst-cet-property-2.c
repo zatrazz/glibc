@@ -25,7 +25,7 @@
 extern void bar (void);
 
 void
-__attribute__ ((noclone, noinline))
+__attribute__ ((noinline)) __attribute_noclone__
 test (void (*func_p) (void))
 {
   func_p ();

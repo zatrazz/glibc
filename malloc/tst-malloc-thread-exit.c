@@ -42,7 +42,7 @@ static int inner_thread_count = 4;
 static size_t malloc_size = 32;
 
 static void
-__attribute__ ((noinline, noclone))
+__attribute__ ((noinline)) __attribute_noclone__
 unoptimized_free (void *ptr)
 {
   free (ptr);

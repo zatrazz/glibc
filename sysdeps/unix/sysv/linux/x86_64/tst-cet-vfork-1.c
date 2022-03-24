@@ -25,7 +25,7 @@
 #include <x86intrin.h>
 #include <support/test-driver.h>
 
-__attribute__ ((noclone, noinline))
+__attribute__ ((noinline)) __attribute_noclone__
 static void
 do_test_1 (void)
 {

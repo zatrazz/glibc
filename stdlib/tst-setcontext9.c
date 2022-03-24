@@ -26,7 +26,7 @@ static ucontext_t ctx[5];
 static atomic_int done;
 
 static void
-__attribute__((noinline, noclone))
+__attribute__((noinline)) __attribute_noclone__
 f2 (void)
 {
   done++;

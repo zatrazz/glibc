@@ -20,7 +20,7 @@
 #include <stdint.h>
 
 int
-__attribute__ ((weak, noclone, noinline))
+__attribute__ ((weak, noinline)) __attribute_noclone__
 is_aligned (void *p, int align)
 {
   return (((uintptr_t) p) & (align - 1)) != 0;
