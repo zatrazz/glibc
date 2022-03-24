@@ -85,5 +85,15 @@ if test $libc_cv_include_x86_isa_level = yes; then
 fi
 LIBC_CONFIG_VAR([enable-x86-isa-level], [$libc_cv_include_x86_isa_level])
 
+dnl Determine if compiler supports -mfpmath=387
+AC_CACHE_CHECK([if compiler supports -mpfmath=387],
+	       libc_cv_cc_mfpmath_387, [dnl
+LIBC_TRY_CC_OPTION([-Werror -mfpmath=387],
+		   [libc_cv_cc_mfpmath_387="-mfpmath=387"],
+		   [libc_cv_cc_mfpmath_387=])
+])
+LIBC_CONFIG_VAR([config-cflags-mfpath-387],
+		[$libc_cv_cc_mfpmath_387])
+
 dnl Static PIE is supported.
 AC_DEFINE(SUPPORT_STATIC_PIE)
