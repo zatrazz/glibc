@@ -21,7 +21,7 @@
 #include <signal.h>
 
 static void
-__attribute__ ((noinline, noclone))
+__attribute__ ((noinline)) __attribute_noclone__
 test (char *foo)
 {
   int i;

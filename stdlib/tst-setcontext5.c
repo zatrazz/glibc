@@ -27,7 +27,7 @@ static volatile int done;
 static void f2 (void);
 
 static void
-__attribute__ ((noinline, noclone))
+__attribute__ ((noinline)) __attribute_noclone__
 f1 (void)
 {
   printf ("start f1\n");
@@ -35,7 +35,7 @@ f1 (void)
 }
 
 static void
-__attribute__ ((noinline, noclone))
+__attribute__ ((noinline)) __attribute_noclone__
 f2 (void)
 {
   printf ("start f2\n");

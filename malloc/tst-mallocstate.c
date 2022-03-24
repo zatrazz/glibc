@@ -366,7 +366,7 @@ full_heap_check (void)
 }
 
 /* Used as an optimization barrier to force a heap allocation.  */
-__attribute__ ((noinline, noclone))
+__attribute__ ((noinline)) __attribute_noclone__
 static void
 my_free (void *ptr)
 {
