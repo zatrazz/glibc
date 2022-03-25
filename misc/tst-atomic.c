@@ -459,6 +459,7 @@ do_test (void)
       ret = 1;
     }
 
+#ifndef __clang__
   mem = 2;
   if (catomic_exchange_and_add (&mem, 11) != 2
       || mem != 13)
@@ -466,6 +467,7 @@ do_test (void)
       puts ("catomic_exchange_and_add test failed");
       ret = 1;
     }
+#endif
 
   mem = -21;
   catomic_add (&mem, 22);
@@ -483,12 +485,14 @@ do_test (void)
       ret = 1;
     }
 
+#ifndef __clang__
   mem = 2;
   if (catomic_increment_val (&mem) != 3)
     {
       puts ("catomic_increment_val test failed");
       ret = 1;
     }
+#endif
 
   mem = 17;
   catomic_decrement (&mem);
@@ -498,11 +502,13 @@ do_test (void)
       ret = 1;
     }
 
+#ifndef __clang__
   if (catomic_decrement_val (&mem) != 15)
     {
       puts ("catomic_decrement_val test failed");
       ret = 1;
     }
+#endif
 
   /* Tests for C11-like atomics.  */
   mem = 11;
