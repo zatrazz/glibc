@@ -1543,6 +1543,15 @@ rm -f conftest*])
 LIBC_CONFIG_VAR([have-cc-trampoline],
 		[$libc_cv_cc_trampoline])
 
+AC_CACHE_CHECK([if $CC supports -finput-charset=ascii],
+	       libc_cv_cc_charset_ascii, [dnl
+LIBC_TRY_CC_OPTION([-Werror -finput-charset=ascii],
+		   [libc_cv_cc_charset_ascii="yes"],
+		   [libc_cv_cc_charset_ascii="no"])
+])
+LIBC_CONFIG_VAR([config-cflags-charset-ascii],
+		[$libc_cv_cc_charset_ascii])
+
 dnl Check whether we have the gd library available.
 AC_MSG_CHECKING(for libgd)
 if test "$with_gd" != "no"; then
