@@ -23,6 +23,8 @@
 #include <string.h>
 #include <sys/wait.h>
 #include <stackguard-macros.h>
+#undef attribute_relro
+#define attribute_relro
 #include <tls.h>
 #include <unistd.h>
 
