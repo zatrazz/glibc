@@ -45,16 +45,14 @@ f (void *a)
    implementation.  */
 #define wait_tid(ctid_ptr, ctid_val)					\
   do {									\
-    __typeof (*(ctid_ptr)) __tid;					\
     /* We need acquire MO here so that we synchronize with the		\
        kernel's store to 0 when the clone terminates.  */		\
-    while ((__tid = atomic_load_explicit (ctid_ptr,			\
-					  memory_order_acquire)) != 0)	\
+    while (atomic_load_explicit (ctid_ptr, memory_order_acquire) != 0)	\
       futex_wait (ctid_ptr, ctid_val);					\
   } while (0)
 
 static inline int
-futex_wait (int *futexp, int val)
+futex_wait (_Atomic pid_t *futexp, int val)
 {
 #ifdef __NR_futex
   return syscall (__NR_futex, futexp, FUTEX_WAIT, val);
@@ -75,7 +73,7 @@ do_test (void)
   /* Initialize with a known value.  ctid is set to zero by the kernel after the
      cloned thread has exited.  */
 #define CTID_INIT_VAL 1
-  pid_t ctid = CTID_INIT_VAL;
+  _Atomic pid_t ctid = CTID_INIT_VAL;
   pid_t tid;
 
   struct clone_args clone_args =
