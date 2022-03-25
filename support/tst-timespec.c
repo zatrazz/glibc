@@ -20,6 +20,7 @@
 #include <support/check.h>
 #include <limits.h>
 #include <intprops.h>
+#include <libc-diag.h>
 
 #define TIMESPEC_HZ 1000000000
 
@@ -179,6 +180,11 @@ struct timespec_norm_test_case norm_cases[] = {
   }
 };
 
+/* clang warns that converting from TIME_T_MAX to double (upper_bound)
+   loses precision (from 9223372036854775807 to 9223372036854775808).
+   It does not matter in tests below.  */
+DIAG_PUSH_NEEDS_COMMENT_CLANG;
+DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wimplicit-const-int-float-conversion");
 /* Test cases for timespec_check_in_range  */
 struct timespec_test_case check_cases[] = {
   /* 0 - In range  */
@@ -290,6 +296,7 @@ struct timespec_test_case check_cases[] = {
    .upper_bound = TIME_T_MAX, .lower_bound = 1, .result = 1,
   },
 };
+DIAG_POP_NEEDS_COMMENT_CLANG;
 
 static int
 do_test (void)
