@@ -7313,8 +7313,8 @@ printf %s "checking for -Wno-maybe-uninitialized... " >&6; }
 if test ${libc_cv_wno_maybe_uninitialized+y}
 then :
   printf %s "(cached) " >&6
-else $as_nop
-  		if { ac_try='${CC-cc} -Werror -Wno-maybe-uninitialized -xc /dev/null -S -o /dev/null'
+else case e in #(
+  e) 		if { ac_try='${CC-cc} -Werror -Wno-maybe-uninitialized -xc /dev/null -S -o /dev/null'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7322,10 +7322,12 @@ else $as_nop
   test $ac_status = 0; }; }
 then :
   libc_cv_wno_maybe_uninitialized=-Wno-maybe-uninitialized
-else $as_nop
-  libc_cv_wno_maybe_uninitialized=
+else case e in #(
+  e) libc_cv_wno_maybe_uninitialized= ;;
+esac
 fi
-
+ ;;
+esac
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_wno_maybe_uninitialized" >&5
 printf "%s\n" "$libc_cv_wno_maybe_uninitialized" >&6; }
@@ -7337,8 +7339,8 @@ printf %s "checking for -fexcess-precision=standard... " >&6; }
 if test ${libc_cv_fexcess_precision_standard+y}
 then :
   printf %s "(cached) " >&6
-else $as_nop
-  		if { ac_try='${CC-cc} -Werror -fexcess-precision=standard -xc /dev/null -S -o /dev/null'
+else case e in #(
+  e) 		if { ac_try='${CC-cc} -Werror -fexcess-precision=standard -xc /dev/null -S -o /dev/null'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7346,10 +7348,12 @@ else $as_nop
   test $ac_status = 0; }; }
 then :
   libc_cv_fexcess_precision_standard=-fexcess-precision=standard
-else $as_nop
-  libc_cv_fexcess_precision_standard=
+else case e in #(
+  e) libc_cv_fexcess_precision_standard= ;;
+esac
 fi
-
+ ;;
+esac
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_fexcess_precision_standard" >&5
 printf "%s\n" "$libc_cv_fexcess_precision_standard" >&6; }
@@ -7538,8 +7542,8 @@ printf %s "checking for compiler option -frounding-math... " >&6; }
 if test ${libc_cv_cc_rounding_math+y}
 then :
   printf %s "(cached) " >&6
-else $as_nop
-  if { ac_try='${CC-cc} -Werror -frounding-math -xc /dev/null -S -o /dev/null'
+else case e in #(
+  e) if { ac_try='${CC-cc} -Werror -frounding-math -xc /dev/null -S -o /dev/null'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7547,10 +7551,12 @@ else $as_nop
   test $ac_status = 0; }; }
 then :
   libc_cv_cc_rounding_math=-frounding-math
-else $as_nop
-  libc_cv_cc_rounding_math=
+else case e in #(
+  e) libc_cv_cc_rounding_math= ;;
+esac
 fi
-
+ ;;
+esac
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_cc_rounding_math" >&5
 printf "%s\n" "$libc_cv_cc_rounding_math" >&6; }
@@ -7562,8 +7568,8 @@ printf %s "checking for compiler option that -ffloat-store... " >&6; }
 if test ${libc_cv_cc_float_store+y}
 then :
   printf %s "(cached) " >&6
-else $as_nop
-  if { ac_try='${CC-cc} -Werror -ffloat-store -xc /dev/null -S -o /dev/null'
+else case e in #(
+  e) if { ac_try='${CC-cc} -Werror -ffloat-store -xc /dev/null -S -o /dev/null'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
   (eval $ac_try) 2>&5
   ac_status=$?
@@ -7571,10 +7577,12 @@ else $as_nop
   test $ac_status = 0; }; }
 then :
   libc_cv_cc_float_store=-ffloat-store
-else $as_nop
-  libc_cv_cc_float_store=
+else case e in #(
+  e) libc_cv_cc_float_store= ;;
+esac
 fi
-
+ ;;
+esac
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_cc_float_store" >&5
 printf "%s\n" "$libc_cv_cc_float_store" >&6; }
@@ -7586,8 +7594,8 @@ printf %s "checking whether compiler supports _Complex with __int128... " >&6; }
 if test ${libc_cv_complex_int128+y}
 then :
   printf %s "(cached) " >&6
-else $as_nop
-  cat > conftest.c <<EOF
+else case e in #(
+  e) cat > conftest.c <<EOF
 #ifndef __SIZEOF_INT128__
 # error "__int128 not supported"
 #endif
@@ -7603,7 +7611,8 @@ if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -c conftest.c 1>&5'
 then
   libc_cv_complex_int128=yes
 fi
-rm -f conftest*
+rm -f conftest* ;;
+esac
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_complex_int128" >&5
 printf "%s\n" "$libc_cv_complex_int128" >&6; }
@@ -7669,6 +7678,40 @@ fi
 printf "%s\n" "$libc_cv_cc_wimplicit_fallthrough" >&6; }
 config_vars="$config_vars
 cc-option-wimplicit-fallthrough = $libc_cv_cc_wimplicit_fallthrough"
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if $CC has support for trampolines" >&5
+printf %s "checking if $CC has support for trampolines... " >&6; }
+if test ${libc_cv_cc_trampoline+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat > conftest.c <<EOF
+void bar (void (*callback) (void));
+int foo (void)
+{
+  int var = 0;
+  void callback (void) { var = 1; }
+  bar (callback);
+  return var;
+}
+EOF
+libc_cv_cc_trampoline=no
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS -Werror -c conftest.c'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then
+  libc_cv_cc_trampoline=yes
+fi
+rm -f conftest* ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_cc_trampoline" >&5
+printf "%s\n" "$libc_cv_cc_trampoline" >&6; }
+config_vars="$config_vars
+have-cc-trampoline = $libc_cv_cc_trampoline"
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libgd" >&5
 printf %s "checking for libgd... " >&6; }

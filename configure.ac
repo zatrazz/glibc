@@ -1559,6 +1559,26 @@ LIBC_TRY_CC_OPTION([-Werror -Wimplicit-fallthrough],
 LIBC_CONFIG_VAR([cc-option-wimplicit-fallthrough],
 		[$libc_cv_cc_wimplicit_fallthrough])
 
+AC_CACHE_CHECK(if $CC has support for trampolines, libc_cv_cc_trampoline, [dnl
+cat > conftest.c <<EOF
+void bar (void (*callback) (void));
+int foo (void)
+{
+  int var = 0;
+  void callback (void) { var = 1; }
+  bar (callback);
+  return var;
+}
+EOF
+libc_cv_cc_trampoline=no
+if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS -Werror -c conftest.c])
+then
+  libc_cv_cc_trampoline=yes
+fi
+rm -f conftest*])
+LIBC_CONFIG_VAR([have-cc-trampoline],
+		[$libc_cv_cc_trampoline])
+
 dnl Check whether we have the gd library available.
 AC_MSG_CHECKING(for libgd)
 if test "$with_gd" != "no"; then
