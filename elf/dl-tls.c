@@ -75,6 +75,8 @@
 /* Default for dl_tls_static_optional.  */
 #define OPTIONAL_TLS 512
 
+#define TLS_DTV_UNALLOCATED ((void *) TLS_DTV_UNALLOCATED_VALUE)
+
 /* Used to count the number of threads currently executing dynamic TLS
    updates.  Used to avoid recursive malloc calls in __tls_get_addr
    for an interposed malloc that uses global-dynamic TLS (which is not
