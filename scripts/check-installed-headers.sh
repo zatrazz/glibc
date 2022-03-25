@@ -33,8 +33,8 @@ lib_modes="-D_DEFAULT_SOURCE=1 -D_GNU_SOURCE=1 -D_XOPEN_SOURCE=700"
 # maximum value to be checked is define by maximum_fortify argument.
 fortify_modes=""
 
-if [ $# -lt 3 ]; then
-    echo "usage: $0 c|c++ maximum_fortify \"compile command\" header header header..." >&2
+if [ $# -lt 4 ]; then
+    echo "usage: $0 c|c++ maximum_fortify finput-charset \"compile command\" header header header..." >&2
     exit 2
 fi
 case "$1" in
@@ -52,6 +52,12 @@ case "$1" in
 esac
 shift
 fortify_modes=$(seq -s' ' 1 $1)
+shift
+if [ "$1" = "yes" ]; then
+  finputcharset="-finput-charset=ascii"
+else
+  finputcharset=""
+fi
 shift
 cc_cmd="$1"
 shift
@@ -130,7 +136,7 @@ $expanded_lib_mode
 #include <$header>
 int avoid_empty_translation_unit;
 EOF
-                if $cc_cmd -finput-charset=ascii -fsyntax-only $lang_mode \
+                if $cc_cmd $finputcharset -fsyntax-only $lang_mode \
 		           "$cih_test_c" 2>&1
                 then :
                 else failed=1
