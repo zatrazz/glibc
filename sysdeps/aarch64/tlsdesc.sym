@@ -15,4 +15,4 @@ TLSDESC_MODID		offsetof(struct tlsdesc_dynamic_arg, tlsinfo.ti_module)
 TLSDESC_MODOFF		offsetof(struct tlsdesc_dynamic_arg, tlsinfo.ti_offset)
 TCBHEAD_DTV		offsetof(tcbhead_t, dtv)
 DTV_COUNTER		offsetof(dtv_t, counter)
-TLS_DTV_UNALLOCATED	TLS_DTV_UNALLOCATED
+TLS_DTV_UNALLOCATED	TLS_DTV_UNALLOCATED_VALUE

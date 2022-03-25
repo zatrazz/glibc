@@ -75,6 +75,8 @@
 /* Default for dl_tls_static_optional.  */
 #define OPTIONAL_TLS 512
 
+#define TLS_DTV_UNALLOCATED ((void *) TLS_DTV_UNALLOCATED_VALUE)
+
 /* Compute the static TLS surplus based on the namespace count and the
    TLS space that can be used for optimizations.  */
 static inline int

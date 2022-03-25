@@ -33,6 +33,6 @@ typedef union dtv
 } dtv_t;
 
 /* Value used for dtv entries for which the allocation is delayed.  */
-#define TLS_DTV_UNALLOCATED ((void *) -1l)
+#define TLS_DTV_UNALLOCATED_VALUE -1l
 
 #endif /* _DLT_DTV_H */
