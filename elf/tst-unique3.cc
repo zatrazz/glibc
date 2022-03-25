@@ -1,9 +1,14 @@
+#include <cstdio>
+#include <dlfcn.h>
+#include <libc-diag.h>
 #include "tst-unique3.h"
 
-#include <cstdio>
-#include "../dlfcn/dlfcn.h"
-
+/* clang warns that the instatiation of the variable is required, but no
+   definition is available.  They are implemented on tst-unique3lib.so.  */
+DIAG_PUSH_NEEDS_COMMENT_CLANG;
+DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wundefined-var-template");
 int t = S<char>::i;
+DIAG_POP_NEEDS_COMMENT_CLANG;
 
 int
 main (void)
