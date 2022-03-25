@@ -83,7 +83,11 @@ do_test (void)
   errno = 0;
 
   /* Test to expose integer overflow in malloc internals from BZ #16038.  */
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wnon-power-of-two-alignment");
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wbuiltin-assume-aligned-alignment");
   p = memalign (-1, pagesize);
+  DIAG_POP_NEEDS_COMMENT_CLANG;
 
   save = errno;
 
