@@ -539,7 +539,7 @@ endif
 selinux-enabled := $(shell cat /selinux/enforce 2> /dev/null)
 
 ifneq ($(selinux-enabled),1)
-tests-execstack-yes = \
+tests-execstack-yesyes = \
   tst-execstack \
   tst-execstack-needed \
   tst-execstack-prog \
@@ -630,7 +630,7 @@ $(objpfx)tst-rtld-does-not-exist.out: tst-rtld-does-not-exist.sh $(objpfx)ld.so
 	$(SHELL) $< $(objpfx)ld.so > $@; \
 	$(evaluate-test)
 
-tests += $(tests-execstack-$(have-z-execstack))
+tests += $(tests-execstack-$(have-z-execstack)$(have-cc-trampoline))
 ifeq ($(run-built-tests),yes)
 tests-special += \
   $(objpfx)tst-ldconfig-X.out \
@@ -1017,7 +1017,7 @@ modules-names-cxx = \
 
 modules-names += \
   $(if $(CXX),$(modules-names-cxx)) \
-  $(modules-execstack-$(have-z-execstack)) \
+  $(modules-execstack-$(have-z-execstack)$(have-cc-trampoline)) \
   $(tlsmod17a-modules) \
   $(tlsmod18a-modules) \
   $(tst-tls-many-dynamic-modules) \
@@ -1076,7 +1076,7 @@ tests-pie += vismain
 CFLAGS-vismain.c += $(PIE-ccflag)
 endif
 endif
-modules-execstack-yes = tst-execstack-mod
+modules-execstack-yesyes = tst-execstack-mod
 extra-test-objs += $(addsuffix .os,$(strip $(modules-names)))
 
 # filtmod1.so, tst-big-note-lib.so, tst-ro-dynamic-mod.so have special
@@ -1867,7 +1867,7 @@ $(objpfx)unload8.out: $(objpfx)unload8mod1.so $(objpfx)unload8mod1x.so
 
 $(objpfx)tst-tls9-static.out: $(objpfx)tst-tlsmod5.so $(objpfx)tst-tlsmod6.so
 
-ifeq ($(have-z-execstack),yes)
+ifeq ($(have-z-execstack)$(have-cc-trampoline),yesyes)
 $(objpfx)tst-execstack.out: $(objpfx)tst-execstack-mod.so
 CPPFLAGS-tst-execstack.c += -DUSE_PTHREADS=0
 LDFLAGS-tst-execstack = -Wl,-z,noexecstack
