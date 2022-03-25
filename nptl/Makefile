@@ -465,7 +465,7 @@ tests-internal += \
   tst-tls3-malloc \
   tst-tls5 \
   # tests-internal
-ifeq ($(have-z-execstack),yes)
+ifeq ($(have-z-execstack)$(have-cc-trampoline),yesyes)
 tests += tst-execstack-threads
 endif
 endif
@@ -474,7 +474,6 @@ modules-names = \
   tst-audit-threads-mod1 \
   tst-audit-threads-mod2 \
   tst-compat-forwarder-mod \
-  tst-execstack-threads-mod \
   tst-stack4mod \
   tst-tls3mod \
   tst-tls5mod \
@@ -485,6 +484,11 @@ modules-names = \
   tst-tls5mode \
   tst-tls5modf \
   # modules-names
+ifeq ($(have-z-execstack)$(have-cc-trampoline),yesyes)
+modules-names += \
+  tst-execstack-threads-mod \
+  # modules-names
+endif
 extra-test-objs += \
   $(addsuffix .os,$(strip $(modules-names))) \
   tst-cleanup4aux.o \
