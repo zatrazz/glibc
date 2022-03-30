@@ -370,3 +370,18 @@ tst-mallocstate-malloc-check-ENV = LD_PRELOAD=$(objpfx)libc_malloc_debug.so
 # libc_malloc_debug.so.
 $(objpfx)tst-mallocstate: $(objpfx)libc_malloc_debug.so
 $(objpfx)tst-mallocstate-malloc-check: $(objpfx)libc_malloc_debug.so
+
+CFLAGS-tst-memalign.c += -fno-builtin
+CFLAGS-tst-memalign-2.c += -fno-builtin
+CFLAGS-tst-memalign-3.c += -fno-builtin
+CFLAGS-tst-malloc.c += -fno-builtin
+CFLAGS-tst-malloc-backtrace.c += -fno-builtin
+CFLAGS-tst-malloc-check.c += -fno-builtin
+CFLAGS-tst-malloc-too-large.c += -fno-builtin
+CFLAGS-tst-realloc.c += -fno-builtin
+CFLAGS-tst-valloc.c += -fno-builtin
+CFLAGS-tst-compathooks-off.c += -fno-builtin
+CFLAGS-tst-compathooks-on.c += -fno-builtin
+CFLAGS-tst-mallinfo2.c += -fno-builtin
+CFLAGS-tst-aligned-alloc.c += -fno-builtin
+CFLAGS-tst-aligned-alloc-static.c += -fno-builtin
