@@ -881,4 +881,11 @@ _Static_assert (0, "IEEE 128-bits long double requires redirection on this platf
 # define __attribute_noclone__ /* Ignore.  */
 #endif
 
+/* Not all compiles support _Bool type in C++.  */
+#ifdef	__cplusplus
+# define __BOOLEAN bool
+#else
+# define __BOOLEAN _Bool
+#endif
+
 #endif	 /* sys/cdefs.h */
