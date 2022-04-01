@@ -352,7 +352,7 @@
 #define frexpl frexpf128
 #define getpayloadl getpayloadf128
 #define isinfl isinff128_do_not_use
-#define isnanl isnanf128_do_not_use
+#define isnanl isnanf128
 #define ldexpl ldexpf128
 #define llrintl llrintf128
 #define llroundl llroundf128
