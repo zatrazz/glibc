@@ -1916,6 +1916,7 @@ libc_cv_localstatedir=$localstatedir
 libc_cv_gcc_unwind_find_fde=no
 libc_cv_idn=no
 pthread_in_libc=yes
+abort_in_ld=no
 
 # Iterate over all the sysdep directories we will use, running their
 # configure fragments.
@@ -2180,6 +2181,8 @@ if test "$pthread_in_libc" = yes; then
   AC_DEFINE(PTHREAD_IN_LIBC)
 fi
 AC_SUBST(pthread_in_libc)
+
+LIBC_CONFIG_VAR([abort-in-ld],[$abort_in_ld]);
 
 AC_CONFIG_FILES([config.make Makefile])
 AC_CONFIG_COMMANDS([default],[[
