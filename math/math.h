@@ -1004,8 +1004,7 @@ enum
 
 /* Return nonzero value if X is a NaN.  We could use `fpclassify' but
    we already have this functions `__isnan' and it is faster.  */
-# if (__GNUC_PREREQ (4,4) && !defined __SUPPORT_SNAN__) \
-     || __glibc_clang_prereq (2,8)
+# if (__GNUC_PREREQ (4,4) && !defined __SUPPORT_SNAN__)
 #  define isnan(x) __builtin_isnan (x)
 # else
 #  define isnan(x) __MATH_TG ((x), __isnan, (x))
