@@ -12,6 +12,7 @@ tests += \
   test-fenv-sse-2 \
   test-fenv-x87 \
   test-flt-eval-method-sse \
+  test-builtin-denormal \
 # tests
 ifeq ($(have-test-cc-cflags-mfpmath-387),yes)
 tests += test-flt-eval-method-387
