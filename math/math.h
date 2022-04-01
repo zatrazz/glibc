@@ -955,8 +955,7 @@ enum
    the __SUPPORT_SNAN__ check may be skipped for those versions.  */
 
 /* Return number of classification appropriate for X.  */
-# if ((__GNUC_PREREQ (4,4) && !defined __SUPPORT_SNAN__)		      \
-      || __glibc_clang_prereq (2,8))					      \
+# if ((__GNUC_PREREQ (4,4) && !defined __SUPPORT_SNAN__))		      \
      && (!defined __OPTIMIZE_SIZE__ || defined __cplusplus)
      /* The check for __cplusplus allows the use of the builtin, even
 	when optimization for size is on.  This is provided for
@@ -997,8 +996,7 @@ enum
 # endif
 
 /* Return nonzero value if X is neither zero, subnormal, Inf, nor NaN.  */
-# if (__GNUC_PREREQ (4,4) && !defined __SUPPORT_SNAN__) \
-     || __glibc_clang_prereq (2,8)
+# if (__GNUC_PREREQ (4,4) && !defined __SUPPORT_SNAN__)
 #  define isnormal(x) __builtin_isnormal (x)
 # else
 #  define isnormal(x) (fpclassify (x) == FP_NORMAL)
