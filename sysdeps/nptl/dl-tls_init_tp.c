@@ -107,7 +107,7 @@ __tls_init_tp (void)
       {
         /* We need a writable view of the variables.  They are in
            .data.relro and are not yet write-protected.  */
-        extern unsigned int size __asm__ ("__rseq_size");
+        extern volatile unsigned int size __asm__ ("__rseq_size");
         size = sizeof (pd->rseq_area);
       }
 
@@ -117,7 +117,7 @@ __tls_init_tp (void)
        all targets support __thread_pointer, so set __rseq_offset only
        if the rseq registration may have happened because RSEQ_SIG is
        defined.  */
-    extern ptrdiff_t offset __asm__ ("__rseq_offset");
+    extern volatile ptrdiff_t offset __asm__ ("__rseq_offset");
     offset = (char *) &pd->rseq_area - (char *) __thread_pointer ();
 #endif
   }
