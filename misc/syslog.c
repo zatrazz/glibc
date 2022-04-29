@@ -31,6 +31,7 @@
 static char sccsid[] = "@(#)syslog.c	8.4 (Berkeley) 3/18/94";
 #endif /* LIBC_SCCS and not lint */
 
+#include <libc-diag.h>
 #include <libio/libioP.h>
 #include <paths.h>
 #include <stdarg.h>
@@ -181,8 +182,15 @@ __vsyslog_internal (int pri, const char *fmt, va_list ap,
 
   int l, vl;
   if (has_ts)
-    l = __snprintf (bufs, sizeof bufs,
-		    SYSLOG_HEADER (pri, timestamp, &msgoff, pid));
+    {
+      /* clang complains that adding a 'int_t' to a string does not append to
+	 it, but the idea is to print the pid conditionally.  */
+      DIAG_PUSH_NEEDS_COMMENT_CLANG;
+      DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wstring-plus-int");
+      l = __snprintf (bufs, sizeof bufs,
+		      SYSLOG_HEADER (pri, timestamp, &msgoff, pid));
+      DIAG_POP_NEEDS_COMMENT_CLANG;
+    }
   else
     l = __snprintf (bufs, sizeof bufs,
 		    SYSLOG_HEADER_WITHOUT_TS (pri, &msgoff));
@@ -239,8 +247,13 @@ __vsyslog_internal (int pri, const char *fmt, va_list ap,
 
 	  int cl;
 	  if (has_ts)
-	    cl = __snprintf (buf, l + 1,
-			     SYSLOG_HEADER (pri, timestamp, &msgoff, pid));
+	    {
+	      DIAG_PUSH_NEEDS_COMMENT_CLANG;
+	      DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wstring-plus-int");
+	      cl = __snprintf (buf, l + 1,
+			       SYSLOG_HEADER (pri, timestamp, &msgoff, pid));
+	      DIAG_POP_NEEDS_COMMENT_CLANG;
+	    }
 	  else
 	    cl = __snprintf (buf, l + 1,
 			     SYSLOG_HEADER_WITHOUT_TS (pri, &msgoff));
@@ -273,8 +286,13 @@ __vsyslog_internal (int pri, const char *fmt, va_list ap,
 
   /* Output to stderr if requested. */
   if (LogStat & LOG_PERROR)
-    __dprintf (STDERR_FILENO, "%s%s", buf + msgoff,
-	       "\n" + (buf[bufsize - 1] == '\n'));
+    {
+      DIAG_PUSH_NEEDS_COMMENT_CLANG;
+      DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wstring-plus-int");
+      __dprintf (STDERR_FILENO, "%s%s", buf + msgoff,
+		 "\n" + (buf[bufsize - 1] == '\n'));
+      DIAG_POP_NEEDS_COMMENT_CLANG;
+    }
 
   /* Get connected, output the message to the local logger.  */
   if (!connected)
