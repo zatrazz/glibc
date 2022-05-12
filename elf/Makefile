@@ -488,11 +488,15 @@ tests += \
   valgrind-test \
   # tests
 tests-cxx = \
-  tst-dlopen-nodelete-reloc \
   tst-nodelete \
   tst-unique3 \
   tst-unique4 \
   # tests-cxx
+ifeq (yes,$(config-gnu-unique-object))
+tests-cxx += \
+  tst-dlopen-nodelete-reloc \
+  # tests-cxx
+endif
 
 tests += $(if $(CXX),$(tests-cxx))
 
@@ -990,6 +994,15 @@ modules-names += \
   # modules-names
 
 modules-names-cxx = \
+  tst-nodelete-rtldmod \
+  tst-nodelete-uniquemod \
+  tst-nodelete-zmod \
+  tst-unique3lib \
+  tst-unique3lib2 \
+  tst-unique4lib \
+  # modules-names-cxx
+ifeq (yes,$(config-gnu-unique-object))
+modules-names-cxx += \
   tst-dlopen-nodelete-reloc-mod1 \
   tst-dlopen-nodelete-reloc-mod2 \
   tst-dlopen-nodelete-reloc-mod3 \
@@ -999,21 +1012,8 @@ modules-names-cxx = \
   tst-dlopen-nodelete-reloc-mod7 \
   tst-dlopen-nodelete-reloc-mod8 \
   tst-dlopen-nodelete-reloc-mod9 \
-  tst-dlopen-nodelete-reloc-mod10 \
-  tst-dlopen-nodelete-reloc-mod11 \
-  tst-dlopen-nodelete-reloc-mod12 \
-  tst-dlopen-nodelete-reloc-mod13 \
-  tst-dlopen-nodelete-reloc-mod14 \
-  tst-dlopen-nodelete-reloc-mod15 \
-  tst-dlopen-nodelete-reloc-mod16 \
-  tst-dlopen-nodelete-reloc-mod17 \
-  tst-nodelete-rtldmod \
-  tst-nodelete-uniquemod \
-  tst-nodelete-zmod \
-  tst-unique3lib \
-  tst-unique3lib2 \
-  tst-unique4lib \
   # modules-names-cxx
+endif
 
 modules-names += \
   $(if $(CXX),$(modules-names-cxx)) \
