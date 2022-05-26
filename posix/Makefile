@@ -175,6 +175,8 @@ tests-special += $(objpfx)bug-regex2-mem.out $(objpfx)bug-regex14-mem.out \
 		 $(objpfx)bug-glob2-mem.out $(objpfx)tst-vfork3-mem.out \
 		 $(objpfx)tst-fnmatch-mem.out $(objpfx)bug-regex36-mem.out \
 		 $(objpfx)tst-glob-tilde-mem.out $(objpfx)bug-ga2-mem.out
+
+tests-special += $(objpfx)tst-getconf-limits.out
 endif
 
 include ../Rules
@@ -403,6 +405,16 @@ $(objpfx)tst-boost-mem.out: $(objpfx)tst-boost.out
 $(objpfx)tst-getconf.out: tst-getconf.sh $(objpfx)getconf
 	$(SHELL) $< $(common-objpfx) '$(built-program-cmd)'; \
 	$(evaluate-test)
+
+$(objpfx)tst-getconf-limits.out: tst-getconf-limits.py $(objpfx)getconf
+	PYTHONPATH=../scripts \
+	$(PYTHON) tst-getconf-limits.py \
+		   --cc="$(CC) $(patsubst -DMODULE_NAME=%, \
+					  -DMODULE_NAME=testsuite, \
+					  $(CPPFLAGS)) -D_ISOMAC" \
+		   '$(built-program-cmd)' \
+	< /dev/null > $@ 2>&1; $(evaluate-test)
+
 
 $(objpfx)bug-ga2-mem.out: $(objpfx)bug-ga2.out
 	{ test -r $(objpfx)bug-ga2.mtrace \
