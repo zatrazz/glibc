@@ -143,7 +143,6 @@ __pthread_cancel (pthread_t th)
 	       pthread_create, so the signal handler may not have been
 	       set up for a self-cancel.  */
 	    {
-	      pd->result = PTHREAD_CANCELED;
 	      if ((newval & CANCELTYPE_BITMASK) != 0)
 		__do_cancel ();
 	    }

@@ -43,10 +43,7 @@ __pthread_enable_asynccancel (void)
 						&oldval, newval))
 	{
 	  if (cancel_enabled_and_canceled_and_async (newval))
-	    {
-	      self->result = PTHREAD_CANCELED;
-	      __do_cancel ();
-	    }
+	    __do_cancel ();
 
 	  break;
 	}
@@ -89,3 +86,29 @@ __pthread_disable_asynccancel (int oldtype)
     }
 }
 libc_hidden_def (__pthread_disable_asynccancel)
+
+void
+__exit_thread (void *value)
+{
+  struct pthread *self = THREAD_SELF;
+
+  THREAD_SETMEM (self, result, value);
+
+  int oldval = atomic_load_relaxed (&self->cancelhandling);
+  int newval;
+  do
+    {
+      /* It is required by POSIX XSH 2.9.5 Thread Cancellation under the
+	 heading Thread Cancellation Cleanup Handlers and also avoid further
+	 cancellation wrapper to act on cancellation.  */
+      newval = oldval | CANCELSTATE_BITMASK | EXITING_BITMASK;
+      newval = newval & ~CANCELTYPE_BITMASK;
+      if (oldval == newval)
+	break;
+    }
+  while (!atomic_compare_exchange_weak_acquire (&self->cancelhandling,
+						&oldval, newval));
+
+  __pthread_unwind ((__pthread_unwind_buf_t *)
+		    THREAD_GETMEM (self, cleanup_jmp_buf));
+}
