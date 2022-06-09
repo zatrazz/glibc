@@ -93,6 +93,7 @@ bench-libmvec-float = \
   $(addsuffix f, $(addprefix float-vlen8-avx2-, $(libmvec-bench-funcs))) \
   $(addsuffix f, $(addprefix float-vlen16-, $(libmvec-bench-funcs))) \
 
+ifeq ($(build-mathvec-pragma-simd-omp),yes)
 # The base libmvec ABI tests.
 libmvec-abi-func-tests = \
   $(addprefix test-double-libmvec-,$(libmvec-funcs)) \
@@ -109,6 +110,7 @@ libmvec-abi-func-avx2-tests = \
 # The AVX512F libmvec ABI tests.
 libmvec-abi-func-avx512f-tests = \
   $(addsuffix -avx512f,$(libmvec-abi-func-tests))
+endif
 
 $(common-objpfx)libmvec.mk: $(common-objpfx)config.make
 	(echo "ifeq (\$$(subdir)\$$(build-mathvec),mathyes)"; \
