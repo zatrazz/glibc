@@ -873,7 +873,10 @@ ____STRTOF_INTERNAL (const STRING_TYPE *nptr, STRING_TYPE **endptr, int group,
 	  c = *++cp;
 	}
     }
+
+#if SIZE_MAX == UINTMAX_MAX
   assert (dig_no <= (uintmax_t) INTMAX_MAX);
+#endif
 
   /* Remember start of exponent (if any).  */
   expp = cp;
@@ -903,16 +906,20 @@ ____STRTOF_INTERNAL (const STRING_TYPE *nptr, STRING_TYPE **endptr, int group,
 	    {
 	      if (exp_negative)
 		{
+#if SIZE_MAX == UINTMAX_MAX
 		  assert (int_no <= (uintmax_t) (INTMAX_MAX
 						 + MIN_EXP - MANT_DIG) / 4);
+#endif
 		  exp_limit = -MIN_EXP + MANT_DIG + 4 * (intmax_t) int_no;
 		}
 	      else
 		{
 		  if (int_no)
 		    {
+#if SIZE_MAX == UINTMAX_MAX
 		      assert (lead_zero == 0
 			      && int_no <= (uintmax_t) INTMAX_MAX / 4);
+#endif
 		      exp_limit = MAX_EXP - 4 * (intmax_t) int_no + 3;
 		    }
 		  else if (lead_zero == (size_t) -1)
@@ -923,8 +930,10 @@ ____STRTOF_INTERNAL (const STRING_TYPE *nptr, STRING_TYPE **endptr, int group,
 		    }
 		  else
 		    {
+#if SIZE_MAX == UINTMAX_MAX
 		      assert (lead_zero
 			      <= (uintmax_t) (INTMAX_MAX - MAX_EXP - 3) / 4);
+#endif
 		      exp_limit = (MAX_EXP
 				   + 4 * (intmax_t) lead_zero
 				   + 3);
@@ -935,16 +944,20 @@ ____STRTOF_INTERNAL (const STRING_TYPE *nptr, STRING_TYPE **endptr, int group,
 	    {
 	      if (exp_negative)
 		{
+#if SIZE_MAX == UINTMAX_MAX
 		  assert (int_no
 			  <= (uintmax_t) (INTMAX_MAX + MIN_10_EXP - MANT_DIG));
+#endif
 		  exp_limit = -MIN_10_EXP + MANT_DIG + (intmax_t) int_no;
 		}
 	      else
 		{
 		  if (int_no)
 		    {
+#if SIZE_MAX == UINTMAX_MAX
 		      assert (lead_zero == 0
 			      && int_no <= (uintmax_t) INTMAX_MAX);
+#endif
 		      exp_limit = MAX_10_EXP - (intmax_t) int_no + 1;
 		    }
 		  else if (lead_zero == (size_t) -1)
@@ -955,8 +968,10 @@ ____STRTOF_INTERNAL (const STRING_TYPE *nptr, STRING_TYPE **endptr, int group,
 		    }
 		  else
 		    {
+#if SIZE_MAX == UINTMAX_MAX
 		      assert (lead_zero
 			      <= (uintmax_t) (INTMAX_MAX - MAX_10_EXP - 1));
+#endif
 		      exp_limit = MAX_10_EXP + (intmax_t) lead_zero + 1;
 		    }
 		}
