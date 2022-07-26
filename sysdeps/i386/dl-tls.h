@@ -31,6 +31,8 @@ extern void *___tls_get_addr (tls_index *ti)
      __attribute__ ((__regparm__ (1)));
 extern void *___tls_get_addr_internal (tls_index *ti)
      __attribute__ ((__regparm__ (1))) attribute_hidden;
+rtld_hidden_proto (___tls_get_addr)
+rtld_hidden_def (___tls_get_addr)
 
 # if IS_IN (rtld)
 /* The special thing about the x86 TLS ABI is that we have two
@@ -50,8 +52,6 @@ __tls_get_addr (tls_index *ti)
    version of this file.  */
 # define __tls_get_addr __attribute__ ((__regparm__ (1))) ___tls_get_addr
 strong_alias (___tls_get_addr, ___tls_get_addr_internal)
-rtld_hidden_proto (___tls_get_addr)
-rtld_hidden_def (___tls_get_addr)
 #else
 
 /* Users should get the better interface.  */
