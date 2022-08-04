@@ -24,6 +24,7 @@ extern __typeof (REDIRECT_NAME) OPTIMIZE (fma) attribute_hidden;
 extern __typeof (REDIRECT_NAME) OPTIMIZE (fma4) attribute_hidden;
 
 static inline void *
+inhibit_stack_protector
 IFUNC_SELECTOR (void)
 {
   const struct cpu_features* cpu_features = __get_cpu_features ();
