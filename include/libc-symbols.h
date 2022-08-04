@@ -86,6 +86,7 @@
 
 /* Obtain the definition of symbol_version_reference.  */
 #include <libc-symver.h>
+#include <libc-diag.h>
 
 /* When PIC is defined and SHARED isn't defined, we are building PIE
    by default.  */
@@ -685,7 +686,10 @@ for linking")
 # define __ifunc(type_name, name, expr, arg, init)			\
   extern __typeof (type_name) name __attribute__			\
 			      ((ifunc (#name "_ifunc")));		\
-  __ifunc_resolver (type_name, name, expr, arg, init, static)
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;					\
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wunused-function");		\
+  __ifunc_resolver (type_name, name, expr, arg, init, static);		\
+  DIAG_POP_NEEDS_COMMENT_CLANG;
 
 # define __ifunc_hidden(type_name, name, expr, arg, init)	\
   __ifunc (type_name, name, expr, arg, init)
