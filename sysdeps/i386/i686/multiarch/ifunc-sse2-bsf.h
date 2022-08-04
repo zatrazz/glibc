@@ -24,6 +24,7 @@ extern __typeof (REDIRECT_NAME) OPTIMIZE (sse2) attribute_hidden;
 extern __typeof (REDIRECT_NAME) OPTIMIZE (sse2_bsf) attribute_hidden;
 
 static inline void *
+inhibit_stack_protector
 IFUNC_SELECTOR (void)
 {
   const struct cpu_features* cpu_features = __get_cpu_features ();

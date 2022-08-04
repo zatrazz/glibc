@@ -43,6 +43,7 @@ extern __typeof (__redirect_strstr) __strstr_avx512 attribute_hidden;
 extern __typeof (__redirect_strstr) __libc_strstr;
 
 static inline void *
+inhibit_stack_protector
 IFUNC_SELECTOR (void)
 {
   const struct cpu_features *cpu_features = __get_cpu_features ();
