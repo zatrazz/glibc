@@ -54,6 +54,7 @@ prefer_erms_nt_impl (const struct cpu_features *cpu_features)
 }
 
 static inline void *
+inhibit_stack_protector
 IFUNC_SELECTOR (void)
 {
   const struct cpu_features *cpu_features = __get_cpu_features ();
