@@ -120,7 +120,7 @@ ENTRY(memchr)
 	vpadd.i8	vdata1_0, vdata1_0, vdata1_1
 	vpadd.i8	vdata0_0, vdata0_0, vdata1_0
 	vpadd.i8	vdata0_0, vdata0_0, vdata0_0
-	vmov		synd, vdata0_0[0]
+	vmov.i32	synd, vdata0_0[0]
 
 	/* Clear the soff lower bits */
 	lsr		synd, synd, soff
@@ -166,7 +166,7 @@ ENTRY(memchr)
 	vpadd.i8	vdata1_0, vdata1_0, vdata1_1
 	vpadd.i8	vdata0_0, vdata0_0, vdata1_0
 	vpadd.i8	vdata0_0, vdata0_0, vdata0_0
-	vmov		synd, vdata0_0[0]
+	vmov.i32	synd, vdata0_0[0]
 	cbz		synd, .Lnotfound
 	bhi		.Ltail	/* Uses the condition code from
 				   subs cntin, cntin, #32 above.  */
