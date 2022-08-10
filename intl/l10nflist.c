@@ -210,7 +210,7 @@ _nl_make_l10nflist (struct loaded_l10nfile **l10nfile_list,
     }
 
   *cp++ = '/';
-  stpcpy (cp, filename);
+  strcpy (cp, filename);
 
   /* Look in list of already loaded domains whether it is already
      available.  */
