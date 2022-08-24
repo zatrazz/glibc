@@ -21,6 +21,7 @@
 #include <string.h>
 #include <confstr.h>
 #include "../version.h"
+#include <libc-diag.h>
 
 #define NEED_SPEC_ARRAY 0
 #include <posix-conf-vars.h>
@@ -290,5 +291,10 @@ __confstr (int name, char *buf, size_t len)
   return string_len;
 }
 libc_hidden_def (__confstr)
+/* clang warns that alias will be always resolve to _GI___confstr even if weak
+   definition of __GI_confstr is overridden, which is really the intention.  */
+DIAG_PUSH_NEEDS_COMMENT_CLANG;
+DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wignored-attributes");
 libc_hidden_def (confstr)
+DIAG_POP_NEEDS_COMMENT_CLANG;
 weak_alias (__confstr, confstr)
