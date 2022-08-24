@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <ldsodefs.h>
+#include <libc-diag.h>
 
 
 /* These are the members in the public `struct link_map' type.
@@ -54,7 +55,15 @@ _dl_debug_update (Lmid_t ns)
 struct r_debug *
 _dl_debug_initialize (ElfW(Addr) ldbase, Lmid_t ns)
 {
-  struct r_debug_extended *r, **pp = NULL;
+  /* clang issues an warning where variable 'r' is used uninitialized whenever
+     'if' condition is false.  The _dl_debug_initialize is called for static
+     case always with LM_ID_BASE (csu/libc-start.c and
+     elf/dl-reloc-static-pie.c) and DL_NSS will be always larger than 1 for
+     shared case.  */
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (13, "-Wsometimes-uninitialized");
+  struct r_debug_extended *r;
+  struct r_debug_extended **pp = NULL;
 
   if (ns == LM_ID_BASE)
     {
@@ -81,6 +90,7 @@ _dl_debug_initialize (ElfW(Addr) ldbase, Lmid_t ns)
 	  r->base.r_version = 2;
 	}
     }
+  DIAG_POP_NEEDS_COMMENT_CLANG;
 
   if (r->base.r_brk == 0)
     {
