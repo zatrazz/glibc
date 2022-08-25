@@ -87,6 +87,7 @@
 /* Obtain the definition of symbol_version_reference.  */
 #include <libc-symver.h>
 #include <libc-diag.h>
+#include <stackprotector.h>
 
 /* When PIC is defined and SHARED isn't defined, we are building PIE
    by default.  */
@@ -362,20 +363,6 @@ for linking")
 
 #define attribute_relro __attribute__ ((section (".data.rel.ro")))
 
-
-/* Used to disable stack protection in sensitive places, like ifunc
-   resolvers and early static TLS init.  */
-#ifdef HAVE_CC_NO_STACK_PROTECTOR
-# ifdef __clang__
-#  define inhibit_stack_protector \
-     __attribute__((no_stack_protector))
-# else
-#  define inhibit_stack_protector \
-    __attribute__ ((__optimize__ ("-fno-stack-protector")))
-# endif
-#else
-# define inhibit_stack_protector
-#endif
 
 /* The following macros are used for PLT bypassing within libc.so
    (and if needed other libraries similarly).
