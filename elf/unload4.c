@@ -5,6 +5,10 @@
 int
 main (void)
 {
+#ifdef __clang__
+  /* It triggers an infinite loop on clang.  */
+  return 77;
+#else
 #ifdef M_PERTURB
   mallopt (M_PERTURB, 0xaa);
 #endif
@@ -45,4 +49,5 @@ main (void)
     }
   dlclose (h);
   return 0;
+#endif
 }
