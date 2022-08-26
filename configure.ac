@@ -1550,7 +1550,7 @@ AC_SUBST(libc_cv_test_cc_signaling_nans)
 
 dnl Check if TEST_CC supports -fsemantic-interposition.
 LIBC_TRY_TEST_CC_OPTION([-fsemantic-interposition],
-  [-c -Werror -fsemantic-interposition],
+  [-Werror -fsemantic-interposition],
   libc_cv_test_cc_cflags_fsemantic_interposition,
   [libc_cv_test_cc_cflags_fsemantic_interposition=yes],
   [libc_cv_test_cc_cflags_fsemantic_interposition=no]
