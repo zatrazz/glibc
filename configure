@@ -6579,7 +6579,7 @@ EOF
 		  extern int bar;
 		  int main (void) { return bar; }
 EOF
-		  if { ac_try='${CC-cc} -nostdlib -nostartfiles $no_ssp conftest.c -o conftest conftest.so'
+		  if { ac_try='${CC-cc} -fno-pie -nostdlib -nostartfiles $no_ssp conftest.c -o conftest conftest.so'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
   (eval $ac_try) 2>&5
   ac_status=$?

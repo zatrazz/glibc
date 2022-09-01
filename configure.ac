@@ -1123,7 +1123,7 @@ EOF
 		  extern int bar;
 		  int main (void) { return bar; }
 EOF
-		  if AC_TRY_COMMAND(${CC-cc} -nostdlib -nostartfiles $no_ssp conftest.c -o conftest conftest.so); then
+		  if AC_TRY_COMMAND(${CC-cc} -fno-pie -nostdlib -nostartfiles $no_ssp conftest.c -o conftest conftest.so); then
 		    libc_cv_protected_data=yes
 		  fi
 		fi
