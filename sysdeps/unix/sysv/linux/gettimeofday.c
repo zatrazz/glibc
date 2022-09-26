@@ -32,7 +32,7 @@ static int
 __gettimeofday_syscall (struct timeval *restrict tv, void *restrict tz)
 {
   if (__glibc_unlikely (tz != 0))
-    memset (tz, 0, sizeof *tz);
+    memset (tz, 0, sizeof (struct timezone));
   return INLINE_SYSCALL_CALL (gettimeofday, tv, tz);
 }
 
@@ -48,7 +48,7 @@ int
 __gettimeofday (struct timeval *restrict tv, void *restrict tz)
 {
   if (__glibc_unlikely (tz != 0))
-    memset (tz, 0, sizeof *tz);
+    memset (tz, 0, sizeof (struct timezone));
 
   return INLINE_VSYSCALL (gettimeofday, 2, tv, tz);
 }
