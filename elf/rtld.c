@@ -42,6 +42,7 @@
 #include <tls.h>
 #include <stap-probe.h>
 #include <stackinfo.h>
+#include <stackguard.h>
 #include <not-cancel.h>
 #include <array_length.h>
 #include <libc-early-init.h>
@@ -161,7 +162,7 @@ int _dl_argc attribute_relro attribute_hidden;
 char **_dl_argv attribute_relro = NULL;
 rtld_hidden_data_def (_dl_argv)
 
-#ifndef THREAD_SET_STACK_GUARD
+#ifdef STACK_GUARD_BY_GLOBAL
 /* Only exported for architectures that don't store the stack guard canary
    in thread local area.  */
 uintptr_t __stack_chk_guard attribute_relro;

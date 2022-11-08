@@ -1,3 +1,4 @@
+%include <stackguard.h>
 libc {
   GLIBC_2.0 {
 %ifdef EXPORT_UNWIND_FIND_FDE
@@ -48,10 +49,12 @@ ld {
     # runtime interface to TLS
     __tls_get_addr;
   }
+%ifdef STACK_GUARD_BY_GLOBAL
   GLIBC_2.4 {
     # stack canary
     __stack_chk_guard;
   }
+%endif
   GLIBC_2.34 {
     __rtld_version_placeholder;
   }

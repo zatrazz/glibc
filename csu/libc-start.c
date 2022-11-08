@@ -44,7 +44,8 @@ extern void __libc_init_first (int argc, char **argv, char **envp);
 #include <tls.h>
 #ifndef SHARED
 # include <dl-osinfo.h>
-# ifndef THREAD_SET_STACK_GUARD
+# include <stackguard.h>
+# ifdef STACK_GUARD_BY_GLOBAL
 /* Only exported for architectures that don't store the stack guard canary
    in thread local area.  */
 uintptr_t __stack_chk_guard attribute_relro;
