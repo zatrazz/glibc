@@ -23,9 +23,7 @@
 
 /* The MIPS kernel does not support futex_atomic_cmpxchg_inatomic if
    emulating LL/SC.  */
-#if __mips == 1 || defined _MIPS_ARCH_R5900
-# undef __ASSUME_SET_ROBUST_LIST
-#endif
+#undef __ASSUME_SET_ROBUST_LIST
 
 /* Define this if your 32-bit syscall API requires 64-bit register
    pairs to start with an even-number register.  */

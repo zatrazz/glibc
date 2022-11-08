@@ -1,3 +1,4 @@
+%include <kernel-features.h>
 libc {
   GLIBC_2.0 {
     __pthread_getspecific;
@@ -530,6 +531,8 @@ libpthread {
 ld {
   GLIBC_PRIVATE {
      __nptl_initial_report_events;
+%ifndef __ASSUME_SET_ROBUST_LIST
      __nptl_set_robust_list_avail;
+%endif
   }
 }
