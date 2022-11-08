@@ -1,4 +1,5 @@
 %include <stackguard.h>
+%include <pointer_guard.h>
 libc {
   GLIBC_2.0 {
 %ifdef EXPORT_UNWIND_FIND_FDE
@@ -71,8 +72,10 @@ ld {
     # Only here for gdb while a better method is developed.
     _dl_debug_state;
 
+%ifdef POINTER_GUARD_BY_GLOBAL
     # Pointer protection.
     __pointer_chk_guard;
+%endif
 
     # Internal error handling support.
     _dl_exception_create; _dl_exception_create_format; _dl_exception_free;

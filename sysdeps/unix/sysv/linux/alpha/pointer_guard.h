@@ -59,4 +59,6 @@ extern uintptr_t __pointer_chk_guard attribute_relro;
 # define PTR_DEMANGLE(var)  PTR_MANGLE(var)
 #endif /* ASSEMBLER */
 
+#define POINTER_GUARD_BY_GLOBAL 1
+
 #endif /* POINTER_GUARD_H */

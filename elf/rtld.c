@@ -43,6 +43,7 @@
 #include <stap-probe.h>
 #include <stackinfo.h>
 #include <stackguard.h>
+#include <pointer_guard.h>
 #include <not-cancel.h>
 #include <array_length.h>
 #include <libc-early-init.h>
@@ -171,7 +172,7 @@ uintptr_t __stack_chk_guard attribute_relro;
 /* Only exported for architectures that don't store the pointer guard
    value in thread local area.  */
 uintptr_t __pointer_chk_guard_local attribute_relro attribute_hidden;
-#ifndef THREAD_SET_POINTER_GUARD
+#ifdef POINTER_GUARD_BY_GLOBAL
 strong_alias (__pointer_chk_guard_local, __pointer_chk_guard)
 #endif
 

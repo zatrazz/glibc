@@ -26,4 +26,13 @@
 # define PTR_DEMANGLE(x) (void) (x)
 #endif
 
+/* Define whether the ABI store the pointer guard canary in the in thread
+   local area or as global variable.  It is used to export the
+   __pointer_chk_guard by the loader.
+
+   Define either POINTER_GUARD_BY_GLOBAL (global variable) or
+   POINTER_GUARD_BY_TCB (thread local area).   */
+
+#define POINTER_GUARD_BY_GLOBAL 1
+
 #endif /* POINTER_GUARD_H */

@@ -65,4 +65,6 @@ extern uintptr_t __pointer_chk_guard;
 # endif
 #endif
 
+#define POINTER_GUARD_BY_GLOBAL 1
+
 #endif /* POINTER_GUARD_H */

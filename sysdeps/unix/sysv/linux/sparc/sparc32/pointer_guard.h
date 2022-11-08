@@ -41,4 +41,6 @@
 # endif
 #endif
 
+#define POINTER_GUARD_BY_TCB 1
+
 #endif /* POINTER_GUARD_H */
