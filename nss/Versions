@@ -101,8 +101,6 @@ libc {
     _nss_files_getsgnam_r;
 
     _nss_netgroup_parseline;
-    _nss_files_getpublickey;
-    _nss_files_getsecretkey;
 
     _nss_files_initgroups_dyn;
 
