@@ -7,33 +7,33 @@ libc {
     __getdelim;
 
     # functions used in inline functions or macros
-    _IO_getc; _IO_peekc_unlocked; _IO_putc; _IO_feof; _IO_ferror;
+    _IO_getc; _IO_putc; _IO_feof; _IO_ferror;
     __uflow; __underflow; __overflow;
 
     # functions used in other libraries
     __vsscanf; __vsnprintf;
 
     # libio
-    _IO_adjust_column; _IO_clearerr; _IO_default_doallocate;
+    _IO_adjust_column; _IO_default_doallocate;
     _IO_default_finish; _IO_default_pbackfail; _IO_default_uflow;
     _IO_default_xsgetn; _IO_default_xsputn; _IO_do_write;
     _IO_doallocbuf; _IO_fclose; _IO_fdopen; _IO_feof; _IO_ferror;
-    _IO_fflush; _IO_fgetc; _IO_fgetpos; _IO_fgets; _IO_file_attach;
+    _IO_fflush; _IO_fgetpos; _IO_fgets; _IO_file_attach;
     _IO_file_close; _IO_file_close_it; _IO_file_doallocate;
     _IO_file_fopen; _IO_file_init; _IO_file_jumps; _IO_file_open;
     _IO_file_overflow; _IO_file_read; _IO_file_seek; _IO_file_seekoff;
     _IO_file_setbuf; _IO_file_stat; _IO_file_sync; _IO_file_underflow;
-    _IO_file_write; _IO_file_xsputn; _IO_fileno; _IO_flockfile;
+    _IO_file_write; _IO_file_xsputn; _IO_flockfile;
     _IO_flush_all; _IO_flush_all_linebuffered; _IO_fopen; _IO_fprintf;
-    _IO_fputs; _IO_fread; _IO_free_backup_area; _IO_freopen;
-    _IO_fscanf; _IO_fseek; _IO_fsetpos; _IO_ftell; _IO_ftrylockfile;
+    _IO_fputs; _IO_fread; _IO_free_backup_area;
+    _IO_fsetpos; _IO_ftell; _IO_ftrylockfile;
     _IO_funlockfile; _IO_fwrite; _IO_getc; _IO_getline; _IO_gets;
     _IO_init; _IO_init_marker; _IO_link_in; _IO_marker_delta;
-    _IO_marker_difference; _IO_padn; _IO_pclose; _IO_peekc_locked;
-    _IO_perror; _IO_popen; _IO_printf; _IO_proc_close; _IO_proc_open;
-    _IO_putc; _IO_puts; _IO_remove_marker; _IO_rewind; _IO_scanf;
-    _IO_seekmark; _IO_seekoff; _IO_seekpos; _IO_setb; _IO_setbuf;
-    _IO_setbuffer; _IO_setlinebuf; _IO_setvbuf; _IO_sgetn;
+    _IO_marker_difference; _IO_padn; _IO_peekc_locked;
+    _IO_popen; _IO_printf; _IO_proc_close; _IO_proc_open;
+    _IO_putc; _IO_puts; _IO_remove_marker;
+    _IO_seekmark; _IO_seekoff; _IO_seekpos; _IO_setb;
+    _IO_setbuffer; _IO_setvbuf; _IO_sgetn;
     _IO_sprintf; _IO_sputbackc; _IO_sscanf; _IO_str_init_readonly;
     _IO_str_init_static; _IO_str_overflow; _IO_str_pbackfail;
     _IO_str_seekoff; _IO_str_underflow; _IO_sungetc;
@@ -47,21 +47,21 @@ libc {
     clearerr; clearerr_unlocked;
 
     # f*
-    fclose; fcloseall; fdopen; feof; feof_locked; feof_unlocked; ferror;
-    ferror_locked; ferror_unlocked; fflush; fflush_locked; fflush_unlocked;
-    fgetc; fgetpos; fgets; fileno; fileno_locked; fileno_unlocked;
-    fopen; fopencookie; fputc; fputc_locked; fputc_unlocked; fputs;
+    fclose; fcloseall; fdopen; feof; feof_unlocked; ferror;
+    ferror_unlocked; fflush; fflush_unlocked;
+    fgetc; fgetpos; fgets; fileno; fileno_unlocked;
+    fopen; fopencookie; fputc; fputc_unlocked; fputs;
     fread; freopen; fseek; fsetpos; ftell; fwrite;
 
     # g*
-    getc; getc_locked; getc_unlocked; getchar; getchar_unlocked; getdelim;
+    getc; getc_unlocked; getchar; getchar_unlocked; getdelim;
     gets;
 
     # o*
     open_memstream; obstack_printf; obstack_vprintf;
 
     # p*
-    pclose; popen; putc; putc_locked; putc_unlocked; putchar;
+    pclose; popen; putc; putc_unlocked; putchar;
     putchar_unlocked; puts;
 
     # r*
@@ -107,12 +107,12 @@ libc {
     # functions used in libstdc++
     _IO_fgetpos; _IO_fgetpos64; _IO_fsetpos; _IO_fsetpos64;
     _IO_wdo_write; _IO_wfile_jumps; _IO_wfile_overflow; _IO_wfile_seekoff;
-    _IO_wfile_setbuf; _IO_wfile_sync; _IO_wfile_underflow; _IO_wfile_xsputn;
+    _IO_wfile_sync; _IO_wfile_underflow; _IO_wfile_xsputn;
     _IO_adjust_wcolumn; _IO_free_wbackup_area; _IO_init_wmarker;
     _IO_least_wmarker; _IO_seekwmark; _IO_sputbackwc; _IO_sungetwc;
     _IO_switch_to_main_wget_area; _IO_switch_to_wbackup_area;
     _IO_switch_to_wget_mode; _IO_unsave_wmarkers; _IO_wdefault_doallocate;
-    _IO_wdefault_finish; _IO_wdefault_pbackfail; _IO_wdefault_setbuf;
+    _IO_wdefault_finish; _IO_wdefault_pbackfail;
     _IO_wdefault_uflow; _IO_wdefault_xsgetn; _IO_wdefault_xsputn;
     _IO_wdoallocbuf; _IO_wmarker_delta; _IO_wsetb; __woverflow; __wuflow;
     __wunderflow;
