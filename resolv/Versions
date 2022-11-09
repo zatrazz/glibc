@@ -6,7 +6,6 @@ libc {
     __res_dnok;
     __res_hnok;
     __res_mailok;
-    __res_nsend;
     __res_ownok;
     __res_randomid;
     __res_send;
