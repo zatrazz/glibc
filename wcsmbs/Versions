@@ -22,7 +22,7 @@ libc {
   GLIBC_2.1 {
     # w*
     wcscasecmp; wcsncasecmp; wcsnlen; wcstoll;
-    wcstoimax; wcstoumax; wcstoull; wcswcs; wmemrtombs; wmemrtowcs;
+    wcstoimax; wcstoumax; wcstoull; wcswcs;
   }
   GLIBC_2.2 {
     # w*
