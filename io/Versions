@@ -142,7 +142,6 @@ libc {
   }
   GLIBC_PRIVATE {
     __libc_fcntl64;
-    __fcntl_nocancel;
     __open64_nocancel;
     __write_nocancel;
     __file_is_unchanged;
