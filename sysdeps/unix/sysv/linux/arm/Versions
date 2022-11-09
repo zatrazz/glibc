@@ -3,6 +3,7 @@ libc {
     ioperm; iopl;
     inb; inw; inl;
     outb; outw; outl;
+    profil_counter;
   }
   GLIBC_2.11 {
     fallocate64;

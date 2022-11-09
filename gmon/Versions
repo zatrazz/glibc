@@ -10,7 +10,7 @@ libc {
     monstartup;
 
     # p*
-    profil; profil_counter;
+    profil;
   }
   GLIBC_2.2 {
     # m*

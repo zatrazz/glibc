@@ -1,6 +1,7 @@
 libc {
   GLIBC_2.0 {
     _sys_errlist; sys_errlist; _sys_nerr; sys_nerr;
+    profil_counter;
   }
   GLIBC_2.1 {
     _sys_errlist; sys_errlist; _sys_nerr; sys_nerr;
