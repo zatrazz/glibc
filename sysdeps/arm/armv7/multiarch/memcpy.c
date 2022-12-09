@@ -30,6 +30,4 @@
 # include "ifunc-memcpy.h"
 
 arm_libc_ifunc_redirected (__redirect_memcpy, memcpy, IFUNC_SELECTOR);
-
-arm_libc_ifunc_hidden_def (__redirect_memcpy, memcpy);
 #endif
