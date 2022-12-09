@@ -30,6 +30,4 @@
 # include "ifunc-memchr.h"
 
 arm_libc_ifunc_redirected (__redirect_memchr, memchr, IFUNC_SELECTOR);
-
-arm_libc_ifunc_hidden_def (__redirect_memchr, memchr);
 #endif
