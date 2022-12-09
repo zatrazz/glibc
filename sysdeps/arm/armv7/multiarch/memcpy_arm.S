@@ -8,3 +8,7 @@
 strong_alias (__memcpy_arm, __aeabi_memcpy)
 strong_alias (__memcpy_arm, __aeabi_memcpy4)
 strong_alias (__memcpy_arm, __aeabi_memcpy8)
+
+#if IS_IN (libc) && !defined (__ARM_NEON__)
+strong_alias (__memcpy_arm, __GI_memcpy)
+#endif
