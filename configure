@@ -6924,6 +6924,74 @@ printf "%s\n" "$libc_linker_feature" >&6; }
 config_vars="$config_vars
 have-no-dynamic-linker = $libc_cv_no_dynamic_linker"
 
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether to suppress unused version in version script" >&5
+printf %s "checking whether to suppress unused version in version script... " >&6; }
+if test ${libc_cv_undefined_version+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  cat > conftest.c <<EOF
+void foo (void) { }
+EOF
+cat > conftest.map <<EOF
+VER_1.0 {
+  global:
+    bar;
+};
+EOF
+libc_cv_undefined_version=""
+if ! { ac_try='${CC-cc} -nostdlib -nostartfiles $no_ssp -fPIC -shared -Wl,--version-script=conftest.map conftest.c -o conftest.so'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; };
+then
+  { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for linker that supports --undefined-version" >&5
+printf %s "checking for linker that supports --undefined-version... " >&6; }
+libc_linker_feature=no
+cat > conftest.c <<EOF
+int _start (void) { return 42; }
+EOF
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
+		  -Wl,--undefined-version -nostdlib -nostartfiles
+		  -fPIC -shared -o conftest.so conftest.c
+		  1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then
+  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,--undefined-version -nostdlib \
+      -nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
+      | grep "warning: --undefined-version ignored" > /dev/null 2>&1; then
+    true
+  else
+    libc_linker_feature=yes
+  fi
+fi
+rm -f conftest*
+if test $libc_linker_feature = yes; then
+  libc_cv_support_undefined_version=yes
+else
+  libc_cv_support_undefined_version=no
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_linker_feature" >&5
+printf "%s\n" "$libc_linker_feature" >&6; }
+  if test "$libc_cv_support_undefined_version" = no; then
+    as_fn_error $? "support for -Wl,--undefined-version required" "$LINENO" 5
+  fi
+  libc_cv_undefined_version="-Wl,--undefined-version"
+fi
+rm -f conftest.*t
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_undefined_version" >&5
+printf "%s\n" "$libc_cv_undefined_version" >&6; }
+config_vars="$config_vars
+config-ldflags-undefined-version = $libc_cv_undefined_version"
+
+
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for -static-pie" >&5
 printf %s "checking for -static-pie... " >&6; }
 if test ${libc_cv_static_pie+y}

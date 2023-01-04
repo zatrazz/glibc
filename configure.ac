@@ -1251,6 +1251,33 @@ LIBC_LINKER_FEATURE([--no-dynamic-linker],
 		    [libc_cv_no_dynamic_linker=no])
 LIBC_CONFIG_VAR([have-no-dynamic-linker], [$libc_cv_no_dynamic_linker])
 
+AC_CACHE_CHECK(whether to suppress unused version in version script,
+	       libc_cv_undefined_version, [dnl
+cat > conftest.c <<EOF
+void foo (void) { }
+EOF
+cat > conftest.map <<EOF
+VER_1.0 {
+  global:
+    bar;
+};
+EOF
+libc_cv_undefined_version=""
+if ! AC_TRY_COMMAND([${CC-cc} -nostdlib -nostartfiles $no_ssp -fPIC -shared -Wl,--version-script=conftest.map conftest.c -o conftest.so]);
+then
+  LIBC_LINKER_FEATURE([--undefined-version],
+		      [-Wl,--undefined-version],
+		      [libc_cv_support_undefined_version=yes],
+		      [libc_cv_support_undefined_version=no])
+  if test "$libc_cv_support_undefined_version" = no; then
+    AC_MSG_ERROR([support for -Wl,--undefined-version required])
+  fi
+  libc_cv_undefined_version="-Wl,--undefined-version"
+fi
+rm -f conftest.*t])
+LIBC_CONFIG_VAR([config-ldflags-undefined-version],[$libc_cv_undefined_version])
+
+
 AC_CACHE_CHECK(for -static-pie, libc_cv_static_pie, [dnl
 LIBC_TRY_CC_OPTION([-static-pie],
 		   [libc_cv_static_pie=yes],

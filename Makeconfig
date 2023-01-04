@@ -424,6 +424,15 @@ ifndef after-link
 after-link =
 endif
 
+# The Versions file may contain entries not exported by all ABI, which
+# trigger errors if the linker defaults to --no-undefined-version.  The
+# configure checks whether it is the case and adds --undefined-version
+# if required.
+LDFLAGS-rtld += $(config-ldflags-undefined-version)
+LDFLAGS-lib.so += $(config-ldflags-undefined-version)
+LDFLAGS.so += $(config-ldflags-undefined-version)
+link-extra-flags += $(config-ldflags-undefined-version)
+
 # Additional libraries to link into every test.
 link-extra-libs-tests = $(libsupport)
 
