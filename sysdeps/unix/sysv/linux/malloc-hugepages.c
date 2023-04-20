@@ -16,10 +16,12 @@
    License along with the GNU C Library; see the file COPYING.LIB.  If
    not, see <https://www.gnu.org/licenses/>.  */
 
-#include <intprops.h>
 #include <dirent.h>
+#include <intprops.h>
 #include <malloc-hugepages.h>
+#include <string.h>
 #include <not-cancel.h>
+#include <procutils.h>
 #include <sys/mman.h>
 
 unsigned long int
@@ -78,51 +80,41 @@ __malloc_thp_mode (void)
   return malloc_thp_mode_not_supported;
 }
 
+static int
+proc_meminfo_parse (const char *s, void *arg)
+{
+  enum { HUGEPAGESIZELEN = sizeof ("Hugepagesize:") - 1 };
+  if (strncmp (s, "Hugepagesize:", HUGEPAGESIZELEN) != 0)
+    return 0;
+
+  /* The default huge page size is in the form:
+     Hugepagesize:       NUMBER kB  */
+  s += HUGEPAGESIZELEN;
+
+  size_t hpsize = 0;
+  for (int i = 0; (s[i] >= '0' && s[i] <= '9') || s[i] == ' '; i++)
+    {
+      if (s[i] == ' ')
+	continue;
+
+      if (INT_MULTIPLY_WRAPV (hpsize, 10, &hpsize)
+	  || INT_ADD_WRAPV (hpsize, s[i] - '0', &hpsize))
+	return -1;
+    }
+  if (INT_MULTIPLY_WRAPV (hpsize, 1024, &hpsize))
+    return -1;
+
+  *(size_t*) arg = hpsize;
+  return 1;
+}
+
 static size_t
 malloc_default_hugepage_size (void)
 {
-  int fd = __open64_nocancel ("/proc/meminfo", O_RDONLY);
-  if (fd == -1)
-    return 0;
-
   size_t hpsize = 0;
-
-  char buf[512];
-  off64_t off = 0;
-  while (1)
-    {
-      ssize_t r = __pread64_nocancel (fd, buf, sizeof (buf) - 1, off);
-      if (r < 0)
-	break;
-      buf[r] = '\0';
-
-      /* If the tag is not found, read the last line again.  */
-      const char *s = strstr (buf, "Hugepagesize:");
-      if (s == NULL)
-	{
-	  char *nl = strrchr (buf, '\n');
-	  if (nl == NULL)
-	    break;
-	  off += (nl + 1) - buf;
-	  continue;
-	}
-
-      /* The default huge page size is in the form:
-	 Hugepagesize:       NUMBER kB  */
-      s += sizeof ("Hugepagesize: ") - 1;
-      for (int i = 0; (s[i] >= '0' && s[i] <= '9') || s[i] == ' '; i++)
-	{
-	  if (s[i] == ' ')
-	    continue;
-	  hpsize *= 10;
-	  hpsize += s[i] - '0';
-	}
-      hpsize *= 1024;
-      break;
-    }
-
-  __close_nocancel (fd);
-
+  /* If procfs is not accessible of if huge page field is not present,
+     the 'hpsize' argument is not changed.  */
+  __procutils_read_file ("/proc/meminfo", proc_meminfo_parse, &hpsize);
   return hpsize;
 }
 

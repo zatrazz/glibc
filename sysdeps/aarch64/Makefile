@@ -67,5 +67,8 @@ sysdep_routines += __mtag_tag_zero_region \
 endif
 
 ifeq ($(subdir),malloc)
-sysdep_malloc_debug_routines = __mtag_tag_zero_region __mtag_tag_region
+sysdep_malloc_debug_routines += \
+  __mtag_tag_zero_region \
+  __mtag_tag_region \
+  # sysdep_malloc_debug_routines
 endif
