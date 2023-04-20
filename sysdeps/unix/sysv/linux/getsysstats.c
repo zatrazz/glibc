@@ -16,18 +16,11 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <array_length.h>
-#include <assert.h>
 #include <ctype.h>
-#include <errno.h>
-#include <ldsodefs.h>
-#include <limits.h>
-#include <not-cancel.h>
-#include <stdio.h>
-#include <stdio_ext.h>
-#include <sys/mman.h>
+#include <procutils.h>
 #include <sys/sysinfo.h>
 #include <sysdep.h>
+#include <unistd.h>
 
 int
 __get_nprocs_sched (void)
@@ -53,140 +46,66 @@ __get_nprocs_sched (void)
   return 0;
 }
 
-static char *
-next_line (int fd, char *const buffer, char **cp, char **re,
-           char *const buffer_end)
+static int
+parse_proc_stat (const char *l, void *arg)
 {
-  char *res = *cp;
-  char *nl = memchr (*cp, '\n', *re - *cp);
-  if (nl == NULL)
-    {
-      if (*cp != buffer)
-        {
-          if (*re == buffer_end)
-            {
-              memmove (buffer, *cp, *re - *cp);
-              *re = buffer + (*re - *cp);
-              *cp = buffer;
+  /* The current format of /proc/stat has all the cpu* entries at the front.
+     We assume here that stays this way.  */
+  if (strncmp (l, "cpu", 3) != 0)
+    return -1;
 
-              ssize_t n = __read_nocancel (fd, *re, buffer_end - *re);
-              if (n < 0)
-                return NULL;
+  if (isdigit (l[3]))
+    *(int *) arg += 1;
 
-              *re += n;
-
-              nl = memchr (*cp, '\n', *re - *cp);
-              while (nl == NULL && *re == buffer_end)
-                {
-                  /* Truncate too long lines.  */
-                  *re = buffer + 3 * (buffer_end - buffer) / 4;
-                  n = __read_nocancel (fd, *re, buffer_end - *re);
-                  if (n < 0)
-                    return NULL;
-
-                  nl = memchr (*re, '\n', n);
-                  **re = '\n';
-                  *re += n;
-                }
-            }
-          else
-            nl = memchr (*cp, '\n', *re - *cp);
-
-          res = *cp;
-        }
-
-      if (nl == NULL)
-        nl = *re - 1;
-    }
-
-  *cp = nl + 1;
-  assert (*cp <= *re);
-
-  return res == *re ? NULL : res;
+  return 1;
 }
 
 static int
 get_nproc_stat (void)
 {
-  enum { buffer_size = 1024 };
-  char buffer[buffer_size];
-  char *buffer_end = buffer + buffer_size;
-  char *cp = buffer_end;
-  char *re = buffer_end;
   int result = 0;
-
-  const int flags = O_RDONLY | O_CLOEXEC;
-  int fd = __open_nocancel ("/proc/stat", flags);
-  if (fd != -1)
-    {
-      char *l;
-      while ((l = next_line (fd, buffer, &cp, &re, buffer_end)) != NULL)
-	/* The current format of /proc/stat has all the cpu* entries
-	   at the front.  We assume here that stays this way.  */
-	if (strncmp (l, "cpu", 3) != 0)
-	  break;
-	else if (isdigit (l[3]))
-	  ++result;
-
-      __close_nocancel_nostatus (fd);
-    }
-
+  /* If procfs can not be accessed, 'result' won't be updated.  */
+  __procutils_read_file ("/proc/stat", parse_proc_stat, &result);
   return result;
 }
 
 static int
-read_sysfs_file (const char *fname)
+parse_sysfs_file (const char *l, void *arg)
 {
-  enum { buffer_size = 1024 };
-  char buffer[buffer_size];
-  char *buffer_end = buffer + buffer_size;
-  char *cp = buffer_end;
-  char *re = buffer_end;
+  int *result = arg;
 
-  const int flags = O_RDONLY | O_CLOEXEC;
-  /* This file contains comma-separated ranges.  */
-  int fd = __open_nocancel (fname, flags);
-  char *l;
-  int result = 0;
-  if (fd != -1)
+  do
     {
-      l = next_line (fd, buffer, &cp, &re, buffer_end);
-      if (l != NULL)
-	do
-	  {
-	    char *endp;
-	    unsigned long int n = strtoul (l, &endp, 10);
-	    if (l == endp)
-	      {
-		result = 0;
-		break;
-	      }
+      char *endp;
+      unsigned long int n = strtoul (l, &endp, 10);
+      if (l == endp)
+	{
+	  *result = 0;
+	  return -1;
+	}
 
-	    unsigned long int m = n;
-	    if (*endp == '-')
-	      {
-		l = endp + 1;
-		m = strtoul (l, &endp, 10);
-		if (l == endp)
-		  {
-		    result = 0;
-		    break;
-		  }
-	      }
+      unsigned long int m = n;
+      if (*endp == '-')
+	{
+	  l = endp + 1;
+	  m = strtoul (l, &endp, 10);
+	  if (l == endp)
+	    {
+	      *result = 0;
+	      return -1;
+	    }
+	}
 
-	    if (m >= n)
-	      result += m - n + 1;
+      if (m >= n)
+	*result += m - n + 1;
 
-	    l = endp;
-	    if (l < re && *l == ',')
-	      ++l;
-	  }
-	while (l < re && *l != '\n');
-
-      __close_nocancel_nostatus (fd);
+      l = endp;
+      if (*l != '\0' && *l == ',')
+	++l;
     }
+  while (*l != '\0' && *l != '\n');
 
-  return result;
+  return 1;
 }
 
 static int
@@ -213,7 +132,9 @@ get_nprocs_fallback (void)
 int
 __get_nprocs (void)
 {
-  int result = read_sysfs_file ("/sys/devices/system/cpu/online");
+  int result = 0;
+  __procutils_read_file ("/sys/devices/system/cpu/online", parse_sysfs_file,
+			 &result);
   if (result != 0)
     return result;
 
@@ -228,7 +149,9 @@ weak_alias (__get_nprocs, get_nprocs)
 int
 __get_nprocs_conf (void)
 {
-  int result = read_sysfs_file ("/sys/devices/system/cpu/possible");
+  int result = 0;
+  __procutils_read_file ("/sys/devices/system/cpu/possible", parse_sysfs_file,
+			 &result);
   if (result != 0)
     return result;
 
