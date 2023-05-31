@@ -25,6 +25,7 @@
 #include <support/namespace.h>
 #include <support/support.h>
 #include <support/xthread.h>
+#include <sys/param.h>
 
 /* Number of arc4random_buf calls per thread.  */
 enum { count_per_thread = 2048 };
@@ -34,6 +35,9 @@ enum { inner_threads = 4 };
 
 /* Number of threads launching other threads.  */
 static int outer_threads = 1;
+
+/* Maximum number of other threads.  */
+enum { max_outer_threads = 4 };
 
 /* Number of launching rounds performed by the outer threads.  */
 enum { outer_rounds = 10 };
@@ -337,7 +341,8 @@ do_test (void)
     {
       unsigned int ncpus = CPU_COUNT (&cpuset);
       /* Limit the number to not overload the system.  */
-      outer_threads = (ncpus / 2) / inner_threads ?: 1;
+      outer_threads = MIN ((ncpus / 2) / inner_threads ?: 1,
+			   max_outer_threads);
     }
 
   printf ("info: outer_threads=%d inner_threads=%d\n", outer_threads,
