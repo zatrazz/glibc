@@ -34,10 +34,17 @@ do_test (void)
   if (r == -1)
     {
       /* The syscall argument might be filtered by kernel, so the
-        test can not check for the bug issue.  */
+        test can not check for the bug issue.  For 32 bit architectures
+        the syscall wrapper also never sets the errno (check commit
+        e0043e17dfc52fe170274 for a full explanation), so in this case
+        there is no way to detected if the syscall is filtered.  */
+#if __WORDSIZE == 32
+      FAIL_UNSUPPORTED ("personality syscall argument are filtered");
+#else
       if (errno == EPERM)
        FAIL_UNSUPPORTED ("personality syscall argument are filtered");
       FAIL_EXIT1 ("personality (%#x) failed: %m", test_persona);
+#endif
     }
 
   TEST_COMPARE (r, saved_persona);
