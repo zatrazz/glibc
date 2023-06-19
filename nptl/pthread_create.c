@@ -92,6 +92,33 @@ late_init (void)
 			 NULL, __NSIG_BYTES);
 }
 
+static void
+__pthread_init_stack (struct pthread *result)
+{
+  /* Cancellation handling is back to the default.  */
+  result->cancelhandling = 0;
+  result->cleanup = NULL;
+  result->setup_failed = 0;
+
+  /* No pending event.  */
+  result->nextevent = NULL;
+
+  result->exiting = false;
+  __libc_lock_init (result->exit_lock);
+  memset (&result->tls_state, 0, sizeof result->tls_state);
+
+  result->getrandom_buf = NULL;
+
+  /* Clear the DTV.  */
+  dtv_t *dtv = GET_DTV (TLS_TPADJ (result));
+  for (size_t cnt = 0; cnt < dtv[-1].counter; ++cnt)
+    free (dtv[1 + cnt].pointer.to_free);
+  memset (dtv, '\0', (dtv[-1].counter + 1) * sizeof (dtv_t));
+
+  /* Re-initialize the TLS.  */
+  _dl_allocate_tls_init (TLS_TPADJ (result), false);
+}
+
 /* Code to allocate and deallocate a stack.  */
 #include "allocatestack.c"
 
@@ -624,6 +651,40 @@ report_thread_creation (struct pthread *pd)
   return false;
 }
 
+/* Reset internal thread state as if the start thread routine was initially
+   called from pthread_create.  It is used on POSIX timers to reset the
+   SIGEV_THREAD thread after a timer activation (as requires by POSIX on
+   Realtime Signal Generation and Delivery).  */
+void
+__pthread_reset_state (void *arg)
+{
+  struct pthread *self = THREAD_SELF;
+
+  /* Call destructors for the thread_local TLS variables.  */
+  call_function_static_weak (__call_tls_dtors);
+
+  /* Run the destructor for the thread-local data.  */
+  __nptl_deallocate_tsd ();
+
+  /* Clean up any state libc stored in thread-local variables.  */
+  __libc_thread_freeres ();
+
+  /* Reset internal TCB state.  */
+  struct pthread_reset_cleanup_args_t *args = arg;
+  self->cleanup_jmp_buf = args->cleanup_jmp_buf;
+  self->cleanup_jmp_buf->priv.data.prev = NULL;
+  self->cleanup_jmp_buf->priv.data.cleanup = NULL;
+  self->cleanup_jmp_buf->priv.data.canceltype = 0;
+  self->cleanup = NULL;
+  self->exc = (struct _Unwind_Exception) { 0 };
+  self->cancelhandling = 0;
+  self->nextevent = NULL;
+
+  __pthread_init_stack (self);
+
+  /* Reset to the expected initial signal mask.  */
+  internal_signal_restore_set (&self->sigmask);
+}
 
 int
 __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,

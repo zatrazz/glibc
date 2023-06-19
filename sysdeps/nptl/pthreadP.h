@@ -673,6 +673,18 @@ int __pthread_attr_extension (struct pthread_attr *attr) attribute_hidden
 # define PTHREAD_STATIC_FN_REQUIRE(name) __asm (".globl " #name);
 #endif
 
+struct pthread_reset_cleanup_args_t
+{
+  struct pthread_unwind_buf *cleanup_jmp_buf;
+  jmp_buf jb;
+};
+
+/* Reset internal thread state is if the start thread routine was initially
+   called from pthread_create.   It should be used along pthread_cleanup_push
+   and pthread_cleanup_pop pthread_reset_cleanup_args_t.  */
+void __pthread_reset_state (void *arg) attribute_hidden;
+
+
 /* Make a deep copy of the attribute *SOURCE in *TARGET.  *TARGET is
    not assumed to have been initialized.  Returns 0 on success, or a
    positive error code otherwise.  */
