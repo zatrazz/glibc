@@ -101,6 +101,7 @@ include ../Rules
 CFLAGS-aio_suspend.c += -fexceptions
 CFLAGS-mq_timedreceive.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-mq_timedsend.c += -fexceptions -fasynchronous-unwind-tables
+CFLAGS-timer_create.c += -fexceptions -fasynchronous-unwind-tables
 
 # Exclude fortified routines from being built with _FORTIFY_SOURCE
 routines_no_fortify += \
