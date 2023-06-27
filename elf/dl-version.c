@@ -359,30 +359,6 @@ _dl_check_map_versions (struct link_map *map, int verbose, int trace_mode)
 	}
     }
 
-  /* When there is a DT_VERNEED entry with libc.so on DT_NEEDED, issue
-     an error if there is a DT_RELR entry without GLIBC_ABI_DT_RELR
-     dependency.  */
-  if (dyn != NULL
-      && map->l_info[DT_NEEDED] != NULL
-      && map->l_info[DT_RELR] != NULL
-      && __glibc_unlikely (!map->l_dt_relr_ref))
-    {
-      const char *strtab = (const void *) D_PTR (map, l_info[DT_STRTAB]);
-      const ElfW(Dyn) *d;
-      for (d = map->l_ld; d->d_tag != DT_NULL; ++d)
-	if (d->d_tag == DT_NEEDED)
-	  {
-	    const char *name = strtab + d->d_un.d_val;
-	    if (strncmp (name, "libc.so.", 8) == 0)
-	      {
-		_dl_exception_create
-		  (&exception, DSO_FILENAME (map->l_name),
-		   N_("DT_RELR without GLIBC_ABI_DT_RELR dependency"));
-		goto call_error;
-	      }
-	  }
-    }
-
   return result;
 }
 
