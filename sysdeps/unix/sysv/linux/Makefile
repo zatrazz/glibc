@@ -377,6 +377,16 @@ $(objpfx)tst-mount-consts.out: ../sysdeps/unix/sysv/linux/tst-mount-consts.py
 $(objpfx)tst-mount-consts.out: $(sysdeps-linux-python-deps)
 
 tests-special += \
+  $(objpfx)tst-limits-consts.out \
+  # tests-special
+$(objpfx)tst-limits-consts.out: ../sysdeps/unix/sysv/linux/tst-limits-consts.py
+	$(sysdeps-linux-python) \
+	  ../sysdeps/unix/sysv/linux/tst-limits-consts.py \
+	    $(sysdeps-linux-python-cc) \
+	  < /dev/null > $@ 2>&1; $(evaluate-test)
+$(objpfx)tst-limits-consts.out: $(sysdeps-linux-python-deps)
+
+tests-special += \
   $(objpfx)tst-mount-compile.out \
   # tests-special
 $(objpfx)tst-mount-compile.out: ../sysdeps/unix/sysv/linux/tst-mount-compile.py

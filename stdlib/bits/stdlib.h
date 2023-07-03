@@ -20,6 +20,8 @@
 # error "Never include <bits/stdlib.h> directly; use <stdlib.h> instead."
 #endif
 
+#include <bits/stdlib_lim.h>
+
 extern char *__realpath_chk (const char *__restrict __name,
 			     char *__restrict __resolved,
 			     size_t __resolvedlen) __THROW __wur;
@@ -41,8 +43,8 @@ __NTH (realpath (const char *__restrict __name, char *__restrict __resolved))
   if (sz == (size_t) -1)
     return __realpath_alias (__name, __resolved);
 
-#if defined _LIBC_LIMITS_H_ && defined PATH_MAX
-  if (__glibc_unsafe_len (PATH_MAX, sizeof (char), sz))
+#ifdef __PATH_MAX
+  if (__glibc_unsafe_len (__PATH_MAX, sizeof (char), sz))
     return __realpath_chk_warn (__name, __resolved, sz);
 #endif
   return __realpath_chk (__name, __resolved, sz);

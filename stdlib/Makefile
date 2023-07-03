@@ -33,6 +33,7 @@ headers := \
   bits/stdlib-float.h \
   bits/stdlib-ldbl.h \
   bits/stdlib.h \
+  bits/stdlib_lim.h \
   bits/time64.h \
   bits/timesize.h \
   bits/types/error_t.h \
