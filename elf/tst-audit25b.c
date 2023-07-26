@@ -19,15 +19,17 @@
 #include <array_length.h>
 #include <errno.h>
 #include <getopt.h>
-#include <limits.h>
 #include <inttypes.h>
-#include <string.h>
+#include <limits.h>
 #include <stdlib.h>
+#include <string.h>
 #include <support/capture_subprocess.h>
 #include <support/check.h>
-#include <support/xstdio.h>
 #include <support/support.h>
+#include <support/test-driver.h>
+#include <support/xstdio.h>
 #include <sys/auxv.h>
+#include <tst-audit-symbind.h>
 
 #include "tst-audit25.h"
 
@@ -40,7 +42,7 @@ void tst_audit25mod1_func2 (void);
 void tst_audit25mod2_func1 (void);
 void tst_audit25mod2_func2 (void);
 
-static int
+static int __attribute_used__
 handle_restart (void)
 {
   tst_audit25mod1_func1 ();
@@ -54,6 +56,7 @@ handle_restart (void)
 static int
 do_test (int argc, char *argv[])
 {
+#if TST_AUDIT_SUPPORT_SYMBIND
   /* We must have either:
      - One or four parameters left if called initially:
        + path to ld.so         optional
@@ -125,6 +128,9 @@ do_test (int argc, char *argv[])
   }
 
   return 0;
+#else
+  return EXIT_UNSUPPORTED;
+#endif
 }
 
 #define TEST_FUNCTION_ARGV do_test

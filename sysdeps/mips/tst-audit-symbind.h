@@ -1,5 +1,5 @@
-/* LD_AUDIT test for la_symbind and bind-now.
-   Copyright (C) 2022-2023 Free Software Foundation, Inc.
+/* Generic audit tests definitions.
+   Copyright (C) 2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,27 +16,4 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <support/check.h>
-#include <support/support.h>
-#include <support/test-driver.h>
-#include <tst-audit-symbind.h>
-
-int tst_audit24dmod1_func1 (void);
-int tst_audit24dmod1_func2 (void);
-int tst_audit24dmod2_func1 (void);
-
-int
-do_test (void)
-{
-#if TST_AUDIT_SUPPORT_SYMBIND
-  TEST_COMPARE (tst_audit24dmod1_func1 (), 1);
-  TEST_COMPARE (tst_audit24dmod1_func2 (), 32);
-  TEST_COMPARE (tst_audit24dmod2_func1 (), 10);
-
-  return 0;
-#else
-  return EXIT_UNSUPPORTED;
-#endif
-}
-
-#include <support/test-driver.c>
+#define TST_AUDIT_SUPPORT_SYMBIND 0

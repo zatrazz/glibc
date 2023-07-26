@@ -18,6 +18,8 @@
 
 #include <support/check.h>
 #include <support/support.h>
+#include <support/test-driver.h>
+#include <tst-audit-symbind.h>
 
 int tst_audit24amod1_func1 (void);
 int tst_audit24amod1_func2 (void);
@@ -26,11 +28,15 @@ int tst_audit24amod2_func1 (void);
 int
 do_test (void)
 {
+#if TST_AUDIT_SUPPORT_SYMBIND
   TEST_COMPARE (tst_audit24amod1_func1 (), 1);
   TEST_COMPARE (tst_audit24amod1_func2 (), 2);
   TEST_COMPARE (tst_audit24amod2_func1 (), 10);
 
   return 0;
+#else
+  return EXIT_UNSUPPORTED;
+#endif
 }
 
 #include <support/test-driver.c>
