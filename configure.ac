@@ -1394,6 +1394,14 @@ AC_CACHE_CHECK([for -Wno-maybe-uninitialized], libc_cv_wno_maybe_uninitialized, 
 LIBC_CONFIG_VAR([config-cflags-wno-maybe-uninitialized],
 		[$libc_cv_wno_maybe_uninitialized])
 
+AC_CACHE_CHECK([for -Wno-restrict], libc_cv_wno_restrict, [dnl
+		LIBC_TRY_CC_OPTION([-Werror -Wno-restrict],
+				   [libc_cv_wno_restrict=-Wno-restrict],
+				   [libc_cv_wno_restrict=])
+])
+LIBC_CONFIG_VAR([config-cflags-wno-restrict],
+		[$libc_cv_wno_restrict])
+
 AC_CACHE_CHECK([for -fexcess-precision=standard], libc_cv_fexcess_precision_standard, [dnl
 		LIBC_TRY_CC_OPTION([-Werror -fexcess-precision=standard],
 				   [libc_cv_fexcess_precision_standard=-fexcess-precision=standard],
