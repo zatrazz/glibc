@@ -55,18 +55,31 @@ do_test (void)
   if (p2 == NULL)
     FAIL_EXIT1 ("aligned_alloc(1, 64) failed");
 
+  /* clang warns that alignment is not a power of 2, which is what the
+     test means to do.  */
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (18.0, "-Wnon-power-of-two-alignment");
   p3 = aligned_alloc (65, 64);
+  DIAG_POP_NEEDS_COMMENT_CLANG;
 
   if (p3 != NULL)
     FAIL_EXIT1 ("aligned_alloc(65, 64) did not fail");
 
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (18.0, "-Wnon-power-of-two-alignment");
   p4 = aligned_alloc (0, 64);
+  DIAG_POP_NEEDS_COMMENT_CLANG;
 
   if (p4 != NULL)
     FAIL_EXIT1 ("aligned_alloc(0, 64) did not fail");
 
+  /* clang warns that alignment must be 4294967296 or smaller, which is
+     what the test means to do.  */
+  DIAG_PUSH_NEEDS_COMMENT_CLANG;
+  DIAG_IGNORE_NEEDS_COMMENT_CLANG (18.0, "-Wbuiltin-assume-aligned-alignment");
   /* This is an alignment like 0x80000000...UL */
   p5 = aligned_alloc (SIZE_MAX / 2 + 1, 64);
+  DIAG_POP_NEEDS_COMMENT_CLANG;
 
   if (p5 != NULL)
     FAIL_EXIT1 ("aligned_alloc(SIZE_MAX/2+1, 64) did not fail");
