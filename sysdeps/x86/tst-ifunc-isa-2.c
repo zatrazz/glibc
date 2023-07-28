@@ -23,12 +23,16 @@
 static int
 do_test (void)
 {
+#if defined __clang__ && defined __i386__
+  return EXIT_UNSUPPORTED;
+#else
   /* CPU must support SSE2.  */
   if (!__builtin_cpu_supports ("sse2"))
     return EXIT_UNSUPPORTED;
   enum isa value = foo ();
   /* All ISAs, but SSE2, are disabled by tunables.  */
   return value == sse2 ? EXIT_SUCCESS : EXIT_FAILURE;
+#endif
 }
 
 #include <support/test-driver.c>

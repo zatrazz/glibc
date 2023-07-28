@@ -17,14 +17,19 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <stdlib.h>
+#include <support/test-driver.h>
 #include "tst-ifunc-isa.h"
 
 static int
 do_test (void)
 {
+#if defined __clang__ && defined __i386__
+  return EXIT_UNSUPPORTED;
+#else
   enum isa value = foo ();
   enum isa expected = get_isa ();
   return value == expected ? EXIT_SUCCESS : EXIT_FAILURE;
+#endif
 }
 
 #include <support/test-driver.c>
