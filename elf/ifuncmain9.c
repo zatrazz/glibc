@@ -23,6 +23,7 @@
 # include <stdbool.h>
 # include <stdio.h>
 # include <libc-diag.h>
+# include <support/test-driver.h>
 
 /* Do not use the test framework, so that the process setup is not
    disturbed.  */
@@ -57,6 +58,9 @@ DIAG_POP_NEEDS_COMMENT_CLANG;
 int
 main (void)
 {
+#if defined __clang__ && defined __i386__
+  return EXIT_UNSUPPORTED;
+#else
   bool errors = false;
 
   if (implementation_called != 0)
@@ -93,4 +97,5 @@ main (void)
     }
 
   return errors;
+#endif
 }
