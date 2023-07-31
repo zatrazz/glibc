@@ -370,7 +370,9 @@ __spawnix (pid_t * pid, const char *file,
   args.envp = envp;
   args.xflags = xflags;
 
-  internal_signal_block_all (&args.oldmask);
+  /* Avoid the abort to change the SIGABRT disposition to SIG_DFL for the
+     case POSIX_SPAWN_SETSIGDEF is not set and SIG_IGN is current handle.  */
+  __abort_lock_lock (&args.oldmask);
 
   /* The clone flags used will create a new child that will run in the same
      memory space (CLONE_VM) and the execution of calling thread will be
@@ -431,7 +433,7 @@ __spawnix (pid_t * pid, const char *file,
   if ((ec == 0) && (pid != NULL))
     *pid = new_pid;
 
-  internal_signal_restore_set (&args.oldmask);
+  __abort_lock_unlock (&args.oldmask);
 
   __pthread_setcancelstate (state, NULL);
 
