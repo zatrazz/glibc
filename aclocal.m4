@@ -148,7 +148,7 @@ AC_SUBST(NM)
 ])
 
 dnl Run a static link test with -nostdlib -nostartfiles.
-dnl LIBC_TRY_LINK_STATIC([code], [action-if-true], [action-if-false])
+dnl LIBC_TRY_LINK_STATIC([code], [opts], [action-if-true], [action-if-false])
 AC_DEFUN([LIBC_TRY_LINK_STATIC],
 [cat > conftest.c <<EOF
 int _start (void) { return 0; }
@@ -156,9 +156,9 @@ int __start (void) { return 0; }
 $1
 EOF
 AS_IF([AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -o conftest
-		       conftest.c -static -nostartfiles -nostdlib
+		       conftest.c $2 -static -nostartfiles -nostdlib
 		       1>&AS_MESSAGE_LOG_FD])],
-      [$2], [$3])
+      [$3], [$4])
 rm -f conftest*])
 
 dnl Test a compiler option or options with an empty input file.

@@ -1048,16 +1048,20 @@ tests += $(tests-static)
 ifeq (yes,$(have-ifunc))
 tests-ifuncstatic := \
   ifuncmain1picstatic \
-  ifuncmain1static \
   ifuncmain2picstatic \
   ifuncmain2static \
   ifuncmain4picstatic \
-  ifuncmain4static \
   ifuncmain5picstatic \
   ifuncmain5static \
+  # tests-ifuncstatic
+ifeq (yes,$(ifunc-static-pie))
+tests-ifuncstatic += \
+  ifuncmain1static \
+  ifuncmain4static \
   ifuncmain7picstatic \
   ifuncmain7static \
   # tests-ifuncstatic
+endif
 ifeq (yes,$(have-gcc-ifunc))
 tests-ifuncstatic += ifuncmain9static ifuncmain9picstatic
 endif
@@ -1077,11 +1081,15 @@ tests-internal += \
   ifuncmain2 \
   ifuncmain2pic \
   ifuncmain3 \
-  ifuncmain4 \
   ifuncmain5staticpic \
+  # tests-internal
+ifeq (yes,$(ifunc-static-pie))
+tests-internal += \
+  ifuncmain4 \
   ifuncmain7 \
   ifuncmain7pic \
   # tests-internal
+endif
 ifeq (no,$(with-lld))
 tests-internal += \
   ifuncmain1 \
@@ -1110,9 +1118,13 @@ ifunc-pie-tests = \
   ifuncmain1pie \
   ifuncmain1staticpie \
   ifuncmain1vispie \
+  # ifunc-pie-tests
+ifeq (yes,$(ifunc-static-pie))
+ifunc-pie-tests += \
   ifuncmain6pie \
   ifuncmain7pie \
   # ifunc-pie-tests
+endif
 ifeq (yes,$(have-gcc-ifunc))
 ifunc-pie-tests += ifuncmain9pie
 endif

@@ -89,6 +89,37 @@ printf "%s\n" "$libc_cv_ld_static_pie" >&6; }
   fi
 fi
 
+if test "$libc_cv_static_pie" == "yes"; then
+  cat > conftest.c <<EOF
+int _start (void) { return 0; }
+int __start (void) { return 0; }
+int foo (void) __attribute__ ((ifunc ("foo_ifunc")));
+void *
+foo_ifunc (void)
+{
+  return 0;
+}
+int main (void)
+{
+  return foo ();
+}
+EOF
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -o conftest
+		       conftest.c -fPIE -static-pie -static -nostartfiles -nostdlib
+		       1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then :
+  libc_cv_ifunc_static_pie=yes
+else $as_nop
+  libc_cv_ifunc_static_pie=no
+fi
+rm -f conftest*
+fi
+
 if test x"$multi_arch" != xno; then
   printf "%s\n" "#define NO_HIDDEN_EXTERN_FUNC_IN_PIE 1" >>confdefs.h
 
