@@ -1896,6 +1896,7 @@ libc_cv_localstatedir=$localstatedir
 libc_cv_gcc_unwind_find_fde=no
 libc_cv_idn=no
 pthread_in_libc=yes
+libc_cv_ifunc_static_pie=yes
 
 # Iterate over all the sysdep directories we will use, running their
 # configure fragments.
@@ -1909,6 +1910,8 @@ for dir in $sysnames; do
     . $dest/configure
   fi
 done
+
+LIBC_CONFIG_VAR([ifunc-static-pie], [$libc_cv_ifunc_static_pie])
 
 if test x"$build_mathvec" = xnotset; then
   build_mathvec=no
