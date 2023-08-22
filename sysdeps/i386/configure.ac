@@ -58,6 +58,21 @@ rm -f conftest*])
   fi
 fi
 
+if test "$libc_cv_static_pie" == "yes"; then
+  LIBC_TRY_LINK_STATIC([dnl
+int foo (void) __attribute__ ((ifunc ("foo_ifunc")));
+void *
+foo_ifunc (void)
+{
+  return 0;
+}
+int main (void)
+{
+  return foo ();
+}],
+    [-fPIE -static-pie], libc_cv_ifunc_static_pie=yes, libc_cv_ifunc_static_pie=no)
+fi
+
 dnl When multi-arch is enabled, all external functions must be called
 dnl via PIC PLT in PIE, which requires setting up EBX register.
 if test x"$multi_arch" != xno; then
