@@ -173,7 +173,13 @@ my_readdir (void *gdir)
 
   dir->d.d_type = filesystem[dir->idx].type;
 
-  __strcpy_chk (dir->d.d_name, filesystem[dir->idx].name, NAME_MAX);
+  {
+    size_t len = strlen (filesystem[dir->idx].name);
+    if (len >= NAME_MAX)
+      FAIL_EXIT1 ("[%s] entry name larger than NAME_MAX (%d)", __func__,
+		  NAME_MAX);
+    memcpy (dir->d.d_name, filesystem[dir->idx].name, len + 1);
+  }
 
   ++dir->idx;
 
