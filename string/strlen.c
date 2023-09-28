@@ -48,5 +48,10 @@ __strlen (const char *str)
 }
 #ifndef STRLEN
 weak_alias (__strlen, strlen)
+/* clang warns that the alias will be always resolve to __strlen even if weak
+   definition of __GI_strlen is overridden, which is really the intention.  */
+DIAG_PUSH_NEEDS_COMMENT_CLANG;
+DIAG_IGNORE_NEEDS_COMMENT_CLANG (16, "-Wignored-attributes");
 libc_hidden_builtin_def (strlen)
+DIAG_POP_NEEDS_COMMENT_CLANG;
 #endif
