@@ -62,7 +62,7 @@ ENTRY(__thread_start_clone3)
 L(thread_start):
 	/* Terminate call stack by noting ra is undefined.  Use a dummy
 	   .cfi_label to force starting the FDE.  */
-	.cfi_label .Ldummy
+	cfi_label (.Ldummy)
 	cfi_undefined (ra)
 
 	/* Restore the arg for user's function and call the user's
