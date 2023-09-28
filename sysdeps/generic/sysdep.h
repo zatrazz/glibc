@@ -56,6 +56,12 @@
 # define cfi_window_save		.cfi_window_save
 # define cfi_personality(enc, exp)	.cfi_personality enc, exp
 # define cfi_lsda(enc, exp)		.cfi_lsda enc, exp
+/* .cfi_label is a gas extension not supported by clang.  */
+# ifndef __clang__
+#  define cfi_label(label)		.cfi_label label
+# else
+#  define cfi_label(label)
+# endif
 
 #else /* ! ASSEMBLER */
 
