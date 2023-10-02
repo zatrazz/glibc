@@ -16,23 +16,67 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
-#include <stdint.h>
-#include <stdio.h>
-#include <stdio_ext.h>
+#include <procutils.h>
 #include <stdlib.h>
-#include <string.h>
-#include "libio/libioP.h"
+#include <stdint.h>
 
-/* Return 1 if the whole area PTR .. PTR+SIZE is not writable.
-   Return -1 if it is writable.  */
+struct proc_self_find_map_t
+{
+  size_t size;
+  uintptr_t ptr;
+  uintptr_t ptr_end;
+};
+
+static int
+proc_self_find_map (const char *line, void *arg)
+{
+  struct proc_self_find_map_t *a = arg;
+
+  char *p;
+  uintptr_t from = strtoul (line, &p, 16);
+  if (p == line || *p++ != '-')
+    return -1;
+
+  char *q;
+  uintptr_t to = strtoul (p, &q, 16);
+  if (q == p || *q++ != ' ')
+    return -1;
+
+  if (from < a->ptr_end && to > a->ptr)
+    {
+      /* Found an entry that at least partially covers the area.  */
+      if (*q++ != 'r' || *q++ != '-')
+	return 1;
+
+      if (from <= a->ptr && to >= a->ptr_end)
+	{
+	  a->size = 0;
+	  return 1;
+	}
+      else if (from <= a->ptr)
+	a->size -= to - a->ptr;
+      else if (to >= a->ptr_end)
+	a->size -= a->ptr_end - from;
+      else
+	a->size -= to - from;
+
+      if (a->size == 0)
+	return 1;
+    }
+
+  return 0;
+}
 
 int
 __readonly_area (const char *ptr, size_t size)
 {
-  const void *ptr_end = ptr + size;
-
-  FILE *fp = fopen ("/proc/self/maps", "rce");
-  if (fp == NULL)
+  struct proc_self_find_map_t args =
+    {
+      .size = size,
+      .ptr = (uintptr_t) ptr,
+      .ptr_end = (uintptr_t) ptr + size
+    };
+  if (!__procutils_read_file ("/proc/self/maps", proc_self_find_map, &args))
     {
       /* It is the system administrator's choice to not have /proc
 	 available to this process (e.g., because it runs in a chroot
@@ -42,61 +86,14 @@ __readonly_area (const char *ptr, size_t size)
 	     to the /proc filesystem if it is set[ug]id.  There has
 	     been no willingness to change this in the kernel so
 	     far.  */
-	  || errno == EACCES)
-	return 1;
-      return -1;
+	  || errno == EACCES
+	  /* Process has reached the maximum number of open files.  */
+	  || errno == EMFILE)
+	return true;
+      return false;
     }
-
-  /* We need no locking.  */
-  __fsetlocking (fp, FSETLOCKING_BYCALLER);
-
-  char *line = NULL;
-  size_t linelen = 0;
-
-  while (! __feof_unlocked (fp))
-    {
-      if (__getdelim (&line, &linelen, '\n', fp) <= 0)
-	break;
-
-      char *p;
-      uintptr_t from = strtoul (line, &p, 16);
-
-      if (p == line || *p++ != '-')
-	break;
-
-      char *q;
-      uintptr_t to = strtoul (p, &q, 16);
-
-      if (q == p || *q++ != ' ')
-	break;
-
-      if (from < (uintptr_t) ptr_end && to > (uintptr_t) ptr)
-	{
-	  /* Found an entry that at least partially covers the area.  */
-	  if (*q++ != 'r' || *q++ != '-')
-	    break;
-
-	  if (from <= (uintptr_t) ptr && to >= (uintptr_t) ptr_end)
-	    {
-	      size = 0;
-	      break;
-	    }
-	  else if (from <= (uintptr_t) ptr)
-	    size -= to - (uintptr_t) ptr;
-	  else if (to >= (uintptr_t) ptr_end)
-	    size -= (uintptr_t) ptr_end - from;
-	  else
-	    size -= to - from;
-
-	  if (!size)
-	    break;
-	}
-    }
-
-  fclose (fp);
-  free (line);
 
   /* If the whole area between ptr and ptr_end is covered by read-only
      VMAs, return 1.  Otherwise return -1.  */
-  return size == 0 ? 1 : -1;
+  return args.size == 0 ? 1 : -1;
 }
