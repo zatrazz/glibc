@@ -18,14 +18,16 @@
 #include <utmp.h>
 
 #include "utmp-compat.h"
-#include "utmp-private.h"
 
 #if defined SHARED
 # undef weak_alias
 # define weak_alias(n,a)
 #endif
-#include "sysdeps/gnu/updwtmp.c"
+#include "login/updwtmp.c"
+symbol_version (__updwtmp, updwtmp, GLIBC_2.0);
+symbol_version (__updwtmp, updwtmpx, GLIBC_2.1);
 
 #if defined SHARED
 default_symbol_version (__updwtmp, updwtmp, UTMP_COMPAT_BASE);
+default_symbol_version (__updwtmp, updwtmpx, UTMP_COMPAT_BASE);
 #endif

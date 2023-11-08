@@ -15,32 +15,15 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <stdlib.h>
+#include <stddef.h>
 #include <utmp.h>
-#include <set-freeres.h>
-
-
-/* Local buffer to store the result.  */
-static struct utmp *buffer;
-
 
 struct utmp *
 __getutline (const struct utmp *line)
 {
-  struct utmp *result;
-
-  if (buffer == NULL)
-    {
-      buffer = (struct utmp *) malloc (sizeof (struct utmp));
-      if (buffer == NULL)
-        return NULL;
-    }
-  if (__getutline_r (line, buffer, &result) < 0)
-    return NULL;
-
-  return result;
+  return NULL;
 }
-libc_hidden_def (__getutline)
 weak_alias (__getutline, getutline)
-
-weak_alias (buffer, __libc_getutline_freemem_ptr)
+weak_alias (__getutline, getutxline)
+stub_warning (getutline)
+stub_warning (getutxline)

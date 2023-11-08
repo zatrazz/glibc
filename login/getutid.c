@@ -15,30 +15,15 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <stdlib.h>
+#include <stddef.h>
 #include <utmp.h>
-#include <set-freeres.h>
-
-/* Local buffer to store the result.  */
-static struct utmp *buffer;
 
 struct utmp *
 __getutid (const struct utmp *id)
 {
-  struct utmp *result;
-
-  if (buffer == NULL)
-    {
-      buffer = (struct utmp *) malloc (sizeof (struct utmp));
-      if (buffer == NULL)
-        return NULL;
-    }
-  if (__getutid_r (id, buffer, &result) < 0)
-    return NULL;
-
-  return result;
+  return NULL;
 }
-libc_hidden_def (__getutid)
 weak_alias (__getutid, getutid)
-
-weak_alias (buffer, __libc_getutid_freemem_ptr)
+weak_alias (__getutid, getutxid)
+stub_warning (getutid)
+stub_warning (getutxid)

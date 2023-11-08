@@ -17,20 +17,20 @@
 
 #include <string.h>
 #include <utmp.h>
-/* This is an ugly hack but we must not see the getutmpx declaration.  */
-#define getutmpx XXXgetutmpx
+#define getutmpx __redirect_getutmpx
 #include <utmpx.h>
 #undef getutmpx
 
 #include "utmp-compat.h"
 
-#undef weak_alias
-#define weak_alias(n,a)
-#define getutmp __getutmp
-#define getutmpx __getutmpx
-#include "sysdeps/gnu/getutmp.c"
-#undef getutmp
-#undef getutmpx
+void
+__getutmp (const struct utmpx *utmpx, struct utmp *utmp)
+{
+}
+symbol_version (__getutmp, getutmp, GLIBC_2.1.1);
+symbol_version (__getutmp, getutmpx, GLIBC_2.1.1);
 
 default_symbol_version (__getutmp, getutmp, UTMP_COMPAT_BASE);
-default_symbol_version (__getutmpx, getutmpx, UTMP_COMPAT_BASE);
+default_symbol_version (__getutmp, getutmpx, UTMP_COMPAT_BASE);
+stub_warning (getutmp)
+stub_warning (getutmpx)

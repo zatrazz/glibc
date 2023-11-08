@@ -867,17 +867,6 @@ The @code{getlogin} function is declared in @file{unistd.h}, while
 @standards{POSIX.1, unistd.h}
 @safety{@prelim{}@mtunsafe{@mtasurace{:getlogin} @mtasurace{:utent} @mtascusig{:ALRM} @mtascutimer{} @mtslocale{}}@asunsafe{@ascudlopen{} @ascuplugin{} @ascuheap{} @asulock{}}@acunsafe{@acucorrupt{} @aculock{} @acsfd{} @acsmem{}}}
 @c getlogin (linux) @mtasurace:getlogin @mtasurace:utent @mtascusig:ALRM @mtascutimer @mtslocale @ascudlopen @ascuplugin @ascuheap @asulock @acucorrupt @aculock @acsfd @acsmem
-@c  getlogin_r_loginuid dup @mtslocale @ascudlopen @ascuplugin @ascuheap @asulock @acucorrupt @aculock @acsfd @acsmem
-@c  getlogin_fd0 (unix) @mtasurace:getlogin @mtasurace:utent @mtascusig:ALRM @mtascutimer @ascuheap @asulock @aculock @acsfd @acsmem
-@c    uses static buffer name => @mtasurace:getlogin
-@c   ttyname_r dup @ascuheap @acsmem @acsfd
-@c   strncpy dup ok
-@c   setutent dup @mtasurace:utent @asulock @aculock @acsfd
-@c   getutline_r dup @mtasurace:utent @mtascusig:ALRM @mtascutimer @asulock @aculock @acsfd
-@c   endutent dup @mtasurace:utent @asulock @aculock
-@c   libc_lock_unlock dup ok
-@c   strlen dup ok
-@c   memcpy dup ok
 @c
 @c getlogin_r (linux) @mtasurace:utent @mtascusig:ALRM @mtascutimer @mtslocale @ascudlopen @ascuplugin @ascuheap @asulock @acucorrupt @aculock @acsfd @acsmem
 @c  getlogin_r_loginuid @mtslocale @ascudlopen @ascuplugin @ascuheap @asulock @acucorrupt @aculock @acsfd @acsmem
@@ -956,11 +945,9 @@ ID of the user's login shell, etc., etc., but also stores information
 about the run level of the system, the time of the last system reboot,
 and possibly more.
 
-The user accounting database typically lives in @file{/etc/utmp},
-@file{/var/adm/utmp} or @file{/var/run/utmp}.  However, these files
-should @strong{never} be accessed directly.  For reading information
-from and writing information to the user accounting database, the
-functions described in this section should be used.
+The user accounting database functions provided by @theglibc{} are
+meant only for XPG2 compliance, all of them either are no-op operation
+or return an invalid return along @code{ENOTSUP}.
 
 
 @menu
@@ -1103,355 +1090,69 @@ compatibility only, @file{utmp.h} defines @code{ut_time} as an alias for
 
 @deftypefun void setutent (void)
 @standards{SVID, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtasurace{:utent}}@asunsafe{@asulock{}}@acunsafe{@aculock{} @acsfd{}}}
-@c Besides the static variables in utmp_file.c, there's the jump_table.
-@c They're both modified while holding a lock, but other threads may
-@c cause the variables to be modified between calling this function and
-@c others that rely on the internal state it sets up.
-
-@c setutent @mtasurace:utent @asulock @aculock @acsfd
-@c  libc_lock_lock dup @asulock @aculock
-@c  __libc_setutent @mtasurace:utent @acsfd
-@c   setutent_unknown @mtasurace:utent @acsfd
-@c    *libc_utmp_file_functions.setutent = setutent_file @mtasurace:utent @acsfd
-@c      open_not_cancel_2 dup @acsfd
-@c      fcntl_not_cancel dup ok
-@c      close_not_cancel_no_status dup @acsfd
-@c      lseek64 dup ok
-@c  libc_lock_unlock dup ok
-This function opens the user accounting database to begin scanning it.
-You can then call @code{getutent}, @code{getutid} or @code{getutline} to
-read entries and @code{pututline} to write entries.
-
-If the database is already open, it resets the input to the beginning of
-the database.
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op.
 @end deftypefun
 
 @deftypefun {struct utmp *} getutent (void)
 @standards{SVID, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtuinit{} @mtasurace{:utent} @mtasurace{:utentbuf} @mtascusig{:ALRM} @mtascutimer{}}@asunsafe{@ascuheap{} @asulock{}}@acunsafe{@aculock{} @acsfd{} @acsmem{}}}
-@c The static buffer that holds results is allocated with malloc at
-@c the first call; the test is not thread-safe, so multiple concurrent
-@c calls could malloc multiple buffers.
-
-@c getutent @mtuinit @mtasurace:utent @mtasurace:utentbuf @mtascusig:ALRM @mtascutimer @ascuheap @asulock @aculock @acsfd @acsmem
-@c  malloc @asulock @aculock @acsfd @acsmem
-@c  getutent_r dup @mtasurace:utent @mtascusig:ALRM @mtascutimer @asulock @aculock @acsfd
-The @code{getutent} function reads the next entry from the user
-accounting database.  It returns a pointer to the entry, which is
-statically allocated and may be overwritten by subsequent calls to
-@code{getutent}.  You must copy the contents of the structure if you
-wish to save the information or you can use the @code{getutent_r}
-function which stores the data in a user-provided buffer.
-
-A null pointer is returned in case no further entry is available.
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op, it always return a null pointer.
 @end deftypefun
 
 @deftypefun void endutent (void)
 @standards{SVID, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtasurace{:utent}}@asunsafe{@asulock{}}@acunsafe{@aculock{} @acsfd{}}}
-@c endutent @mtasurace:utent @asulock @aculock @acsfd
-@c  libc_lock_lock dup @asulock @aculock
-@c  __libc_endutent @mtasurace:utent @acsfd
-@c   endutent_unknown ok
-@c   endutent_file @mtasurace:utent @acsfd
-@c    close_not_cancel_no_status dup @acsfd
-@c  libc_lock_unlock dup ok
-This function closes the user accounting database.
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op.
 @end deftypefun
 
 @deftypefun {struct utmp *} getutid (const struct utmp *@var{id})
 @standards{SVID, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtuinit{} @mtasurace{:utent} @mtascusig{:ALRM} @mtascutimer{}}@asunsafe{@asulock{} @ascuheap{}}@acunsafe{@aculock{} @acsmem{} @acsfd{}}}
-@c Same caveats as getutline.
-@c
-@c getutid @mtuinit @mtasurace:utent @mtascusig:ALRM @mtascutimer @ascuheap @asulock @aculock @acsmem @acsfd
-@c   uses a static buffer malloced on the first call
-@c  malloc dup @ascuheap @acsmem
-@c  getutid_r dup @mtasurace:utent @mtascusig:ALRM @mtascutimer @asulock @aculock @acsfd
-This function searches forward from the current point in the database
-for an entry that matches @var{id}.  If the @code{ut_type} member of the
-@var{id} structure is one of @code{RUN_LVL}, @code{BOOT_TIME},
-@code{OLD_TIME} or @code{NEW_TIME} the entries match if the
-@code{ut_type} members are identical.  If the @code{ut_type} member of
-the @var{id} structure is @code{INIT_PROCESS}, @code{LOGIN_PROCESS},
-@code{USER_PROCESS} or @code{DEAD_PROCESS}, the entries match if the
-@code{ut_type} member of the entry read from the database is one of
-these four, and the @code{ut_id} members match.  However if the
-@code{ut_id} member of either the @var{id} structure or the entry read
-from the database is empty it checks if the @code{ut_line} members match
-instead.  If a matching entry is found, @code{getutid} returns a pointer
-to the entry, which is statically allocated, and may be overwritten by a
-subsequent call to @code{getutent}, @code{getutid} or @code{getutline}.
-You must copy the contents of the structure if you wish to save the
-information.
-
-A null pointer is returned in case the end of the database is reached
-without a match.
-
-The @code{getutid} function may cache the last read entry.  Therefore,
-if you are using @code{getutid} to search for multiple occurrences, it
-is necessary to zero out the static data after each call.  Otherwise
-@code{getutid} could just return a pointer to the same entry over and
-over again.
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op, it always return a null pointer.
 @end deftypefun
 
 @deftypefun {struct utmp *} getutline (const struct utmp *@var{line})
 @standards{SVID, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtuinit{} @mtasurace{:utent} @mtascusig{:ALRM} @mtascutimer{}}@asunsafe{@ascuheap{} @asulock{}}@acunsafe{@aculock{} @acsfd{} @acsmem{}}}
-@c The static buffer that holds results is allocated with malloc at
-@c the first call; the test is not thread-safe, so multiple concurrent
-@c calls could malloc multiple buffers.
-
-@c getutline @mtuinit @mtasurace:utent @mtascusig:ALRM @mtascutimer @ascuheap @asulock @aculock @acsfd @acsmem
-@c  malloc @asulock @aculock @acsfd @acsmem
-@c  getutline_r dup @mtasurace:utent @mtascusig:ALRM @mtascutimer @asulock @aculock @acsfd
-This function searches forward from the current point in the database
-until it finds an entry whose @code{ut_type} value is
-@code{LOGIN_PROCESS} or @code{USER_PROCESS}, and whose @code{ut_line}
-member matches the @code{ut_line} member of the @var{line} structure.
-If it finds such an entry, it returns a pointer to the entry which is
-statically allocated, and may be overwritten by a subsequent call to
-@code{getutent}, @code{getutid} or @code{getutline}.  You must copy the
-contents of the structure if you wish to save the information.
-
-A null pointer is returned in case the end of the database is reached
-without a match.
-
-The @code{getutline} function may cache the last read entry.  Therefore
-if you are using @code{getutline} to search for multiple occurrences, it
-is necessary to zero out the static data after each call.  Otherwise
-@code{getutline} could just return a pointer to the same entry over and
-over again.
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op, it always return a null pointer.
 @end deftypefun
 
 @deftypefun {struct utmp *} pututline (const struct utmp *@var{utmp})
 @standards{SVID, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtasurace{:utent} @mtascusig{:ALRM} @mtascutimer{}}@asunsafe{@asulock{}}@acunsafe{@aculock{} @acsfd{}}}
-@c pututline @mtasurace:utent @mtascusig:ALRM @mtascutimer @asulock @aculock @acsfd
-@c  libc_lock_lock dup @asulock @aculock
-@c  __libc_pututline @mtasurace:utent @mtascusig:ALRM @mtascutimer @acsfd
-@c   pututline_unknown @mtasurace:utent @acsfd
-@c    setutent_unknown dup @mtasurace:utent @acsfd
-@c   pututline_file @mtascusig:ALRM @mtascutimer @acsfd
-@c    TRANSFORM_UTMP_FILE_NAME ok
-@c     strcmp dup ok
-@c     acesss dup ok
-@c    open_not_cancel_2 dup @acsfd
-@c    fcntl_not_cancel dup ok
-@c    close_not_cancel_no_status dup @acsfd
-@c    llseek dup ok
-@c    dup2 dup ok
-@c    utmp_equal dup ok
-@c    internal_getut_r dup @mtascusig:ALRM @mtascutimer
-@c    LOCK_FILE dup @mtascusig:ALRM @mtasctimer
-@c    LOCKING_FAILED dup ok
-@c    ftruncate64 dup ok
-@c    write_not_cancel dup ok
-@c    UNLOCK_FILE dup @mtasctimer
-@c  libc_lock_unlock dup @aculock
-The @code{pututline} function inserts the entry @code{*@var{utmp}} at
-the appropriate place in the user accounting database.  If it finds that
-it is not already at the correct place in the database, it uses
-@code{getutid} to search for the position to insert the entry, however
-this will not modify the static structure returned by @code{getutent},
-@code{getutid} and @code{getutline}.  If this search fails, the entry
-is appended to the database.
-
-The @code{pututline} function returns a pointer to a copy of the entry
-inserted in the user accounting database, or a null pointer if the entry
-could not be added.  The following @code{errno} error conditions are
-defined for this function:
-
-@table @code
-@item EPERM
-The process does not have the appropriate privileges; you cannot modify
-the user accounting database.
-@end table
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op, it always return a null pointer.
 @end deftypefun
-
-All the @code{get*} functions mentioned before store the information
-they return in a static buffer.  This can be a problem in multi-threaded
-programs since the data returned for the request is overwritten by the
-return value data in another thread.  Therefore @theglibc{}
-provides as extensions three more functions which return the data in a
-user-provided buffer.
 
 @deftypefun int getutent_r (struct utmp *@var{buffer}, struct utmp **@var{result})
 @standards{GNU, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtasurace{:utent} @mtascusig{:ALRM} @mtascutimer{}}@asunsafe{@asulock{}}@acunsafe{@aculock{} @acsfd{}}}
-@c getutent_r @mtasurace:utent @mtascusig:ALRM @mtascutimer @asulock @aculock @acsfd
-@c  libc_lock_lock dup @asulock @aculock
-@c  __libc_getutent_r @mtasurace:utent @mtascusig:ALRM @mtascutimer @acsfd
-@c   getutent_r_unknown @mtasurace:utent @acsfd
-@c    setutent_unknown dup @mtasurace:utent @acsfd
-@c   getutent_r_file @mtasurace:utent @mtascusig:ALRM @mtascutimer
-@c    LOCK_FILE @mtascusig:ALRM @mtascutimer
-@c     alarm dup @mtascutimer
-@c     sigemptyset dup ok
-@c     sigaction dup ok
-@c     memset dup ok
-@c     fcntl_not_cancel dup ok
-@c    LOCKING_FAILED ok
-@c    read_not_cancel dup ok
-@c    UNLOCK_FILE @mtascutimer
-@c     fcntl_not_cancel dup ok
-@c     alarm dup @mtascutimer
-@c     sigaction dup ok
-@c    memcpy dup ok
-@c  libc_lock_unlock dup ok
-The @code{getutent_r} is equivalent to the @code{getutent} function.  It
-returns the next entry from the database.  But instead of storing the
-information in a static buffer it stores it in the buffer pointed to by
-the parameter @var{buffer}.
-
-If the call was successful, the function returns @code{0} and the
-pointer variable pointed to by the parameter @var{result} contains a
-pointer to the buffer which contains the result (this is most probably
-the same value as @var{buffer}).  If something went wrong during the
-execution of @code{getutent_r} the function returns @code{-1}.
-
-This function is a GNU extension.
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op, it always return @code{-1} with @code{errno} set to @code{ENOTSUP}.
 @end deftypefun
 
 @deftypefun int getutid_r (const struct utmp *@var{id}, struct utmp *@var{buffer}, struct utmp **@var{result})
 @standards{GNU, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtasurace{:utent} @mtascusig{:ALRM} @mtascutimer{}}@asunsafe{@asulock{}}@acunsafe{@aculock{} @acsfd{}}}
-@c getutid_r @mtasurace:utent @mtascusig:ALRM @mtascutimer @asulock @aculock @acsfd
-@c  libc_lock_lock dup @asulock @aculock
-@c  __libc_getutid_r @mtasurace:utent @mtascusig:ALRM @mtascutimer @acsfd
-@c   getutid_r_unknown @mtasurace:utent @acsfd
-@c    setutent_unknown dup @mtasurace:utent @acsfd
-@c   getutid_r_file @mtascusig:ALRM @mtascutimer
-@c    internal_getut_r @mtascusig:ALRM @mtascutimer
-@c     LOCK_FILE dup @mtascusig:ALRM @mtascutimer
-@c     LOCKING_FAILED dup ok
-@c     read_not_cancel dup ok
-@c     utmp_equal ok
-@c      strncmp dup ok
-@c     UNLOCK_FILE dup @mtascutimer
-@c    memcpy dup ok
-@c  libc_lock_unlock dup @aculock
-This function retrieves just like @code{getutid} the next entry matching
-the information stored in @var{id}.  But the result is stored in the
-buffer pointed to by the parameter @var{buffer}.
-
-If successful the function returns @code{0} and the pointer variable
-pointed to by the parameter @var{result} contains a pointer to the
-buffer with the result (probably the same as @var{result}.  If not
-successful the function return @code{-1}.
-
-This function is a GNU extension.
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op, it always return @code{-1} with @code{errno} set to @code{ENOTSUP}.
 @end deftypefun
 
 @deftypefun int getutline_r (const struct utmp *@var{line}, struct utmp *@var{buffer}, struct utmp **@var{result})
 @standards{GNU, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtasurace{:utent} @mtascusig{:ALRM} @mtascutimer{}}@asunsafe{@asulock{}}@acunsafe{@aculock{} @acsfd{}}}
-@c getutline_r @mtasurace:utent @mtascusig:ALRM @mtascutimer @asulock @aculock @acsfd
-@c  libc_lock_lock dup @asulock @aculock
-@c  __libc_getutline_r @mtasurace:utent @mtascusig:ALRM @mtascutimer @acsfd
-@c   getutline_r_unknown @mtasurace:utent @acsfd
-@c    setutent_unknown dup @mtasurace:utent @acsfd
-@c   getutline_r_file @mtasurace:utent @mtascusig:ALRM @mtascutimer
-@c    LOCK_FILE @mtascusig:ALRM @mtascutimer
-@c     alarm dup @mtascutimer
-@c     sigemptyset dup ok
-@c     sigaction dup ok
-@c     memset dup ok
-@c     fcntl_not_cancel dup ok
-@c    LOCKING_FAILED ok
-@c    read_not_cancel dup ok
-@c    strncmp dup ok
-@c    UNLOCK_FILE @mtascutimer
-@c     fcntl_not_cancel dup ok
-@c     alarm dup @mtascutimer
-@c     sigaction dup ok
-@c    memcpy dup ok
-@c  libc_lock_unlock dup ok
-This function retrieves just like @code{getutline} the next entry
-matching the information stored in @var{line}.  But the result is stored
-in the buffer pointed to by the parameter @var{buffer}.
-
-If successful the function returns @code{0} and the pointer variable
-pointed to by the parameter @var{result} contains a pointer to the
-buffer with the result (probably the same as @var{result}.  If not
-successful the function return @code{-1}.
-
-This function is a GNU extension.
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op, it always return @code{-1} with @code{errno} set to @code{ENOTSUP}.
 @end deftypefun
-
-
-In addition to the user accounting database, most systems keep a number
-of similar databases.  For example most systems keep a log file with all
-previous logins (usually in @file{/etc/wtmp} or @file{/var/log/wtmp}).
-
-For specifying which database to examine, the following function should
-be used.
 
 @deftypefun int utmpname (const char *@var{file})
 @standards{SVID, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtasurace{:utent}}@asunsafe{@asulock{} @ascuheap{}}@acunsafe{@aculock{} @acsmem{}}}
-@c utmpname @mtasurace:utent @asulock @ascuheap @aculock @acsmem
-@c  libc_lock_lock dup @asulock @aculock
-@c  __libc_endutent dup @mtasurace:utent
-@c  strcmp dup ok
-@c  free dup @ascuheap @acsmem
-@c  strdup dup @ascuheap @acsmem
-@c  libc_lock_unlock dup @aculock
-The @code{utmpname} function changes the name of the database to be
-examined to @var{file}, and closes any previously opened database.  By
-default @code{getutent}, @code{getutid}, @code{getutline} and
-@code{pututline} read from and write to the user accounting database.
-
-The following macros are defined for use as the @var{file} argument:
-
-@deftypevr Macro {char *} _PATH_UTMP
-This macro is used to specify the user accounting database.
-@end deftypevr
-
-@deftypevr Macro {char *} _PATH_WTMP
-This macro is used to specify the user accounting log file.
-@end deftypevr
-
-The @code{utmpname} function returns a value of @code{0} if the new name
-was successfully stored, and a value of @code{-1} to indicate an error.
-Note that @code{utmpname} does not try to open the database, and that
-therefore the return value does not say anything about whether the
-database can be successfully opened.
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op, it always return @code{-1} with @code{errno} set to @code{ENOTSUP}.
 @end deftypefun
-
-Specially for maintaining log-like databases @theglibc{} provides
-the following function:
 
 @deftypefun void updwtmp (const char *@var{wtmp_file}, const struct utmp *@var{utmp})
 @standards{SVID, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtascusig{:ALRM} @mtascutimer{}}@asunsafe{}@acunsafe{@acsfd{}}}
-@c updwtmp @mtascusig:ALRM @mtascutimer @acsfd
-@c  TRANSFORM_UTMP_FILE_NAME dup ok
-@c  *libc_utmp_file_functions->updwtmp = updwtmp_file @mtascusig:ALRM @mtascutimer @acsfd
-@c   open_not_cancel_2 dup @acsfd
-@c   LOCK_FILE dup @mtascusig:ALRM @mtascutimer
-@c   LOCKING_FAILED dup ok
-@c   lseek64 dup ok
-@c   ftruncate64 dup ok
-@c   write_not_cancel dup ok
-@c   UNLOCK_FILE dup @mtascutimer
-@c   close_not_cancel_no_status dup @acsfd
-The @code{updwtmp} function appends the entry *@var{utmp} to the
-database specified by @var{wtmp_file}.  For possible values for the
-@var{wtmp_file} argument see the @code{utmpname} function.
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op.
 @end deftypefun
-
-@strong{Portability Note:} Although many operating systems provide a
-subset of these functions, they are not standardized.  There are often
-subtle differences in the return types, and there are considerable
-differences between the various definitions of @code{struct utmp}.  When
-programming for @theglibc{}, it is probably best to stick
-with the functions described in this section.  If however, you want your
-program to be portable, consider using the XPG functions described in
-@ref{XPG Functions}, or take a look at the BSD compatible functions in
-@ref{Logging In and Out}.
-
 
 @node XPG Functions
 @subsection XPG User Accounting Database Functions
@@ -1540,14 +1241,14 @@ can be found using the @code{sizeof} operator.
 
 @deftypefun void setutxent (void)
 @standards{XPG4.2, utmpx.h}
-@safety{@prelim{}@mtunsafe{@mtasurace{:utent}}@asunsafe{@asulock{}}@acunsafe{@aculock{} @acsfd{}}}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
 This function is similar to @code{setutent}.  In @theglibc{} it is
 simply an alias for @code{setutent}.
 @end deftypefun
 
 @deftypefun {struct utmpx *} getutxent (void)
 @standards{XPG4.2, utmpx.h}
-@safety{@prelim{}@mtunsafe{@mtuinit{} @mtasurace{:utent} @mtascusig{:ALRM} @mtascutimer{}}@asunsafe{@ascuheap{} @asulock{}}@acunsafe{@aculock{} @acsfd{} @acsmem{}}}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
 The @code{getutxent} function is similar to @code{getutent}, but returns
 a pointer to a @code{struct utmpx} instead of @code{struct utmp}.  In
 @theglibc{} it simply is an alias for @code{getutent}.
@@ -1555,14 +1256,14 @@ a pointer to a @code{struct utmpx} instead of @code{struct utmp}.  In
 
 @deftypefun void endutxent (void)
 @standards{XPG4.2, utmpx.h}
-@safety{@prelim{}@mtunsafe{@mtasurace{:utent}}@asunsafe{@asulock{}}@acunsafe{@aculock{}}}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
 This function is similar to @code{endutent}.  In @theglibc{} it is
 simply an alias for @code{endutent}.
 @end deftypefun
 
 @deftypefun {struct utmpx *} getutxid (const struct utmpx *@var{id})
 @standards{XPG4.2, utmpx.h}
-@safety{@prelim{}@mtunsafe{@mtuinit{} @mtasurace{:utent} @mtascusig{:ALRM} @mtascutimer{}}@asunsafe{@asulock{} @ascuheap{}}@acunsafe{@aculock{} @acsmem{} @acsfd{}}}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
 This function is similar to @code{getutid}, but uses @code{struct utmpx}
 instead of @code{struct utmp}.  In @theglibc{} it is simply an alias
 for @code{getutid}.
@@ -1570,7 +1271,7 @@ for @code{getutid}.
 
 @deftypefun {struct utmpx *} getutxline (const struct utmpx *@var{line})
 @standards{XPG4.2, utmpx.h}
-@safety{@prelim{}@mtunsafe{@mtuinit{} @mtasurace{:utent} @mtascusig{:ALRM} @mtascutimer{}}@asunsafe{@ascuheap{} @asulock{}}@acunsafe{@aculock{} @acsfd{} @acsmem{}}}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
 This function is similar to @code{getutid}, but uses @code{struct utmpx}
 instead of @code{struct utmp}.  In @theglibc{} it is simply an alias
 for @code{getutline}.
@@ -1578,7 +1279,7 @@ for @code{getutline}.
 
 @deftypefun {struct utmpx *} pututxline (const struct utmpx *@var{utmp})
 @standards{XPG4.2, utmpx.h}
-@safety{@prelim{}@mtunsafe{@mtasurace{:utent} @mtascusig{:ALRM} @mtascutimer{}}@asunsafe{@asulock{}}@acunsafe{@aculock{} @acsfd{}}}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
 The @code{pututxline} function is functionally identical to
 @code{pututline}, but uses @code{struct utmpx} instead of @code{struct
 utmp}.  In @theglibc{}, @code{pututxline} is simply an alias for
@@ -1587,31 +1288,24 @@ utmp}.  In @theglibc{}, @code{pututxline} is simply an alias for
 
 @deftypefun int utmpxname (const char *@var{file})
 @standards{XPG4.2, utmpx.h}
-@safety{@prelim{}@mtunsafe{@mtasurace{:utent}}@asunsafe{@asulock{} @ascuheap{}}@acunsafe{@aculock{} @acsmem{}}}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
 The @code{utmpxname} function is functionally identical to
 @code{utmpname}.  In @theglibc{}, @code{utmpxname} is simply an
 alias for @code{utmpname}.
 @end deftypefun
 
-You can translate between a traditional @code{struct utmp} and an XPG
-@code{struct utmpx} with the following functions.  In @theglibc{},
-these functions are merely copies, since the two structures are
-identical.
-
-@deftypefun int getutmp (const struct utmpx *@var{utmpx}, struct utmp *@var{utmp})
+@deftypefun void getutmp (const struct utmpx *@var{utmpx}, struct utmp *@var{utmp})
 @standards{GNU, utmp.h}
 @standards{GNU, utmpx.h}
 @safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
-@code{getutmp} copies the information, insofar as the structures are
-compatible, from @var{utmpx} to @var{utmp}.
+This function is no-op.
 @end deftypefun
 
-@deftypefun int getutmpx (const struct utmp *@var{utmp}, struct utmpx *@var{utmpx})
+@deftypefun void getutmpx (const struct utmp *@var{utmp}, struct utmpx *@var{utmpx})
 @standards{GNU, utmp.h}
 @standards{GNU, utmpx.h}
 @safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
-@code{getutmpx} copies the information, insofar as the structures are
-compatible, from @var{utmp} to @var{utmpx}.
+This function is no-op.
 @end deftypefun
 
 
@@ -1619,7 +1313,7 @@ compatible, from @var{utmp} to @var{utmpx}.
 @subsection Logging In and Out
 
 These functions, derived from BSD, are available in the separate
-@file{libutil} library, and declared in @file{utmp.h}.
+@file{libutil} library (only for Hurd), and declared in @file{utmp.h}.
 @pindex utmp.h
 
 Note that the @code{ut_user} member of @code{struct utmp} is called
@@ -1649,75 +1343,21 @@ on error.
 
 @deftypefun void login (const struct utmp *@var{entry})
 @standards{BSD, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtasurace{:utent} @mtascusig{:ALRM} @mtascutimer{}}@asunsafe{@asulock{} @ascuheap{}}@acunsafe{@aculock{} @acucorrupt{} @acsfd{} @acsmem{}}}
-@c login @mtasurace:utent @mtascusig:ALRM @mtascutimer @asulock @ascuheap @aculock @acucorrupt @acsfd @acsmem
-@c  getpid dup ok
-@c  tty_name @ascuheap @acucorrupt @acsmem @acsfd
-@c   ttyname_r dup @ascuheap @acsmem @acsfd
-@c   memchr dup ok
-@c   realloc dup @ascuheap @acsmem
-@c   malloc dup @ascuheap @acsmem
-@c   free dup @ascuheap @acsmem
-@c  strncmp dup ok
-@c  basename dup ok
-@c  strncpy dup ok
-@c  utmpname dup @mtasurace:utent @asulock @ascuheap @aculock @acsmem
-@c  setutent dup @mtasurace:utent @asulock @aculock @acsfd
-@c  pututline dup @mtasurace:utent @mtascusig:ALRM @mtascutimer @asulock @aculock @acsfd
-@c  endutent dup @mtasurace:utent @asulock @aculock
-@c  free dup @ascuheap @acsmem
-@c  updwtmp dup @mtascusig:ALRM @mtascutimer @acsfd
-The @code{login} functions inserts an entry into the user accounting
-database.  The @code{ut_line} member is set to the name of the terminal
-on standard input.  If standard input is not a terminal @code{login}
-uses standard output or standard error output to determine the name of
-the terminal.  If @code{struct utmp} has a @code{ut_type} member,
-@code{login} sets it to @code{USER_PROCESS}, and if there is an
-@code{ut_pid} member, it will be set to the process ID of the current
-process.  The remaining entries are copied from @var{entry}.
-
-A copy of the entry is written to the user accounting log file.
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op.
 @end deftypefun
 
 @deftypefun int logout (const char *@var{ut_line})
 @standards{BSD, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtasurace{:utent} @mtascusig{:ALRM} @mtascutimer{}}@asunsafe{@asulock{} @ascuheap{}}@acunsafe{@aculock{} @acsfd{} @acsmem{}}}
-@c logout @mtasurace:utent @mtascusig:ALRM @mtascutimer @asulock @ascuheap @aculock @acsfd @acsmem
-@c  utmpname dup @mtasurace:utent @asulock @ascuheap @aculock @acsmem
-@c  setutent dup @mtasurace:utent @asulock @aculock @acsfd
-@c  strncpy dup ok
-@c  getutline_r dup @mtasurace:utent @mtascusig:ALRM @mtascutimer @asulock @aculock @acsfd
-@c  bzero dup ok
-@c  gettimeofday dup ok
-@c  time dup ok
-@c  pututline dup @mtasurace:utent @mtascusig:ALRM @mtascutimer @asulock @aculock @acsfd
-@c  endutent dup @mtasurace:utent @asulock @aculock
-This function modifies the user accounting database to indicate that the
-user on @var{ut_line} has logged out.
-
-The @code{logout} function returns @code{1} if the entry was successfully
-written to the database, or @code{0} on error.
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op, it always return @code{-1} with @code{errno} set to @code{ENOTSUP}.
 @end deftypefun
 
 @deftypefun void logwtmp (const char *@var{ut_line}, const char *@var{ut_name}, const char *@var{ut_host})
 @standards{BSD, utmp.h}
-@safety{@prelim{}@mtunsafe{@mtascusig{:ALRM} @mtascutimer{}}@asunsafe{}@acunsafe{@acsfd{}}}
-@c logwtmp @mtascusig:ALRM @mtascutimer @acsfd
-@c  memset dup ok
-@c  getpid dup ok
-@c  strncpy dup ok
-@c  gettimeofday dup ok
-@c  time dup ok
-@c  updwtmp dup @mtascusig:ALRM @mtascutimer @acsfd
-The @code{logwtmp} function appends an entry to the user accounting log
-file, for the current time and the information provided in the
-@var{ut_line}, @var{ut_name} and @var{ut_host} arguments.
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function is no-op.
 @end deftypefun
-
-@strong{Portability Note:} The BSD @code{struct utmp} only has the
-@code{ut_line}, @code{ut_name}, @code{ut_host} and @code{ut_time}
-members.  Older systems do not even have the @code{ut_host} member.
-
 
 @node User Database
 @section User Database

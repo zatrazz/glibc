@@ -15,61 +15,16 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <libc-lock.h>
-#include <stdlib.h>
-#include <string.h>
+#include <errno.h>
 #include <utmp.h>
-
-#include "utmp-private.h"
-
-
-/* This is the default name.  */
-static const char default_file_name[] = _PATH_UTMP;
-
-/* Current file name.  */
-const char *__libc_utmp_file_name = (const char *) default_file_name;
-
-/* We have to use the lock in getutent_r.c.  */
-__libc_lock_define (extern, __libc_utmp_lock attribute_hidden)
-
 
 int
 __utmpname (const char *file)
 {
-  int result = -1;
-
-  __libc_lock_lock (__libc_utmp_lock);
-
-  /* Close the old file.  */
-  __libc_endutent ();
-
-  if (strcmp (file, __libc_utmp_file_name) != 0)
-    {
-      if (strcmp (file, default_file_name) == 0)
-	{
-	  free ((char *) __libc_utmp_file_name);
-
-	  __libc_utmp_file_name = default_file_name;
-	}
-      else
-	{
-	  char *file_name = __strdup (file);
-	  if (file_name == NULL)
-	    /* Out of memory.  */
-	    goto done;
-
-	  if (__libc_utmp_file_name != default_file_name)
-	    free ((char *) __libc_utmp_file_name);
-
-	  __libc_utmp_file_name = file_name;
-	}
-    }
-
-  result = 0;
-
-done:
-  __libc_lock_unlock (__libc_utmp_lock);
-  return result;
+  errno = ENOTSUP;
+  return -1;
 }
-libc_hidden_def (__utmpname)
 weak_alias (__utmpname, utmpname)
+weak_alias (__utmpname, utmpxname)
+stub_warning (utmpname)
+stub_warning (utmpxname)

@@ -29,6 +29,7 @@
 #undef compat_symbol
 #define compat_symbol(...)
 #include "login/login.c"
+symbol_version (__login, login, GLIBC_2.0);
 
 /* Compatibility symbol as formerly found in libutil.  login@GLIBC_2.0
    is supplied by login32.c.  */

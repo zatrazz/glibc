@@ -16,19 +16,6 @@
 # <https://www.gnu.org/licenses/>.
 
 ifeq ($(subdir),login)
-sysdep_routines += \
-  endutxent \
-  getutmp \
-  getutmpx \
-  getutxent \
-  getutxid \
-  getutxline \
-  pututxline \
-  setutxent \
-  updwtmpx \
-  utmpxname \
-  # sysdep_routines
-
 sysdep_headers += \
   bits/utmpx.h \
   utmpx.h \

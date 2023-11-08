@@ -21,13 +21,13 @@
 #include <utmp.h>
 
 #include "utmp-compat.h"
-#include "utmp-private.h"
 
 #if defined SHARED
 # undef weak_alias
 # define weak_alias(n,a)
 #endif
 #include "login/getutid_r.c"
+symbol_version (__getutid_r, getutid_r, GLIBC_2.0);
 
 #if defined SHARED
 default_symbol_version (__getutid_r, getutid_r, UTMP_COMPAT_BASE);

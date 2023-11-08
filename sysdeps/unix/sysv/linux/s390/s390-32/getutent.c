@@ -20,13 +20,20 @@
 
 #include "utmp-compat.h"
 
-#if defined SHARED
-# undef weak_alias
-# define weak_alias(n,a)
-#endif
-#include "login/getutent.c"
-_weak_alias (buffer, __libc_getutent_freemem_ptr)
+struct utmp *
+__getutent (void)
+{
+  return NULL;
+}
+symbol_version (__getutent, getutent, GLIBC_2.0);
+symbol_version (__getutent, getutxent, GLIBC_2.1);
 
 #if defined SHARED
 default_symbol_version (__getutent, getutent, UTMP_COMPAT_BASE);
+default_symbol_version (__getutent, getutxent, UTMP_COMPAT_BASE);
+#else
+weak_alias (__getutent, getutent)
+weak_alias (__getutent, getutxent)
 #endif
+stub_warning (getutent)
+stub_warning (getutxent)

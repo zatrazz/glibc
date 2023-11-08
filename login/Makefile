@@ -42,6 +42,7 @@ routines := \
   getutid_r \
   getutline \
   getutline_r \
+  getutmp \
   grantpt \
   login \
   login_tty \
@@ -53,13 +54,10 @@ routines := \
   setlogin \
   unlockpt \
   updwtmp \
-  utmp_file \
   utmpname \
   # routines
 
 CFLAGS-grantpt.c += -DLIBEXECDIR='"$(libexecdir)"'
-
-others = utmpdump
 
 ifeq (yes,$(build-pt-chown))
 others += \
@@ -78,15 +76,10 @@ tests := \
   tst-getlogin \
   tst-grantpt \
   tst-ptsname \
-  tst-pututxline-cache \
-  tst-pututxline-lockfail \
-  tst-updwtmpx \
-  tst-utmp \
   tst-utmp-size \
   tst-utmp-size-64 \
   tst-utmp-unsigned \
   tst-utmp-unsigned-64 \
-  tst-utmpx \
   # tests
 
 CFLAGS-tst-utmp-size-64.c += -D_FILE_OFFSET_BITS=64 -D_TIME_BITS=64

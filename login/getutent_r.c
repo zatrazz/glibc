@@ -19,7 +19,6 @@
 #include <stdlib.h>
 #include <utmp.h>
 
-#include "utmp-private.h"
 
 /* We need to protect the opening of the file.  */
 __libc_lock_define_initialized (, __libc_utmp_lock attribute_hidden)
@@ -28,58 +27,38 @@ __libc_lock_define_initialized (, __libc_utmp_lock attribute_hidden)
 void
 __setutent (void)
 {
-  __libc_lock_lock (__libc_utmp_lock);
-
-  __libc_setutent ();
-
-  __libc_lock_unlock (__libc_utmp_lock);
 }
-libc_hidden_def (__setutent)
 weak_alias (__setutent, setutent)
+weak_alias (__setutent, setutxent)
+stub_warning (setutent)
+stub_warning (setutxent)
 
 
 int
 __getutent_r (struct utmp *buffer, struct utmp **result)
 {
-  int retval;
-
-  __libc_lock_lock (__libc_utmp_lock);
-
-  retval = __libc_getutent_r (buffer, result);
-
-  __libc_lock_unlock (__libc_utmp_lock);
-
-  return retval;
+  errno = ENOTSUP;
+  return -1;
 }
-libc_hidden_def (__getutent_r)
 weak_alias (__getutent_r, getutent_r)
+stub_warning (getutent_r)
 
 
 struct utmp *
 __pututline (const struct utmp *data)
 {
-  struct utmp *buffer;
-
-  __libc_lock_lock (__libc_utmp_lock);
-
-  buffer = __libc_pututline (data);
-
-  __libc_lock_unlock (__libc_utmp_lock);
-
-  return buffer;
+  return NULL;
 }
-libc_hidden_def (__pututline)
 weak_alias (__pututline, pututline)
+weak_alias (__pututline, pututxline)
+stub_warning (pututline)
+stub_warning (pututxline)
 
 
 void
 __endutent (void)
 {
-  __libc_lock_lock (__libc_utmp_lock);
-
-  __libc_endutent ();
-
-  __libc_lock_unlock (__libc_utmp_lock);
 }
-libc_hidden_def (__endutent)
 weak_alias (__endutent, endutent)
+weak_alias (__endutent, endutxent)
+stub_warning (endutent)

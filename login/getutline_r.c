@@ -16,29 +16,14 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <errno.h>
-#include <libc-lock.h>
 #include <utmp.h>
-
-#include "utmp-private.h"
-
-
-/* We have to use the lock in getutent_r.c.  */
-__libc_lock_define (extern, __libc_utmp_lock attribute_hidden)
-
 
 int
 __getutline_r (const struct utmp *line, struct utmp *buffer,
 	       struct utmp **result)
 {
-  int retval;
-
-  __libc_lock_lock (__libc_utmp_lock);
-
-  retval = __libc_getutline_r (line, buffer, result);
-
-  __libc_lock_unlock (__libc_utmp_lock);
-
-  return retval;
+  errno = ENOTSUP;
+  return -1;
 }
-libc_hidden_def (__getutline_r)
 weak_alias (__getutline_r, getutline_r)
+stub_warning (getutline_r)

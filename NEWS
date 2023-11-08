@@ -27,7 +27,27 @@ Major new features:
 
 Deprecated and removed features, and other changes affecting compatibility:
 
-  [Add deprecations, removals and changes affecting compatibility here]
+* The user accounting database functions are now deprecated and do not
+  access or update the database files.  The interface was not updated to
+  support 64 bit time_t on all architectures, on legacy 32 bit time_t
+  architectures the database is also incompatible when 64 bit time_t is
+  used, and the implementation has some design flaws that is not easy
+  fixable without a complete rewrite (BZ #24492).
+
+  It affects the obsolete functions login, logout, logwtmp, updwtmp, utmpname,
+  getutent, setutent, endutent, getutid, getutline, pututline, getutent_r,
+  getutid_r, and getutline_r along with POSIX defined setutxent, endutxent,
+  getutxent, getutxid, getutxline, pututxline, and GNU extension utmpxname,
+  updwtmpx, getutmp, and getutmpx.
+
+  The function now are no-op and always returns an error or invalid result
+  and set errno accordingly (when applicable).  No compatibility support
+  is provided, newer system deployments are moving to use different user
+  accounting API where the old file are not guaranteed to exist.
+
+  More information of alternative solutions and how to adapt applications
+  on newer accounting database support can be found at
+  https://www.thkukuk.de/blog/Y2038_glibc_utmp_64bit/.
 
 Changes to build and runtime requirements:
 

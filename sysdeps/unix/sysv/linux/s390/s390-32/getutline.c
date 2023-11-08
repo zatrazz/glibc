@@ -25,8 +25,10 @@
 # define weak_alias(n,a)
 #endif
 #include "login/getutline.c"
-_weak_alias (buffer, __libc_getutline_freemem_ptr)
 
+symbol_version (__getutline, getutline, GLIBC_2.0);
+symbol_version (__getutline, getutxline, GLIBC_2.1);
 #if defined SHARED
 default_symbol_version (__getutline, getutline, UTMP_COMPAT_BASE);
+default_symbol_version (__getutline, getutxline, UTMP_COMPAT_BASE);
 #endif

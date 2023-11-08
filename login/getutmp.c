@@ -17,17 +17,15 @@
 
 #include <string.h>
 #include <utmp.h>
+#define getutmpx __redirect_getutmpx
 #include <utmpx.h>
+#undef getutmpx
 
 /* Copy the information in UTMPX to UTMP. */
 void
 getutmp (const struct utmpx *utmpx, struct utmp *utmp)
 {
-  utmp->ut_type = utmpx->ut_type;
-  utmp->ut_pid = utmpx->ut_pid;
-  memcpy (utmp->ut_line, utmpx->ut_line, sizeof (utmp->ut_line));
-  memcpy (utmp->ut_user, utmpx->ut_user, sizeof (utmp->ut_user));
-  memcpy (utmp->ut_id, utmpx->ut_id, sizeof (utmp->ut_id));
-  memcpy (utmp->ut_host, utmpx->ut_host, sizeof (utmp->ut_host));
-  utmp->ut_tv = utmpx->ut_tv;
 }
+weak_alias (getutmp, getutmpx)
+stub_warning (getutmp)
+stub_warning (getutmpx)

@@ -15,33 +15,15 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <stdlib.h>
+#include <stddef.h>
 #include <utmp.h>
-#include <set-freeres.h>
-
-
-/* Local buffer to store the result.  */
-static struct utmp *buffer;
-
 
 struct utmp *
 __getutent (void)
 {
-  struct utmp *result;
-
-  if (buffer == NULL)
-    {
-      buffer = (struct utmp *) malloc (sizeof (struct utmp));
-      if (buffer == NULL)
-        return NULL;
-    }
-
-  if (__getutent_r (buffer, &result) < 0)
-    return NULL;
-
-  return result;
+  return NULL;
 }
-libc_hidden_def (__getutent)
 weak_alias (__getutent, getutent)
-
-weak_alias (buffer, __libc_getutent_freemem_ptr)
+weak_alias (__getutent, getutxent)
+stub_warning (getutent)
+stub_warning (getutxent)

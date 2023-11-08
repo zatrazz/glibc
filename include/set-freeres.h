@@ -100,9 +100,6 @@ extern struct netaddr * __libc_resolv_res_hconf_freemem_ptr attribute_hidden;
 extern char * __libc_fgetspent_freemem_ptr attribute_hidden;
 extern __time64_t * __libc_tzfile_freemem_ptr attribute_hidden;
 extern char * __libc_getnameinfo_freemem_ptr attribute_hidden;
-extern struct utmp * __libc_getutent_freemem_ptr attribute_hidden;
-extern struct utmp * __libc_getutid_freemem_ptr attribute_hidden;
-extern struct utmp * __libc_getutline_freemem_ptr attribute_hidden;
 extern printf_arginfo_size_function ** __libc_reg_printf_freemem_ptr
     attribute_hidden;
 extern printf_va_arg_function ** __libc_reg_type_freemem_ptr

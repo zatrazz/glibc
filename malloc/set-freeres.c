@@ -75,9 +75,6 @@
 # pragma weak __libc_fgetspent_freemem_ptr
 # pragma weak __libc_tzfile_freemem_ptr
 # pragma weak __libc_getnameinfo_freemem_ptr
-# pragma weak __libc_getutent_freemem_ptr
-# pragma weak __libc_getutid_freemem_ptr
-# pragma weak __libc_getutline_freemem_ptr
 # pragma weak __libc_reg_printf_freemem_ptr
 # pragma weak __libc_reg_type_freemem_ptr
 # pragma weak __libc_getgrgid_freemem_ptr
@@ -201,9 +198,6 @@ __libc_freeres (void)
       call_free_static_weak (__libc_fgetspent_freemem_ptr);
       call_free_static_weak (__libc_tzfile_freemem_ptr);
       call_free_static_weak (__libc_getnameinfo_freemem_ptr);
-      call_free_static_weak (__libc_getutent_freemem_ptr);
-      call_free_static_weak (__libc_getutid_freemem_ptr);
-      call_free_static_weak (__libc_getutline_freemem_ptr);
       call_free_static_weak (__libc_reg_printf_freemem_ptr);
       call_free_static_weak (__libc_reg_type_freemem_ptr);
 

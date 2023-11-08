@@ -25,8 +25,10 @@
 # define weak_alias(n,a)
 #endif
 #include "login/getutid.c"
-_weak_alias (buffer, __libc_getutid_freemem_ptr)
 
+symbol_version (__getutid, getutid, GLIBC_2.0);
+symbol_version (__getutid, getutxid, GLIBC_2.1);
 #if defined SHARED
 default_symbol_version (__getutid, getutid, UTMP_COMPAT_BASE);
+default_symbol_version (__getutid, getutxid, UTMP_COMPAT_BASE);
 #endif
