@@ -19,29 +19,24 @@
 #include <unistd.h>
 #include <not-cancel.h>
 #include <scratch_buffer.h>
+#include <intprops.h>
 
-#define STATIC static
-static int getlogin_r_fd0 (char *name, size_t namesize);
-#define __getlogin_r getlogin_r_fd0
-#include <sysdeps/unix/getlogin_r.c>
-#undef __getlogin_r
+/* Return at most NAME_LEN characters of the login name of the user in NAME.
+   If it cannot be determined or some other error occurred, return the error
+   code.  Otherwise return 0.
 
-
-/* Try to determine login name from /proc/self/loginuid and return 0
+   Try to determine login name from /proc/self/loginuid and return 0
    if successful.  If /proc/self/loginuid cannot be read return -1.
    Otherwise return the error number.  */
 
 int
-attribute_hidden
-__getlogin_r_loginuid (char *name, size_t namesize)
+__getlogin_r (char *name, size_t namesize)
 {
   int fd = __open_nocancel ("/proc/self/loginuid", O_RDONLY);
   if (fd == -1)
     return -1;
 
-  /* We are reading a 32-bit number.  12 bytes are enough for the text
-     representation.  If not, something is wrong.  */
-  char uidbuf[12];
+  char uidbuf[INT_BUFSIZE_BOUND (uid_t)];
   ssize_t n = TEMP_FAILURE_RETRY (__read_nocancel (fd, uidbuf,
 						   sizeof (uidbuf)));
   __close_nocancel_nostatus (fd);
@@ -97,21 +92,6 @@ __getlogin_r_loginuid (char *name, size_t namesize)
  out:
   scratch_buffer_free (&tmpbuf);
   return result;
-}
-
-
-/* Return at most NAME_LEN characters of the login name of the user in NAME.
-   If it cannot be determined or some other error occurred, return the error
-   code.  Otherwise return 0.  */
-
-int
-__getlogin_r (char *name, size_t namesize)
-{
-  int res = __getlogin_r_loginuid (name, namesize);
-  if (res >= 0)
-    return res;
-
-  return getlogin_r_fd0 (name, namesize);
 }
 libc_hidden_def (__getlogin_r)
 weak_alias (__getlogin_r, getlogin_r)

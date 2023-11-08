@@ -18,14 +18,19 @@
 #include <stddef.h>
 #include <errno.h>
 #include <unistd.h>
+#include <limits.h>
+
+#ifndef LOGIN_NAME_MAX
+# define LOGIN_NAME_MAX 1024
+#endif
+static char name[LOGIN_NAME_MAX];
 
 /* Return the login name of the user, or NULL if it can't be determined.
    The returned pointer, if not NULL, is good only until the next call.  */
 char *
 getlogin (void)
 {
-  __set_errno (ENOSYS);
-  return NULL;
+  if (__getlogin_r (name, sizeof name) != 0)
+    return NULL;
+  return name[0] != '\0' ? name : NULL;
 }
-
-stub_warning (getlogin)

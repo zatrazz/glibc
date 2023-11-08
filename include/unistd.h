@@ -215,9 +215,6 @@ extern __pid_t __libc_fork (void);
    This always returns -1 and sets `errno' to EINTR.  */
 extern int __libc_pause (void);
 
-extern int __getlogin_r_loginuid (char *name, size_t namesize)
-     attribute_hidden;
-
 #  if IS_IN (rtld)
 #   include <dl-unistd.h>
 #  endif
