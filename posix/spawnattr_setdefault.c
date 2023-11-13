@@ -16,6 +16,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <spawn.h>
+#include <spawn_int.h>
 #include <string.h>
 
 /* Set signal mask for signals with default handling in ATTR to SIGDEFAULT.  */
@@ -23,8 +24,8 @@ int
 __posix_spawnattr_setsigdefault (posix_spawnattr_t *attr,
 				 const sigset_t *sigdefault)
 {
-  /* Copy the sigset_t data to the user buffer.  */
-  memcpy (&attr->__sd, sigdefault, sizeof (sigset_t));
+  struct __spawn_attr *at = (struct __spawn_attr *) attr;
+  memcpy (&at->__sd, sigdefault, sizeof (sigset_t));
 
   return 0;
 }

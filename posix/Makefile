@@ -38,6 +38,7 @@ headers := \
   bits/pthreadtypes.h \
   bits/sched.h \
   bits/spawn_ext.h \
+  bits/spawntypes.h \
   bits/thread-shared-types.h \
   bits/types.h \
   bits/types/idtype_t.h \

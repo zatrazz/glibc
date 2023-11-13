@@ -39,7 +39,7 @@
 int
 __spawni (pid_t *pid, const char *file,
 	  const posix_spawn_file_actions_t *file_actions,
-	  const posix_spawnattr_t *attrp,
+	  const posix_spawnattr_t *attr,
 	  char *const argv[], char *const envp[],
 	  int xflags)
 {
@@ -299,6 +299,7 @@ __spawni (pid_t *pid, const char *file,
       return err;
     }
 
+  const struct __spawn_attr *attrp = (const struct __spawn_attr *) attr;
 
   /* Do this once.  */
   flags = attrp == NULL ? 0 : attrp->__flags;

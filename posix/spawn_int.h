@@ -23,6 +23,24 @@
 #include <spawn_int_def.h>
 #include <stdbool.h>
 
+struct __spawn_attr
+{
+  union
+  {
+    struct
+    {
+      short int __flags;
+      pid_t __pgrp;
+      sigset_t __sd;
+      sigset_t __ss;
+      struct sched_param __sp;
+      int __policy;
+      int __cgroup;
+    };
+    char __size[__SIZEOF_POSIX_SPAWNATTR_T];
+  };
+} __attribute__ ((__may_alias__));
+
 /* Data structure to contain the action information.  */
 struct __spawn_action
 {

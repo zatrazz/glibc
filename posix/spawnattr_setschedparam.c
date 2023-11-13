@@ -16,6 +16,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <spawn.h>
+#include <spawn_int.h>
 #include <string.h>
 
 /* Store scheduling parameters in the attribute structure.  */
@@ -23,8 +24,8 @@ int
 posix_spawnattr_setschedparam (posix_spawnattr_t *attr,
 			       const struct sched_param *schedparam)
 {
-  /* Store the scheduling parameters.  */
-  attr->__sp = *schedparam;
+  struct __spawn_attr *at = (struct __spawn_attr *) attr;
+  at->__sp = *schedparam;
 
   return 0;
 }

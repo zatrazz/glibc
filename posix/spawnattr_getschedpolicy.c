@@ -16,6 +16,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <spawn.h>
+#include <spawn_int.h>
 #include <string.h>
 
 /* Get scheduling policy from the attribute structure.  */
@@ -23,8 +24,8 @@ int
 posix_spawnattr_getschedpolicy (const posix_spawnattr_t *attr,
 				int *schedpolicy)
 {
-  /* Copy the scheduling policy.  */
-  *schedpolicy = attr->__policy;
+  struct __spawn_attr *at = (struct __spawn_attr *) attr;
+  *schedpolicy = at->__policy;
 
   return 0;
 }

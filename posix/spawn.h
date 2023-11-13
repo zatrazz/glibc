@@ -23,19 +23,17 @@
 #include <sched.h>
 #include <sys/types.h>
 #include <bits/types/sigset_t.h>
+#include <bits/spawntypes.h>
 
 
 /* Data structure to contain attributes for thread creation.  */
 typedef struct
 {
-  short int __flags;
-  pid_t __pgrp;
-  sigset_t __sd;
-  sigset_t __ss;
-  struct sched_param __sp;
-  int __policy;
-  int __cgroup;
-  int __pad[15];
+  union
+  {
+    char __size[__SIZEOF_POSIX_SPAWNATTR_T];
+    long int __align;
+  } __u;
 } posix_spawnattr_t;
 
 

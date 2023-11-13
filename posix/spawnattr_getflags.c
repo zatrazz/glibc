@@ -16,14 +16,15 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <spawn.h>
+#include <spawn_int.h>
 #include <string.h>
 
 /* Get flag word from the attribute structure.  */
 int
 posix_spawnattr_getflags (const posix_spawnattr_t *attr, short int *flags)
 {
-  /* Copy the flag word.  */
-  *flags = attr->__flags;
+  struct __spawn_attr *at = (struct __spawn_attr *) attr;
+  *flags = at->__flags;
 
   return 0;
 }
