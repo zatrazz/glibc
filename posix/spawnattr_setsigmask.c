@@ -16,6 +16,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <spawn.h>
+#include <spawn_int.h>
 #include <string.h>
 
 /* Set signal mask for the new process in ATTR to SIGMASK.  */
@@ -23,8 +24,8 @@ int
 __posix_spawnattr_setsigmask (posix_spawnattr_t *attr,
 			    const sigset_t *sigmask)
 {
-  /* Copy the sigset_t data to the user buffer.  */
-  memcpy (&attr->__ss, sigmask, sizeof (sigset_t));
+  struct __spawn_attr *at = (struct __spawn_attr *) attr;
+  memcpy (&at->__ss, sigmask, sizeof (sigset_t));
 
   return 0;
 }

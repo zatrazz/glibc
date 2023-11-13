@@ -16,6 +16,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <spawn.h>
+#include <spawn_int.h>
 #include <string.h>
 
 /* Get scheduling parameters from the attribute structure.  */
@@ -23,8 +24,8 @@ int
 posix_spawnattr_getschedparam (const posix_spawnattr_t *attr,
 			       struct sched_param *schedparam)
 {
-  /* Copy the scheduling parameters.  */
-  memcpy (schedparam, &attr->__sp, sizeof (attr->__sp));
+  struct __spawn_attr *at = (struct __spawn_attr *) attr;
+  memcpy (schedparam, &at->__sp, sizeof (at->__sp));
 
   return 0;
 }

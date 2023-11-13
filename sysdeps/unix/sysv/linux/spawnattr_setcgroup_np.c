@@ -16,12 +16,14 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <spawn.h>
+#include <spawn_int.h>
 
 /* Store scheduling policy in the attribute structure.  */
 int
 posix_spawnattr_setcgroup_np (posix_spawnattr_t *attr, int cgroup)
 {
-  attr->__cgroup = cgroup;
+  struct __spawn_attr *at = (struct __spawn_attr *) attr;
+  at->__cgroup = cgroup;
 
   return 0;
 }

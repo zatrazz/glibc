@@ -16,7 +16,11 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <spawn.h>
+#include <spawn_int.h>
 #include <string.h>
+
+_Static_assert (sizeof (posix_spawnattr_t) == sizeof (struct __spawn_attr),
+		"sizeof (posix_spawnattr_t) != sizeof (struct __spawn_attr)");
 
 /* Initialize data structure for file attribute for `spawn' call.  */
 int
@@ -24,7 +28,8 @@ __posix_spawnattr_init (posix_spawnattr_t *attr)
 {
   /* All elements have to be initialized to the default values which
      is generally zero.  */
-  memset (attr, '\0', sizeof (*attr));
+  struct __spawn_attr *at = (struct __spawn_attr *) attr;
+  memset (at, '\0', sizeof (*attr));
 
   return 0;
 }

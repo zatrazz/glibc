@@ -17,6 +17,7 @@
 
 #include <errno.h>
 #include <spawn.h>
+#include <spawn_int.h>
 #include <string.h>
 
 #define ALL_FLAGS (POSIX_SPAWN_RESETIDS					      \
@@ -37,8 +38,8 @@ __posix_spawnattr_setflags (posix_spawnattr_t *attr, short int flags)
   if (flags & ~ALL_FLAGS)
     return EINVAL;
 
-  /* Store the flag word.  */
-  attr->__flags = flags;
+  struct __spawn_attr *at = (struct __spawn_attr *) attr;
+  at->__flags = flags;
 
   return 0;
 }

@@ -61,7 +61,7 @@ struct posix_spawn_args
   const char *file;
   int (*exec) (const char *, char *const *, char *const *);
   const posix_spawn_file_actions_t *fa;
-  const posix_spawnattr_t *restrict attr;
+  const struct __spawn_attr *attr;
   char *const *argv;
   ptrdiff_t argc;
   char *const *envp;
@@ -103,7 +103,7 @@ static int
 __spawni_child (void *arguments)
 {
   struct posix_spawn_args *args = arguments;
-  const posix_spawnattr_t *restrict attr = args->attr;
+  const struct __spawn_attr *restrict attr = args->attr;
   const posix_spawn_file_actions_t *file_actions = args->fa;
 
   /* The child must ensure that no signal handler is enabled because it
@@ -372,11 +372,12 @@ __spawnix (int *pid, const char *file,
 
   /* Child must set args.err to something non-negative - we rely on
      the parent and child sharing VM.  */
+  const struct __spawn_attr *at = (const struct __spawn_attr *) attrp;
   args.err = 0;
   args.file = file;
   args.exec = exec;
   args.fa = file_actions;
-  args.attr = attrp ? attrp : &(const posix_spawnattr_t) { 0 };
+  args.attr = at ? at : &(const struct __spawn_attr) { 0 };
   args.argv = argv;
   args.argc = argc;
   args.envp = envp;
@@ -393,7 +394,7 @@ __spawnix (int *pid, const char *file,
      need for CLONE_SETTLS.  Although parent and child share the same TLS
      namespace, there will be no concurrent access for TLS variables (errno
      for instance).  */
-  bool set_cgroup = attrp ? (attrp->__flags & POSIX_SPAWN_SETCGROUP) : false;
+  bool set_cgroup = at ? (at->__flags & POSIX_SPAWN_SETCGROUP) : false;
   struct clone_args clone_args =
     {
       /* Unsupported flags like CLONE_CLEAR_SIGHAND will be cleared up by
@@ -406,7 +407,7 @@ __spawnix (int *pid, const char *file,
       .exit_signal = SIGCHLD,
       .stack = (uintptr_t) stack,
       .stack_size = stack_size,
-      .cgroup = (set_cgroup ? attrp->__cgroup : 0),
+      .cgroup = (set_cgroup ? at->__cgroup : 0),
       .pidfd = use_pidfd ? (uintptr_t) &args.pidfd : 0,
       /* This is require for clone fallback, where pidfd is returned
 	 on parent_tid.  */

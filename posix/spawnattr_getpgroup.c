@@ -16,14 +16,15 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <spawn.h>
+#include <spawn_int.h>
 #include <string.h>
 
 /* Get process group ID from the attribute structure.  */
 int
 posix_spawnattr_getpgroup (const posix_spawnattr_t *attr, pid_t *pgroup)
 {
-  /* Copy the process group ID.  */
-  *pgroup = attr->__pgrp;
+  struct __spawn_attr *at = (struct __spawn_attr *) attr;
+  *pgroup = at->__pgrp;
 
   return 0;
 }
