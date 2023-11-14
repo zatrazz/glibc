@@ -22,6 +22,14 @@
 #include <spawn.h>
 #include <spawn_int_def.h>
 #include <stdbool.h>
+#include <sys/resource.h>
+
+struct
+__spawn_rlimit
+{
+  bool set;
+  struct rlimit64 rlim;
+};
 
 struct __spawn_attr
 {
@@ -36,6 +44,7 @@ struct __spawn_attr
       struct sched_param __sp;
       int __policy;
       int __cgroup;
+      struct __spawn_rlimit *__rlimits;
     };
     char __size[__SIZEOF_POSIX_SPAWNATTR_T];
   };

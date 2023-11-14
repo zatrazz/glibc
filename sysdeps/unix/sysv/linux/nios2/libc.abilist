@@ -2802,4 +2802,6 @@ GLIBC_2.39 pidfd_getpid F
 GLIBC_2.39 pidfd_spawn F
 GLIBC_2.39 pidfd_spawnp F
 GLIBC_2.39 posix_spawnattr_getcgroup_np F
+GLIBC_2.39 posix_spawnattr_getrlimit_np F
 GLIBC_2.39 posix_spawnattr_setcgroup_np F
+GLIBC_2.39 posix_spawnattr_setrlimit_np F

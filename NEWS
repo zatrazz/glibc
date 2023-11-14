@@ -43,6 +43,12 @@ Major new features:
   on thread stack created by pthread_create or memory allocated by
   malloc).
 
+* The functions posix_spawnattr_getrlimit_np and
+  posix_spawnattr_setrlimit_np have been added, along with the
+  POSIX_SPAWN_SETRLIMIT flag.  They allow posix_spawn, posix_spawnp,
+  pidfd_spawn, and pidfd_spawnp to set a process resource limit in the new
+  process, similiar to setrlimit or prlimit.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The ldconfig program now skips file names containing ';' or ending in

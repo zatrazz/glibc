@@ -1,4 +1,5 @@
-/* Copyright (C) 2000-2023 Free Software Foundation, Inc.
+/* Tests for spawn pidfd extension.
+   Copyright (C) 2023 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -15,17 +16,5 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <spawn.h>
-#include <spawn_int.h>
-#include <stdlib.h>
-
-/* Initialize data structure for file attribute for `spawn' call.  */
-int
-__posix_spawnattr_destroy (posix_spawnattr_t *attr)
-{
-  struct __spawn_attr *at = (struct __spawn_attr *) attr;
-  free (at->__rlimits);
-
-  return 0;
-}
-weak_alias (__posix_spawnattr_destroy, posix_spawnattr_destroy)
+#include <tst-spawn-pidfd.h>
+#include <posix/tst-spawn8.c>

@@ -171,6 +171,18 @@ __spawni_child (void *arguments)
 	  || local_setegid (__getgid ()) != 0))
     goto fail;
 
+  /* Set the process resource limits.  */
+  if ((attr->__flags & POSIX_SPAWN_SETRLIMIT) != 0
+     && (attr->__rlimits) != NULL)
+    {
+      for (int resource = 0; resource < RLIM_NLIMITS; resource++)
+	{
+	  if (attr->__rlimits[resource].set &&
+	      __setrlimit64 (resource, &attr->__rlimits[resource].rlim) == -1)
+	    goto fail;
+	}
+    }
+
   /* Execute the file actions.  */
   if (file_actions != 0)
     {

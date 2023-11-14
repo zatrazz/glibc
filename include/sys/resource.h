@@ -135,6 +135,9 @@ extern int __setrlimit (enum __rlimit_resource __resource,
 			const struct rlimit *__rlimits) __nonnull ((2));
 libc_hidden_proto (__setrlimit);
 
+extern __typeof (setrlimit64) __setrlimit64;
+libc_hidden_proto (__setrlimit64);
+
 #if __TIMESIZE == 64
 # define __getrusage64 __getrusage
 # define __wait4_time64 __wait4
