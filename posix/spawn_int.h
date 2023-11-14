@@ -22,6 +22,13 @@
 #include <spawn.h>
 #include <spawn_int_def.h>
 #include <stdbool.h>
+#include <sys/resource.h>
+
+struct __spawn_rlimit
+{
+  int resource;
+  struct rlimit64 rlim;
+};
 
 struct __spawn_attr
 {
@@ -36,10 +43,21 @@ struct __spawn_attr
       struct sched_param __sp;
       int __policy;
       int __cgroup;
+      int __nrlimits;
+      struct __spawn_rlimit *__rlimits;
     };
     char __size[__SIZEOF_POSIX_SPAWNATTR_T];
   };
 } __attribute__ ((__may_alias__));
+
+static inline struct __spawn_rlimit *
+spawn_attr_find_rlimit (const struct __spawn_attr *attr, int resource)
+{
+  for (int i = 0; i < attr->__nrlimits; i++)
+    if (attr->__rlimits[i].resource == resource)
+      return &attr->__rlimits[i];
+  return NULL;
+}
 
 /* Data structure to contain the action information.  */
 struct __spawn_action

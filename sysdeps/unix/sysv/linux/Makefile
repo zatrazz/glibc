@@ -536,6 +536,7 @@ tests += \
   tst-spawn5-pidfd \
   tst-spawn6-pidfd \
   tst-spawn7-pidfd \
+  tst-spawn8-pidfd \
   # tests
 
 tests-static += \
@@ -551,11 +552,14 @@ CFLAGS-getpid.o = -fomit-frame-pointer
 CFLAGS-getpid.os = -fomit-frame-pointer
 CFLAGS-tst-spawn3-pidfd.c += -DOBJPFX=\"$(objpfx)\"
 
+CFLAGS-tst-spawn8-pidfd.c += -D_FILE_OFFSET_BITS=64
+
 tst-spawn-cgroup-ARGS = -- $(host-test-program-cmd)
 tst-spawn-pidfd-ARGS = -- $(host-test-program-cmd)
 tst-spawn5-pidfd-ARGS = -- $(host-test-program-cmd)
 tst-spawn6-pidfd-ARGS = -- $(host-test-program-cmd)
 tst-spawn7-pidfd-ARGS = -- $(host-test-program-cmd)
+tst-spawn8-pidfd-ARGS = -- $(host-test-program-cmd)
 tst-posix_spawn-setsid-pidfd-ARGS = -- $(host-test-program-cmd)
 endif
 

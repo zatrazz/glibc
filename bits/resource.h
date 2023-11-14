@@ -16,7 +16,10 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#ifndef _SYS_RESOURCE_H
+#ifndef _BITS_RESOURCE_H
+#define _BITS_RESOURCE_H
+
+#if !defined _SYS_RESOURCE_H && !defined _SPAWN_H
 # error "Never use <bits/resource.h> directly; include <sys/resource.h> instead."
 #endif
 
@@ -151,3 +154,5 @@ enum __priority_which
     PRIO_USER = 2               /* WHO is a user ID.  */
 #define PRIO_USER PRIO_USER
   };
+
+#endif

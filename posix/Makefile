@@ -161,6 +161,7 @@ routines := \
   spawnattr_getdefault \
   spawnattr_getflags \
   spawnattr_getpgroup \
+  spawnattr_getrlimit_np \
   spawnattr_getschedparam \
   spawnattr_getschedpolicy \
   spawnattr_getsigmask \
@@ -168,6 +169,7 @@ routines := \
   spawnattr_setdefault \
   spawnattr_setflags \
   spawnattr_setpgroup \
+  spawnattr_setrlimit_np \
   spawnattr_setschedparam \
   spawnattr_setschedpolicy \
   spawnattr_setsigmask \
@@ -317,6 +319,7 @@ tests := \
   tst-spawn5 \
   tst-spawn6 \
   tst-spawn7 \
+  tst-spawn8 \
   tst-sysconf \
   tst-sysconf-empty-chroot \
   tst-truncate \
@@ -601,6 +604,8 @@ CFLAGS-fork.c = $(libio-mtsafe) $(config-cflags-wno-ignored-attributes)
 tstgetopt-ARGS = -a -b -cfoobar --required foobar --optional=bazbug \
 		--none random --col --color --colour
 
+CFLAGS-tst-spawn8.c += -D_FILE_OFFSET_BITS=64
+
 tst-exec-ARGS = -- $(host-test-program-cmd)
 tst-exec-static-ARGS = $(tst-exec-ARGS)
 tst-execvpe5-ARGS = -- $(host-test-program-cmd)
@@ -609,6 +614,7 @@ tst-spawn-static-ARGS = $(tst-spawn-ARGS)
 tst-spawn5-ARGS = -- $(host-test-program-cmd)
 tst-spawn6-ARGS = -- $(host-test-program-cmd)
 tst-spawn7-ARGS = -- $(host-test-program-cmd)
+tst-spawn8-ARGS = -- $(host-test-program-cmd)
 tst-posix_spawn-setsid-ARGS = -- $(host-test-program-cmd)
 tst-dir-ARGS = `pwd` `cd $(common-objdir)/$(subdir); pwd` `cd $(common-objdir); pwd` $(objpfx)tst-dir
 tst-chmod-ARGS = $(objdir)

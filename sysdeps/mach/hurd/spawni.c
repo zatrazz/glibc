@@ -478,6 +478,18 @@ retry:
     }
   __mutex_unlock (&_hurd_dtable_lock);
 
+  /* Set the process resource limits.  */
+  if ((attrp->__flags & POSIX_SPAWN_SETRLIMIT) != 0
+      &&(attrp->__rlimits) != NULL)
+    {
+      for (int resource = 0; resource < RLIM_NLIMITS; resource++)
+	{
+	  if (attrp->__rlimits[resource].set &&
+	      __setrlimit64 (resource, &attrp->__rlimits[resource].rlim) == -1)
+	    goto out;
+	}
+    }
+
   /* Safe to let signals happen now.  */
   _hurd_critical_section_unlock (ss);
 

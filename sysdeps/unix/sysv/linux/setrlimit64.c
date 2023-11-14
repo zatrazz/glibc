@@ -24,12 +24,9 @@
 /* Add this redirection so the strong_alias for __RLIM_T_MATCHES_RLIM64_T
    linking setrlimit64 to {__}setrlimit does not throw a type error.  */
 #undef setrlimit
-#undef __setrlimit
 #define setrlimit setrlimit_redirect
-#define __setrlimit __setrlimit_redirect
 #include <sys/resource.h>
 #undef setrlimit
-#undef __setrlimit
 
 /* Set the soft and hard limits for RESOURCE to *RLIMITS.
    Only the super-user can increase hard limits.
@@ -39,17 +36,17 @@ __setrlimit64 (enum __rlimit_resource resource, const struct rlimit64 *rlimits)
 {
   return INLINE_SYSCALL_CALL (prlimit64, 0, resource, rlimits, NULL);
 }
+libc_hidden_def (__setrlimit64)
 /* Alpha defines a versioned setrlimit{64}.  */
 #ifndef USE_VERSIONED_RLIMIT
 weak_alias (__setrlimit64, setrlimit64)
 #endif
 
 #if __RLIM_T_MATCHES_RLIM64_T
-strong_alias (__setrlimit64, __setrlimit)
 # ifndef USE_VERSIONED_RLIMIT
 weak_alias (__setrlimit64, setrlimit)
 # endif
 # ifdef SHARED
-__hidden_ver1 (__setrlimit64, __GI___setrlimit, __setrlimit64);
+strong_alias (__setrlimit64, __GI___setrlimit)
 # endif
 #endif
