@@ -27,6 +27,7 @@
 #include <sysdep.h>
 #include <sys/resource.h>
 #include <clone_internal.h>
+#include <stdbit.h>
 
 /* The Linux implementation of posix_spawn{p} uses the clone syscall directly
    with CLONE_VM and CLONE_VFORK flags and an allocated stack.  The new stack
@@ -170,6 +171,19 @@ __spawni_child (void *arguments)
       && (local_seteuid (__getuid ()) != 0
 	  || local_setegid (__getgid ()) != 0))
     goto fail;
+
+  /* Set the process resource limits.  */
+  if ((attr->__flags & POSIX_SPAWN_SETRLIMIT) != 0)
+    {
+      uint32_t rlimitset = attr->__rlimitset;
+      while (rlimitset != 0)
+	{
+	  int resource = stdc_trailing_zeros (rlimitset);
+	  if (__setrlimit64 (resource, &attr->__rlimits[resource]) == -1)
+	    goto fail;
+	  rlimitset &= ~(1u << resource);
+	}
+    }
 
   /* Execute the file actions.  */
   if (file_actions != NULL)

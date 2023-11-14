@@ -32,6 +32,7 @@
 #include <hurd/resource.h>
 #include <assert.h>
 #include <argz.h>
+#include <stdbit.h>
 #include "spawn_int.h"
 
 /* Spawn a new process executing PATH with the attributes describes in *ATTRP.
@@ -477,6 +478,19 @@ retry:
       dtable_cloexec[i] = (d->flags & FD_CLOEXEC) != 0;
     }
   __mutex_unlock (&_hurd_dtable_lock);
+
+  /* Set the process resource limits.  */
+  if ((attrp->__flags & POSIX_SPAWN_SETRLIMIT) != 0)
+    {
+      uint32_t rlimitset = attrp->__rlimitset;
+      while (rlimitset != 0)
+	{
+	  int resource = stdc_trailing_zeros (rlimitset);
+	  if (__setrlimit64 (resource, &attrp->__rlimits[resource]) == -1)
+	    goto out;
+	  rlimitset &= ~(1u << resource);
+	}
+    }
 
   /* Safe to let signals happen now.  */
   _hurd_critical_section_unlock (ss);

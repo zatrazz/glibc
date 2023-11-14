@@ -59,6 +59,7 @@ typedef struct
 # define POSIX_SPAWN_USEVFORK		0x40
 # define POSIX_SPAWN_SETSID		0x80
 # define POSIX_SPAWN_SETCGROUP         0x100
+# define POSIX_SPAWN_SETRLIMIT         0x200
 #endif
 
 
@@ -199,6 +200,21 @@ extern int posix_spawn_file_actions_adddup2 (posix_spawn_file_actions_t *
      __THROW __nonnull ((1));
 
 #ifdef __USE_MISC
+
+#include <bits/resource.h>
+
+#if __RLIM_T_MATCHES_RLIM64_T || defined __USE_FILE_OFFSET64
+extern int posix_spawnattr_setrlimit_np (posix_spawnattr_t *__restrict __attr,
+					 int __resource,
+					 const struct rlimit *__rlim)
+     __THROW __nonnull ((1, 3));
+
+extern int posix_spawnattr_getrlimit_np (posix_spawnattr_t *__restrict __attr,
+					 int __resource,
+					 struct rlimit *__rlim)
+     __THROW __nonnull ((1, 3));
+#endif
+
 /* Add an action changing the directory to PATH during spawn.  This
    affects the subsequent file actions.  */
 extern int posix_spawn_file_actions_addchdir_np (posix_spawn_file_actions_t *

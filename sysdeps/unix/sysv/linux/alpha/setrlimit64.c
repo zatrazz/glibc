@@ -17,7 +17,7 @@
 
 #define USE_VERSIONED_RLIMIT
 #include <sysdeps/unix/sysv/linux/setrlimit64.c>
-versioned_symbol (libc, __setrlimit, setrlimit, GLIBC_2_27);
+versioned_symbol (libc, __setrlimit64, setrlimit, GLIBC_2_27);
 versioned_symbol (libc, __setrlimit64, setrlimit64, GLIBC_2_27);
 
 #if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_27)

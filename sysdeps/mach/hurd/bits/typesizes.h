@@ -69,5 +69,10 @@
    fsfilcnt64_t are not the same type for all ABI purposes.  */
 # define __STATFS_MATCHES_STATFS64  0
 
+#ifdef __LP64__
+# define __RLIM_T_MATCHES_RLIM64_T	1
+#else
+# define __RLIM_T_MATCHES_RLIM64_T	0
+#endif
 
 #endif /* bits/typesizes.h */

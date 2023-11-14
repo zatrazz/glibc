@@ -1,4 +1,5 @@
-/* Copyright (C) 2000-2025 Free Software Foundation, Inc.
+/* Implement posix_spawn extension to setup resource limits.
+   Copyright (C) 2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -18,30 +19,28 @@
 #include <errno.h>
 #include <spawn.h>
 #include <spawn_int.h>
-#include <string.h>
+#include <stdlib.h>
 
-#define ALL_FLAGS (POSIX_SPAWN_RESETIDS					      \
-		   | POSIX_SPAWN_SETPGROUP				      \
-		   | POSIX_SPAWN_SETSIGDEF				      \
-		   | POSIX_SPAWN_SETSIGMASK				      \
-		   | POSIX_SPAWN_SETSCHEDPARAM				      \
-		   | POSIX_SPAWN_SETSCHEDULER				      \
-		   | POSIX_SPAWN_SETSID					      \
-		   | POSIX_SPAWN_USEVFORK				      \
-		   | POSIX_SPAWN_SETCGROUP				      \
-		   | POSIX_SPAWN_SETRLIMIT)
-
-/* Store flags in the attribute structure.  */
 int
-__posix_spawnattr_setflags (posix_spawnattr_t *attr, short int flags)
+__posix_spawnattr_getrlimit_np (posix_spawnattr_t *__restrict attr,
+				int resource,
+#if __RLIM_T_MATCHES_RLIM64_T
+				struct rlimit *rlim
+#else
+				struct rlimit64 *rlim
+#endif
+				)
 {
-  /* Check no invalid bits are set.  */
-  if (flags & ~ALL_FLAGS)
+  if (resource < 0 || resource >= RLIM_NLIMITS)
     return EINVAL;
 
   struct __spawn_attr *at = (struct __spawn_attr *) attr;
-  at->__flags = flags;
+  if (!(at->__rlimitset & (1u << resource)))
+    return ENOENT;
+
+  rlim->rlim_cur = at->__rlimits[resource].rlim_cur;
+  rlim->rlim_max = at->__rlimits[resource].rlim_max;
 
   return 0;
 }
-weak_alias (__posix_spawnattr_setflags, posix_spawnattr_setflags)
+weak_alias (__posix_spawnattr_getrlimit_np, posix_spawnattr_getrlimit_np)
