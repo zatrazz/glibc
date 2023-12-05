@@ -135,6 +135,7 @@ __NTH (mbstowcs (__fortify_clang_overload_arg (wchar_t *, __restrict, __dst),
 {
   if (__builtin_constant_p (__dst == NULL) && __dst == NULL)
     return __mbstowcs_nulldst (__dst, __src, __len);
+
   else
     return __glibc_fortify_n (mbstowcs, __len, sizeof (wchar_t),
 			      __glibc_objsize (__dst), __dst, __src, __len);
