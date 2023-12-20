@@ -43,10 +43,8 @@ tests = \
   tst-sprofil \
   # tests
 ifeq ($(build-profile),yes)
-tests += tst-profile-static
-tests-static += tst-profile-static
-
-LDFLAGS-tst-profile-static = -profile
+tests	+= tst-profile-static
+tests-static	+= tst-profile-static
 endif
 
 tests += tst-gmon-static
