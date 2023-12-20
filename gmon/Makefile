@@ -30,8 +30,6 @@ tests	= tst-sprofil tst-gmon tst-mcount-overflow tst-mcleanup
 ifeq ($(build-profile),yes)
 tests	+= tst-profile-static
 tests-static	+= tst-profile-static
-
-LDFLAGS-tst-profile-static = -profile
 endif
 
 tests += tst-gmon-static
