@@ -175,7 +175,10 @@ __fmod (double x, double y)
 strong_alias (__fmod, __ieee754_fmod)
 libm_alias_finite (__ieee754_fmod, __fmod)
 #if LIBM_SVID_COMPAT
-versioned_symbol (libm, __fmod, fmod, GLIBC_2_38);
+# ifndef FMOD_VERSION
+#  define FMOD_VERSION GLIBC_2_38
+# endif
+versioned_symbol (libm, __fmod, fmod, FMOD_VERSION);
 libm_alias_double_other (__fmod, fmod)
 #else
 libm_alias_double (__fmod, fmod)
