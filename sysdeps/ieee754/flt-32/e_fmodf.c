@@ -173,7 +173,10 @@ __fmodf (float x, float y)
 }
 strong_alias (__fmodf, __ieee754_fmodf)
 #if LIBM_SVID_COMPAT
-versioned_symbol (libm, __fmodf, fmodf, GLIBC_2_38);
+# ifndef FMODF_VERSION
+#  define FMODF_VERSION GLIBC_2_38
+# endif
+versioned_symbol (libm, __fmodf, fmodf, FMODF_VERSION);
 libm_alias_float_other (__fmod, fmod)
 #else
 libm_alias_float (__fmod, fmod)
