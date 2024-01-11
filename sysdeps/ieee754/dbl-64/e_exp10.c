@@ -99,7 +99,7 @@ __exp10 (double x)
 
   /* Reduce x: z = x * N / log10(2), k = round(z).  */
   double_t z = __exp_data.invlog10_2N * x;
-  double_t kd;
+  double kd;
   int64_t ki;
 #if TOINT_INTRINSICS
   kd = roundtoint (z);
@@ -147,7 +147,10 @@ __exp10 (double x)
 strong_alias (__exp10, __ieee754_exp10)
 libm_alias_finite (__ieee754_exp10, __exp10)
 #if LIBM_SVID_COMPAT
-versioned_symbol (libm, __exp10, exp10, GLIBC_2_39);
+# ifndef EXP10_VERSION
+#  define EXP10_VERSION GLIBC_2_39
+# endif
+versioned_symbol (libm, __exp10, exp10, EXP10_VERSION);
 libm_alias_double_other (__exp10, exp10)
 #else
 libm_alias_double (__exp10, exp10)

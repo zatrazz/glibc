@@ -5,6 +5,7 @@ libm {
   }
   GLIBC_2.40 {
     # No SVID compatible error handling.
+    exp10;
     fmod; fmodf;
   }
 }
