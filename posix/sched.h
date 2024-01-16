@@ -74,7 +74,7 @@ extern int sched_get_priority_max (int __algorithm) __THROW;
 extern int sched_get_priority_min (int __algorithm) __THROW;
 
 /* Get the SCHED_RR interval for the named process.  */
-#ifndef __USE_TIME_BITS64
+#if !__USE_TIME_BITS64 || __TIMESIZE == 64
 extern int sched_rr_get_interval (__pid_t __pid, struct timespec *__t) __THROW;
 #else
 # ifdef __REDIRECT_NTH

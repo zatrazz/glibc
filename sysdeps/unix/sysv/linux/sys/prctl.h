@@ -38,7 +38,7 @@
 __BEGIN_DECLS
 
 /* Control process execution.  */
-#ifndef __USE_TIME_BITS64
+#if !__USE_TIME_BITS64 || __TIMESIZE == 64
 extern int prctl (int __option, ...) __THROW;
 #else
 # ifdef __REDIRECT

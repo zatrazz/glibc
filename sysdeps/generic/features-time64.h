@@ -17,3 +17,4 @@
    <https://www.gnu.org/licenses/>.  */
 
 /* The generic configuration only support _TIME_BITS=32.  */
+#define __USE_TIME_BITS64    0

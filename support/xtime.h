@@ -30,7 +30,7 @@ __BEGIN_DECLS
 /* The following functions call the corresponding libc functions and
    terminate the process on error.  */
 
-#ifndef __USE_TIME_BITS64
+#if !__USE_TIME_BITS64 || __TIMESIZE == 64
 void xclock_gettime (clockid_t clock, struct timespec *ts);
 void xclock_settime (clockid_t clock, const struct timespec *ts);
 #else

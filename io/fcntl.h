@@ -172,7 +172,7 @@ typedef __pid_t pid_t;
 
    This function is a cancellation point and therefore not marked with
    __THROW.  */
-#ifndef __USE_TIME_BITS64
+#if !__USE_TIME_BITS64 || __TIMESIZE == 64
 # ifndef __USE_FILE_OFFSET64
 extern int fcntl (int __fd, int __cmd, ...);
 # else

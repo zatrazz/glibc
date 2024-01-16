@@ -98,7 +98,7 @@ __BEGIN_DECLS
 
    This function is a cancellation point and therefore not marked with
    __THROW.  */
-#ifndef __USE_TIME_BITS64
+#if !__USE_TIME_BITS64 || __TIMESIZE == 64
 extern int select (int __nfds, fd_set *__restrict __readfds,
 		   fd_set *__restrict __writefds,
 		   fd_set *__restrict __exceptfds,
@@ -123,7 +123,7 @@ extern int __REDIRECT (select,
 
    This function is a cancellation point and therefore not marked with
    __THROW.  */
-# ifndef __USE_TIME_BITS64
+# if !__USE_TIME_BITS64 || __TIMESIZE == 64
 extern int pselect (int __nfds, fd_set *__restrict __readfds,
 		    fd_set *__restrict __writefds,
 		    fd_set *__restrict __exceptfds,

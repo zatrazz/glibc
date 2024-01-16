@@ -46,7 +46,7 @@ __BEGIN_DECLS
    facility.  The definition is found in XPG4.2.  */
 
 /* Shared memory control operation.  */
-#ifndef __USE_TIME_BITS64
+#if !__USE_TIME_BITS64 || __TIMESIZE == 64
 extern int shmctl (int __shmid, int __cmd, struct shmid_ds *__buf) __THROW;
 #else
 # ifdef __REDIRECT_NTH

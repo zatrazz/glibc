@@ -23,7 +23,7 @@
 /* Data structure describing a set of semaphores.  */
 struct semid_ds
 {
-#ifdef __USE_TIME_BITS64
+#if __USE_TIME_BITS64 && __TIMESIZE == 32
 # include <bits/types/struct_semid64_ds_helper.h>
 #else
   struct ipc_perm sem_perm;   /* operation permission struct */

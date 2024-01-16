@@ -43,7 +43,7 @@ poll (struct pollfd *__fds, nfds_t __nfds, int __timeout)
 
 
 #ifdef __USE_GNU
-# ifdef __USE_TIME_BITS64
+# if __USE_TIME_BITS64 && __TIMESIZE == 32
 extern int __REDIRECT (__ppoll64_alias, (struct pollfd *__fds, nfds_t __nfds,
 				       const struct timespec *__timeout,
 				       const __sigset_t *__ss), __ppoll64);

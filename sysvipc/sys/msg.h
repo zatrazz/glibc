@@ -58,7 +58,7 @@ struct msgbuf
 __BEGIN_DECLS
 
 /* Message queue control operation.  */
-#ifndef __USE_TIME_BITS64
+#if !__USE_TIME_BITS64 || __TIMESIZE == 64
 extern int msgctl (int __msqid, int __cmd, struct msqid_ds *__buf) __THROW;
 #else
 # ifdef __REDIRECT_NTH
