@@ -22,6 +22,10 @@
 
 static void
 __attribute__ ((noinline)) __attribute_noclone__
+#ifdef __clang__
+/* Avoid clang optimize it away.  */
+__attribute__ ((optnone))
+#endif
 test (char *foo)
 {
   int i;
