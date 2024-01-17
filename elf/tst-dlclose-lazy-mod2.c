@@ -20,6 +20,7 @@
 #include <stdlib.h>
 
 void
+__attribute__ ((weak))
 exported_function (int ignored)
 {
   /* This function is interposed from tst-dlclose-lazy-mod1.so and
