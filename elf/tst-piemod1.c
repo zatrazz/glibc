@@ -1,6 +1,7 @@
 #include <stdio.h>
 
 int
+__attribute__((weak))
 foo (void)
 {
   return 21;
