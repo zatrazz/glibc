@@ -466,7 +466,7 @@ ldouble: 1
 Function: "cbrt_upward":
 double: 5
 float: 1
-ldouble: 1
+ldouble: 2
 
 Function: Real part of "ccos":
 double: 1
@@ -1261,7 +1261,7 @@ double: 1
 float: 1
 
 Function: "log1p_downward":
-double: 1
+double: 2
 float: 2
 ldouble: 3
 
