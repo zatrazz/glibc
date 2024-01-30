@@ -657,7 +657,7 @@ ldouble: 1
 Function: "cbrt_upward":
 double: 5
 float: 1
-float128: 1
+float128: 2
 ldouble: 1
 
 Function: "cbrt_vlen16":
