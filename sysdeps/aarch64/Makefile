@@ -54,6 +54,9 @@ gen-as-const-headers += \
 endif
 
 ifeq ($(subdir),gmon)
+sysdep_routines += \
+  __mcount \
+  # sysdep_routines
 CFLAGS-mcount.c += -mgeneral-regs-only
 endif
 
