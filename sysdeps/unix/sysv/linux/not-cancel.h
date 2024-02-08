@@ -29,16 +29,16 @@
 #include <time.h>
 
 /* Non cancellable open syscall.  */
-__typeof (open) __open_nocancel;
+extern int __open_nocancel (const char *, int, ...);
 
 /* Non cancellable open syscall (LFS version).  */
-__typeof (open64) __open64_nocancel;
+extern int __open64_nocancel (const char *, int, ...);
 
 /* Non cancellable openat syscall.  */
-__typeof (openat) __openat_nocancel;
+extern int __openat_nocancel (int fd, const char *, int, ...);
 
 /* Non cacellable openat syscall (LFS version).  */
-__typeof (openat64) __openat64_nocancel;
+extern int __openat64_nocancel (int fd, const char *, int, ...);
 
 /* Non cancellable read syscall.  */
 __typeof (__read) __read_nocancel;
