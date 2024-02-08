@@ -70,10 +70,12 @@ extern int __printf_chk (int, const char *, ...);
 extern int __fprintf_chk (FILE *, int, const char *, ...);
 extern int __vprintf_chk (int, const char *, __gnuc_va_list);
 extern int __vfprintf_chk (FILE *, int, const char *, __gnuc_va_list);
+libc_hidden_proto (__vfprintf_chk)
 extern char *__fgets_unlocked_chk (char *buf, size_t size, int n, FILE *fp);
 extern char *__fgets_chk (char *buf, size_t size, int n, FILE *fp);
 extern int __asprintf_chk (char **, int, const char *, ...) __THROW;
 extern int __vasprintf_chk (char **, int, const char *, __gnuc_va_list) __THROW;
+libc_hidden_proto (__vasprintf_chk)
 extern int __dprintf_chk (int, int, const char *, ...);
 extern int __vdprintf_chk (int, int, const char *, __gnuc_va_list);
 extern int __obstack_printf_chk (struct obstack *, int, const char *, ...)
