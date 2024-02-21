@@ -103,5 +103,25 @@ if test $libc_cv_x86_have_apx = yes; then
 fi
 LIBC_CONFIG_VAR([have-x86-apx], [$libc_cv_x86_have_apx])
 
+dnl Check if compiler standard library provides __sfp_handle_exceptions, used on
+dnl float128 implementation.
+AC_CACHE_CHECK(whether compiler standard library provides __sfp_handle_exceptions,
+	       libc_cv_sfp_handle_exceptions, [dnl
+cat > conftest.c <<EOF
+int _start (void) { return 0; }
+int __start (void) { return 0; }
+void __sfp_handle_exceptions (int);
+int main (void) { __sfp_handle_exceptions (0); return 0; }
+EOF
+		 if AC_TRY_COMMAND(${CC-cc} $CFLAGS $CPPFLAGS $no_ssp -o conftest conftest.c -static -nostartfiles 1>&AS_MESSAGE_LOG_FD); then
+		   libc_cv_sfp_handle_exceptions=yes
+		 else
+		   libc_cv_sfp_handle_exceptions=no
+		 fi
+		 rm -rf conftest*])
+if test x"$libc_cv_sfp_handle_exceptions" == xyes; then
+  AC_DEFINE(HAVE_X86_64_SFP_HANDLE_EXCEPTIONS)
+fi
+
 test -n "$critic_missing" && AC_MSG_ERROR([
 *** $critic_missing])
