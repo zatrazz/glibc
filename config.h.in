@@ -316,4 +316,7 @@
 /* Define if -mapxf is enabled by default on x86.  */
 #undef HAVE_X86_APX
 
+/* Define whether compiler runtime library provides __sfp_handle_exceptions.  */
+#undef HAVE_X86_64_SFP_HANDLE_EXCEPTIONS
+
 #endif

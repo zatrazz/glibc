@@ -313,6 +313,37 @@ fi
 config_vars="$config_vars
 have-x86-apx = $libc_cv_x86_have_apx"
 
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether compiler standard library provides __sfp_handle_exceptions" >&5
+printf %s "checking whether compiler standard library provides __sfp_handle_exceptions... " >&6; }
+if test ${libc_cv_sfp_handle_exceptions+y}
+then :
+  printf %s "(cached) " >&6
+else $as_nop
+  cat > conftest.c <<EOF
+int _start (void) { return 0; }
+int __start (void) { return 0; }
+void __sfp_handle_exceptions (int);
+int main (void) { __sfp_handle_exceptions (0); return 0; }
+EOF
+		 if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $no_ssp -o conftest conftest.c -static -nostartfiles 1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then
+		   libc_cv_sfp_handle_exceptions=yes
+		 else
+		   libc_cv_sfp_handle_exceptions=no
+		 fi
+		 rm -rf conftest*
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_sfp_handle_exceptions" >&5
+printf "%s\n" "$libc_cv_sfp_handle_exceptions" >&6; }
+if test x"$libc_cv_sfp_handle_exceptions" == xyes; then
+  printf "%s\n" "#define HAVE_X86_64_SFP_HANDLE_EXCEPTIONS 1" >>confdefs.h
+
+fi
+
 test -n "$critic_missing" && as_fn_error $? "
 *** $critic_missing" "$LINENO" 5
 
