@@ -561,7 +561,7 @@ ldouble: 1
 Function: Imaginary part of "catan_downward":
 double: 2
 float: 2
-float128: 2
+float128: 3
 ldouble: 4
 
 Function: Real part of "catan_towardzero":
@@ -573,7 +573,7 @@ ldouble: 1
 Function: Imaginary part of "catan_towardzero":
 double: 2
 float: 2
-float128: 2
+float128: 3
 ldouble: 4
 
 Function: Real part of "catan_upward":
@@ -603,7 +603,7 @@ ldouble: 1
 Function: Real part of "catanh_downward":
 double: 2
 float: 2
-float128: 2
+float128: 3
 ldouble: 4
 
 Function: Imaginary part of "catanh_downward":
@@ -615,7 +615,7 @@ ldouble: 1
 Function: Real part of "catanh_towardzero":
 double: 2
 float: 2
-float128: 2
+float128: 3
 ldouble: 4
 
 Function: Imaginary part of "catanh_towardzero":
@@ -701,7 +701,7 @@ ldouble: 3
 Function: Imaginary part of "ccos_downward":
 double: 3
 float: 3
-float128: 2
+float128: 3
 ldouble: 3
 
 Function: Real part of "ccos_towardzero":
@@ -749,7 +749,7 @@ ldouble: 3
 Function: Imaginary part of "ccosh_downward":
 double: 3
 float: 3
-float128: 2
+float128: 3
 ldouble: 3
 
 Function: Real part of "ccosh_towardzero":
@@ -1067,7 +1067,7 @@ float128: 1
 Function: Real part of "csin_downward":
 double: 3
 float: 3
-float128: 2
+float128: 3
 ldouble: 3
 
 Function: Imaginary part of "csin_downward":
@@ -1120,7 +1120,7 @@ ldouble: 3
 Function: Imaginary part of "csinh_downward":
 double: 3
 float: 3
-float128: 2
+float128: 3
 ldouble: 3
 
 Function: Real part of "csinh_towardzero":
@@ -1476,16 +1476,19 @@ float: 1
 Function: "exp_downward":
 double: 1
 float: 1
+float128: 1
 ldouble: 1
 
 Function: "exp_towardzero":
 double: 1
 float: 1
+float128: 1
 ldouble: 2
 
 Function: "exp_upward":
 double: 1
 float: 1
+float128: 1
 ldouble: 1
 
 Function: "exp_vlen16":
@@ -1700,7 +1703,7 @@ ldouble: 7
 Function: "lgamma_towardzero":
 double: 5
 float: 6
-float128: 5
+float128: 6
 ldouble: 7
 
 Function: "lgamma_upward":
@@ -2072,7 +2075,7 @@ ldouble: 3
 Function: "tan_towardzero":
 double: 1
 float: 1
-float128: 1
+float128: 2
 ldouble: 3
 
 Function: "tan_upward":
@@ -2150,19 +2153,19 @@ ldouble: 5
 Function: "tgamma_downward":
 double: 9
 float: 7
-float128: 5
+float128: 7
 ldouble: 6
 
 Function: "tgamma_towardzero":
 double: 9
 float: 7
-float128: 5
+float128: 7
 ldouble: 6
 
 Function: "tgamma_upward":
 double: 9
 float: 8
-float128: 4
+float128: 6
 ldouble: 5
 
 Function: "y0":
@@ -2222,19 +2225,19 @@ ldouble: 4
 Function: "yn_downward":
 double: 3
 float: 4
-float128: 5
+float128: 6
 ldouble: 5
 
 Function: "yn_towardzero":
 double: 3
 float: 3
-float128: 5
+float128: 8
 ldouble: 5
 
 Function: "yn_upward":
 double: 4
 float: 5
-float128: 5
+float128: 8
 ldouble: 4
 
 # end of automatic generation
