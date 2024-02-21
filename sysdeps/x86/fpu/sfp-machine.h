@@ -217,8 +217,26 @@ typedef unsigned int UTItype __attribute__ ((mode (TI)));
 	(FP_EX_INVALID | FP_EX_DENORM | FP_EX_DIVZERO | FP_EX_OVERFLOW \
 	 | FP_EX_UNDERFLOW | FP_EX_INEXACT)
 
+#ifdef HAVE_X86_64_SFP_HANDLE_EXCEPTIONS
 void __sfp_handle_exceptions (int);
-
+#else
+#include <fenv.h>
+static inline void __sfp_handle_exceptions (int _fex)
+{
+  if (_fex & FP_EX_INVALID)
+    feraiseexcept (FE_INVALID);
+  if (_fex & FP_EX_DENORM)
+    feraiseexcept (__FE_DENORM);
+  if (_fex & FP_EX_DIVZERO)
+    feraiseexcept (FE_DIVBYZERO);
+  if (_fex & FP_EX_OVERFLOW)
+    feraiseexcept (FE_OVERFLOW);
+  if (_fex & FP_EX_UNDERFLOW)
+    feraiseexcept (FE_UNDERFLOW);
+  if (_fex & FP_EX_INEXACT)
+    feraiseexcept (FE_INEXACT);
+}
+#endif
 #define FP_HANDLE_EXCEPTIONS			\
   do {						\
     if (__builtin_expect (_fex, 0))		\
