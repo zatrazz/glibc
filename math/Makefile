@@ -368,7 +368,9 @@ $(libm-test-c-narrow-obj): $(objpfx)libm-test%.c: libm-test%.inc \
 
 
 libm-test-funcs-auto-static =
-libm-test-funcs-noauto-static =
+libm-test-funcs-noauto-static = \
+  fmod \
+  # libm-test-funcs-noauto-static
 libm-test-funcs-narrow-static =
 libm-test-funcs-all-static = $(libm-test-funcs-auto-static) $(libm-test-funcs-noauto-static)
 
