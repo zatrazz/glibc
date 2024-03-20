@@ -367,7 +367,9 @@ $(libm-test-c-narrow-obj): $(objpfx)libm-test%.c: libm-test%.inc \
 	$(PYTHON) gen-libm-test.py -c $< -a auto-libm-test-out$* -C $@
 
 
-libm-test-funcs-auto-static =
+libm-test-funcs-auto-static = \
+  exp10 \
+  # libm-test-funcs-auto-static
 libm-test-funcs-noauto-static = \
   fmod \
   # libm-test-funcs-noauto-static
