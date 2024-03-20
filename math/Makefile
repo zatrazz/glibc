@@ -274,8 +274,10 @@ endif
 
 libm-vec-tests = $(addprefix test-,$(libmvec-tests))
 libm-test-support = $(foreach t,$(test-types),libm-test-support-$(t))
-test-extras += $(libm-test-support)
-extra-test-objs += $(addsuffix .o, $(libm-test-support))
+libm-test-support-static = $(foreach t,$(test-types),libm-test-support-$(t)-static)
+test-extras += $(libm-test-support) $(libm-test-support-static)
+extra-test-objs += $(addsuffix .o, $(libm-test-support)) \
+		   $(addsuffix .o, $(libm-test-support-static))
 libm-vec-test-wrappers = $(addsuffix -wrappers, $(libm-vec-tests))
 test-extras += $(libm-vec-test-wrappers)
 extra-test-objs += $(addsuffix .o, $(libm-vec-test-wrappers))
@@ -363,6 +365,63 @@ $(libm-test-c-narrow-obj): $(objpfx)libm-test%.c: libm-test%.inc \
 						  auto-libm-test-out%
 	$(make-target-directory)
 	$(PYTHON) gen-libm-test.py -c $< -a auto-libm-test-out$* -C $@
+
+
+libm-test-funcs-auto-static =
+libm-test-funcs-noauto-static =
+libm-test-funcs-narrow-static =
+libm-test-funcs-all-static = $(libm-test-funcs-auto-static) $(libm-test-funcs-noauto-static)
+
+libm-test-c-auto-static = $(foreach f,$(libm-test-funcs-auto-static),libm-test-$(f)-static.c)
+libm-test-c-noauto-static = $(foreach f,$(libm-test-funcs-noauto-static),libm-test-$(f)-static.c)
+libm-test-c-narrow-static = $(foreach f,$(libm-test-funcs-narrow-static),\
+				 libm-test-narrow-$(f)-static.c)
+generated += $(libm-test-c-auto-static) $(libm-test-c-noauto-static) $(libm-test-c-narrow-static)
+
+libm-tests-normal-static = $(foreach t,$(libm-tests-base-normal),\
+				$(foreach f,$(libm-test-funcs-all-static),\
+					    $(t)-$(f)-static))
+libm-tests-narrow-static = $(foreach t,$(libm-tests-base-narrow-static),\
+				$(foreach f,$(libm-test-funcs-narrow-static),\
+					    $(t)-$(f)-static))
+libm-tests-vector-static = $(foreach t,$(libmvec-tests-static),\
+				$(foreach f,$($(t)-funcs),test-$(t)-$(f)-static))
+libm-tests-static = $(libm-tests-normal-static) $(libm-tests-narrow-static) $(libm-tests-vector-static)
+libm-tests-for-type-static = $(foreach f,$(libm-test-funcs-all-static),\
+					 test-$(1)-$(f)-static test-i$(1)-$(f)-static) \
+			     $(filter test-$(1)-%,$(libm-tests-vector-static) \
+						  $(libm-tests-narrow-static))
+
+libm-tests.o += $(addsuffix .o,$(libm-tests-static))
+
+tests-static += $(libm-tests-static)
+generated += $(addsuffix .c,$(libm-tests)) \
+	     $(foreach t,$(test-types),libm-test-support-$(t)-static.c)
+
+libm-test-c-auto-obj-static = $(addprefix $(objpfx),$(libm-test-c-auto-static))
+libm-test-c-noauto-obj-static = $(addprefix $(objpfx),$(libm-test-c-noauto-static))
+libm-test-c-narrow-obj-static = $(addprefix $(objpfx),$(libm-test-c-narrow-static))
+
+# Use the same input test definitions for both dynamic and static tests.
+.SECONDEXPANSION:
+$(libm-test-c-noauto-obj-static): $(objpfx)libm-test%.c: libm-test$$(subst -static,,%).inc \
+							 gen-libm-test.py
+	$(make-target-directory)
+	$(PYTHON) gen-libm-test.py -c $< -a /dev/null -C $@
+
+.SECONDEXPANSION:
+$(libm-test-c-auto-obj-static): $(objpfx)libm-test%.c: libm-test$$(subst -static,,%).inc \
+						       gen-libm-test.py \
+						       auto-libm-test-out$$(subst -static,,%)
+	$(make-target-directory)
+	$(PYTHON) gen-libm-test.py -c $< -a auto-libm-test-out`echo $* | sed 's/-static//'` -C $@
+
+.SECONDEXPANSION:
+$(libm-test-c-narrow-obj-static): $(objpfx)libm-test%.c: libm-test$$(subst -static,,%).inc \
+							 gen-libm-test.py \
+							 auto-libm-test-out$$(subst -static,,%)
+	$(make-target-directory)
+	$(PYTHON) gen-libm-test.py -c $< -a auto-libm-test-out`echo $* | sed 's/-static//'` -C $@
 
 # Tests for totalorder compat symbols reuse the table of tests as
 # processed by gen-libm-test.py, so add dependencies on the generated
@@ -505,6 +564,18 @@ $(foreach t,$(libm-tests-normal),$(objpfx)$(t).c): $(objpfx)test-%.c:
 	  echo "#include <libm-test-$$func.c>"; \
 	) > $@
 
+$(foreach t,$(libm-tests-normal-static),$(objpfx)$(t).c): $(objpfx)test-%.c:
+	type_func=$*; \
+	type=$${type_func%%-*}; \
+	func=$${type_func#*-}; \
+	( \
+	  echo "#include <test-$$type.h>"; \
+	  echo "#include <test-math-exceptions.h>"; \
+	  echo "#include <test-math-errno.h>"; \
+	  echo "#include <test-math-scalar.h>"; \
+	  echo "#include <libm-test-$$func.c>"; \
+	) > $@
+
 $(foreach t,$(libm-tests-narrow),$(objpfx)$(t).c): $(objpfx)test-%.c:
 	type_pair_func=$*; \
 	type_pair=$${type_pair_func%-*}; \
@@ -539,11 +610,25 @@ $(foreach t,$(test-types),\
 	  echo "#include <libm-test-support.c>"; \
 	) > $@
 
+$(foreach t,$(test-types),\
+	    $(objpfx)libm-test-support-$(t)-static.c): $(objpfx)libm-test-support-%.c:
+	( \
+	  echo "#include <test-$*.h>"; \
+	  echo "#include <libm-test-support.c>"; \
+	) > $@
+
 $(addprefix $(objpfx), $(libm-tests.o)): $(objpfx)libm-test-ulps.h
 
 define o-iterator-doit
 $(foreach f,$(libm-test-funcs-all),\
 	    $(objpfx)$(o)-$(f).o): $(objpfx)$(o)%.o: $(objpfx)libm-test%.c
+endef
+object-suffixes-left := $(libm-tests-base)
+include $(o-iterator)
+
+define o-iterator-doit
+$(foreach f,$(libm-test-funcs-all-static),\
+	    $(objpfx)$(o)-$(f)-static.o): $(objpfx)$(o)%.o: $(objpfx)libm-test%.c
 endef
 object-suffixes-left := $(libm-tests-base)
 include $(o-iterator)
@@ -559,6 +644,13 @@ include $(o-iterator)
 define o-iterator-doit
 $(foreach f,$(libm-test-funcs-all),\
 	    $(objpfx)$(o)-$(f).o): CFLAGS += $(libm-test-no-inline-cflags)
+endef
+object-suffixes-left := $(libm-tests-base-normal)
+include $(o-iterator)
+
+define o-iterator-doit
+$(foreach f,$(libm-test-funcs-all-static),\
+	    $(objpfx)$(o)-$(f)-static.o): CFLAGS += $(libm-test-no-inline-cflags)
 endef
 object-suffixes-left := $(libm-tests-base-normal)
 include $(o-iterator)
@@ -580,6 +672,13 @@ include $(o-iterator)
 define o-iterator-doit
 $(addprefix $(objpfx),\
 	    $(call libm-tests-for-type,$(o))): $(objpfx)libm-test-support-$(o).o
+endef
+object-suffixes-left := $(test-types)
+include $(o-iterator)
+
+define o-iterator-doit
+$(addprefix $(objpfx),\
+	    $(call libm-tests-for-type-static,$(o))): $(objpfx)libm-test-support-$(o)-static.o
 endef
 object-suffixes-left := $(test-types)
 include $(o-iterator)
