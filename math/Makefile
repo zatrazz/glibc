@@ -372,6 +372,7 @@ libm-test-funcs-auto-static = \
   # libm-test-funcs-auto-static
 libm-test-funcs-noauto-static = \
   fmod \
+  isnan \
   # libm-test-funcs-noauto-static
 libm-test-funcs-narrow-static =
 libm-test-funcs-all-static = $(libm-test-funcs-auto-static) $(libm-test-funcs-noauto-static)
