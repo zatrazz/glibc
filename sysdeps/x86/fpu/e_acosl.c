@@ -3,6 +3,7 @@
  *
  */
 
+#include <math.h>
 #include <math_private.h>
 #include <libm-alias-finite.h>
 
@@ -10,6 +11,9 @@ long double
 __ieee754_acosl (long double x)
 {
   long double res;
+
+  if (__glibc_unlikely (isgreater (fabsl (x), 1.0L)))
+    return (x - x) / (x - x);
 
   /* acosl = atanl (sqrtl((1-x) (1+x)) / x) */
   asm (	"fld	%%st\n"

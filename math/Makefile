@@ -368,6 +368,7 @@ $(libm-test-c-narrow-obj): $(objpfx)libm-test%.c: libm-test%.inc \
 
 
 libm-test-funcs-auto-static = \
+  acos \
   exp10 \
   # libm-test-funcs-auto-static
 libm-test-funcs-noauto-static = \
