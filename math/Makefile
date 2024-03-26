@@ -371,6 +371,7 @@ libm-test-funcs-auto-static = \
   exp10 \
   # libm-test-funcs-auto-static
 libm-test-funcs-noauto-static = \
+  copysign \
   fmod \
   isnan \
   # libm-test-funcs-noauto-static
