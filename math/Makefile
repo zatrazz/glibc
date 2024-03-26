@@ -373,6 +373,7 @@ libm-test-funcs-auto-static = \
 libm-test-funcs-noauto-static = \
   copysign \
   fmod \
+  frexp \
   isnan \
   # libm-test-funcs-noauto-static
 libm-test-funcs-narrow-static =
