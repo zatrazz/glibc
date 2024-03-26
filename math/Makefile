@@ -375,6 +375,7 @@ libm-test-funcs-noauto-static = \
   fmod \
   frexp \
   isnan \
+  modf \
   # libm-test-funcs-noauto-static
 libm-test-funcs-narrow-static =
 libm-test-funcs-all-static = $(libm-test-funcs-auto-static) $(libm-test-funcs-noauto-static)
