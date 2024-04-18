@@ -98,6 +98,12 @@ static const struct intel_02_cache_info
 
 #define nintel_02_known (sizeof (intel_02_known) / sizeof (intel_02_known [0]))
 
+/* The bsearch is called early during process initialization, before TCB has
+   been set up; and if compiler does not enable __extern_inline it might call
+   the symbol which might use an invalid thread-pointer.  */
+#define bsearch bsearch_inline
+#include <bits/stdlib-bsearch.h>
+
 static int
 intel_02_known_compare (const void *p1, const void *p2)
 {
@@ -214,8 +220,8 @@ intel_check_word (int name, unsigned int value, bool *has_level_2,
 	  struct intel_02_cache_info search;
 
 	  search.idx = byte;
-	  found = bsearch (&search, intel_02_known, nintel_02_known,
-			   sizeof (intel_02_known[0]), intel_02_known_compare);
+	  found = bsearch_inline (&search, intel_02_known, nintel_02_known,
+				  sizeof (intel_02_known[0]), intel_02_known_compare);
 	  if (found != NULL)
 	    {
 	      if (found->rel_name == folded_rel_name)
