@@ -2907,6 +2907,7 @@ GLIBC_2.4 renameat F
 GLIBC_2.4 symlinkat F
 GLIBC_2.4 unlinkat F
 GLIBC_2.4 unshare F
+GLIBC_2.41 openat2 F
 GLIBC_2.41 sched_getattr F
 GLIBC_2.41 sched_setattr F
 GLIBC_2.42 __inet_ntop_chk F

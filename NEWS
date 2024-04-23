@@ -18,6 +18,10 @@ Major new features:
 
 * On Linux, the pthread_gettid_np function has been added.
 
+* On Linux, the openat2 function has been added.  It is an extension of
+  openat and provides a superset of its functionality.  It is supported only
+  in LFS mode and it is a cancellable entrypoint.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
   [Add deprecations, removals and changes affecting compatibility here]
