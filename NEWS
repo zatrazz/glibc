@@ -31,6 +31,10 @@ Major new features:
 * The iconv program now supports converting files in place.  The program
   automatically uses a temporary file if required.
 
+* On Linux, the openat2 function has been added.  It is an extension of
+  openat and provides a superset of its functionality.  It is supported only
+  in LFS mode and it is a cancellable entrypoint.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The big-endian ARC port (arceb-linux-gnu) has been removed.

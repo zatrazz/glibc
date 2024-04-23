@@ -218,6 +218,103 @@ new, extended API using 64 bit file sizes and offsets transparently
 replaces the old API.
 @end deftypefun
 
+@deftp {Data Type} {struct open_how}
+@standards{Linux, fcntl.h}
+The @code{open_how} structure describes how to open a file using @code{openat2}.
+
+@strong{Portability note:} In the future, additional fields can be added
+to @code{struct open_how} at the end, so that the size of this data
+type changes.  Do not use it in places where this matters, such as
+structure fields in installed header files, where such a change could
+impact the application binary interface (ABI).
+
+The following generic fields are available.
+
+@table @code
+@item flags
+This field specifies the file creation and file status flags to use when
+opening the file.
+All of the @code{O_*} flags defined for @code{openat} are valid.
+Different than @code{openat}, @code{openat2} returns an error for unknown
+or conflicting values.
+
+@item mode
+This field specifies the mode for the new file, similar to @code{mode}
+argument of @code{openat}.  Different than @code{openat}, @code{openat2}
+returns an error for invalid value (like value larger than @code{07777}).
+
+@item resolve
+This is a bitmask of flags that modify the way in @strong{all} components
+of @code{pathname}.  It allows trusted programs to restrict how untrusted
+paths are resolved.  The following generic flags are available.
+@table @code
+@item RESOLVE_NO_XDEV
+Disallow traversal of mount points during path resolution (including all
+bind mounts).
+@item RESOLVE_NO_MAGICLINKS
+Disallow all @strong{magic-link} resolution during path resolution. Magic
+links are simbolic link-like objects that are found in @strong{procfs};
+for example the @code{/proc/pid/exe}.
+@item RESOLVE_NO_SYMLINKS
+Disallow resolution of symbolic links during path resolution.
+This option implies @code{RESOLVE_NO_MAGICLINKS}.
+@item RESOLVE_BENEATH
+Do not permit the path resolution to succeed if any component of the
+resolution is not a descendant of the directory indicated by @code{dirfd}.
+@item RESOLVE_IN_ROOT
+Treat the directory referred to by @code{dirfd} as the root directory
+while resolving the @code{pathname}.
+@item RESOLVE_CACHED
+Make the open operation fail unless all path components are already
+present in the kernel's lookup cache.
+@end table
+@end table
+
+For additional information, consult the manual page @manpageurl{openat2,2}.
+@xref{Linux Kernel}.
+@end deftp
+
+
+@deftypefun int openat2 (int @var{dirfd}, const char *@var{pathname}, struct open_how @var{how}, size_t @var{size})
+@standards{Linux, fcntl.h}
+@safety{@mtsafe{}@assafe{}@acsafe{}}
+This function is a extension of the @code{openat} and provides a superset of its
+functionality.  @xref{Descriptor-Relative Access}.
+
+The @code{size} define the expected size of @code{how} data structure.
+It is recommended to initialize unused fields to zero, either using
+@code{memset}, or using a structure initializer.
+
+On failure, @code{openat2} returns @math{-1} and sets @code{errno}.  The
+following errors are related the way extensibility is handled.
+@table @code
+@item E2BIG
+An extension that the kernel does support was specified in @code{how},
+or a larger struct was used with non-zero fields.
+@item EAGAIN
+@code{how.resolve} contains either RESOLVE_IN_ROOT or RESOLVE_BENEATH, and
+the kernel could not ensure that @code{".."} component did not escape.  Or
+@code{RESOLVE_CACHED} was set, and the open operation cannot be performed
+using only cached information.
+@item EINVAL
+And unknown flag or invalid value was used on @code{how}; or @code{mode}
+is non-zero, but @code{how.flags} does not contain @code{O_CREAT} or
+@code{O_TMPFILE}, or @code{size} is smaller than the ones supported
+by the kernel.
+@end table
+
+It can also return all the errors @code{openat} returns, or other errors
+due new fields added by the kernel.
+
+Similar to @code{openat}, @code{openat2} is a cancellation point.
+
+@strong{NB:} Different than other open-like functions, the kernel only
+provides the LFS variant.  When the sources are translated with
+@code{_FILE_OFFSET_BITS == 64} this function are not routed a different
+symbol.
+@end deftypefun
+
+
 @deftypefn {Obsolete function} int creat (const char *@var{filename}, mode_t @var{mode})
 @standards{POSIX.1, fcntl.h}
 @safety{@prelim{}@mtsafe{}@assafe{}@acsafe{@acsfd{}}}
