@@ -218,6 +218,117 @@ new, extended API using 64 bit file sizes and offsets transparently
 replaces the old API.
 @end deftypefun
 
+@deftp {Data Type} {struct open_how}
+@standards{Linux, fcntl.h}
+The @code{open_how} structure describes how to open a file using @code{openat2}.
+
+@strong{Portability note:} In the future, additional fields can be added
+to @code{struct open_how} at the end, so that the size of this data
+type changes.  Do not use it in places where this matters, such as
+structure fields in installed header files, where such a change could
+affect the application binary interface (ABI).
+
+The following generic fields are available.
+
+@table @code
+@item flags
+This field specifies the file creation and file status flags to use when
+opening the file.
+All of the @code{O_*} flags defined for @code{openat} are valid.
+Unlike than @code{openat}, @code{openat2} returns an error for unknown
+or conflicting values.
+
+@item mode
+This field specifies the mode for the new file, similar to @code{mode}
+argument of @code{openat}.  Unlike @code{openat}, @code{openat2}
+returns an error for invalid values (i.e., values greater than @code{0777}).
+
+@item resolve
+This is a bitmask of flags that affect the resolution of file name components.
+Unlike @code{O_NOFOLLOW}, it affects all file name components, not just the
+last one. The following flags are available.
+
+@table @code
+@item RESOLVE_NO_XDEV
+Disallow traversal of mount points during path resolution (including all
+bind mounts).
+
+@item RESOLVE_NO_MAGICLINKS
+Disallow all @strong{magic-link} resolution during path resolution. Magic
+links are symbolic link-like objects that are found in @strong{procfs};
+for example the @code{/proc/pid/exe}.
+
+@item RESOLVE_NO_SYMLINKS
+Disallow resolution of symbolic links during path resolution.
+This option implies @code{RESOLVE_NO_MAGICLINKS}.
+
+@item RESOLVE_BENEATH
+Do not permit the path resolution to succeed if any component of the
+resolution is not a descendant of the directory indicated by @var{dirfd}.
+This cause absolute symbolic links and absolute values of @var{pathname}
+to be reject.
+
+@item RESOLVE_IN_ROOT
+Treat the directory referred by @var{dirfd} as the root directory
+while resolving the @var{pathname}.
+Absolute symbolic links and absolute values of @var{pathnames} are
+interpreted relative to @var{dirfd}.
+The effect of this flag is as though the calling process has used
+@code{chroot} to modify its root direftory.
+
+@item RESOLVE_CACHED
+Make the open operation fail unless all path components are already
+present in the kernel's lookup cache.
+@end table
+
+@end table
+
+For additional information, consult the manual page @manpageurl{openat2,2}.
+@xref{Linux Kernel}.
+@end deftp
+
+
+@deftypefun int openat2 (int @var{dirfd}, const char *restrict @var{pathname}, const struct open_how *restrict @var{how}, size_t @var{size})
+@standards{Linux, fcntl.h}
+@safety{@mtsafe{}@assafe{}@acsafe{}}
+This function is an extension of the @code{openat} and provides a superset of its
+functionality.  @xref{Descriptor-Relative Access}.
+
+The @var{size} argument must equal @code{sizeof *@var{how}}. For portability
+to future API versions that extend @code{struct open_how}, @code{*@var{how}}
+should be initialized either by a struct initializer or by @code{memset} to zero.
+
+On failure, @code{openat2} returns @math{-1} and sets @code{errno}. It can
+fail for any of the reasons @code{openat} fails, plus the following reasons:
+
+@table @code
+@item E2BIG
+An extension that the kernel does support was specified in @code{*@var{how}},
+or a larger struct was used with non-zero members.
+
+@item EAGAIN
+@code{@var{how}->resolve} contains either RESOLVE_IN_ROOT or RESOLVE_BENEATH, and
+the kernel could not ensure that @code{".."} component did not escape.  Or
+@code{RESOLVE_CACHED} was set, and the open operation cannot be performed
+using only cached information.
+
+@item EINVAL
+And unknown flag or invalid value was used on  @code{*@var{how}}; or
+@code{@var{how}->mode} is non-zero, but @code{@var{how}->flags} does not contain
+@code{O_CREAT} or@code{O_TMPFILE}, or @var{size} is smaller than the ones supported
+by the kernel.
+@end table
+
+It can also return all the errors @code{openat} returns, or other errors
+due to new members added by the kernel.
+
+Similar to @code{openat}, @code{openat2} is a cancellation point.
+
+Unlike other @code{open}-like functions, this function ignores
+@code{_FILE_OFFSET_BITS} and always operates in large file mode.
+@end deftypefun
+
+
 @deftypefn {Obsolete function} int creat (const char *@var{filename}, mode_t @var{mode})
 @standards{POSIX.1, fcntl.h}
 @safety{@prelim{}@mtsafe{}@assafe{}@acsafe{@acsfd{}}}

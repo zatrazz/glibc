@@ -9,7 +9,9 @@ Version 2.43
 
 Major new features:
 
-  [Add new features here]
+* On Linux, the openat2 function has been added.  It is an extension of
+  openat and provides a superset of its functionality.  It is supported only
+  in LFS mode and it is a cancellable entrypoint.
 
 Deprecated and removed features, and other changes affecting compatibility:
 
