@@ -51,7 +51,8 @@ libmvec-support = $(addsuffix f_advsimd,$(float-advsimd-funcs)) \
                   v_powf_data
 endif
 
-sve-cflags = -march=armv8-a+sve
+advsimd-cflags = -DNO_MATH_REDIRECT
+sve-cflags = -march=armv8-a+sve -DNO_MATH_REDIRECT
 
 
 ifeq ($(build-mathvec),yes)
@@ -81,6 +82,20 @@ $(addprefix $(objpfx)bench-,$(bench-libmvec)): $(libmvec-benchtests)
 ifeq ($(build-mathvec),yes)
 libmvec-tests += float-advsimd double-advsimd float-sve double-sve
 endif
+
+define advsimd-float-cflags-template
+CFLAGS-$(1)f_advsimd.c += $(advsimd-cflags)
+CFLAGS-bench-float-advsimd-$(1).c += $(advsimd-cflags)
+endef
+
+define advsimd-double-cflags-template
+CFLAGS-$(1)_advsimd.c += $(advsimd-cflags)
+CFLAGS-bench-double-advsimd-$(1).c += $(advsimd-cflags)
+endef
+
+$(foreach f,$(float-advsimd-funcs), $(eval $(call advsimd-float-cflags-template,$(f))))
+$(foreach f,$(double-advsimd-funcs), $(eval $(call advsimd-double-cflags-template,$(f))))
+
 
 define sve-float-cflags-template
 CFLAGS-$(1)f_sve.c += $(sve-cflags)
