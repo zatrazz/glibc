@@ -241,4 +241,12 @@
 # define __ASSUME_FUTEX_LOCK_PI2 0
 #endif
 
+/* The mseal system call was introduced across all architectures in Linux 6.10
+   (although only supported on 64-bit CPUs).  */
+#if __LINUX_KERNEL_VERSION >= 0x060A00
+# define __ASSUME_MSEAL 1
+#else
+# define __ASSUME_MSEAL 0
+#endif
+
 #endif /* kernel-features.h */

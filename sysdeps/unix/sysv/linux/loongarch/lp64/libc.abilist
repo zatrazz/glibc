@@ -2154,3 +2154,4 @@ GLIBC_2.36 wprintf F
 GLIBC_2.36 write F
 GLIBC_2.36 writev F
 GLIBC_2.36 wscanf F
+GLIBC_2.37 mseal F

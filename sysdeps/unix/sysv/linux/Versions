@@ -314,6 +314,7 @@ libc {
     process_mrelease;
   }
   GLIBC_2.37 {
+    mseal;
 %ifdef TIME64_NON_DEFAULT
     __ppoll64_chk;
 %endif

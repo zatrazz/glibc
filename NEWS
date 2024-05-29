@@ -7,6 +7,10 @@ using `glibc' in the "product" field.
 
 Version 2.37.1
 
+* On Linux, the mseal function has been added.  It allows to seal memory
+  mappings to avoid further change during process execution such as protection
+  permissions, unmapping, moving to another location, or shrinking the size.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * __rseq_size now denotes the size of the active rseq area (20 bytes
