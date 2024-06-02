@@ -1,5 +1,5 @@
-/* Return string describing errno name.
-   Copyright (C) 2020-2024 Free Software Foundation, Inc.
+/* Basic tests for sealing.  Static version.
+   Copyright (C) 2024 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,11 +16,28 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <stdio.h>
-#include <string.h>
+/* This test checks the memory sealing work on a statically built binary.  */
 
-const char *
-strerrorname_np (int errnum)
+#define GLIBC_RTLD_SEAL          "2"
+#define TEST_STATIC              1
+
+/* Expected libraries that loader will seal.  */
+static const char *expected_sealed_vmas[] =
 {
-  return __get_errname (errnum);
-}
+  "tst-dl_mseal-static",
+};
+
+/* Auxiliary pages mapped by the kernel.  */
+static const char *expected_non_sealed_vmas[] =
+{
+  "[vdso]",
+  "[sigpage]",
+};
+
+/* Auxiliary kernel pages where permission can not be changed.  */
+static const char *expected_non_sealed_special[] =
+{
+  "[vectors]",
+};
+
+#include "tst-dl_mseal-skeleton.c"

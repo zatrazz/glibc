@@ -27,6 +27,7 @@
 #include <ldsodefs.h>
 #include <malloc/malloc-internal.h>
 #include <setvmaname.h>
+#include <dl-mseal.h>
 
 static void *alloc_ptr, *alloc_end, *alloc_last_block;
 
@@ -62,6 +63,7 @@ __minimal_malloc (size_t n)
       if (page == MAP_FAILED)
 	return NULL;
       __set_vma_name (page, nup, " glibc: loader malloc");
+      _dl_mseal (page, nup);
       if (page != alloc_end)
 	alloc_ptr = page;
       alloc_end = page + nup;

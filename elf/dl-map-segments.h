@@ -18,6 +18,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <dl-load.h>
+#include <dl-mseal.h>
 
 /* Map a segment and align it properly.  */
 
@@ -188,6 +189,10 @@ _dl_map_segments (struct link_map *l, int fd,
                               -1, 0);
               if (__glibc_unlikely (mapat == MAP_FAILED))
                 return DL_MAP_SEGMENTS_ERROR_MAP_ZERO_FILL;
+	      /* We need to seal this here because it will not be part of
+		 the PT_LOAD segments, nor it is taken in RELRO
+		 calculation.  */
+	      _dl_mseal (mapat, zeroend - zeropage);
             }
         }
 

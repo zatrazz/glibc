@@ -630,6 +630,10 @@ sysdep-rtld-routines += \
   dl-sbrk \
   # sysdep-rtld-routines
 
+dl-routines += \
+  dl-mseal \
+  # dl-routines
+
 others += \
   pldd \
   # others
@@ -639,6 +643,49 @@ install-bin += \
   # install-bin
 
 $(objpfx)pldd: $(objpfx)xmalloc.o
+
+tests-static += \
+  tst-dl_mseal-static \
+  # tests-static
+
+tests += \
+  $(tests-static) \
+  tst-dl_mseal \
+  # tests
+
+modules-names += \
+  tst-dl_mseal-auditmod \
+  tst-dl_mseal-dlopen-1 \
+  tst-dl_mseal-dlopen-1-1 \
+  tst-dl_mseal-dlopen-2 \
+  tst-dl_mseal-dlopen-2-1 \
+  tst-dl_mseal-mod-1 \
+  tst-dl_mseal-mod-2 \
+  tst-dl_mseal-preload \
+  # modules-names
+
+$(objpfx)tst-dl_mseal.out: \
+  $(objpfx)tst-dl_mseal-auditmod.so \
+  $(objpfx)tst-dl_mseal-preload.so \
+  $(objpfx)tst-dl_mseal-mod-1.so \
+  $(objpfx)tst-dl_mseal-mod-2.so \
+  $(objpfx)tst-dl_mseal-dlopen-1.so \
+  $(objpfx)tst-dl_mseal-dlopen-1-1.so \
+  $(objpfx)tst-dl_mseal-dlopen-2.so \
+  $(objpfx)tst-dl_mseal-dlopen-2-1.so
+
+tst-dl_mseal-ARGS = -- $(host-test-program-cmd)
+$(objpfx)tst-dl_mseal: $(objpfx)tst-dl_mseal-mod-1.so
+LDFLAGS-tst-dl_mseal = -Wl,--no-as-needed
+$(objpfx)tst-dl_mseal-mod-1.so: $(objpfx)tst-dl_mseal-mod-2.so
+LDFLAGS-tst-dl_mseal-mod-1.so = -Wl,--no-as-needed
+
+$(objpfx)tst-dl_mseal-dlopen-1.so: $(objpfx)tst-dl_mseal-dlopen-1-1.so
+LDFLAGS-tst-dl_mseal-dlopen-1.so = -Wl,--no-as-needed
+$(objpfx)tst-dl_mseal-dlopen-2.so: $(objpfx)tst-dl_mseal-dlopen-2-1.so
+LDFLAGS-tst-dl_mseal-dlopen-2.so = -Wl,--no-as-needed
+
+tst-dl_mseal-static-ARGS = -- $(host-test-program-cmd)
 endif
 
 ifeq ($(subdir),rt)
