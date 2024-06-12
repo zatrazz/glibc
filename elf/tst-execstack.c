@@ -8,17 +8,10 @@
 #include <unistd.h>
 #include <error.h>
 #include <stackinfo.h>
-
-static void
-print_maps (void)
-{
-#if 0
-  char *cmd = NULL;
-  asprintf (&cmd, "cat /proc/%d/maps", getpid ());
-  system (cmd);
-  free (cmd);
-#endif
-}
+#include <stdlib.h>
+#include <support/check.h>
+#include <support/xthread.h>
+#include <support/xdlfcn.h>
 
 static void deeper (void (*f) (void));
 
@@ -47,7 +40,7 @@ waiter_thread (void *arg)
 }
 #endif
 
-static bool allow_execstack = true;
+static bool kernel_allow_execstack = true;
 
 
 static int
@@ -74,61 +67,46 @@ do_test (void)
 	    {
 	      n = getline (&line, &linelen, fp);
 	      if (n > 0 && line[0] == '0')
-		allow_execstack = false;
+		kernel_allow_execstack = false;
 	    }
 
 	  fclose (fp);
 	}
     }
 
-  printf ("executable stacks %sallowed\n", allow_execstack ? "" : "not ");
+  printf ("kernel allows executable stacks: %s\n",
+	  kernel_allow_execstack ? "yes" : "not ");
+
+  bool glibc_allow_execstack = getenv ("ALLOW_EXECSTACK") != 0;
+  printf ("expected allow executable stacks: %s\n",
+	  glibc_allow_execstack ? "yes" : "not ");
 
   static void *f;		/* Address of this is used in other threads. */
 
 #if USE_PTHREADS
   /* Create some threads while stacks are nonexecutable.  */
   #define N 5
-  pthread_t thr[N];
 
-  pthread_barrier_init (&startup_barrier, NULL, N + 1);
-  pthread_barrier_init (&go_barrier, NULL, N + 1);
+  xpthread_barrier_init (&startup_barrier, NULL, N + 1);
+  xpthread_barrier_init (&go_barrier, NULL, N + 1);
 
   for (int i = 0; i < N; ++i)
-    {
-      int rc = pthread_create (&thr[i], NULL, &waiter_thread, &f);
-      if (rc)
-	error (1, rc, "pthread_create");
-    }
+    xpthread_create (NULL, &waiter_thread, &f);
 
   /* Make sure they are all there using their stacks.  */
-  pthread_barrier_wait (&startup_barrier);
+  xpthread_barrier_wait (&startup_barrier);
   puts ("threads waiting");
 #endif
-
-  print_maps ();
 
 #if USE_PTHREADS
   void *old_stack_addr, *new_stack_addr;
   size_t stack_size;
   pthread_t me = pthread_self ();
   pthread_attr_t attr;
-  int ret = 0;
 
-  ret = pthread_getattr_np (me, &attr);
-  if (ret)
-    {
-      printf ("before execstack: pthread_getattr_np returned error: %s\n",
-	      strerror (ret));
-      return 1;
-    }
-
-  ret = pthread_attr_getstack (&attr, &old_stack_addr, &stack_size);
-  if (ret)
-    {
-      printf ("before execstack: pthread_attr_getstack returned error: %s\n",
-	      strerror (ret));
-      return 1;
-    }
+  TEST_VERIFY_EXIT (pthread_getattr_np (me, &attr) == 0);
+  TEST_VERIFY_EXIT (pthread_attr_getstack (&attr, &old_stack_addr,
+					   &stack_size) == 0);
 # if _STACK_GROWS_DOWN
     old_stack_addr += stack_size;
 # else
@@ -146,39 +124,22 @@ do_test (void)
   if (h == NULL)
     {
       printf ("cannot load: %s\n", dlerror ());
-      return allow_execstack;
+      return kernel_allow_execstack
+	     ? (glibc_allow_execstack ? 1 : 0)
+	     : 0;
     }
 
-  f = dlsym (h, "tryme");
-  if (f == NULL)
-    {
-      printf ("symbol not found: %s\n", dlerror ());
-      return 1;
-    }
+  f = xdlsym (h, "tryme");
 
   /* Test if that really made our stack executable.
      The `tryme' function should crash if not.  */
 
   (*((void (*) (void)) f)) ();
 
-  print_maps ();
-
 #if USE_PTHREADS
-  ret = pthread_getattr_np (me, &attr);
-  if (ret)
-    {
-      printf ("after execstack: pthread_getattr_np returned error: %s\n",
-	      strerror (ret));
-      return 1;
-    }
-
-  ret = pthread_attr_getstack (&attr, &new_stack_addr, &stack_size);
-  if (ret)
-    {
-      printf ("after execstack: pthread_attr_getstack returned error: %s\n",
-	      strerror (ret));
-      return 1;
-    }
+  TEST_VERIFY_EXIT (pthread_getattr_np (me, &attr) == 0);
+  TEST_VERIFY_EXIT (pthread_attr_getstack (&attr, &new_stack_addr,
+					   &stack_size) == 0);
 
 # if _STACK_GROWS_DOWN
     new_stack_addr += stack_size;
@@ -206,26 +167,19 @@ do_test (void)
   /* Test that growing the stack region gets new executable pages too.  */
   deeper ((void (*) (void)) f);
 
-  print_maps ();
-
 #if USE_PTHREADS
   /* Test that a fresh thread now gets an executable stack.  */
-  {
-    pthread_t th;
-    int rc = pthread_create (&th, NULL, &tryme_thread, f);
-    if (rc)
-      error (1, rc, "pthread_create");
-  }
+  xpthread_create (NULL, &tryme_thread, f);
 
   puts ("threads go");
   /* The existing threads' stacks should have been changed.
      Let them run to test it.  */
-  pthread_barrier_wait (&go_barrier);
+  xpthread_barrier_wait (&go_barrier);
 
-  pthread_exit ((void *) (long int) (! allow_execstack));
+  pthread_exit ((void *) (long int) (! kernel_allow_execstack));
 #endif
 
-  return ! allow_execstack;
+  return ! kernel_allow_execstack;
 }
 
 static void

@@ -543,6 +543,15 @@ tests-execstack-yes = \
   tst-execstack-needed \
   tst-execstack-prog \
   # tests-execstack-yes
+tests-execstack-static-yes = \
+  tst-execstack-prog-static \
+  # tests-execstack-static-yes
+tests-execstack-special-yes = \
+  $(objpfx)tst-execstack-default.out \
+  $(objpfx)tst-execstack-needed-default.out \
+  $(objpfx)tst-execstack-prog-default.out \
+  $(objpfx)tst-execstack-prog-static-default.out \
+  # tests-execstack-special-yes
 endif
 ifeq ($(have-depaudit),yes)
 tests += \
@@ -630,6 +639,8 @@ $(objpfx)tst-rtld-does-not-exist.out: tst-rtld-does-not-exist.sh $(objpfx)ld.so
 	$(evaluate-test)
 
 tests += $(tests-execstack-$(have-z-execstack))
+tests-static += $(tests-execstack-static-$(have-z-execstack))
+tests-special += $(tests-execstack-special-$(have-z-execstack))
 ifeq ($(run-built-tests),yes)
 tests-special += \
   $(objpfx)noload-mem.out \
@@ -1850,11 +1861,45 @@ CPPFLAGS-tst-execstack.c += -DUSE_PTHREADS=0
 LDFLAGS-tst-execstack = -Wl,-z,noexecstack
 LDFLAGS-tst-execstack-mod.so = -Wl,-z,execstack
 
+$(objpfx)tst-execstack-default.out: $(objpfx)tst-execstack
+	$(test-wrapper-env) $(run-program-env) $< > $@; \
+	$(evaluate-test)
+
+tst-execstack-ENV = GLIBC_TUNABLES=glibc.rtld.noexecstack=0 \
+		    ALLOW_EXECSTACK=1
+
 $(objpfx)tst-execstack-needed: $(objpfx)tst-execstack-mod.so
 LDFLAGS-tst-execstack-needed = -Wl,-z,noexecstack
 
+tst-execstack-needed-ENV = GLIBC_TUNABLES=glibc.rtld.noexecstack=0 \
+			   ALLOW_EXECSTACK=1
+
+$(objpfx)tst-execstack-needed-default.out: $(objpfx)tst-execstack-needed
+	$(test-wrapper-env) $(run-program-env) $< > $@ 2>&1; echo "status: $$?" >> $@; \
+	grep -q 'error while loading shared libraries:.*executable stack is not allowed$$' $@ \
+	  && grep -q '^status: 127$$' $@; \
+	  $(evaluate-test)
+
 LDFLAGS-tst-execstack-prog = -Wl,-z,execstack
 CFLAGS-tst-execstack-prog.c += -Wno-trampolines
+tst-execstack-prog-ENV = GLIBC_TUNABLES=glibc.rtld.noexecstack=0
+
+LDFLAGS-tst-execstack-prog-static = -Wl,-z,execstack
+CFLAGS-tst-execstack-prog-static.c += -Wno-trampolines
+tst-execstack-prog-static-ENV = GLIBC_TUNABLES=glibc.rtld.noexecstack=0
+
+$(objpfx)tst-execstack-prog-default.out: $(objpfx)tst-execstack-prog
+	$(test-wrapper-env) $(run-program-env) $< > $@ 2>&1; echo "status: $$?" >> $@; \
+	grep -q 'Fatal glibc error: executable stack is not allowed$$' $@ \
+	  && grep -q '^status: 127$$' $@; \
+	  $(evaluate-test)
+
+$(objpfx)tst-execstack-prog-static-default.out: $(objpfx)tst-execstack-prog-static
+	$(test-wrapper-env) $(run-program-env) $< > $@ 2>&1; echo "status: $$?" >> $@; \
+	grep -q 'Fatal glibc error: executable stack is not allowed$$' $@ \
+	  && grep -q '^status: 127$$' $@; \
+	  $(evaluate-test)
+
 CFLAGS-tst-execstack-mod.c += -Wno-trampolines
 endif
 
