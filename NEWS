@@ -27,7 +27,11 @@ Major new features:
 
 Deprecated and removed features, and other changes affecting compatibility:
 
-  [Add deprecations, removals and changes affecting compatibility here]
+* dlopen and dlmopen no longer make the stack executable if a shared
+  library requires it, either implicitly because of a missing GNU_STACK ELF
+  header (and default ABI permission having the executable bit set) or
+  explicitly because of the executable bit in GNU_STACK, and the stack is
+  not already executable.
 
 Changes to build and runtime requirements:
 

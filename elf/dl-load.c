@@ -1298,12 +1298,17 @@ _dl_map_object_from_fd (const char *name, const char *origname, int fd,
   if (__glibc_unlikely ((stack_flags &~ GL(dl_stack_flags)) & PF_X))
     {
       /* The stack is presently not executable, but this module
-	 requires that it be executable.  */
+	 requires that it be executable.  Only tries to change the
+	 stack protection during process startup.  */
+      if ((mode & __RTLD_DLOPEN) == 0)
 #if PTHREAD_IN_LIBC
-      errval = _dl_make_stacks_executable (stack_endp);
+	errval = _dl_make_stacks_executable (stack_endp);
 #else
-      errval = (*GL(dl_make_stack_executable_hook)) (stack_endp);
+        errval = (*GL(dl_make_stack_executable_hook)) (stack_endp);
 #endif
+     else
+       errval = EINVAL;
+
       if (errval)
 	{
 	  errstring = N_("\
