@@ -67,6 +67,10 @@ PROCINFO_CLASS int (*_dl_vdso_clock_getres_time64) (clockid_t,
 						    struct __timespec64 *) RELRO;
 # endif
 
+PROCINFO_CLASS ssize_t (*_dl_vdso_getrandom)(void *buffer, size_t len,
+					     unsigned int flags, void *state,
+					     size_t state_len) RELRO;
+
 /* PowerPC specific ones.  */
 # ifdef HAVE_GET_TBFREQ
 PROCINFO_CLASS uint64_t (*_dl_vdso_get_tbfreq)(void) RELRO;

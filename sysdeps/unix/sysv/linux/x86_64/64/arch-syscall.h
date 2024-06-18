@@ -360,6 +360,7 @@
 #define __NR_utimensat 280
 #define __NR_utimes 235
 #define __NR_vfork 58
+#define __NR_vgetrandom_alloc 463
 #define __NR_vhangup 153
 #define __NR_vmsplice 278
 #define __NR_vserver 236

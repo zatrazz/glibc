@@ -1,5 +1,5 @@
-/* Per-thread state.  Linux version.
-   Copyright (C) 2022-2024 Free Software Foundation, Inc.
+/* Linux getrandom vDSO support.
+   Copyright (C) 2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,15 +16,14 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <getrandom_vdso.h>
-#include <string.h>
-#include <tls-internal.h>
+#ifndef _ARC4RANDOM_VDSO_H
+#define _ARC4RANDOM_VDSO_H
 
-void
-__glibc_tls_internal_free (void)
-{
-  struct pthread *self = THREAD_SELF;
-  free (self->tls_state.strsignal_buf);
-  free (self->tls_state.strerror_l_buf);
-  call_function_static_weak (__getrandom_vdso_release);
-}
+#include <stddef.h>
+#include <sys/types.h>
+
+extern ssize_t __getrandom_vdso (void *p, size_t n, unsigned int f)
+     attribute_hidden;
+extern void __getrandom_vdso_release (void) attribute_hidden;
+
+#endif

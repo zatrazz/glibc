@@ -1,5 +1,5 @@
 /* Per-thread state.  Linux version.
-   Copyright (C) 2022-2024 Free Software Foundation, Inc.
+   Copyright (C) 2020-2022 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,15 +16,15 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <getrandom_vdso.h>
-#include <string.h>
-#include <tls-internal.h>
+#ifndef _TLS_INTERNAL_STRUCT_H
+#define _TLS_INTERNAL_STRUCT_H 1
 
-void
-__glibc_tls_internal_free (void)
+struct tls_internal_t
 {
-  struct pthread *self = THREAD_SELF;
-  free (self->tls_state.strsignal_buf);
-  free (self->tls_state.strerror_l_buf);
-  call_function_static_weak (__getrandom_vdso_release);
-}
+  char *strsignal_buf;
+  char *strerror_l_buf;
+  void *getrandom_buf;
+  void *malloc_in_use;
+};
+
+#endif

@@ -23,6 +23,7 @@ struct tls_internal_t
 {
   char *strsignal_buf;
   char *strerror_l_buf;
+  void *malloc_in_use;
 };
 
 #endif
