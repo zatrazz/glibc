@@ -93,6 +93,10 @@ Major new features:
   of large writes. This behaviour is controlled by a new tunable
   x86_memset_non_temporal_threshold.
 
+* A new tunable, glibc.rtld.execstack, can be used to control whether
+  executable stacks are allowed from either main program or dependencies.
+  The default is to allow executable stacks.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * Architectures which use a 32-bit seconds-since-epoch field in struct
