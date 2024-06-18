@@ -18,6 +18,7 @@
 
 #include <arch-fork.h>
 #include <pthreadP.h>
+#include <sys/random.h>
 
 pid_t
 _Fork (void)
@@ -43,6 +44,9 @@ _Fork (void)
       self->robust_head.list = &self->robust_head;
       INTERNAL_SYSCALL_CALL (set_robust_list, &self->robust_head,
 			     sizeof (struct robust_list_head));
+
+      /* Also reset the getrandom locks for the vDSO support.  */
+      call_function_static_weak (__getrandom_fork_subprocess, false);
     }
   return pid;
 }

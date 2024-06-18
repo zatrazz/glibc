@@ -1,4 +1,4 @@
-/* Per-thread state.  Linux version.
+/* Linux getrandom vDSO support.
    Copyright (C) 2022-2024 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -16,15 +16,23 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <getrandom_vdso.h>
-#include <string.h>
-#include <tls-internal.h>
+#ifndef _ARC4RANDOM_VDSO_H
+#define _ARC4RANDOM_VDSO_H
 
-void
-__glibc_tls_internal_free (void)
+#include <stddef.h>
+#include <sys/types.h>
+#include <stdint.h>
+
+extern ssize_t __getrandom_vdso (void *p, size_t n, unsigned int f)
+     attribute_hidden;
+extern void __getrandom_vdso_release (void) attribute_hidden;
+
+struct vgetrandom_opaque_params
 {
-  struct pthread *self = THREAD_SELF;
-  free (self->tls_state.strsignal_buf);
-  free (self->tls_state.strerror_l_buf);
-  call_function_static_weak (__getrandom_vdso_release);
-}
+  uint32_t size_of_opaque_state;
+  uint32_t mmap_prot;
+  uint32_t mmap_flags;
+  uint32_t reserved[13];
+};
+
+#endif

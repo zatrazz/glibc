@@ -88,6 +88,9 @@ __getrandom_nocancel_nostatus (void *buf, size_t buflen, unsigned int flags)
   return r;
 }
 
+#define __getrandom_nocancel_nostatus_direct(buf, size, flags) \
+  __getrandom_nocancel_nostatus (buf, size, flags)
+
 #define __getrandom_nocancel(buf, size, flags) \
   __getrandom (buf, size, flags)
 
