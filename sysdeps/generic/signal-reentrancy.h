@@ -29,7 +29,7 @@ signal_exchange_value (void **mem, void **v)
 static inline void
 signal_store_value (void **mem, void *value)
 {
-  atomic_store_relaxed (*mem, value);
+  atomic_store_relaxed (mem, value);
 }
 
 #endif

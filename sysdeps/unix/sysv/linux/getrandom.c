@@ -82,8 +82,10 @@ vgetrandom_get_state (void)
       for (size_t i = 0; i < num; ++i)
         {
           grnd_allocator.states[i] = new_block;
-          if (((uintptr_t)new_block & (PAGE_SIZE - 1)) + size_per_each > PAGE_SIZE)
-            new_block = (void *)(((uintptr_t)new_block + PAGE_SIZE) & (PAGE_SIZE - 1));
+          if (((uintptr_t)new_block & (GLRO(dl_pagesize) - 1)) + size_per_each
+			  > GLRO(dl_pagesize))
+	    new_block = PTR_ALIGN_DOWN (new_block + size_per_each,
+					GLRO(dl_pagesize));
           else
             new_block += size_per_each;
         }
@@ -91,7 +93,8 @@ vgetrandom_get_state (void)
       goto success;
 
     unmap:
-      __munmap (new_block, howmany(num, PAGE_SIZE / size_per_each) * PAGE_SIZE);
+      __munmap (new_block, howmany (num, GLRO(dl_pagesize) / size_per_each)
+			   * GLRO(dl_pagesize));
       goto out;
     }
 
@@ -176,7 +179,8 @@ __getrandom_vdso_release (void)
     return;
 
   __libc_lock_lock (grnd_allocator.lock);
-  grnd_allocator.states[grnd_allocator.len++] = state;
+  if (grnd_allocator.states != NULL)
+    grnd_allocator.states[grnd_allocator.len++] = state;
   __libc_lock_unlock (grnd_allocator.lock);
 #endif
 }

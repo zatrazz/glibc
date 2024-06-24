@@ -306,6 +306,7 @@
 #define __NR_userfaultfd 282
 #define __NR_utimensat 88
 #define __NR_vhangup 58
+#define __NR_vgetrandom_alloc 463
 #define __NR_vmsplice 75
 #define __NR_wait4 260
 #define __NR_waitid 95
