@@ -811,7 +811,7 @@ do_preload (const char *fname, struct link_map *main_map, const char *where)
 
   args.str = fname;
   args.loader = main_map;
-  args.mode = __RTLD_SECURE;
+  args.mode = __RTLD_SECURE | RTLD_NODELETE;
 
   unsigned int old_nloaded = GL(dl_ns)[LM_ID_BASE]._ns_nloaded;
 
@@ -1638,7 +1638,7 @@ dl_main (const ElfW(Phdr) *phdr,
       /* Create a link_map for the executable itself.
 	 This will be what dlopen on "" returns.  */
       main_map = _dl_new_object ((char *) "", "", lt_executable, NULL,
-				 __RTLD_OPENEXEC, LM_ID_BASE);
+				 __RTLD_OPENEXEC | RTLD_NODELETE, LM_ID_BASE);
       assert (main_map != NULL);
       main_map->l_phdr = phdr;
       main_map->l_phnum = phnum;
@@ -1966,7 +1966,7 @@ dl_main (const ElfW(Phdr) *phdr,
     RTLD_TIMING_VAR (start);
     rtld_timer_start (&start);
     _dl_map_object_deps (main_map, preloads, npreloads,
-			 state.mode == rtld_mode_trace, 0);
+			 state.mode == rtld_mode_trace, RTLD_NODELETE);
     rtld_timer_accum (&load_time, start);
   }
 
