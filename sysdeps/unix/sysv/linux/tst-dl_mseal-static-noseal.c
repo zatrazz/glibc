@@ -1,4 +1,4 @@
-/* Memory sealing.  Linux version.
+/* Basic tests for sealing.  Static version.
    Copyright (C) 2024 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -16,12 +16,31 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-/* Seal the ADDR or size LEN to protect against modifications, such as
-   changes on the permission flags (through mprotect), remap (through
-   mmap and/or remap), shrink, destruction changes (madvise with
-   MADV_DONTNEED), or change its size.  The input has the same constraints
-   as the mseal syscall.
+/* This test checks the GNU_PROPERTY_NO_MEMORY_SEAL handling on a statically
+   built binary.  In this case only the vDSO (if existent) will be sealed.  */
 
-   Return 0 in case of success or a negative value otherwise (a negative
-   errno).  */
-int _dl_mseal (void *addr, size_t len) attribute_hidden;
+#define GLIBC_RTLD_SEAL          "1"
+#define TEST_STATIC              1
+
+/* Expected libraries that loader will seal.  */
+static const char *expected_sealed_vmas[] =
+{
+  "",
+};
+
+/* Expected non sealed libraries.  */
+static const char *expected_non_sealed_vmas[] =
+{
+  "tst-dl_mseal-static-noseal",
+  /* Auxiary pages mapped by the kernel.  */
+  "[vdso]",
+  "[sigpage]",
+};
+
+/* Auxiliary kernel pages where permission can not be changed.  */
+static const char *expected_non_sealed_special[] =
+{
+  "[vectors]",
+};
+
+#include "tst-dl_mseal-skeleton.c"

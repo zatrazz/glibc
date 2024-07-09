@@ -101,7 +101,7 @@ static struct link_map _dl_main_map =
     .l_used = 1,
     .l_tls_offset = NO_TLS_OFFSET,
     .l_serial = 1,
-    .l_seal = SUPPORT_MSEAL,
+    .l_seal = lt_seal_toseal,
   };
 
 /* Namespace information.  */
@@ -359,7 +359,7 @@ _dl_non_dynamic_init (void)
   /* Seal the memory mapping after RELRO setup, we can use the PT_LOAD
      segments because even if relro splits the the original RW VMA,
      mseal works with multiple VMAs with different flags.  */
-  _dl_mseal_map (&_dl_main_map, false);
+  _dl_mseal_map (&_dl_main_map, false, false);
 }
 
 #ifdef DL_SYSINFO_IMPLEMENTATION

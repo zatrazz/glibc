@@ -1017,10 +1017,13 @@ extern void _dl_relocate_object (struct link_map *map,
 /* Protect PT_GNU_RELRO area.  */
 extern void _dl_protect_relro (struct link_map *map) attribute_hidden;
 
-/* Protect MAP with mseal.  If MAP is contiguous the while region is
-   sealed, otherwise iterate over the phdr to seal each PT_LOAD.  The DEP
-   specify whether to seal the dependencies as well.  */
-extern void _dl_mseal_map (struct link_map *map, bool dep)
+/* Issue memory sealing for the link map MAP.  If MAP is contiguous the
+   whole region is sealed, otherwise iterate over the program headerrs and
+   seal each PT_LOAD segment.i
+   The DEP specify whether to seal the dependencies as well, while FORCE
+   ignores if previous seal configuration (such as
+   GNU_PROPERTY_NO_MEMORY_SEAL mark).  */
+extern void _dl_mseal_map (struct link_map *map, bool dep, bool force)
      attribute_hidden;
 
 /* Call _dl_signal_error with a message about an unhandled reloc type.

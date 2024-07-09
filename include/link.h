@@ -216,6 +216,7 @@ struct link_map
 
     enum			/* Memory sealing status.  */
       {
+	lt_seal_undefined = 0,	/* No set.  */
 	lt_seal_dont,		/* Do not seal the object.  */
 	lt_seal_toseal,		/* The library is marked to be sealed.  */
 	lt_seal_sealed		/* The library is sealed.  */

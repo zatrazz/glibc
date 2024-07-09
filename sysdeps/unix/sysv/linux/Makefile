@@ -686,6 +686,52 @@ $(objpfx)tst-dl_mseal-dlopen-2.so: $(objpfx)tst-dl_mseal-dlopen-2-1.so
 LDFLAGS-tst-dl_mseal-dlopen-2.so = -Wl,--no-as-needed
 
 tst-dl_mseal-static-ARGS = -- $(host-test-program-cmd)
+
+ifeq ($(have-z-no-memory-seal),yes)
+tests-static += \
+  tst-dl_mseal-static-noseal \
+  # tests-static
+
+tests += \
+  $(tests-static) \
+  tst-dl_mseal-noseal \
+  # tests
+
+modules-names += \
+  tst-dl_mseal-auditmod-noseal \
+  tst-dl_mseal-dlopen-2-1-noseal \
+  tst-dl_mseal-dlopen-2-noseal \
+  tst-dl_mseal-mod-1-noseal \
+  tst-dl_mseal-mod-2-noseal \
+  tst-dl_mseal-preload-noseal \
+  # modules-names
+
+$(objpfx)tst-dl_mseal-noseal.out: \
+  $(objpfx)tst-dl_mseal-auditmod-noseal.so \
+  $(objpfx)tst-dl_mseal-preload-noseal.so \
+  $(objpfx)tst-dl_mseal-mod-1-noseal.so \
+  $(objpfx)tst-dl_mseal-mod-2-noseal.so \
+  $(objpfx)tst-dl_mseal-dlopen-1.so \
+  $(objpfx)tst-dl_mseal-dlopen-1-1.so \
+  $(objpfx)tst-dl_mseal-dlopen-2-noseal.so \
+  $(objpfx)tst-dl_mseal-dlopen-2-1-noseal.so
+
+tst-dl_mseal-noseal-ARGS = -- $(host-test-program-cmd)
+
+LDFLAGS-tst-dl_mseal-preload-noseal.so = -Wl,-z,no-memory-seal
+
+LDFLAGS-tst-dl_mseal-auditmod-noseal.so = -Wl,-z,no-memory-seal
+$(objpfx)tst-dl_mseal-noseal: $(objpfx)tst-dl_mseal-mod-1-noseal.so
+LDFLAGS-tst-dl_mseal-noseal = -Wl,-z,no-memory-seal -Wl,--no-as-needed
+$(objpfx)tst-dl_mseal-mod-1-noseal.so: $(objpfx)tst-dl_mseal-mod-2-noseal.so
+LDFLAGS-tst-dl_mseal-mod-1-noseal.so = -Wl,--no-as-needed
+LDFLAGS-tst-dl_mseal-mod-2-noseal.so = -Wl,-z,no-memory-seal -Wl,--no-as-needed
+$(objpfx)tst-dl_mseal-dlopen-2-noseal.so: $(objpfx)tst-dl_mseal-dlopen-2-1-noseal.so
+LDFLAGS-tst-dl_mseal-dlopen-2-noseal.so = -Wl,--no-as-needed -Wl,-z,no-memory-seal
+
+LDFLAGS-tst-dl_mseal-static-noseal = -Wl,-z,no-memory-seal
+tst-dl_mseal-static-noseal-ARGS = -- $(host-test-program-cmd)
+endif
 endif
 
 ifeq ($(subdir),rt)
