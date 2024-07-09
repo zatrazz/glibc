@@ -21,5 +21,3 @@ _dl_mseal (void *addr, size_t len)
 {
   return 0;
 }
-
-#define SUPPORT_MSEAL lt_seal_dont

@@ -1278,6 +1278,11 @@ LIBC_LINKER_FEATURE([--no-dynamic-linker],
 		    [libc_cv_no_dynamic_linker=no])
 LIBC_CONFIG_VAR([have-no-dynamic-linker], [$libc_cv_no_dynamic_linker])
 
+LIBC_LINKER_FEATURE([-z no-memory-seal],
+		    [-Wl,-z,no-memory-seal],
+		    [libc_cv_z_no_memory_seal=yes], [libc_cv_z_no_memory_seal=no])
+LIBC_CONFIG_VAR([have-z-no-memory-seal], [$libc_cv_z_no_memory_seal])
+
 AC_CACHE_CHECK(for -static-pie, libc_cv_static_pie, [dnl
 LIBC_TRY_CC_OPTION([-static-pie],
 		   [libc_cv_static_pie=yes],

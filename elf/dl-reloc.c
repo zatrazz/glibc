@@ -352,7 +352,7 @@ _dl_relocate_object (struct link_map *l, struct r_scope_elem *scope[],
   /* Seal the memory mapping after RELRO setup, we can use the PT_LOAD
      segments because even if relro splits the the original RW VMA,
      mseal works with multiple VMAs with different flags.  */
-  _dl_mseal_map (l, false);
+  _dl_mseal_map (l, false, false);
 }
 
 
@@ -376,11 +376,10 @@ cannot apply additional memory protection after relocation");
 }
 
 static void
-_dl_mseal_map_1 (struct link_map *l)
+_dl_mseal_map_1 (struct link_map *l, bool force)
 {
-  /* We only checked if the map is already sealed here so we can seal audit
-     module dependencies after the initial audit setup.  */
-  if (l->l_seal == lt_seal_sealed)
+  if (l->l_seal == lt_seal_dont
+      || (!force && (l->l_seal != lt_seal_toseal)))
     return;
 
   int r = -1;
@@ -408,16 +407,13 @@ _dl_mseal_map_1 (struct link_map *l)
 }
 
 void
-_dl_mseal_map (struct link_map *l, bool dep)
+_dl_mseal_map (struct link_map *l, bool dep, bool force)
 {
-  if (l->l_seal == lt_seal_dont || l->l_seal == lt_seal_sealed)
-    return;
-
   if (l->l_searchlist.r_list == NULL || !dep)
-    _dl_mseal_map_1 (l);
+    _dl_mseal_map_1 (l, force);
   else
     for (unsigned int i = 0; i < l->l_searchlist.r_nlist; ++i)
-      _dl_mseal_map_1 (l->l_searchlist.r_list[i]);
+      _dl_mseal_map_1 (l->l_searchlist.r_list[i], force);
 }
 
 void

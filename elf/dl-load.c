@@ -1431,7 +1431,9 @@ cannot enable executable stack as shared object requires");
     /* Assign the next available module ID.  */
     _dl_assign_tls_modid (l);
 
-  l->l_seal = mode & RTLD_NODELETE ? lt_seal_toseal : lt_seal_dont;
+  /* Do not alter the sealing if the GNU property disables it.  */
+  if (l->l_seal == lt_seal_undefined && mode & RTLD_NODELETE)
+    l->l_seal = lt_seal_toseal;
 
 #ifdef DL_AFTER_LOAD
   DL_AFTER_LOAD (l);

@@ -1,5 +1,5 @@
-/* Return string describing errno name.
-   Copyright (C) 2020-2024 Free Software Foundation, Inc.
+/* Support for GNU properties.  Generic version.
+   Copyright (C) 2024 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,10 +16,23 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <stdio.h>
+#ifndef _DL_PROP_MSEAL_H
+#define _LD_PROP_MSEAL_H
 
-const char *
-strerrorname_np (int errnum)
+#include <dl-tunables.h>
+#include <dl-mseal-mode.h>
+
+static __always_inline bool
+_dl_process_gnu_property_seal (struct link_map *l, int fd, uint32_t type,
+			       uint32_t datasz, void *data)
 {
-  return __get_errname (errnum);
+  if (type == GNU_PROPERTY_NO_MEMORY_SEAL && datasz == 0)
+    {
+      int32_t mode = TUNABLE_GET (glibc, rtld, seal, int32_t, NULL);
+      l->l_seal = (mode == DL_SEAL_ENFORCE) ? lt_seal_toseal : lt_seal_dont;
+      return true;
+    }
+  return false;
 }
+
+#endif

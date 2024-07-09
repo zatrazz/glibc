@@ -841,7 +841,7 @@ dl_open_worker (void *a)
 
   /* The seal flag is set only for NEW, however its dependencies could not be
      unloaded and thus can also be sealed.  */
-  _dl_mseal_map (new, true);
+  _dl_mseal_map (new, true, false);
 }
 
 void *

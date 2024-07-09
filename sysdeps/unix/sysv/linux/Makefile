@@ -686,6 +686,52 @@ $(objpfx)tst-dl_mseal-dlopen-2.so: $(objpfx)tst-dl_mseal-dlopen-2-1.so
 LDFLAGS-tst-dl_mseal-dlopen-2.so = -Wl,--no-as-needed
 
 tst-dl_mseal-static-ARGS = -- $(host-test-program-cmd)
+
+ifeq ($(have-z-no-memory-seal),yes)
+tests-static += \
+  tst-dl_mseal-static-no-memory-seal \
+  # tests-static
+
+tests += \
+  tst-dl_mseal-no-memory-seal \
+  tst-dl_mseal-static-no-memory-seal \
+  # tests
+
+modules-names += \
+  tst-dl_mseal-dlopen-no-memory-seal-2 \
+  tst-dl_mseal-dlopen-no-memory-seal-2-1 \
+  tst-dl_mseal-mod-no-memory-seal-1 \
+  tst-dl_mseal-mod-no-memory-seal-2 \
+  tst-dl_mseal-no-memory-seal-auditmod \
+  tst-dl_mseal-no-memory-seal-preload \
+  # modules-names
+
+$(objpfx)tst-dl_mseal-no-memory-seal.out: \
+  $(objpfx)tst-dl_mseal-no-memory-seal-auditmod.so \
+  $(objpfx)tst-dl_mseal-no-memory-seal-preload.so \
+  $(objpfx)tst-dl_mseal-mod-no-memory-seal-1.so \
+  $(objpfx)tst-dl_mseal-mod-no-memory-seal-2.so \
+  $(objpfx)tst-dl_mseal-dlopen-1.so \
+  $(objpfx)tst-dl_mseal-dlopen-1-1.so \
+  $(objpfx)tst-dl_mseal-dlopen-no-memory-seal-2.so \
+  $(objpfx)tst-dl_mseal-dlopen-no-memory-seal-2-1.so
+
+tst-dl_mseal-no-memory-seal-ARGS = -- $(host-test-program-cmd)
+
+LDFLAGS-tst-dl_mseal-no-memory-seal-preload.so = -Wl,-z,no-memory-seal
+
+LDFLAGS-tst-dl_mseal-no-memory-seal-auditmod.so = -Wl,-z,no-memory-seal
+$(objpfx)tst-dl_mseal-no-memory-seal: $(objpfx)tst-dl_mseal-mod-no-memory-seal-1.so
+LDFLAGS-tst-dl_mseal-no-memory-seal = -Wl,-z,no-memory-seal -Wl,--no-as-needed
+$(objpfx)tst-dl_mseal-mod-no-memory-seal-1.so: $(objpfx)tst-dl_mseal-mod-no-memory-seal-2.so
+LDFLAGS-tst-dl_mseal-mod-no-memory-seal-1.so = -Wl,--no-as-needed
+LDFLAGS-tst-dl_mseal-mod-no-memory-seal-2.so = -Wl,-z,no-memory-seal -Wl,--no-as-needed
+$(objpfx)tst-dl_mseal-dlopen-no-memory-seal-2.so: $(objpfx)tst-dl_mseal-dlopen-no-memory-seal-2-1.so
+LDFLAGS-tst-dl_mseal-dlopen-no-memory-seal-2.so = -Wl,--no-as-needed -Wl,-z,no-memory-seal
+
+LDFLAGS-tst-dl_mseal-static-no-memory-seal = -Wl,-z,no-memory-seal
+tst-dl_mseal-static-no-memory-seal-ARGS = -- $(host-test-program-cmd)
+endif
 endif
 
 ifeq ($(subdir),rt)
