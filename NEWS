@@ -13,7 +13,9 @@ Major new features:
 
 Deprecated and removed features, and other changes affecting compatibility:
 
-  [Add deprecations, removals and changes affecting compatibility here]
+* The async-signal-safe abort implementation makes longjmp from the SIGABRT
+  handler always abort if set up with setjmp.  To keep old behavior, where
+  the handler does not stop process execution, sigsetjmp should be used.
 
 Changes to build and runtime requirements:
 
