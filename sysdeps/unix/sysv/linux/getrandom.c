@@ -30,6 +30,7 @@
 # include <getrandom_vdso.h>
 # include <setvmaname.h>
 # include <list.h>
+# include <internal-signals.h>
 
 /* The vDSO symbol operates in an opaque state, where it should be
    allocated with mmap using the kernel-provided protection and flags.
@@ -107,6 +108,12 @@ vgetrandom_get_state (void)
 {
   void *state = NULL;
 
+  /* Avoid the small window where getrandom() is interrupted by signal
+     handler, and it calls _Fork().  The lock is reset by the _Fork(),
+     but when it returns from signal handler, the unlock will put it in
+     an inconsistent state.  */
+  internal_sigset_t set;
+  internal_signal_block_all (&set);
   __libc_lock_lock (grnd_allocator.lock);
 
   if (grnd_allocator.len == 0)
@@ -147,6 +154,7 @@ success:
 
 out:
   __libc_lock_unlock (grnd_allocator.lock);
+  internal_signal_restore_set (&set);
   return state;
 }
 
