@@ -28,6 +28,7 @@
 #include <dl-irel.h>
 #include <dl-static-tls.h>
 #include <dl-machine-rel.h>
+#include <setvmaname.h>
 
 #ifndef CLEAR_CACHE
 # error CLEAR_CACHE definition required to handle TEXTREL
@@ -259,6 +260,7 @@ relocate_pc24 (struct link_map *map, Elf32_Addr value,
           if (new_page == MAP_FAILED)
             _dl_signal_error (0, map->l_name, NULL,
                               "could not map page for fixup");
+	  __set_vma_name (new_page, GLRO(dl_pagesize), " glibc: arm fixup");
           fix_page = new_page;
           assert (fix_offset == 0);
         }

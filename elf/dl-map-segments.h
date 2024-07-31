@@ -18,6 +18,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <dl-load.h>
+#include <setvmaname.h>
 
 /* Map a segment and align it properly.  */
 
@@ -188,6 +189,8 @@ _dl_map_segments (struct link_map *l, int fd,
                               -1, 0);
               if (__glibc_unlikely (mapat == MAP_FAILED))
                 return DL_MAP_SEGMENTS_ERROR_MAP_ZERO_FILL;
+	      __set_vma_name (mapat, zeroend - zeropage,
+			      " glibc: zero padding");
             }
         }
 

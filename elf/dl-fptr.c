@@ -27,6 +27,7 @@
 #include <dl-fptr.h>
 #include <dl-unmap-segments.h>
 #include <atomic.h>
+#include <setvmaname.h>
 
 #ifndef ELF_MACHINE_BOOT_FPTR_TABLE_LEN
 /* ELF_MACHINE_BOOT_FPTR_TABLE_LEN should be greater than the number of
@@ -86,6 +87,7 @@ new_fdesc_table (struct local *l, size_t *size)
   if (new_table == MAP_FAILED)
     _dl_signal_error (errno, NULL, NULL,
 		      N_("cannot map pages for fdesc table"));
+  __set_vma_name (new_table, *size, " glibc: fdesc table");
 
   new_table->len
     = (*size - sizeof (*new_table)) / sizeof (struct fdesc);
@@ -190,6 +192,7 @@ make_fptr_table (struct link_map *map)
   if (fptr_table == MAP_FAILED)
     _dl_signal_error (errno, NULL, NULL,
 		      N_("cannot map pages for fptr table"));
+  __set_vma_name (new_table, *size, " glibc: fdesc table");
 
   if (COMPARE_AND_SWAP ((ElfW(Addr) *) &map->l_mach.fptr_table,
 			(ElfW(Addr)) NULL, (ElfW(Addr)) fptr_table))
