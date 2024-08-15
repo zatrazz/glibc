@@ -1392,6 +1392,7 @@ $(objpfx)ld.so: $(objpfx)librtld.os $(ld-map)
 	$(LINK.o) -nostdlib -nostartfiles -shared -o $@.new		\
 		  $(LDFLAGS-rtld) -Wl,-z,defs $(z-now-$(bind-now))	\
 		  $(dt-relr-ldflag) \
+		  $(memory-seal-ldflag) \
 		  $(filter-out $(map-file),$^) $(load-map-file)		\
 		  -Wl,-soname=$(rtld-installed-name)
 	$(call after-link,$@.new)
