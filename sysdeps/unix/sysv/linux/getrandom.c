@@ -21,6 +21,15 @@
 #include <unistd.h>
 #include <sysdep-cancel.h>
 
+static inline ssize_t
+getrandom_syscall (void *buffer, size_t length, unsigned int flags,
+		   bool cancel)
+{
+  return cancel
+	 ? SYSCALL_CANCEL (getrandom, buffer, length, flags)
+	 : INLINE_SYSCALL_CALL (getrandom, buffer, length, flags);
+}
+
 #ifdef HAVE_GETRANDOM_VSYSCALL
 # include <getrandom_vdso.h>
 # include <ldsodefs.h>
@@ -144,11 +153,11 @@ vgetrandom_get_state (void)
 /* Returns true when vgetrandom is used successfully.  Returns false if the
    syscall fallback should be issued in the case the vDSO is not present, in
    the case of reentrancy, or if any memory allocation fails.  */
-static bool
-getrandom_vdso (ssize_t *ret, void *buffer, size_t length, unsigned int flags)
+static ssize_t
+getrandom_vdso (void *buffer, size_t length, unsigned int flags, bool cancel)
 {
   if (GLRO (dl_vdso_getrandom_state_size) == 0)
-    return false;
+    return getrandom_syscall (buffer, length, flags, cancel);
 
   struct pthread *self = THREAD_SELF;
 
@@ -157,7 +166,7 @@ getrandom_vdso (ssize_t *ret, void *buffer, size_t length, unsigned int flags)
      fallback to the syscall.  */
   void *state = READ_ONCE (self->getrandom_buf);
   if (IS_RESERVED_PTR (state))
-    return false;
+    return getrandom_syscall (buffer, length, flags, cancel);
   WRITE_ONCE (self->getrandom_buf, RESERVE_PTR (state));
 
   bool r = false;
@@ -172,23 +181,26 @@ getrandom_vdso (ssize_t *ret, void *buffer, size_t length, unsigned int flags)
      bridge (__syscall_cancel_arch), use GRND_NONBLOCK so there is no
      potential unbounded blocking in the kernel.  It should be a rare
      situation, only at system startup when RNG is not initialized.  */
-  *ret = GLRO (dl_vdso_getrandom) (buffer, length, flags | GRND_NONBLOCK,
-				   state, GLRO(dl_vdso_getrandom_state_size));
-  if (INTERNAL_SYSCALL_ERROR_P (*ret))
+  ssize_t ret =  GLRO (dl_vdso_getrandom) (buffer,
+					   length,
+					   flags | GRND_NONBLOCK,
+					   state,
+					   GLRO(dl_vdso_getrandom_state_size));
+  if (INTERNAL_SYSCALL_ERROR_P (ret))
     {
-      /* Fallback to the cancellable syscall if the kernel would block.  */
-      int err = INTERNAL_SYSCALL_ERRNO (*ret);
+      /* Fallback to the syscall if the kernel would block.  */
+      int err = INTERNAL_SYSCALL_ERRNO (ret);
       if (err == EAGAIN && !(flags & GRND_NONBLOCK))
         goto out;
 
       __set_errno (err);
-      *ret = -1;
+      ret = -1;
     }
   r = true;
 
 out:
   WRITE_ONCE (self->getrandom_buf, state);
-  return r;
+  return r ? ret : getrandom_syscall (buffer, length, flags, cancel);
 }
 #endif
 
@@ -234,12 +246,10 @@ ssize_t
 __getrandom_nocancel (void *buffer, size_t length, unsigned int flags)
 {
 #ifdef HAVE_GETRANDOM_VSYSCALL
-  ssize_t r;
-  if (getrandom_vdso (&r, buffer, length, flags))
-    return r;
+  return getrandom_vdso (buffer, length, flags, false);
+#else
+  return getrandom_syscall (buffer, length, flags, false);
 #endif
-
-  return INLINE_SYSCALL_CALL (getrandom, buffer, length, flags);
 }
 
 /* Write up to LENGTH bytes of randomness starting at BUFFER.
@@ -248,12 +258,10 @@ ssize_t
 __getrandom (void *buffer, size_t length, unsigned int flags)
 {
 #ifdef HAVE_GETRANDOM_VSYSCALL
-  ssize_t r;
-  if (getrandom_vdso (&r, buffer, length, flags))
-    return r;
+  return getrandom_vdso (buffer, length, flags, true);
+#else
+  return getrandom_syscall (buffer, length, flags, true);
 #endif
-
-  return INTERNAL_SYSCALL_CALL (getrandom, buffer, length, flags);
 }
 libc_hidden_def (__getrandom)
 weak_alias (__getrandom, getrandom)
