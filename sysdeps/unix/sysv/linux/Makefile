@@ -667,6 +667,7 @@ tests += \
   $(tests-static) \
   tst-dl_mseal \
   tst-dl_mseal-noseal \
+  tst-dl_mseal-tunable \
   # tests
 
 modules-names += \
@@ -697,6 +698,16 @@ $(objpfx)tst-dl_mseal.out: \
   $(objpfx)tst-dl_mseal-dlopen-2-1.so
 
 $(objpfx)tst-dl_mseal-noseal.out: \
+  $(objpfx)tst-dl_mseal-auditmod-noseal.so \
+  $(objpfx)tst-dl_mseal-preload-noseal.so \
+  $(objpfx)tst-dl_mseal-mod-1-noseal.so \
+  $(objpfx)tst-dl_mseal-mod-2-noseal.so \
+  $(objpfx)tst-dl_mseal-dlopen-1.so \
+  $(objpfx)tst-dl_mseal-dlopen-1-1.so \
+  $(objpfx)tst-dl_mseal-dlopen-2-noseal.so \
+  $(objpfx)tst-dl_mseal-dlopen-2-1-noseal.so
+
+$(objpfx)tst-dl_mseal-tunable.out: \
   $(objpfx)tst-dl_mseal-auditmod-noseal.so \
   $(objpfx)tst-dl_mseal-preload-noseal.so \
   $(objpfx)tst-dl_mseal-mod-1-noseal.so \
@@ -738,10 +749,14 @@ $(objpfx)tst-dl_mseal-dlopen-2-noseal.so: $(objpfx)tst-dl_mseal-dlopen-2-1-nosea
 
 tst-dl_mseal-static-noseal-no-memory-seal = yes
 
+tst-dl_mseal-tunable-no-memory-seal = yes
+$(objpfx)tst-dl_mseal-tunable: $(objpfx)tst-dl_mseal-mod-1-noseal.so
+
 tst-dl_mseal-ARGS = -- $(host-test-program-cmd)
 tst-dl_mseal-static-ARGS = -- $(host-test-program-cmd)
 tst-dl_mseal-noseal-ARGS = -- $(host-test-program-cmd)
 tst-dl_mseal-static-noseal-ARGS = -- $(host-test-program-cmd)
+tst-dl_mseal-tunable-ARGS = -- $(host-test-program-cmd)
 endif
 endif
 
