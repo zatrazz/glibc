@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <atomic.h>
+#include <dl-mseal-mode.h>
 #include <dl-mseal.h>
 #include <dl-tunables.h>
 #include <ldsodefs.h>
@@ -37,5 +38,11 @@ _dl_mseal (void *addr, size_t len)
 	atomic_store_relaxed (&mseal_supported, false);
     }
 #endif
+  if (TUNABLE_GET (glibc, rtld, seal, int32_t, NULL) == DL_SEAL_ENFORCE
+      && r != 0)
+    _dl_fatal_printf ("Fatal error: sealing is enforced and an error "
+		      "ocurred for the 0x%lx-0x%lx range\n",
+		      (long unsigned int) addr,
+		      (long unsigned int) addr + len);
   return r;
 }

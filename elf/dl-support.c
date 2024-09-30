@@ -349,6 +349,8 @@ _dl_non_dynamic_init (void)
 	_dl_process_pt_gnu_property (&_dl_main_map, -1, &ph[-1]);
 	break;
       }
+   /* Update the sealing mode based on the tunable.  */
+   _dl_mseal_update_map (&_dl_main_map, 0);
 
   call_function_static_weak (_dl_find_object_init);
 
