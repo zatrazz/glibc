@@ -29,6 +29,8 @@
 #include <libc-pointer-arith.h>
 #include "dynamic-link.h"
 #include <dl-mseal.h>
+#include <dl-mseal-mode.h>
+#include <dl-tunables.h>
 
 /* Statistics function.  */
 #ifdef SHARED
@@ -373,6 +375,17 @@ _dl_protect_relro (struct link_map *l)
 cannot apply additional memory protection after relocation");
       _dl_signal_error (errno, l->l_name, NULL, errstring);
     }
+}
+
+void
+_dl_mseal_update_map (struct link_map *map, int mode)
+{
+  /* Also enable forced sealing on audit modules, loader will apply it
+     after the modules is being loaded and validated.  */
+  if (TUNABLE_GET (glibc, rtld, seal, int32_t, NULL) == DL_SEAL_ENFORCE
+      && (!(mode & __RTLD_DLOPEN)
+	  || (mode & RTLD_NODELETE) || (mode & __RTLD_AUDIT)))
+    map->l_seal = lt_seal_toseal;
 }
 
 static void

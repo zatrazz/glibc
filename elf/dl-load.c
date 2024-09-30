@@ -1418,6 +1418,9 @@ cannot enable executable stack as shared object requires");
 	break;
       }
 
+   /* Update the sealing mode based on the tunable.  */
+   _dl_mseal_update_map (l, mode);
+
   /* We are done mapping in the file.  We no longer need the descriptor.  */
   if (__glibc_unlikely (__close_nocancel (fd) != 0))
     {
