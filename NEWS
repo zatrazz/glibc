@@ -38,6 +38,10 @@ Major new features:
   liable to change.  Features from C2Y are also enabled by _GNU_SOURCE, or
   by compiling with "gcc -std=gnu2y".
 
+* On Linux, the mseal function has been added.  It allows to seal memory
+  mappings to avoid further change during process execution such as protection
+  permissions, unmapping, moving to another location, or shrinking the size.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The big-endian ARC port (arceb-linux-gnu) has been removed.
