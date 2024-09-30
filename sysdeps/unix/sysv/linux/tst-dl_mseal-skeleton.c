@@ -39,8 +39,6 @@
 # define PTR_FMT "#010" PRIxPTR
 #endif
 
-#pragma GCC optimize ("O0")
-
 static int
 new_flags (const char flags[4])
 {
@@ -249,6 +247,9 @@ do_test (int argc, char *argv[])
 #ifndef TEST_STATIC
     (char *) "LD_PRELOAD=" LIB_PRELOAD,
     (char *) "LD_AUDIT=" LIB_AUDIT,
+#endif
+#ifdef TUNABLE_ENV_VAR
+    (char *) "GLIBC_TUNABLES=" TUNABLE_ENV_VAR,
 #endif
     NULL
   };
