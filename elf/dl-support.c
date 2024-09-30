@@ -46,6 +46,7 @@
 #include <array_length.h>
 #include <dl-symbol-redir-ifunc.h>
 #include <dl-prop.h>
+#include <dl-mseal.h>
 
 extern char *__progname;
 char **_dl_argv = &__progname;	/* This is checked for some error messages.  */
@@ -100,6 +101,7 @@ static struct link_map _dl_main_map =
     .l_used = 1,
     .l_tls_offset = NO_TLS_OFFSET,
     .l_serial = 1,
+    .l_seal = lt_seal_dont,
   };
 
 /* Namespace information.  */
@@ -352,6 +354,7 @@ _dl_non_dynamic_init (void)
 
   /* Setup relro on the binary itself.  */
   _dl_protect_relro (&_dl_main_map);
+  _dl_mseal_map (&_dl_main_map, false, false);
 }
 
 #ifdef DL_SYSINFO_IMPLEMENTATION
