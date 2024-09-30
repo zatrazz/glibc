@@ -498,7 +498,7 @@ endif
 
 ifeq ($(subdir),elf)
 sysdep-rtld-routines += dl-brk dl-sbrk dl-getcwd dl-openat64 dl-opendir
-dl-routines += dl-rseq-symbols
+dl-routines += dl-rseq-symbols dl-mseal
 
 others += pldd
 install-bin += pldd

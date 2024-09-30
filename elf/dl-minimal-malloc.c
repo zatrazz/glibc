@@ -26,6 +26,7 @@
 #include <string.h>
 #include <ldsodefs.h>
 #include <malloc/malloc-internal.h>
+#include <dl-mseal.h>
 
 static void *alloc_ptr, *alloc_end, *alloc_last_block;
 
@@ -60,6 +61,11 @@ __minimal_malloc (size_t n)
 		     MAP_ANON|MAP_PRIVATE, -1, 0);
       if (page == MAP_FAILED)
 	return NULL;
+#ifndef SHARED
+      weak_extern (GL(dl_rtld_map));
+#endif
+      if (GL(dl_rtld_map).l_seal == lt_seal_toseal)
+	_dl_mseal (page, nup);
       if (page != alloc_end)
 	alloc_ptr = page;
       alloc_end = page + nup;
