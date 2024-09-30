@@ -1708,10 +1708,6 @@ dl_main (const ElfW(Phdr) *phdr,
   /* With vDSO setup we can initialize the function pointers.  */
   setup_vdso_pointers ();
 
-  /* Initialize the data structures for the search paths for shared
-     objects.  */
-  call_init_paths (&state);
-
   /* Initialize _r_debug_extended.  */
   struct r_debug *r = _dl_debug_initialize (GL(dl_rtld_map).l_addr,
 					    LM_ID_BASE);
@@ -1766,6 +1762,10 @@ dl_main (const ElfW(Phdr) *phdr,
   if (GL(dl_rtld_map).l_tls_blocksize != 0)
     /* Assign a module ID.  Do this before loading any audit modules.  */
     _dl_assign_tls_modid (&GL(dl_rtld_map));
+
+  /* Initialize the data structures for the search paths for shared
+     objects.  */
+  call_init_paths (&state);
 
   audit_list_add_dynamic_tag (&state.audit_list, main_map, DT_AUDIT);
   audit_list_add_dynamic_tag (&state.audit_list, main_map, DT_DEPAUDIT);
