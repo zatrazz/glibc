@@ -53,6 +53,7 @@
 #include <dl-find_object.h>
 #include <dl-audit-check.h>
 #include <dl-call_tls_init_tp.h>
+#include <dl-mseal.h>
 
 #include <assert.h>
 
@@ -478,6 +479,7 @@ _dl_start_final (void *arg, struct dl_start_final_info *info)
   GL(dl_rtld_map).l_real = &GL(dl_rtld_map);
   GL(dl_rtld_map).l_map_start = (ElfW(Addr)) &__ehdr_start;
   GL(dl_rtld_map).l_map_end = (ElfW(Addr)) _end;
+  GL(dl_rtld_map).l_seal = lt_seal_dont;
   /* Copy the TLS related data if necessary.  */
 #ifndef DONT_USE_BOOTSTRAP_MAP
 # if NO_TLS_OFFSET != 0
@@ -1042,6 +1044,11 @@ ERROR: audit interface '%s' requires version %d (maximum supported version %d); 
 
   /* Mark the DSO as being used for auditing.  */
   dlmargs.map->l_auditing = 1;
+
+  /* Audit modules can not be loaded with RTLD_NODELETE, so apply the sealing
+     again on all dependencies an and ignore any possible missing seal due
+     dlopen without RTLD_NODELETE.  */
+  _dl_mseal_map (dlmargs.map, true, true);
 }
 
 /* Load all audit modules.  */
@@ -1124,6 +1131,7 @@ rtld_setup_main_map (struct link_map *main_map)
   /* And it was opened directly.  */
   ++main_map->l_direct_opencount;
   main_map->l_contiguous = 1;
+  main_map->l_seal = lt_seal_dont;
 
   /* A PT_LOAD segment at an unexpected address will clear the
      l_contiguous flag.  The ELF specification says that PT_LOAD
