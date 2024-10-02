@@ -59,7 +59,7 @@ add_directory_entry (struct support_fuse_dirstream *d, uint64_t offset)
   if (offset <= 1)
     {
       type = DT_DIR;
-      name = ".." + !offset;    /* "." or "..".  */
+      name = &".."[!offset];    /* "." or "..".  */
       ino = 1;
     }
   else if (length == 1000)

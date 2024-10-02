@@ -122,11 +122,11 @@ do_test (void)
             {
               const char *expected_output;
               if (do_ignore || strstr (charsets[to_idx], "//IGNORE") != NULL)
-                expected_output = "ABXY" + skip;
+                expected_output = &"ABXY"[skip];
               else
-                expected_output = "AB" + skip;
+                expected_output = &"AB"[skip];
               one_direction (charsets[from_idx], charsets[to_idx], do_ignore,
-                             "AB\xffXY" + skip, expected_output, limit);
+                             &"AB\xffXY"[skip], expected_output, limit);
             }
 
   return 0;

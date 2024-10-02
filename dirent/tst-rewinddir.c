@@ -30,7 +30,7 @@ static char *
 name_at_offset (unsigned int offset)
 {
   if (offset <= 1)
-    return xstrdup (".." + !offset); /* "." or "..".  */
+    return xstrdup (&".."[!offset]); /* "." or "..".  */
   else
     /* Pad the name with a lot of zeros, so that the dirent buffer gets
        filled more quickly.  */
