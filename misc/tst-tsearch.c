@@ -311,7 +311,7 @@ mangle_tree (enum order how, enum action what, void **root, int lag)
 	    break;
 
 	  j = k;
-	  /* fall through */
+	  __attribute_fallthrough__;
 
 	case delete:
 	  elem = tfind (x + j, (void *const *) root, cmp_fn);

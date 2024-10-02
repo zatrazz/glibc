@@ -37,7 +37,7 @@ static char crumbs[sizeof (expected)];
 static int next_slot = 0;
 
 /* Helper: flush stdout and _exit.  */
-static void
+_Noreturn static void
 _exit_with_flush (int code)
 {
   fflush (stdout);

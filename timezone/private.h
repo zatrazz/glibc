@@ -510,7 +510,7 @@ typedef unsigned long uintmax_t;
 # endif
 #endif
 #ifndef ATTRIBUTE_FALLTHROUGH
-# if 7 <= __GNUC__
+# if 7 <= __GNUC__ || __clang_major__ >= 4
 #  define ATTRIBUTE_FALLTHROUGH __attribute__((fallthrough))
 # else
 #  define ATTRIBUTE_FALLTHROUGH ((void) 0)

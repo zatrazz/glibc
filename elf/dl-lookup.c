@@ -480,7 +480,7 @@ do_lookup_x (const char *undef_name, unsigned int new_hash,
 		    }
 		  break;
 		}
-	      /* FALLTHROUGH */
+	      __attribute_fallthrough__;
 	    case STB_GLOBAL:
 	      /* Global definition.  Just what we need.  */
 	      result->s = sym;

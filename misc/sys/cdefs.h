@@ -897,4 +897,11 @@ _Static_assert (0, "IEEE 128-bits long double requires redirection on this platf
 # define __BOOLEAN _Bool
 #endif
 
+/* Not all compilers supports the fallthrough comment to silence the warning.  */
+#if __GNUC_PREREQ (7, 0) || __clang_major__ >= 4
+# define __attribute_fallthrough__ __attribute__ ((__fallthrough__))
+#else
+# define __attribute_fallthrough__ ((void) 0)
+#endif
+
 #endif	 /* sys/cdefs.h */

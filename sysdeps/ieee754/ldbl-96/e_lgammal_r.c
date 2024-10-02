@@ -401,15 +401,15 @@ __ieee754_lgammal_r (long double x, int *signgamp)
       switch (i)
 	{
 	case 7:
-	  z *= (y + 6.0);	/* FALLTHRU */
+	  z *= (y + 6.0);	__attribute_fallthrough__;
 	case 6:
-	  z *= (y + 5.0);	/* FALLTHRU */
+	  z *= (y + 5.0);	__attribute_fallthrough__;
 	case 5:
-	  z *= (y + 4.0);	/* FALLTHRU */
+	  z *= (y + 4.0);	__attribute_fallthrough__;
 	case 4:
-	  z *= (y + 3.0);	/* FALLTHRU */
+	  z *= (y + 3.0);	__attribute_fallthrough__;
 	case 3:
-	  z *= (y + 2.0);	/* FALLTHRU */
+	  z *= (y + 2.0);
 	  r += __ieee754_logl (z);
 	  break;
 	}

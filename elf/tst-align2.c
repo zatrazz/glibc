@@ -96,14 +96,14 @@ do_test (void)
         case 'B':
           puts ("insufficient alignment in binary's destructor");
           result = 1;
-          /* FALLTHROUGH */
+	  __attribute_fallthrough__;
         case 'A':
           des_seen++;
           break;
         case 'D':
           puts ("insufficient alignment in DSO destructor");
           result = 1;
-          /* FALLTHROUGH */
+	  __attribute_fallthrough__;
         case 'C':
           dso_des_seen++;
           break;

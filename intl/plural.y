@@ -222,13 +222,13 @@ FREE_EXPRESSION (struct expression *exp)
     {
     case 3:
       FREE_EXPRESSION (exp->val.args[2]);
-      /* FALLTHROUGH */
+      __attribute_fallthrough__;
     case 2:
       FREE_EXPRESSION (exp->val.args[1]);
-      /* FALLTHROUGH */
+      __attribute_fallthrough__;
     case 1:
       FREE_EXPRESSION (exp->val.args[0]);
-      /* FALLTHROUGH */
+      __attribute_fallthrough__;
     default:
       break;
     }

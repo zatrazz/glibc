@@ -125,7 +125,7 @@ next:
 
 	case DEFAULT:
 		usedefault = 1;
-		/* FALL THROUGH */
+		__attribute_fallthrough__;
 
 	case MACHINE:
 		if (!usedefault) {

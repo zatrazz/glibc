@@ -217,11 +217,11 @@ __ieee754_lgammaf_r(float x, int *signgamp)
 	    r = half*y+p/q;
 	    z = one;	/* lgamma(1+s) = log(s) + lgamma(s) */
 	    switch(i) {
-	    case 7: z *= (y+(float)6.0);	/* FALLTHRU */
-	    case 6: z *= (y+(float)5.0);	/* FALLTHRU */
-	    case 5: z *= (y+(float)4.0);	/* FALLTHRU */
-	    case 4: z *= (y+(float)3.0);	/* FALLTHRU */
-	    case 3: z *= (y+(float)2.0);	/* FALLTHRU */
+	    case 7: z *= (y+(float)6.0);	__attribute_fallthrough__;
+	    case 6: z *= (y+(float)5.0);	__attribute_fallthrough__;
+	    case 5: z *= (y+(float)4.0);	__attribute_fallthrough__;
+	    case 4: z *= (y+(float)3.0);	__attribute_fallthrough__;
+	    case 3: z *= (y+(float)2.0);
 		    r += __ieee754_logf(z); break;
 	    }
     /* 8.0 <= x < 2**26 */

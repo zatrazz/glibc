@@ -206,7 +206,7 @@ argument to <%s> must be a single character"),
 
 	  /* Otherwise we start reading the character definitions.  */
 	  state = 2;
-	  /* FALLTHROUGH */
+	  __attribute_fallthrough__;
 
 	case 2:
 	  /* We are now are in the body.  Each line
@@ -253,8 +253,8 @@ argument to <%s> must be a single character"),
 	      ellipsis = nowtok;
 	      state = 4;
 	      continue;
-	    }
-	  /* FALLTHROUGH */
+	    };
+	  __attribute_fallthrough__;
 
 	case 5:
 	  /* We expect a value of the form <Uxxxx> or <Uxxxxxxxx> where

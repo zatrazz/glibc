@@ -52,16 +52,15 @@ __nss_hash (const void *keyarg, size_t len)
 	case 0:
 	  /* h starts out as zero so no need to include the multiply. */
 	  h = *key++;
-	  /* FALLTHROUGH */
+	  __attribute_fallthrough__;
 	case 3:
 	  HASHC;
-	  /* FALLTHROUGH */
+	  __attribute_fallthrough__;
 	case 2:
 	  HASHC;
-	  /* FALLTHROUGH */
+	  __attribute_fallthrough__;
 	case 1:
 	  HASHC;
-	  /* FALLTHROUGH */
 	}
 
       uint32_t c0, c1, c2, c3;
