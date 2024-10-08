@@ -28,6 +28,13 @@ extern void __syslog_chk (int __pri, int __flag, const char *__fmt, ...)
 extern void __vsyslog_chk (int __pri, int __flag, const char *__fmt,
 			   __gnuc_va_list __ap)
      __attribute__ ((__format__ (__printf__, 3, 0)));
+
+__fortify_potential_overload __attribute__ ((__format__ (__printf__, 2, 0))) void
+vsyslog (int __pri, const char *const __clang_pass_object_size __fmt,
+	 __gnuc_va_list __ap)
+{
+  __vsyslog_chk (__pri,  __USE_FORTIFY_LEVEL - 1, __fmt, __ap);
+}
 #endif
 
 #include <bits/floatn.h>
@@ -38,7 +45,18 @@ extern void __vsyslog_chk (int __pri, int __flag, const char *__fmt,
 /* The following functions must be used only after applying all asm
    redirections, e.g. long double asm redirections.  */
 
-#ifdef __va_arg_pack
+#if defined __use_clang_fortify && __USE_MISC
+/* clang doesn't support __va_arg_pack, so this is only possible if we have
+   vsyslog.  */
+__fortify_overload __attribute__ ((__format__ (__printf__, 2, 3))) void
+syslog (int __pri, const char *const __clang_pass_object_size __fmt, ...)
+{
+  __gnuc_va_list __ap;
+  __builtin_va_start (__ap, __fmt);
+  __vsyslog_chk (__pri, __USE_FORTIFY_LEVEL - 1, __fmt, __ap);
+  __builtin_va_end (__ap);
+}
+#elif defined __va_arg_pack
 __fortify_function void
 syslog (int __pri, const char *__fmt, ...)
 {
@@ -47,13 +65,4 @@ syslog (int __pri, const char *__fmt, ...)
 #elif !defined __cplusplus
 # define syslog(pri, ...) \
   __syslog_chk (pri, __USE_FORTIFY_LEVEL - 1, __VA_ARGS__)
-#endif
-
-
-#ifdef __USE_MISC
-__fortify_function void
-vsyslog (int __pri, const char *__fmt, __gnuc_va_list __ap)
-{
-  __vsyslog_chk (__pri,  __USE_FORTIFY_LEVEL - 1, __fmt, __ap);
-}
 #endif

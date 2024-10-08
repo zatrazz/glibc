@@ -338,7 +338,7 @@ extern int posix_fallocate64 (int __fd, off64_t __offset, off64_t __len);
 
 /* Define some inlines helping to catch common problems.  */
 #if __USE_FORTIFY_LEVEL > 0 && defined __fortify_function \
-    && defined __va_arg_pack_len
+    && (defined __va_arg_pack_len || defined __use_clang_fortify)
 # include <bits/fcntl2.h>
 #endif
 

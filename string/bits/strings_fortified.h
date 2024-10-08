@@ -19,18 +19,40 @@
 #ifndef __STRINGS_FORTIFIED
 # define __STRINGS_FORTIFIED 1
 
-__fortify_function void
-__NTH (bcopy (const void *__src, void *__dest, size_t __len))
+#define __strings_warn_len_too_large \
+  "function called with bigger length than the destination buffer"
+
+#define __strings_size_too_small(dest, len) \
+  (__bos0 (dest) != (size_t) -1 && __bos0 (dest) < len)
+
+__fortify_potential_overload void
+__NTH (bcopy (const void *__src, void *const __clang_pass_object_size0 __dest,
+	      size_t __len))
+     __clang_warning_if (__strings_size_too_small (__dest, __len),
+			 __strings_warn_len_too_large)
 {
-  (void) __builtin___memmove_chk (__dest, __src, __len,
-				  __glibc_objsize0 (__dest));
+  size_t __glibc_objsize_dst = __glibc_objsize0 (__dest);
+  if (__glibc_objsize_dst == (size_t) -1 || (__builtin_constant_p (__len)
+				   && __glibc_objsize_dst >= __len))
+    (void) __builtin_memmove (__dest, __src, __len);
+  else
+    (void) __builtin___memmove_chk (__dest, __src, __len, __glibc_objsize_dst);
 }
 
-__fortify_function void
-__NTH (bzero (void *__dest, size_t __len))
+__fortify_potential_overload void
+__NTH (bzero (void *const __clang_pass_object_size0 __dest, size_t __len))
+     __clang_warning_if (__strings_size_too_small (__dest, __len),
+			 __strings_warn_len_too_large)
 {
-  (void) __builtin___memset_chk (__dest, '\0', __len,
-				 __glibc_objsize0 (__dest));
+  size_t __glibc_objsize_dst = __glibc_objsize0 (__dest);
+  if (__glibc_objsize_dst == (size_t) -1 || (__builtin_constant_p (__len)
+				   && __glibc_objsize_dst >= __len))
+    (void) __builtin_memset (__dest, '\0', __len);
+  else
+    (void) __builtin___memset_chk (__dest, '\0', __len, __glibc_objsize_dst);
 }
 
+
+#undef __strings_size_too_small
+#undef __strings_warn_len_too_large
 #endif

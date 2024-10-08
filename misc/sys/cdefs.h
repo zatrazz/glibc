@@ -137,9 +137,49 @@
 # define __END_DECLS
 #endif
 
+#if defined __clang__ && defined __has_extension
+# define __clang_has_extension(x) __has_extension (x)
+#else
+# define __clang_has_extension(x) 0
+#endif
 
 /* Fortify support.  */
-#define __bos(ptr) __builtin_object_size (ptr, __USE_FORTIFY_LEVEL > 1)
+#define __fortify_function __extern_always_inline __attribute_artificial__
+#if defined __clang__ && __USE_FORTIFY_LEVEL > 0 \
+    && !defined _CLANG_FORTIFY_DISABLE \
+    && __clang_has_extension(overloadable_unmarked)
+# define __use_clang_fortify 1
+/* Clang-style FORTIFY creates a different symbol for each FORTIFY'ed function,
+   whereas GCC-style doesn't.  Thus, GCC can assume that the FORTIFY'ed
+   function is always available externally, but clang can't.  */
+# define __attribute_overloadable__ __attribute__ ((__overloadable__))
+# define __attribute_transparent_overload__ \
+  __attribute__ ((__overloadable__("transparent")))
+# define __fortify_overload static __always_inline __attribute_overloadable__
+/* For FORTIFY functions that exist only as decls.  */
+# define __fortify_error_function static __attribute_overloadable__
+# define __clang_pass_object_size_n(n) __attribute__ ((pass_object_size (n)))
+# define __clang_warning(what) __attribute__ ((deprecated(what)))
+# define __clang_prefer_this_overload __attribute__ ((enable_if (1, "")))
+# define __clang_warning_if(c, m) \
+  __attribute__ ((__diagnose_if__ ((c), (m), "warning")))
+# define __clang_error(what) __attribute__ ((unavailable(what)))
+# define __clang_error_if(c, m) \
+  __attribute__ ((__diagnose_if__ ((c), (m), "error")))
+# define __fortify_potential_overload __fortify_overload
+#else
+# define __fortify_potential_overload __fortify_function
+/* Some functions/decls can be shared between clang and non-clang FORTIFY.
+   Turning these into nops makes that possible.  */
+# define __clang_pass_object_size_n(n)
+# define __attribute_overloadable__
+# define __bos_n(ptr, n) __builtin_object_size (ptr, n)
+# define __clang_warning_if(c, m)
+# define __clang_error_if(c, m)
+#endif
+
+#define __bos_level (__USE_FORTIFY_LEVEL > 1)
+#define __bos(ptr) __builtin_object_size (ptr, __bos_level)
 #define __bos0(ptr) __builtin_object_size (ptr, 0)
 
 /* Use __builtin_dynamic_object_size at _FORTIFY_SOURCE=3 when available.  */
@@ -200,6 +240,106 @@
       ? __ ## f ## _chk_warn (__VA_ARGS__, (__osz) / (__s))		      \
       : __ ## f ## _chk (__VA_ARGS__, (__osz) / (__s))))
 #endif
+
+#define __clang_pass_object_size0 __clang_pass_object_size_n (0)
+#define __clang_pass_object_size __clang_pass_object_size_n (__bos_level)
+
+/* Some of these macros are awkwardly written, and more repetitive than they'd
+   ideally need to be.  This is because both clang and gcc will emit 'note's
+   about where these warnings originate from. For every macro that's expanded,
+   the user sees a note that ultimately doesn't matter to them...  */
+#ifdef __use_clang_fortify
+# define __FORTIFY_PRECONDITIONS
+# define __FORTIFY_FUNCTION_END
+# define __FORTIFY_WARNING_IF(_, c, msg) __clang_warning_if(c, msg)
+/* __builtin_constant_p isn't needed: this is only used in constructs that
+   must be fully evaluated at compile-time.  */
+# define __bos_static_lt_impl(bos_val, n, s) \
+  ((bos_val) != -1ULL && (n) > (bos_val) / (s))
+# define __FORTIFY_CALL_CHK 1
+
+# define __FORTIFY_BOSN_ARGS(bos_fn, n, buf, div, complaint) \
+  (__bos_static_lt_impl (bos_fn (buf), n, div)), (complaint), "warning"
+
+#define __FORTIFY_WARNING_ONLY_IF_BOS0_LT2(fn_name, n, buf, div, complaint) \
+  __attribute__ ((__diagnose_if__ \
+	(__FORTIFY_BOSN_ARGS (__bos0, n, buf, div, complaint))))
+#define __FORTIFY_WARNING_ONLY_IF_BOS0_LT(fn_name, n, buf, complaint) \
+  __attribute__ ((__diagnose_if__ \
+	(__FORTIFY_BOSN_ARGS (__bos0, n, buf, 1, complaint))))
+#define __FORTIFY_WARNING_ONLY_IF_BOS_LT2(fn_name, n, buf, div, complaint) \
+  __attribute__ ((__diagnose_if__ \
+	(__FORTIFY_BOSN_ARGS (__bos, n, buf, div, complaint))))
+#define __FORTIFY_WARNING_ONLY_IF_BOS_LT(fn_name, n, buf, complaint) \
+  __attribute__ ((__diagnose_if__ \
+	(__FORTIFY_BOSN_ARGS (__bos, n, buf, 1, complaint))))
+#else
+# define __FORTIFY_PRECONDITIONS {
+# define __FORTIFY_FUNCTION_END }
+/* __chk_fail was chosen arbitrarily. The function should never be called
+   anyway; it just exists to be reachable after optimizations.  */
+# define __FORTIFY_DECLARE_WARNING_FUNCTION(name, msg) \
+  __attribute ((__warning__(msg))) \
+  extern void __REDIRECT_NTH (name, (void), __chk_fail)
+
+# define __FORTIFY_WARNING_IF_BEGIN(fn_name, cond, complaint, if_cond_true) \
+  { \
+    if (cond) { \
+      if_cond_true; \
+      __FORTIFY_DECLARE_WARNING_FUNCTION (fn_name, complaint); \
+      volatile char __t = 0; \
+      if (__glibc_unlikely (__t)) \
+      {
+
+# define __FORTIFY_WARNING_IF_END \
+      } \
+    } \
+  }
+
+# define __FORTIFY_WARNING_IF(err_fn, cond, complaint) \
+  __FORTIFY_WARNING_IF_BEGIN (err_fn, cond, complaint, (void)0) \
+    err_fn (); \
+  __FORTIFY_WARNING_IF_END
+
+# define __bos_static_lt_impl(bos_val, n, s) \
+  (__builtin_constant_p (n) && (bos_val) != -1ULL && (n) > (bos_val) / (s))
+
+#define __FORTIFY_BOS_WARNING_BEGIN(fn_name, bos_fn, n, buf, div, complaint) \
+  char __need_dynamic_check = !__builtin_constant_p (n); \
+  __FORTIFY_WARNING_IF_BEGIN (fn_name, \
+			      __bos_static_lt_impl (bos_fn (buf), n, div), \
+			      complaint, (__need_dynamic_check = 1))
+
+/* Duplicate this so that the fn_name call happens with the smallest possible
+   macro "call stack". This minimizes diagnostics about expanding macros.  */
+#define __FORTIFY_WARNING_ONLY_IF_BOS0_LT2(err_fn, n, buf, div, complaint) \
+  __FORTIFY_BOS_WARNING_BEGIN (err_fn, __bos0, n, buf, div, complaint) \
+    err_fn (); \
+  __FORTIFY_WARNING_IF_END
+
+#define __FORTIFY_WARNING_ONLY_IF_BOS0_LT(err_fn, n, buf, complaint) \
+  __FORTIFY_BOS_WARNING_BEGIN (err_fn, __bos0, n, buf, 1, complaint) \
+    err_fn (); \
+  __FORTIFY_WARNING_IF_END
+
+#define __FORTIFY_WARNING_ONLY_IF_BOS_LT2(err_fn, n, buf, div, complaint) \
+  __FORTIFY_BOS_WARNING_BEGIN (err_fn, __bos, n, buf, div, complaint) \
+    err_fn (); \
+  __FORTIFY_WARNING_IF_END
+
+#define __FORTIFY_WARNING_ONLY_IF_BOS_LT(err_fn, n, buf, complaint) \
+  __FORTIFY_BOS_WARNING_BEGIN (err_fn, __bos, n, buf, 1, complaint) \
+    err_fn (); \
+  __FORTIFY_WARNING_IF_END
+
+# define __FORTIFY_CALL_CHK (__need_dynamic_check)
+#endif
+
+#define __bos_static_lt2(n, e, s) __bos_static_lt_impl (__bos (e), n, s)
+#define __bos_static_lt(n, e) __bos_static_lt2 (n, e, 1)
+#define __bos0_static_lt2(n, e, s) __bos_static_lt_impl (__bos0 (e), n, s)
+#define __bos0_static_lt(n, e) __bos0_static_lt2 (n, e, 1)
+
 
 #if __GNUC_PREREQ (4,3)
 # define __warnattr(msg) __attribute__((__warning__ (msg)))
@@ -468,6 +608,29 @@
 #if __GNUC_PREREQ (4,3)
 # define __va_arg_pack() __builtin_va_arg_pack ()
 # define __va_arg_pack_len() __builtin_va_arg_pack_len ()
+#endif
+
+#if defined(__use_clang_fortify)
+/* clang doesn't support __va_arg_pack, so we need to call the v* version of
+   FORTIFY'ed functions.  */
+#define __FORTIFY_ARG_PACK __fortify_ap
+#define __FORTIFY_INIT_ARG_PACK(va_arg) \
+  __gnuc_va_list __FORTIFY_ARG_PACK; \
+  __builtin_va_start (__FORTIFY_ARG_PACK, va_arg)
+#define __FORTIFY_CALL_VA_ALIAS(fn, ...) __v##fn##_alias (__VA_ARGS__)
+#define __FORTIFY_CALL_VA_CHK(fn, ...) __v##fn##_chk (__VA_ARGS__)
+#define __FORTIFY_CALL_VA_BUILTIN(fn, ...) \
+  __builtin___v##fn##_chk (__VA_ARGS__)
+#define __FORTIFY_FREE_ARG_PACK() __builtin_va_end (__FORTIFY_ARG_PACK)
+#define __FORTIFY_ARG_PACK_OK 1
+#elif defined(__va_arg_pack)
+#define __FORTIFY_ARG_PACK __va_arg_pack ()
+#define __FORTIFY_INIT_ARG_PACK(va_arg)
+#define __FORTIFY_CALL_VA_ALIAS(fn, ...) __##fn##_alias (__VA_ARGS__)
+#define __FORTIFY_CALL_VA_CHK(fn, ...) __##fn##_chk (__VA_ARGS__)
+#define __FORTIFY_CALL_VA_BUILTIN(fn, ...) __builtin___##fn##_chk (__VA_ARGS__)
+#define __FORTIFY_FREE_ARG_PACK()
+#define __FORTIFY_ARG_PACK_OK 1
 #endif
 
 /* It is possible to compile containing GCC extensions even if GCC is

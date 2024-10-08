@@ -32,10 +32,28 @@ extern int __REDIRECT (__open_2, (const char *__path, int __oflag),
 extern int __REDIRECT (__open_alias, (const char *__path, int __oflag, ...),
 		       open64) __nonnull ((1));
 #endif
-__errordecl (__open_too_many_args,
-	     "open can be called either with 2 or 3 arguments, not more");
-__errordecl (__open_missing_mode,
-	     "open with O_CREAT or O_TMPFILE in second argument needs 3 arguments");
+
+#define __warn_open_too_many_args \
+  "open can be called either with 2 or 3 arguments, not more"
+#define __warn_open_missing_mode \
+  "open with O_CREAT in second argument needs 3 arguments"
+#ifdef __use_clang_fortify
+__fortify_overload __clang_prefer_this_overload int
+open (const char *const __clang_pass_object_size __path, int __oflag)
+     __clang_error_if (__OPEN_NEEDS_MODE (__oflag), __warn_open_missing_mode)
+{
+  return __open_2 (__path, __oflag);
+}
+
+__fortify_overload int
+open (const char *const __clang_pass_object_size __path, int __oflag,
+      mode_t __mode)
+{
+  return __open_alias (__path, __oflag, __mode);
+}
+#else
+__errordecl (__open_too_many_args, __warn_open_too_many_args);
+__errordecl (__open_missing_mode, __warn_open_missing_mode);
 
 __fortify_function int
 open (const char *__path, int __oflag, ...)
@@ -58,16 +76,37 @@ open (const char *__path, int __oflag, ...)
 
   return __open_alias (__path, __oflag, __va_arg_pack ());
 }
+#endif
+#undef __warn_open_too_many_args
+#undef __warn_open_missing_mode
 
 
 #ifdef __USE_LARGEFILE64
 extern int __open64_2 (const char *__path, int __oflag) __nonnull ((1));
 extern int __REDIRECT (__open64_alias, (const char *__path, int __oflag,
 					...), open64) __nonnull ((1));
-__errordecl (__open64_too_many_args,
-	     "open64 can be called either with 2 or 3 arguments, not more");
-__errordecl (__open64_missing_mode,
-	     "open64 with O_CREAT or O_TMPFILE in second argument needs 3 arguments");
+
+# define __warn_open64_too_many_args \
+  "open64 can be called either with 2 or 3 arguments, not more"
+# define __warn_open64_missing_mode \
+  "open64 with O_CREAT in second argument needs 3 arguments"
+# ifdef __use_clang_fortify
+__fortify_overload __clang_prefer_this_overload int
+open64 (const char *const __clang_pass_object_size __path, int __oflag)
+     __clang_error_if (__OPEN_NEEDS_MODE (__oflag), __warn_open64_missing_mode)
+{
+  return __open64_2 (__path, __oflag);
+}
+
+__fortify_overload __clang_prefer_this_overload int
+open64 (const char *const __clang_pass_object_size __path, int __oflag,
+	int __mode)
+{
+  return __open64_alias (__path, __oflag, __mode);
+}
+# else
+__errordecl (__open64_too_many_args, __warn_open64_too_many_args);
+__errordecl (__open64_missing_mode, __warn_open64_missing_mode);
 
 __fortify_function int
 open64 (const char *__path, int __oflag, ...)
@@ -90,6 +129,9 @@ open64 (const char *__path, int __oflag, ...)
 
   return __open64_alias (__path, __oflag, __va_arg_pack ());
 }
+# endif
+# undef __warn_open64_too_many_args
+# undef __warn_open64_missing_mode
 #endif
 
 
@@ -108,10 +150,32 @@ extern int __REDIRECT (__openat_alias, (int __fd, const char *__path,
 					int __oflag, ...), openat64)
      __nonnull ((2));
 # endif
-__errordecl (__openat_too_many_args,
-	     "openat can be called either with 3 or 4 arguments, not more");
-__errordecl (__openat_missing_mode,
-	     "openat with O_CREAT or O_TMPFILE in third argument needs 4 arguments");
+
+# define __warn_openat_too_many_args "openat can be called either with 3 or " \
+       "4 arguments, not more"
+# define __warn_openat_missing_mode "openat with O_CREAT in third argument " \
+       "needs 4 arguments"
+# ifdef __use_clang_fortify
+__fortify_error_function __clang_error (__warn_openat_too_many_args) int
+openat (int __fd, const char *__path, int __oflag, int __mode, ...);
+
+__fortify_overload __clang_prefer_this_overload int
+openat (int __fd, const char *const __clang_pass_object_size __path,
+	int __oflag)
+     __clang_error_if (__OPEN_NEEDS_MODE (__oflag), __warn_openat_missing_mode)
+{
+  return __openat_2 (__fd, __path, __oflag);
+}
+
+__fortify_overload __clang_prefer_this_overload int
+openat (int __fd, const char *const __clang_pass_object_size __path,
+	int __oflag, int __mode)
+{
+  return __openat_alias (__fd, __path, __oflag, __mode);
+}
+# else
+__errordecl (__openat_too_many_args, __warn_openat_too_many_args);
+__errordecl (__openat_missing_mode, __warn_openat_missing_mode);
 
 __fortify_function int
 openat (int __fd, const char *__path, int __oflag, ...)
@@ -134,6 +198,9 @@ openat (int __fd, const char *__path, int __oflag, ...)
 
   return __openat_alias (__fd, __path, __oflag, __va_arg_pack ());
 }
+# endif
+# undef __warn_openat_too_many_args
+# undef __warn_openat_missing_mode
 
 
 # ifdef __USE_LARGEFILE64
@@ -142,10 +209,34 @@ extern int __openat64_2 (int __fd, const char *__path, int __oflag)
 extern int __REDIRECT (__openat64_alias, (int __fd, const char *__path,
 					  int __oflag, ...), openat64)
      __nonnull ((2));
-__errordecl (__openat64_too_many_args,
-	     "openat64 can be called either with 3 or 4 arguments, not more");
-__errordecl (__openat64_missing_mode,
-	     "openat64 with O_CREAT or O_TMPFILE in third argument needs 4 arguments");
+
+#  define __warn_openat64_too_many_args "openat64 can be called either with " \
+       "3 or 4 arguments, not more"
+#  define __warn_openat64_missing_mode "openat64 with O_CREAT in third " \
+       "argument needs 4 arguments"
+
+#  ifdef __use_clang_fortify
+__fortify_error_function __clang_error (__warn_openat64_too_many_args) int
+openat64 (int __fd, const char *__path, int __oflag, int __mode, ...);
+
+__fortify_overload __clang_prefer_this_overload int
+openat64 (int __fd, const char *const __clang_pass_object_size __path,
+	  int __oflag)
+     __clang_error_if (__OPEN_NEEDS_MODE (__oflag),
+                       __warn_openat64_missing_mode)
+{
+  return __openat64_2 (__fd, __path, __oflag);
+}
+
+__fortify_overload __clang_prefer_this_overload int
+openat64 (int __fd, const char *const __clang_pass_object_size __path,
+	  int __oflag, int __mode)
+{
+  return __openat64_alias (__fd, __path, __oflag, __mode);
+}
+#  else
+__errordecl (__openat64_too_many_args, __warn_openat64_too_many_args);
+__errordecl (__openat64_missing_mode, __warn_openat64_missing_mode);
 
 __fortify_function int
 openat64 (int __fd, const char *__path, int __oflag, ...)
@@ -168,5 +259,8 @@ openat64 (int __fd, const char *__path, int __oflag, ...)
 
   return __openat64_alias (__fd, __path, __oflag, __va_arg_pack ());
 }
+#  endif
+#  undef __warn_openat64_too_many_args
+#  undef __warn_openat64_missing_mode
 # endif
 #endif
