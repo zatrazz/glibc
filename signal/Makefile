@@ -53,6 +53,7 @@ routines := \
   killpg \
   libc_sigaction \
   raise \
+  sig2str \
   sigaction \
   sigaddset \
   sigaltstack \
@@ -84,6 +85,7 @@ routines := \
   sigvec \
   sigwait \
   sigwaitinfo \
+  str2sig \
   sysv_signal \
 # routines
 
@@ -95,6 +97,7 @@ tests := \
   tst-minsigstksz-4 \
   tst-minsigstksz-5 \
   tst-raise \
+  tst-sig2str \
   tst-sigaction \
   tst-sigisemptyset \
   tst-signal \

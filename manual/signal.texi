@@ -904,6 +904,36 @@ storage whose lifetime is the whole lifetime of the program.
 This function is a GNU extension, declared in the header file @file{string.h}.
 @end deftypefun
 
+@deftypefun int sig2str (int @var{signum}, char *@var{str})
+@standards{POSIX.2, signal.h}
+@safety{@mtsafe{}@assafe{}@acsafe{}}
+This function translates the signal number specified by @var{signum} to a signal
+name and stores this string in the location specified by @var{str}.  The application
+shall ensure that @var{str} points to a location that can store at least
+@var{SIG2STR_MAX} bytes.
+
+If @var{signum} is equal to one of the symbolic constants defined in @code{signal.h},
+the stored string name of the symbolic constant without the SIG prefix.
+
+If @var{signum} is equal to @code{SIGRTMIN} or @code{SIGRTMAX}, the store string
+is "RTMIN" or "RTMAX", respectively.
+
+If @var{signum} is between @code{SIGRTMIN+1} and @code{(SIGRTMIN+SIGRTMAX)/2}
+inclusive, the store string is of the form "RTMIN+n", where @code{n} is the shortest
+decimal representation of the value of @code{signum-SIGRTMIN}.
+
+If @var{signum}is between @code{(SIGRTMIN+SIGRTMAX)/2 + 1} and @code{IGRTMAX-1}
+inclusive, the stored string is in the for "RTMAX-m", where @code{m} is the shortest
+decimal representation of the value of @code{SIGRTMAX-signum}.
+@end deftypefun
+
+@deftypefun int str2sig (const char @var{str}, int *@var{pnum})
+@standards{POSIX.2, signal.h}
+@safety{@mtsafe{}@assafe{}@acsafe{}}
+TODO
+@end deftypefun
+
+
 @node Signal Actions
 @section Specifying Signal Actions
 @cindex signal actions

@@ -55,6 +55,9 @@ extern char *__strerror_l (int __errnum, locale_t __loc);
 
 extern const char *__sigdescr_np (int __errnum);
 libc_hidden_proto (__sigdescr_np)
+
+extern const char *__sigabbrev_np (int __signum);
+libc_hidden_proto (__sigabbrev_np)
 #endif
 
 #include <string/string.h>

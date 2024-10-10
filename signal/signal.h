@@ -376,6 +376,22 @@ extern __sighandler_t sigset (int __sig, __sighandler_t __disp) __THROW
 # include <bits/sigthread.h>
 #endif /* use Unix98 */
 
+#ifdef __USE_XOPEN2K24
+/* Maximum size of signal name returned by sig2str, including the terminating
+   NUL byte.  The longest one is "RTMAX", then "+" or "-", then up to 10
+   digits, then NUL.  Add +2 to reserve for the future.  */
+# define SIG2STR_MAX (5 + 1 + 10 + 1 + 2)
+
+/* Translate the signal number specified by SIGNUM to a signal name and store
+   it on STR.  The STR shall be at least SIG2STR_MAX in size.  */
+extern int sig2str (int __signum, char *__str) __THROW __nonnull ((2));
+
+/* Translate the signal name in the string pointed to by STR  to a signal
+   number and store it on PNUM.  */
+extern int str2sig (const char *__restrict __str, int *__restrict __pnum)
+     __THROW __nonnull ((1, 2));
+#endif
+
 /* The following functions are used internally in the C library and in
    other code which need deep insights.  */
 

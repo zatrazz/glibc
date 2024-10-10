@@ -21,7 +21,7 @@
 #include <array_length.h>
 
 const char *
-sigabbrev_np (int signum)
+__sigabbrev_np (int signum)
 {
   const char *abbrev = NULL;
 
@@ -31,3 +31,5 @@ sigabbrev_np (int signum)
 
   return abbrev;
 }
+libc_hidden_def (__sigabbrev_np)
+weak_alias (__sigabbrev_np, sigabbrev_np);

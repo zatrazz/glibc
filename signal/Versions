@@ -51,6 +51,10 @@ libc {
   }
   GLIBC_2.21 {
   }
+  GLIBC_2.41 {
+    sig2str;
+    str2sig;
+  }
   GLIBC_PRIVATE {
     __libc_sigaction;
   }
