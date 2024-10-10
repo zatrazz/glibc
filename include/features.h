@@ -223,9 +223,9 @@
 # undef  _POSIX_SOURCE
 # define _POSIX_SOURCE	1
 # undef  _POSIX_C_SOURCE
-# define _POSIX_C_SOURCE	200809L
+# define _POSIX_C_SOURCE	202405L
 # undef  _XOPEN_SOURCE
-# define _XOPEN_SOURCE	700
+# define _XOPEN_SOURCE	800
 # undef  _XOPEN_SOURCE_EXTENDED
 # define _XOPEN_SOURCE_EXTENDED	1
 # undef	 _LARGEFILE64_SOURCE
@@ -292,7 +292,7 @@
 #endif
 
 /* If none of the ANSI/POSIX macros are defined, or if _DEFAULT_SOURCE
-   is defined, use POSIX.1-2008 (or another version depending on
+   is defined, use POSIX.1-2024 (or another version depending on
    _XOPEN_SOURCE).  */
 #ifdef _DEFAULT_SOURCE
 # if !defined _POSIX_SOURCE && !defined _POSIX_C_SOURCE
@@ -301,7 +301,7 @@
 # undef  _POSIX_SOURCE
 # define _POSIX_SOURCE	1
 # undef  _POSIX_C_SOURCE
-# define _POSIX_C_SOURCE	200809L
+# define _POSIX_C_SOURCE	202405L
 #endif
 
 #if ((!defined __STRICT_ANSI__					\
