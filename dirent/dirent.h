@@ -401,6 +401,12 @@ extern int versionsort64 (const struct dirent64 **__e1,
 # endif
 #endif /* Use GNU.  */
 
+#if defined  __USE_XOPEN2K24 && defined __USE_LARGEFILE64
+extern __ssize_t posix_getdents (int __fd, void *__buf, size_t __len,
+				 int __flags)
+     __THROW __nonnull ((2));
+#endif /* __USE_XOPEN2K24 */
+
 __END_DECLS
 
 #include <bits/dirent_ext.h>

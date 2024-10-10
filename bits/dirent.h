@@ -45,6 +45,20 @@ struct dirent64
 
     char d_name[1];
   };
+
+# ifdef __USE_XOPEN2K24
+typedef unsigned short int reclen_t;
+
+struct posix_dent
+  {
+    __ino64_t d_ino;
+    reclen_t d_reclen;
+    unsigned char d_type;
+    unsigned char d_namlen;
+
+    char d_name[1];
+  };
+# endif
 #endif
 
 #define d_fileno	d_ino	/* Backwards compatibility.  */

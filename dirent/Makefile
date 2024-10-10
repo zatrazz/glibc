@@ -36,6 +36,7 @@ routines := \
   getdents \
   getdents64 \
   opendir \
+  posix_getdents \
   readdir \
   readdir64 \
   readdir64_r \

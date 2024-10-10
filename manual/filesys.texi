@@ -1010,6 +1010,15 @@ characters), so a buffer size of at least 1024 is recommended.
 This function is specific to Linux.
 @end deftypefun
 
+@deftypefun ssize_t posix_getdents (int @var{fd}, void *@var{buffer}, size_t @var{length}, int @var{flags})
+@standards{POSIX.2, dirent.h}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+The @code{posix_getdents} is similar to @code{getdents64}, which the
+additional @code{flags} argument.  Currently there is no flag supported,
+so the value should be @code{0}.
+
+TODO: document posix_dent
+@end deftypefun
 
 @node Working with Directory Trees
 @section Working with Directory Trees

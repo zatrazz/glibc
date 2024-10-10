@@ -42,6 +42,19 @@ struct dirent64
     unsigned char d_type;
     char d_name[256];		/* We must not include limits.h! */
   };
+
+# ifdef __USE_XOPEN2K24
+typedef unsigned short int reclen_t;
+
+struct posix_dent
+  {
+    __ino64_t d_ino;
+    __off64_t d_off;
+    reclen_t d_reclen;
+    unsigned char d_type;
+    char d_name[256];		/* We must not include limits.h! */
+  };
+# endif
 #endif
 
 #define d_fileno	d_ino	/* Backwards compatibility.  */

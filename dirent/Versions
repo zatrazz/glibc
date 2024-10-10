@@ -47,4 +47,7 @@ libc {
   GLIBC_2.15 {
     scandirat; scandirat64;
   }
+  GLIBC_2.41 {
+    posix_getdents;
+  }
 }
