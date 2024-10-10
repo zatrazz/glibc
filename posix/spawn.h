@@ -215,6 +215,26 @@ extern int posix_spawn_file_actions_addfchdir_np (posix_spawn_file_actions_t *,
 						  int __fd)
      __THROW __nonnull ((1));
 
+# ifdef __USE_XOPEN2K24
+#  ifdef __REDIRECT
+extern int __REDIRECT_NTH (posix_spawn_file_actions_addchdir,
+			   (posix_spawn_file_actions_t * __restrict __actions,
+			    const char *__restrict __path),
+			   posix_spawn_file_actions_addchdir_np)
+     __nonnull ((1, 2));
+
+extern int __REDIRECT_NTH (posix_spawn_file_actions_addfchdir,
+			   (posix_spawn_file_actions_t * __restrict __actions,
+			    int __fd),
+			   posix_spawn_file_actions_addfchdir_np)
+     __nonnull ((1));
+#  else
+#   define posix_spawn_file_actions_addchdir posix_spawn_file_actions_addchdir_np
+#   define posix_spawn_file_actions_addfchdir posix_spawn_file_actions_addfchdir_np
+#  endif
+# endif
+
+
 /* Add an action to close all file descriptor greater than or equal to FROM
    during spawn.  This affects the subsequent file actions.  */
 extern int
