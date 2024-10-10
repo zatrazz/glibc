@@ -22,29 +22,70 @@ subdir	:= signal
 
 include ../Makeconfig
 
-headers := signal.h sys/signal.h \
-	   bits/signum-generic.h bits/signum-arch.h \
-	   bits/sigcontext.h bits/sigaction.h \
-	   bits/sigevent-consts.h bits/siginfo-consts.h \
-	   bits/sigstack.h bits/sigthread.h bits/ss_flags.h \
-	   bits/types/__sigset_t.h bits/types/sig_atomic_t.h \
-	   bits/types/sigevent_t.h bits/types/siginfo_t.h \
-	   bits/types/sigset_t.h bits/types/sigval_t.h \
-	   bits/types/stack_t.h bits/types/struct_sigstack.h \
-	   bits/types/__sigval_t.h bits/signal_ext.h \
-	   bits/sigstksz.h
+headers := \
+  bits/sigaction.h \
+  bits/sigcontext.h \
+  bits/sigevent-consts.h \
+  bits/siginfo-consts.h \
+  bits/signal_ext.h \
+  bits/signum-arch.h \
+  bits/signum-generic.h \
+  bits/sigstack.h \
+  bits/sigstksz.h \
+  bits/sigthread.h \
+  bits/ss_flags.h \
+  bits/types/__sigset_t.h \
+  bits/types/__sigval_t.h \
+  bits/types/sig_atomic_t.h \
+  bits/types/sigevent_t.h \
+  bits/types/siginfo_t.h \
+  bits/types/sigset_t.h \
+  bits/types/sigval_t.h \
+  bits/types/stack_t.h \
+  bits/types/struct_sigstack.h \
+  signal.h \
+  sys/signal.h \
+# headers
 
-routines	:= signal raise killpg \
-		   sigaction libc_sigaction sigprocmask kill \
-		   sigpending sigsuspend sigwait \
-		   sigblock sigsetmask sigpause sigvec \
-		   sigstack sigaltstack sigintr \
-		   sigsetops sigempty sigfillset sigaddset sigdelset sigismem \
-		   sigreturn \
-		   siggetmask sysv_signal \
-		   sigisempty sigandset sigorset \
-		   allocrtsig sigtimedwait sigwaitinfo sigqueue \
-		   sighold sigrelse sigignore sigset
+routines := \
+  allocrtsig \
+  kill \
+  killpg \
+  libc_sigaction \
+  raise \
+  sigaction \
+  sigaddset \
+  sigaltstack \
+  sigandset \
+  sigblock \
+  sigdelset \
+  sigempty \
+  sigfillset \
+  siggetmask \
+  sighold \
+  sigignore \
+  sigintr \
+  sigisempty \
+  sigismem \
+  signal \
+  sigorset \
+  sigpause \
+  sigpending \
+  sigprocmask \
+  sigqueue \
+  sigrelse \
+  sigreturn \
+  sigset \
+  sigsetmask \
+  sigsetops \
+  sigstack \
+  sigsuspend \
+  sigtimedwait \
+  sigvec \
+  sigwait \
+  sigwaitinfo \
+  sysv_signal \
+# routines
 
 tests := \
   tst-minsigstksz-1 \
