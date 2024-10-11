@@ -1209,6 +1209,14 @@ __sysconf (int name)
 #else
       return -1;
 #endif
+
+
+    case _SC_NSIG:
+#ifdef NSIG
+      return NSIG;
+#else
+      return -1;
+#endif
     }
 }
 

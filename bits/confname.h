@@ -531,8 +531,11 @@ enum
     _SC_MINSIGSTKSZ,
 #define	_SC_MINSIGSTKSZ			_SC_MINSIGSTKSZ
 
-    _SC_SIGSTKSZ
+    _SC_SIGSTKSZ,
 #define	_SC_SIGSTKSZ			_SC_SIGSTKSZ
+
+    _SC_NSIG,
+#define _SC_NSIG			_SC_NSIG
   };
 
 /* Values for the NAME argument to `confstr'.  */

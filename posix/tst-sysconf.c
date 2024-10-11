@@ -20,6 +20,7 @@
 #include <stdbool.h>
 #include <stdio.h>
 #include <unistd.h>
+#include <signal.h>
 
 #include <support/check.h>
 
@@ -91,7 +92,8 @@ static struct sysconf_test_t posix_options[] =
     N (TYPED_MEMORY_OBJECTS),
     N2 (C_BIND),
     N2 (C_DEV),
-    N2 (CHAR_TERM)
+    N2 (CHAR_TERM),
+    { NSIG, "NSIG", _SC_NSIG, true, true},
   };
 
 static int
