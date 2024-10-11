@@ -1157,6 +1157,9 @@ iszero (__T __val)
 # define M_2_SQRTPI	1.12837916709551257390	/* 2/sqrt(pi) */
 # define M_SQRT2	1.41421356237309504880	/* sqrt(2) */
 # define M_SQRT1_2	0.70710678118654752440	/* 1/sqrt(2) */
+# define M_1_SQRTPI	0.56418958354775627928  /* 1/sqrt(pi) */
+# define M_EGAMMA	0.57721566490153275453  /* y (Euler-Mascheroni constant) */
+# define M_PHI		1.61803398874989468048  /* golden ratio constant */
 #endif
 
 /* GNU extension to provide float constants with similar names.  */
@@ -1174,6 +1177,9 @@ iszero (__T __val)
 # define M_2_SQRTPIf	1.12837916709551257390f	/* 2/sqrt(pi) */
 # define M_SQRT2f	1.41421356237309504880f	/* sqrt(2) */
 # define M_SQRT1_2f	0.70710678118654752440f	/* 1/sqrt(2) */
+# define M_1_SQRTPIf	0.56418955326080322266f /* 1/sqrt(pi) */
+# define M_EGAMMAf	0.57721561193466186523f /* y (Euler-Mascheroni constant) */
+# define M_PHIf		1.61803388595581054688f /* golden ratio constant */
 #endif
 
 /* The above constants are not adequate for computation using `long double's.
@@ -1193,6 +1199,9 @@ iszero (__T __val)
 # define M_2_SQRTPIl	1.128379167095512573896158903121545172L /* 2/sqrt(pi) */
 # define M_SQRT2l	1.414213562373095048801688724209698079L /* sqrt(2) */
 # define M_SQRT1_2l	0.707106781186547524400844362104849039L /* 1/sqrt(2) */
+# define M_1_SQRTPIl	0.564189583547756286948079451560772535L /* 1/sqrt(pi) */
+# define M_EGAMMAl	0.577215664901532860606512090082402374L /* y (Euler-Mascheroni constant) */
+# define M_PHIl		1.618033988749894848204586834365637967L /* golden ratio constant */
 #endif
 
 #if __HAVE_FLOAT16 && defined __USE_GNU
@@ -1209,6 +1218,9 @@ iszero (__T __val)
 # define M_2_SQRTPIf16	__f16 (1.128379167095512573896158903121545172) /* 2/sqrt(pi) */
 # define M_SQRT2f16	__f16 (1.414213562373095048801688724209698079) /* sqrt(2) */
 # define M_SQRT1_2f16	__f16 (0.707106781186547524400844362104849039) /* 1/sqrt(2) */
+# define M_1_SQRTPIf16	__f16 (0.564189583547756286948079451560772535) /* 1/sqrt(pi) */
+# define M_EGAMMAf16	__f16 (0.577215664901532860606512090082402374) /* y (Euler-Mascheroni constant) */
+# define M_PHIf16	__f16 (1.618033988749894848204586834365637967) /* golden ratio constant */
 #endif
 
 #if __HAVE_FLOAT32 && defined __USE_GNU
@@ -1225,6 +1237,9 @@ iszero (__T __val)
 # define M_2_SQRTPIf32	__f32 (1.128379167095512573896158903121545172) /* 2/sqrt(pi) */
 # define M_SQRT2f32	__f32 (1.414213562373095048801688724209698079) /* sqrt(2) */
 # define M_SQRT1_2f32	__f32 (0.707106781186547524400844362104849039) /* 1/sqrt(2) */
+# define M_1_SQRTPIf32	__f32 (0.564189583547756286948079451560772535) /* 1/sqrt(pi) */
+# define M_EGAMMAf32	__f32 (0.577215664901532860606512090082402374) /* y (Euler-Mascheroni constant) */
+# define M_PHIf32	__f32 (1.618033988749894848204586834365637967) /* golden ratio constant */
 #endif
 
 #if __HAVE_FLOAT64 && defined __USE_GNU
@@ -1241,6 +1256,9 @@ iszero (__T __val)
 # define M_2_SQRTPIf64	__f64 (1.128379167095512573896158903121545172) /* 2/sqrt(pi) */
 # define M_SQRT2f64	__f64 (1.414213562373095048801688724209698079) /* sqrt(2) */
 # define M_SQRT1_2f64	__f64 (0.707106781186547524400844362104849039) /* 1/sqrt(2) */
+# define M_1_SQRTPIf64	__f64 (0.564189583547756286948079451560772535) /* 1/sqrt(pi) */
+# define M_EGAMMAf64	__f64 (0.577215664901532860606512090082402374) /* y (Euler-Mascheroni constant) */
+# define M_PHIf64	__f64 (1.618033988749894848204586834365637967) /* golden ratio constant */
 #endif
 
 #if __HAVE_FLOAT128 && defined __USE_GNU
@@ -1257,6 +1275,9 @@ iszero (__T __val)
 # define M_2_SQRTPIf128	__f128 (1.128379167095512573896158903121545172) /* 2/sqrt(pi) */
 # define M_SQRT2f128	__f128 (1.414213562373095048801688724209698079) /* sqrt(2) */
 # define M_SQRT1_2f128	__f128 (0.707106781186547524400844362104849039) /* 1/sqrt(2) */
+# define M_1_SQRTPIf128	__f128 (0.564189583547756286948079451560772535) /* 1/sqrt(pi) */
+# define M_EGAMMAf128	__f128 (0.577215664901532860606512090082402374) /* y (Euler-Mascheroni constant) */
+# define M_PHIf128	__f128 (1.618033988749894848204586834365637967) /* golden ratio constant */
 #endif
 
 #if __HAVE_FLOAT32X && defined __USE_GNU
@@ -1273,6 +1294,9 @@ iszero (__T __val)
 # define M_2_SQRTPIf32x	__f32x (1.128379167095512573896158903121545172) /* 2/sqrt(pi) */
 # define M_SQRT2f32x	__f32x (1.414213562373095048801688724209698079) /* sqrt(2) */
 # define M_SQRT1_2f32x	__f32x (0.707106781186547524400844362104849039) /* 1/sqrt(2) */
+# define M_1_SQRTPIf32x	__f32x (0.564189583547756286948079451560772535) /* 1/sqrt(pi) */
+# define M_EGAMMAf32x	__f32x (0.577215664901532860606512090082402374) /* y (Euler-Mascheroni constant) */
+# define M_PHIf32x	__f32x (1.618033988749894848204586834365637967) /* golden ratio constant */
 #endif
 
 #if __HAVE_FLOAT64X && defined __USE_GNU
@@ -1289,6 +1313,9 @@ iszero (__T __val)
 # define M_2_SQRTPIf64x	__f64x (1.128379167095512573896158903121545172) /* 2/sqrt(pi) */
 # define M_SQRT2f64x	__f64x (1.414213562373095048801688724209698079) /* sqrt(2) */
 # define M_SQRT1_2f64x	__f64x (0.707106781186547524400844362104849039) /* 1/sqrt(2) */
+# define M_1_SQRTPIf64x	__f64x (0.564189583547756286948079451560772535) /* 1/sqrt(pi) */
+# define M_EGAMMAf64x	__f64x (0.577215664901532860606512090082402374) /* y (Euler-Mascheroni constant) */
+# define M_PHIf64x	__f64x (1.618033988749894848204586834365637967) /* golden ratio constant */
 #endif
 
 #if __HAVE_FLOAT128X && defined __USE_GNU
