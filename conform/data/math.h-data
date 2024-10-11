@@ -38,6 +38,8 @@ constant M_SQRT1_2
 constant M_1_SQRTPI
 constant M_EGAMMA
 constant M_PHI
+constant M_SQRT3
+constant M_SQRT1_3
 
 constant MAXFLOAT
 # endif
