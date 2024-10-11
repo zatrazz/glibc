@@ -63,7 +63,6 @@
 #define SIGIOT		SIGABRT	/* IOT instruction, abort() on a PDP-11.  */
 #define SIGCLD		SIGCHLD	/* Old System V name */
 
-#define __SIGRTMIN	32
-#define __SIGRTMAX	64
+#include <bits/sig_lim.h>
 
 #endif	/* <signal.h> included.  */

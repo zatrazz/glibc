@@ -59,7 +59,6 @@
 #define SIGCLD		SIGCHLD	/* Old System V name */
 
 /* No real-time signals are supported.  */
-#define __SIGRTMIN	32
-#define __SIGRTMAX	__SIGRTMIN
+#include <bits/sig_lim.h>
 
 #endif

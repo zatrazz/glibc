@@ -58,8 +58,6 @@
 #define SIGIOT		SIGABRT	/* IOT instruction, abort() on a PDP-11.  */
 #define SIGCLD		SIGCHLD /* Old System V name */
 
-/* By default no real-time signals are supported.  */
-#define __SIGRTMIN	32
-#define __SIGRTMAX	127
+#include <bits/sig_lim.h>
 
 #endif	/* <signal.h> included.  */

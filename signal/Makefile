@@ -28,6 +28,7 @@ headers := \
   bits/sigevent-consts.h \
   bits/siginfo-consts.h \
   bits/signal_ext.h \
+  bits/sig_lim.h \
   bits/signum-arch.h \
   bits/signum-generic.h \
   bits/sigstack.h \

@@ -204,5 +204,7 @@
 #endif
 
 #ifdef __USE_XOPEN2K24
+# include <bits/sig_lim.h>
 # define GETENTROPY_MAX 256
+# define NSIG_MAX (__SIGRTMAX + 1)
 #endif
