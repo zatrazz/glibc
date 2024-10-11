@@ -202,3 +202,7 @@
 #ifdef	__USE_XOPEN
 # include <bits/xopen_lim.h>
 #endif
+
+#ifdef __USE_XOPEN2K24
+# define GETENTROPY_MAX 256
+#endif

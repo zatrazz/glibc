@@ -27,9 +27,7 @@
 int
 getentropy (void *buffer, size_t length)
 {
-  /* The interface is documented to return EIO for buffer lengths
-     longer than 256 bytes.  */
-  if (length > 256)
+  if (length > GETENTROPY_MAX)
     return __hurd_fail (EIO);
 
   /* Try to fill the buffer completely.  Even with the 256 byte limit
