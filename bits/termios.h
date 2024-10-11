@@ -20,6 +20,10 @@
 # error "Never include <bits/termios.h> directly; use <termios.h> instead."
 #endif
 
+#ifdef __USE_XOPEN2K24
+# include <bits/termios-winsize.h>
+#endif
+
 /* These macros are also defined in some <bits/ioctls.h> files (with
    numerically identical values), but this serves to shut up cpp's
    complaining. */

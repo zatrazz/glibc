@@ -11,4 +11,7 @@ libc {
     # t*
     tcgetsid;
   }
+  GLIBC_2.41 {
+    tcgetwinsize; tcsetwinsize;
+  }
 }

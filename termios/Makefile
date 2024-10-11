@@ -40,9 +40,11 @@ routines := \
   tcgetattr \
   tcgetpgrp \
   tcgetsid \
+  tcgetwinsize \
   tcsendbrk \
   tcsetattr \
   tcsetpgrp \
+  tcsetwinsize \
 # routines
 
 include ../Rules

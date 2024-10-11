@@ -28,6 +28,9 @@ typedef unsigned int	tcflag_t;
 #include <bits/termios-c_cc.h>
 #include <bits/termios-c_iflag.h>
 #include <bits/termios-c_oflag.h>
+#ifdef __USE_XOPEN2K24
+# include <bits/termios-winsize.h>
+#endif
 
 /* c_cflag bit meaning */
 #define  B0	0000000		/* hang up */

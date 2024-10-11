@@ -2878,3 +2878,5 @@ GLIBC_2.41 sched_getattr F
 GLIBC_2.41 sched_setattr F
 GLIBC_2.41 sig2str F
 GLIBC_2.41 str2sig F
+GLIBC_2.41 tcgetwinsize F
+GLIBC_2.41 tcsetwinsize F

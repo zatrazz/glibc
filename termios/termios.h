@@ -100,6 +100,14 @@ extern __pid_t tcgetsid (int __fd) __THROW;
 #endif
 
 
+#ifdef __USE_XOPEN2K24
+extern int tcgetwinsize (int __fd, struct winsize *__wsz)
+     __THROW __nonnull ((2));
+extern int tcsetwinsize (int __fd, const struct winsize *__wsz)
+     __THROW __nonnull ((2));
+#endif
+
+
 #ifdef __USE_MISC
 # include <sys/ttydefaults.h>
 #endif
