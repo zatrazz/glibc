@@ -186,6 +186,11 @@ enum
 #define PTHREAD_ONCE_INIT 0
 
 
+/* A value that shall not compare equal to the thread ID of any existing
+   thread.  */
+#define PTHREAD_NULL ((void *) 0)
+
+
 #ifdef __USE_XOPEN2K
 /* Value returned by 'pthread_barrier_wait' for one of the threads after
    the required number of threads have called this function.
