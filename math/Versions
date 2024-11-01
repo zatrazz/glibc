@@ -646,11 +646,13 @@ libm {
     log2p1; log2p1f; log2p1l; log2p1f32; log2p1f64; log2p1f32x;
     log10p1; log10p1f; log10p1l; log10p1f32; log10p1f64; log10p1f32x;
     logp1; logp1f; logp1l; logp1f32; logp1f64; logp1f32x;
+    rsqrt; rsqrtf; rsqrtl; rsqrtf32; rsqrtf64; rsqrtf32x;
     # Functions involving _Float64x or _Float128, for some configurations.
     exp2m1f64x; exp2m1f128;
     exp10m1f64x; exp10m1f128;
     log2p1f64x; log2p1f128;
     log10p1f64x; log10p1f128;
     logp1f64x; logp1f128;
+    rsqrtf64x; rsqrtf128;
   }
 }

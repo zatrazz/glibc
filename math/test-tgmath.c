@@ -48,7 +48,7 @@ volatile int count_cdouble;
 volatile int count_cfloat;
 volatile int count_cldouble;
 
-#define NCALLS     168
+#define NCALLS     170
 #define NCALLS_INT 4
 #define NCCALLS    47
 
@@ -305,6 +305,7 @@ F(compile_test) (void)
   b = fmaximum_mag_num (fmaximum_mag_num (a, x), fmaximum_mag_num (c, b));
   a = fminimum_mag_num (fminimum_mag_num (x, a), fminimum_mag_num (c, b));
   b = fma (sin (a), sin (x), sin (c));
+  b = rsqrt (rsqrt (a));
 
 #ifdef TEST_INT
   a = atan2 (i, b);
@@ -422,6 +423,7 @@ F(compile_test) (void)
       a = fmaximum_mag_num (y, y);
       a = fminimum_mag_num (y, y);
       a = fma (y, y, y);
+      a = rsqrt (y);
 
 #ifdef TEST_INT
       a = atan2 (i, y);
@@ -701,6 +703,14 @@ TYPE
 
 TYPE
 (F(sqrt)) (TYPE x)
+{
+  ++count;
+  P ();
+  return x;
+}
+
+TYPE
+(F(rsqrt)) (TYPE x)
 {
   ++count;
   P ();

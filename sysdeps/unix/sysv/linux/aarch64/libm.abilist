@@ -1189,3 +1189,11 @@ GLIBC_2.40 logp1f32x F
 GLIBC_2.40 logp1f64 F
 GLIBC_2.40 logp1f64x F
 GLIBC_2.40 logp1l F
+GLIBC_2.40 rsqrt F
+GLIBC_2.40 rsqrtf F
+GLIBC_2.40 rsqrtf128 F
+GLIBC_2.40 rsqrtf32 F
+GLIBC_2.40 rsqrtf32x F
+GLIBC_2.40 rsqrtf64 F
+GLIBC_2.40 rsqrtf64x F
+GLIBC_2.40 rsqrtl F
