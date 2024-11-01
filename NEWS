@@ -38,6 +38,13 @@ Major new features:
   liable to change.  Features from C2Y are also enabled by _GNU_SOURCE, or
   by compiling with "gcc -std=gnu2y".
 
+* The following ISO C23 function families (introduced in TS
+  18661-4:2015) are now supported in <math.h>.  Each family includes
+  functions for float, double, long double, _FloatN and _FloatNx, and a
+  type-generic macro in <tgmath.h>.
+
+  - Power and absolute-value functions: rsqrt.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The big-endian ARC port (arceb-linux-gnu) has been removed.

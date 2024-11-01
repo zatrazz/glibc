@@ -133,6 +133,7 @@ gen-libm-calls = \
   s_log2p1F \
   s_nanF \
   s_nextdownF \
+  s_rsqrtF \
   s_significandF \
   w_acosF \
   w_acoshF \
@@ -662,6 +663,7 @@ libm-test-funcs-auto = \
   log1p \
   log2p1 \
   pow \
+  rsqrt \
   sin \
   sincos \
   sinh \
@@ -990,6 +992,7 @@ tgmath3-macros = \
   rint \
   round \
   roundeven \
+  rsqrt \
   scalb \
   scalbln \
   scalbn \

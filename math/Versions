@@ -653,4 +653,10 @@ libm {
     log10p1f64x; log10p1f128;
     logp1f64x; logp1f128;
   }
+  GLIBC_2.41 {
+    # Functions not involving _Float64x or _Float128, for all configurations.
+    rsqrt; rsqrtf; rsqrtl; rsqrtf32; rsqrtf64; rsqrtf32x;
+    # Functions involving _Float64x or _Float128, for some configurations.
+    rsqrtf64x; rsqrtf128;
+  }
 }

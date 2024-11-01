@@ -757,6 +757,7 @@ class Tests(object):
         self.add_tests('fminimum_mag', 'r', ['r', 'r'])
         self.add_tests('fminimum_num', 'r', ['r', 'r'])
         self.add_tests('fminimum_mag_num', 'r', ['r', 'r'])
+        self.add_tests('rsqrt', 'r', ['r'])
         # Miscellaneous functions.
         self.add_tests('scalb', 's', ['s', 's'])
 

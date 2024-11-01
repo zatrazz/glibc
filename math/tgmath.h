@@ -1075,6 +1075,9 @@
 /* Return numeric value with minimum magnitude.  */
 # define fminimum_mag_num(Val1, Val2)				\
   __TGMATH_BINARY_REAL_ONLY (Val1, Val2, fminimum_mag_num)
+
+/* Return reciprocal of the nonnegative square root of the argument.  */
+# define rsqrt(Val) __TGMATH_UNARY_REAL_ONLY (Val, rsqrt)
 #endif
 
 

@@ -674,6 +674,20 @@ do that, so instead it signals a domain error. @code{pow} may also
 underflow or overflow the destination type.
 @end deftypefun
 
+@cindex reciprocal square root function
+@deftypefun double rsqrt (double @var{x})
+@deftypefunx float rsqrtf (float @var{x})
+@deftypefunx {long double} rsqrtl (long double @var{x})
+@deftypefunx _FloatN rsqrtfN (_Float@var{N} @var{x})
+@deftypefunx _FloatNx rsqrtfNx (_Float@var{N}x @var{x})
+@standards{TS 18661-4:2015, math.h}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+These functions return the reciprocal of nonnegative square root of @var{x}.
+
+If @var{x} is negative, @code{sqrt} signals a domain error.
+Mathematically, it should return a complex number.
+@end deftypefun
+
 @cindex square root function
 @deftypefun double sqrt (double @var{x})
 @deftypefunx float sqrtf (float @var{x})
