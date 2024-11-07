@@ -93,6 +93,7 @@ gen-libm-calls = \
   e_scalbF \
   k_casinhF \
   k_casinhF \
+  s_acospiF \
   s_cacosF  \
   s_cacoshF \
   s_canonicalizeF \
@@ -615,6 +616,7 @@ $(objpfx)libm-test-ulps.h: $(ulps-file) gen-libm-test.py
 libm-test-funcs-auto = \
   acos \
   acosh \
+  acospi \
   asin \
   asinh \
   atan \
@@ -921,6 +923,7 @@ tgmath3-macros = \
   $(tgmath3-narrow-macros) \
   acos \
   acosh \
+  acospi \
   asin \
   asinh \
   atan \

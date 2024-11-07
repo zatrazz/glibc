@@ -1078,6 +1078,9 @@
 
 /* Return reciprocal of the nonnegative square root of the argument.  */
 # define rsqrt(Val) __TGMATH_UNARY_REAL_ONLY (Val, rsqrt)
+
+/* Arc cosine of X divided by pi.  */
+# define acospi(Val) __TGMATH_UNARY_REAL_ONLY (Val, acospi)
 #endif
 
 

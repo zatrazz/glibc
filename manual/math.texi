@@ -364,6 +364,23 @@ over the domain @code{-1} to @code{1}.  If @var{x} is outside the
 domain, @code{acos} signals a domain error.
 @end deftypefun
 
+@deftypefun double acospi (double @var{x})
+@deftypefunx float acospif (float @var{x})
+@deftypefunx {long double} acospil (long double @var{x})
+@deftypefunx _FloatN acospifN (_Float@var{N} @var{x})
+@deftypefunx _FloatNx acospifNx (_Float@var{N}x @var{x})
++@standards{TS 18661-4:2015, math.h}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+These functions compute the arccosine of @var{x}---that is, the value
+whose cosine is @var{x}.  The value is in units of pi.
+Mathematically, there are infinitely many such values; the one actually
+returned is the one between @code{0} and @code{1} (inclusive).
+
+The arccosine function is defined mathematically only
+over the domain @code{-1} to @code{1}.  If @var{x} is outside the
+domain, @code{acospi} signals a do1main error.
+@end deftypefun
+
 @deftypefun double atan (double @var{x})
 @deftypefunx float atanf (float @var{x})
 @deftypefunx {long double} atanl (long double @var{x})

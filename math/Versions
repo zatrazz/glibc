@@ -655,8 +655,10 @@ libm {
   }
   GLIBC_2.41 {
     # Functions not involving _Float64x or _Float128, for all configurations.
+    acospi; acospif; acospil; acospif32; acospif64; acospif32x;
     rsqrt; rsqrtf; rsqrtl; rsqrtf32; rsqrtf64; rsqrtf32x;
     # Functions involving _Float64x or _Float128, for some configurations.
+    acospif64x; acospif128;
     rsqrtf64x; rsqrtf128;
   }
 }
