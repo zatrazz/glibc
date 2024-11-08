@@ -106,6 +106,7 @@
 #define M_MAX __M_CONCATX (M_PFX, _MAX)
 #define M_MANT_DIG __M_CONCATX (M_PFX, _MANT_DIG)
 #define M_HUGE_VAL (M_SUF (__builtin_huge_val) ())
+#define M_TRUE_MIN __M_CONCATX (M_PFX, _TRUE_MIN)
 
 /* Helper macros for commonly used functions.  */
 #define M_COPYSIGN M_SUF (copysign)

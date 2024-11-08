@@ -345,6 +345,25 @@ over the domain @code{-1} to @code{1}.  If @var{x} is outside the
 domain, @code{asin} signals a domain error.
 @end deftypefun
 
+@deftypefun double asinpi (double @var{x})
+@deftypefunx float asinpif (float @var{x})
+@deftypefunx {long double} asinpil (long double @var{x})
+@deftypefunx _FloatN asinpifN (_Float@var{N} @var{x})
+@deftypefunx _FloatNx asinpifNx (_Float@var{N}x @var{x})
+@standards{ISO, math.h}
+@standardsx{asinpifN, TS 18661-3:2015, math.h}
+@standardsx{asinpifNx, TS 18661-3:2015, math.h}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+These functions compute the arcsine of @var{x}---that is, the value whose
+sine is @var{x}.  The value is in units of pi.  Mathematically,
+there are infinitely many such values; the one actually returned is the
+one between @code{-1/2} and @code{1/2} (inclusive).
+
+The arcsine function is defined mathematically only
+over the domain @code{-1} to @code{1}.  If @var{x} is outside the
+domain, @code{asinpi} signals a domain error.
+@end deftypefun
+
 @deftypefun double acos (double @var{x})
 @deftypefunx float acosf (float @var{x})
 @deftypefunx {long double} acosl (long double @var{x})

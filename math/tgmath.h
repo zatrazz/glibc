@@ -1081,6 +1081,9 @@
 
 /* Arc cosine of X divided by pi.  */
 # define acospi(Val) __TGMATH_UNARY_REAL_ONLY (Val, acospi)
+
+/* Arc sine of X divided by pi.  */
+# define asinpi(Val) __TGMATH_UNARY_REAL_ONLY (Val, asinpi)
 #endif
 
 

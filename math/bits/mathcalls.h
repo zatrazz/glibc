@@ -423,6 +423,9 @@ __MATHCALLX (fminimum_mag_num,, (_Mdouble_ __x, _Mdouble_ __y), (__const__));
 /* Arc cosine of X divided by PI.  */
 __MATHCALL (acospi,, (_Mdouble_ __x));
 
+/* Arc sine of X divided by PI.  */
+__MATHCALL (asinpi,, (_Mdouble_ __x));
+
 /* Return reciprocal of the nonnegative square root of the argument.  */
 __MATHCALL (rsqrt,, (_Mdouble_ __x));
 #endif
