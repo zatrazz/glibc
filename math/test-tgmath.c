@@ -48,7 +48,7 @@ volatile int count_cdouble;
 volatile int count_cfloat;
 volatile int count_cldouble;
 
-#define NCALLS     174
+#define NCALLS     176
 #define NCALLS_INT 4
 #define NCCALLS    47
 
@@ -308,6 +308,7 @@ F(compile_test) (void)
   b = rsqrt (rsqrt (a));
   a = acospi (acospi (a));
   a = asinpi (asinpi (a));
+  a = atanpi (atanpi (a));
 
 #ifdef TEST_INT
   a = atan2 (i, b);
@@ -428,6 +429,7 @@ F(compile_test) (void)
       a = rsqrt (y);
       a = acospi (y);
       a = asinpi (y);
+      a = atanpi (y);
 
 #ifdef TEST_INT
       a = atan2 (i, y);
@@ -579,6 +581,14 @@ TYPE
 
 TYPE
 (F(asinpi)) (TYPE x)
+{
+  ++count;
+  P ();
+  return x;
+}
+
+TYPE
+(F(atanpi)) (TYPE x)
 {
   ++count;
   P ();

@@ -95,6 +95,7 @@ gen-libm-calls = \
   k_casinhF \
   s_acospiF \
   s_asinpiF \
+  s_atanpiF \
   s_cacosF  \
   s_cacoshF \
   s_canonicalizeF \
@@ -624,6 +625,7 @@ libm-test-funcs-auto = \
   atan \
   atan2 \
   atanh \
+  atanpi \
   cabs \
   cacos \
   cacosh \
@@ -932,6 +934,7 @@ tgmath3-macros = \
   atan \
   atan2 \
   atanh \
+  atanpi \
   carg \
   cbrt \
   ceil \

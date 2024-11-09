@@ -426,6 +426,9 @@ __MATHCALL (acospi,, (_Mdouble_ __x));
 /* Arc sine of X divided by PI.  */
 __MATHCALL (asinpi,, (_Mdouble_ __x));
 
+/* Arc tangent of X divided by PI.  */
+__MATHCALL (atanpi,, (_Mdouble_ __x));
+
 /* Return reciprocal of the nonnegative square root of the argument.  */
 __MATHCALL (rsqrt,, (_Mdouble_ __x));
 #endif

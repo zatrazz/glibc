@@ -751,6 +751,7 @@ class Tests(object):
         # C23 functions.
         self.add_tests('acospi', 'r', ['r'])
         self.add_tests('asinpi', 'r', ['r'])
+        self.add_tests('atanpi', 'r', ['r'])
         self.add_tests('fmaximum', 'r', ['r', 'r'])
         self.add_tests('fmaximum_mag', 'r', ['r', 'r'])
         self.add_tests('fmaximum_num', 'r', ['r', 'r'])

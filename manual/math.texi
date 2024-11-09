@@ -415,6 +415,19 @@ Mathematically, there are infinitely many such values; the one actually
 returned is the one between @code{-pi/2} and @code{pi/2} (inclusive).
 @end deftypefun
 
+@deftypefun double atanpi (double @var{x})
+@deftypefunx float atanpif (float @var{x})
+@deftypefunx {long double} atanpil (long double @var{x})
+@deftypefunx _FloatN atanpifN (_Float@var{N} @var{x})
+@deftypefunx _FloatNx atanpifNx (_Float@var{N}x @var{x})
+@standards{TS 18661-4:2015, math.h}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+These functions compute the arctangent of @var{x}---that is, the value
+whose tangent is @var{x}.  The value is in units of @code{pi}.
+Mathematically, there are infinitely many such values; the one actually
+returned is the one between @code{-1/2} and @code{1/2} (inclusive).
+@end deftypefun
+
 @deftypefun double atan2 (double @var{y}, double @var{x})
 @deftypefunx float atan2f (float @var{y}, float @var{x})
 @deftypefunx {long double} atan2l (long double @var{y}, long double @var{x})

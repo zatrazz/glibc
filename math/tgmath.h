@@ -1084,6 +1084,9 @@
 
 /* Arc sine of X divided by pi.  */
 # define asinpi(Val) __TGMATH_UNARY_REAL_ONLY (Val, asinpi)
+
+/* Arc tangent of X divided by pi.  */
+# define atanpi(Val) __TGMATH_UNARY_REAL_ONLY (Val, atanpi)
 #endif
 
 

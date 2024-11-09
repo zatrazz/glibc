@@ -44,7 +44,7 @@ Major new features:
   type-generic macro in <tgmath.h>.
 
   - Power and absolute-value functions: rsqrt.
-  - Trigonometric functions: acospi, asinpi.
+  - Trigonometric functions: acospi, asinpi, atanpi.
 
 Deprecated and removed features, and other changes affecting compatibility:
 
