@@ -51,7 +51,6 @@ ldouble: 3
 
 Function: "asin":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "asin_advsimd":
@@ -60,7 +59,6 @@ float: 2
 
 Function: "asin_downward":
 double: 1
-float: 1
 ldouble: 2
 
 Function: "asin_sve":
@@ -69,12 +67,10 @@ float: 2
 
 Function: "asin_towardzero":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "asin_upward":
 double: 2
-float: 1
 ldouble: 2
 
 Function: "asinh":
