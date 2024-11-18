@@ -53,19 +53,15 @@ Function: "atan":
 double: 1
 
 Function: "atan2":
-float: 2
 
 Function: "atan2_downward":
 double: 1
-float: 2
 
 Function: "atan2_towardzero":
 double: 1
-float: 2
 
 Function: "atan2_upward":
 double: 1
-float: 2
 
 Function: "atan_downward":
 double: 1

@@ -14,7 +14,6 @@ double: 1
 Function: "atan":
 
 Function: "atan2":
-float: 1
 
 Function: "atanh":
 double: 2

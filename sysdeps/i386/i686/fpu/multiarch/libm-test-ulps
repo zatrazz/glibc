@@ -91,19 +91,16 @@ ldouble: 1
 
 Function: "atan2_downward":
 double: 1
-float: 1
 float128: 2
 ldouble: 1
 
 Function: "atan2_towardzero":
 double: 1
-float: 1
 float128: 3
 ldouble: 1
 
 Function: "atan2_upward":
 double: 1
-float: 1
 float128: 2
 ldouble: 1
 
