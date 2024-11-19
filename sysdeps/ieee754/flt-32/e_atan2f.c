@@ -121,7 +121,7 @@ __ieee754_atan2f (float y, float x)
       /* we use x+y below so that the invalid exception is set
 	 for (x,y) = (qnan,snan) or (snan,qnan) */
       if (ay > (0xff << 23))
-	return y + y; /* nan */
+	return x + y; /* nan */
       if (ax > (0xff << 23))
 	return x + y; /* nan */
       bool yinf = ay == (0xff << 23);
