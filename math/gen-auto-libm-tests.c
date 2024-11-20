@@ -1814,8 +1814,7 @@ output_for_one_input_case (FILE *fp, const char *filename, test_function *tf,
       switch (generic_outputs[i].type)
 	{
 	case gtype_fp:
-	  if (!mpfr_number_p (generic_outputs[i].value.f))
-	    goto out; /* Result is NaN or exact infinity.  */
+	  /* Result is NaN or exact infinity.  */
 	  break;
 
 	case gtype_int:
@@ -2279,7 +2278,6 @@ output_for_one_input_case (FILE *fp, const char *filename, test_function *tf,
 	    }
 	}
     }
- out:
   for (size_t i = 0; i < tf->num_ret; i++)
     generic_value_free (&generic_outputs[i]);
 }
