@@ -40,12 +40,14 @@
    empty lines.
 
    Other lines are test lines, of the form "function input1 input2
-   ... [flag1 flag2 ...]".  Inputs are either finite real numbers or
-   integers, depending on the function under test.  Real numbers may
-   be in any form acceptable to mpfr_strtofr (base 0); integers in any
-   form acceptable to mpz_set_str (base 0).  In addition, real numbers
-   may be certain special strings such as "pi", as listed in the
-   special_real_inputs array.
+   ... [flag1 flag2 ...]".  Inputs are either finite real numbers,
+   positive or negative infinite (in the form of "inf" or "-inf"), or
+   integers, depending on the function under test.  Real numbers may be
+   in any form acceptable to mpfr_strtofr  (base 0), infinite may in any
+   form acceptable to mpfr_set_inf, and integers in any form acceptable
+   to mpz_set_str (base 0).  In addition, real numbers may be certain
+   special strings such as "pi", as listed in the special_real_inputs
+   array.
 
    Each flag is a flag name possibly followed by a series of
    ":condition".  Conditions may be any of the names of floating-point
@@ -983,6 +985,26 @@ special_fill_e_minus_1 (mpfr_t res0, mpfr_t res1, fp_format format)
   return 2;
 }
 
+/* Set the precision of RES0 based on FORMAT and initialize as an
+   infinite number.  */
+static size_t
+special_fill_inf (mpfr_t res0, mpfr_t res1 __attribute__ ((unused)),
+		  fp_format format)
+{
+  mpfr_init2 (res0, fp_formats[format].mant_dig);
+  mpfr_set_inf (res0, 0);
+  return 1;
+}
+
+static size_t
+special_fill_minus_inf (mpfr_t res0, mpfr_t res1 __attribute__ ((unused)),
+			fp_format format)
+{
+  mpfr_init2 (res0, fp_formats[format].mant_dig);
+  mpfr_set_inf (res0, -1);
+  return 1;
+}
+
 /* A special string accepted in input arguments.  */
 typedef struct
 {
@@ -1018,6 +1040,8 @@ static const special_real_input special_real_inputs[] =
     { "e", special_fill_e },
     { "1/e", special_fill_1_e },
     { "e-1", special_fill_e_minus_1 },
+    { "inf", special_fill_inf },
+    { "-inf", special_fill_minus_inf },
   };
 
 /* Given a real number R computed in round-to-zero mode, set the
@@ -1064,7 +1088,6 @@ round_real (mpfr_t res[rm_num_modes],
 	    unsigned int exc_after[rm_num_modes],
 	    mpfr_t r, fp_format format)
 {
-  assert (mpfr_number_p (r));
   for (rounding_mode m = rm_first_mode; m < rm_num_modes; m++)
     {
       mpfr_init2 (res[m], fp_formats[format].mant_dig);
