@@ -394,6 +394,8 @@ asinh -min_subnorm
 asinh max
 asinh -max
 
+atan inf
+atan -inf
 atan 0
 atan -0
 atan max
