@@ -38,6 +38,11 @@ Major new features:
   liable to change.  Features from C2Y are also enabled by _GNU_SOURCE, or
   by compiling with "gcc -std=gnu2y".
 
+* A new tunable, glibc.rtld.execstack, can be used to control whether
+  executable stacks are allowed from main program, either implicitly due
+  a mising GNU_STACK ELF header or explicit explicitly because of the
+  executable bit in GNU_STACK.  The default is to allow executable stacks.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The big-endian ARC port (arceb-linux-gnu) has been removed.
