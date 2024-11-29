@@ -653,4 +653,8 @@ libm {
     log10p1f64x; log10p1f128;
     logp1f64x; logp1f128;
   }
+  GLIBC_2.41 {
+    # No SVID compatible error handling.
+    log10f; log10f32;
+  }
 }
