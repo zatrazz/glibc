@@ -670,5 +670,7 @@ libm {
     cospif64x; cospif128;
     sinpif64x; sinpif128;
     tanpif64x; tanpif128;
+    # No SVID compatible error handling.
+    log10f;
   }
 }
