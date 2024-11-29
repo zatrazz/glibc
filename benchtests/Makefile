@@ -355,7 +355,7 @@ $(addprefix $(objpfx)bench-,pthread-mutex-locks): $(libm-benchtests)
 
 # We don't want the benchmark programs to run in parallel since that could
 # affect their performance.
-#.NOTPARALLEL:
+.NOTPARALLEL:
 
 bench-extra-objs = json-lib.o
 

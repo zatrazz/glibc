@@ -660,5 +660,7 @@ libm {
     # Functions involving _Float64x or _Float128, for some configurations.
     cospif64x; cospif128;
     sinpif64x; sinpif128;
+    # No SVID compatible error handling.
+    log10f;
   }
 }
