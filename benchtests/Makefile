@@ -79,6 +79,7 @@ bench-math := \
   j1 \
   lgamma \
   lgammaf \
+  lgammaf_r \
   llrint \
   llrintf \
   log \
@@ -354,7 +355,7 @@ $(addprefix $(objpfx)bench-,pthread-mutex-locks): $(libm-benchtests)
 
 # We don't want the benchmark programs to run in parallel since that could
 # affect their performance.
-.NOTPARALLEL:
+#.NOTPARALLEL:
 
 bench-extra-objs = json-lib.o
 
