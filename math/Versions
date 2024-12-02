@@ -656,5 +656,6 @@ libm {
   GLIBC_2.41 {
     # No SVID compatible error handling.
     log10f; log10f32;
+    lgammaf; lgammaf_r; lgammaf32;
   }
 }
