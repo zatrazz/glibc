@@ -672,5 +672,6 @@ libm {
     tanpif64x; tanpif128;
     # No SVID compatible error handling.
     log10f;
+    lgammaf; lgammaf_r;
   }
 }
