@@ -662,5 +662,6 @@ libm {
     sinpif64x; sinpif128;
     # No SVID compatible error handling.
     log10f;
+    lgammaf; lgammaf_r;
   }
 }
