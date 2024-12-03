@@ -1369,6 +1369,7 @@ GLIBC_2.40 logp1l F
 GLIBC_2.41 __cospiieee128 F
 GLIBC_2.41 __sinpiieee128 F
 GLIBC_2.41 acosf F
+GLIBC_2.41 acoshf F
 GLIBC_2.41 asinf F
 GLIBC_2.41 cospi F
 GLIBC_2.41 cospif F
