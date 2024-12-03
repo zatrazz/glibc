@@ -27,6 +27,8 @@ SOFTWARE.
 #include <math.h>
 #include <stdint.h>
 #include <libm-alias-finite.h>
+#include <libm-alias-float.h>
+#include <math-svid-compat.h>
 #include "math_config.h"
 
 static __attribute__ ((noinline)) float
@@ -43,7 +45,7 @@ as_special (float x)
 }
 
 float
-__ieee754_acoshf (float x)
+__acoshf (float x)
 {
   static const double ix[] =
     {
@@ -198,4 +200,11 @@ __ieee754_acoshf (float x)
   else
     return as_special (x);
 }
+strong_alias (__acoshf, __ieee754_acoshf)
+#if LIBM_SVID_COMPAT
+versioned_symbol (libm, __acoshf, acoshf, GLIBC_2_41);
+libm_alias_float_other (__acosh, acosh)
+#else
+libm_alias_float (__acosh, acosh)
+#endif
 libm_alias_finite (__ieee754_acoshf, __acoshf)
