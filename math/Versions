@@ -659,5 +659,6 @@ libm {
     lgammaf; lgammaf_r; lgammaf32;
     acosf; acosf32;
     asinf; asinf32;
+    acoshf; acoshf32;
   }
 }
