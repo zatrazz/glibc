@@ -666,5 +666,6 @@ libm {
     acosf;
     asinf;
     acoshf;
+    atan2f;
   }
 }
