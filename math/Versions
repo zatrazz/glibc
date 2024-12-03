@@ -674,5 +674,6 @@ libm {
     log10f;
     lgammaf; lgammaf_r;
     acosf;
+    asinf;
   }
 }
