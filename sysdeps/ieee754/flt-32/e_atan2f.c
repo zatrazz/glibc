@@ -28,6 +28,8 @@ SOFTWARE.
 #include <math.h>
 #include <stdint.h>
 #include <libm-alias-finite.h>
+#include <libm-alias-float.h>
+#include <math-svid-compat.h>
 #include "math_config.h"
 
 static inline double
@@ -88,7 +90,7 @@ cr_atan2f_tiny (float y, float x)
 }
 
 float
-__ieee754_atan2f (float y, float x)
+__atan2f (float y, float x)
 {
   static const double cn[] =
     {
@@ -270,4 +272,11 @@ __ieee754_atan2f (float y, float x)
     }
   return r;
 }
+strong_alias (__atan2f, __ieee754_atan2f)
+#if LIBM_SVID_COMPAT
+versioned_symbol (libm, __atan2f, atan2f, GLIBC_2_41);
+libm_alias_float_other (__atan2, atan2)
+#else
+libm_alias_float (__atan2, atan2)
+#endif
 libm_alias_finite (__ieee754_atan2f, __atan2f)
