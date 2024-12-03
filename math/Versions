@@ -663,5 +663,6 @@ libm {
     atan2f; atan2f32;
     atanhf; atanhf32;
     coshf; coshf32;
+    sinhf; sinhf32;
   }
 }

@@ -27,11 +27,13 @@ SOFTWARE.
 #include <math.h>
 #include <stdint.h>
 #include <libm-alias-finite.h>
+#include <libm-alias-float.h>
+#include <math-svid-compat.h>
 #include <math-narrow-eval.h>
 #include "math_config.h"
 
 float
-__ieee754_sinhf (float x)
+__sinhf (float x)
 {
   static const double c[] =
     {
@@ -126,4 +128,11 @@ __ieee754_sinhf (float x)
     }
   return ub;
 }
+strong_alias (__sinhf, __ieee754_sinhf)
+#if LIBM_SVID_COMPAT
+versioned_symbol (libm, __sinhf, sinhf, GLIBC_2_41);
+libm_alias_float_other (__sinh, sinh)
+#else
+libm_alias_float (__sinh, sinh)
+#endif
 libm_alias_finite (__ieee754_sinhf, __sinhf)
