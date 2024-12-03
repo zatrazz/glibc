@@ -1374,6 +1374,7 @@ GLIBC_2.41 __cospiieee128 F
 GLIBC_2.41 __sinpiieee128 F
 GLIBC_2.41 __tanpiieee128 F
 GLIBC_2.41 acosf F
+GLIBC_2.41 acoshf F
 GLIBC_2.41 acospi F
 GLIBC_2.41 acospif F
 GLIBC_2.41 acospif128 F
