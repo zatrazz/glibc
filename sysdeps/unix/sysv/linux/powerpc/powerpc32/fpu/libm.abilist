@@ -1029,6 +1029,7 @@ GLIBC_2.41 acosf F
 GLIBC_2.41 acoshf F
 GLIBC_2.41 asinf F
 GLIBC_2.41 atan2f F
+GLIBC_2.41 atanhf F
 GLIBC_2.41 lgammaf F
 GLIBC_2.41 lgammaf32 F
 GLIBC_2.41 lgammaf_r F
