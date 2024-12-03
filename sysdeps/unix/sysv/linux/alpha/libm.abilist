@@ -1348,6 +1348,7 @@ GLIBC_2.40 logp1f32x F
 GLIBC_2.40 logp1f64 F
 GLIBC_2.40 logp1f64x F
 GLIBC_2.40 logp1l F
+GLIBC_2.41 acosf F
 GLIBC_2.41 lgammaf F
 GLIBC_2.41 lgammaf32 F
 GLIBC_2.41 lgammaf_r F

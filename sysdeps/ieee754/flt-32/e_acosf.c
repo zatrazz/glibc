@@ -28,6 +28,8 @@ SOFTWARE.
 #include <math.h>
 #include <math_private.h>
 #include <libm-alias-finite.h>
+#include <libm-alias-float.h>
+#include <math-svid-compat.h>
 #include "math_config.h"
 
 static __attribute__ ((noinline)) float
@@ -64,7 +66,7 @@ poly12 (double z, const double *c)
 }
 
 float
-__ieee754_acosf (float x)
+__acosf (float x)
 {
   const double pi2 = 0x1.921fb54442d18p+0;
   static const double o[] = { 0, 0x1.921fb54442d18p+1 };
@@ -132,4 +134,11 @@ __ieee754_acosf (float x)
     }
   return r;
 }
+strong_alias (__acosf, __ieee754_acosf)
+#if LIBM_SVID_COMPAT
+versioned_symbol (libm, __acosf, acosf, GLIBC_2_41);
+libm_alias_float_other (__acos, acos)
+#else
+libm_alias_float (__acos, acos)
+#endif
 libm_alias_finite (__ieee754_acosf, __acosf)

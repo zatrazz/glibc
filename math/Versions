@@ -657,5 +657,6 @@ libm {
     # No SVID compatible error handling.
     log10f; log10f32;
     lgammaf; lgammaf_r; lgammaf32;
+    acosf; acosf32;
   }
 }
