@@ -26,31 +26,6 @@ static const struct test_c_c_data clog_test_data[] =
     TEST_c_c (clog, 0, 0, minus_infty, 0.0, DIVIDE_BY_ZERO_EXCEPTION),
     TEST_c_c (clog, 0, minus_zero, minus_infty, minus_zero, DIVIDE_BY_ZERO_EXCEPTION),
 
-    TEST_c_c (clog, minus_infty, plus_infty, plus_infty, lit_pi_3_m_4_d),
-    TEST_c_c (clog, minus_infty, minus_infty, plus_infty, -lit_pi_3_m_4_d),
-
-    TEST_c_c (clog, plus_infty, plus_infty, plus_infty, lit_pi_4_d),
-    TEST_c_c (clog, plus_infty, minus_infty, plus_infty, -lit_pi_4_d),
-
-    TEST_c_c (clog, 0, plus_infty, plus_infty, lit_pi_2_d),
-    TEST_c_c (clog, 3, plus_infty, plus_infty, lit_pi_2_d),
-    TEST_c_c (clog, minus_zero, plus_infty, plus_infty, lit_pi_2_d),
-    TEST_c_c (clog, -3, plus_infty, plus_infty, lit_pi_2_d),
-    TEST_c_c (clog, 0, minus_infty, plus_infty, -lit_pi_2_d),
-    TEST_c_c (clog, 3, minus_infty, plus_infty, -lit_pi_2_d),
-    TEST_c_c (clog, minus_zero, minus_infty, plus_infty, -lit_pi_2_d),
-    TEST_c_c (clog, -3, minus_infty, plus_infty, -lit_pi_2_d),
-
-    TEST_c_c (clog, minus_infty, 0, plus_infty, lit_pi),
-    TEST_c_c (clog, minus_infty, 1, plus_infty, lit_pi),
-    TEST_c_c (clog, minus_infty, minus_zero, plus_infty, -lit_pi),
-    TEST_c_c (clog, minus_infty, -1, plus_infty, -lit_pi),
-
-    TEST_c_c (clog, plus_infty, 0, plus_infty, 0.0),
-    TEST_c_c (clog, plus_infty, 1, plus_infty, 0.0),
-    TEST_c_c (clog, plus_infty, minus_zero, plus_infty, minus_zero),
-    TEST_c_c (clog, plus_infty, -1, plus_infty, minus_zero),
-
     TEST_c_c (clog, plus_infty, qnan_value, plus_infty, qnan_value),
     TEST_c_c (clog, minus_infty, qnan_value, plus_infty, qnan_value),
 

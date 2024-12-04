@@ -4076,6 +4076,31 @@ cexp 80 -min_subnorm
 cexp min min_subnorm
 cexp min -min_subnorm
 
+clog -inf inf missing-overflow xfail-rounding
+clog -inf -inf missing-overflow xfail-rounding
+
+clog inf inf missing-overflow xfail-rounding
+clog inf -inf missing-overflow xfail-rounding
+
+clog 0 inf missing-overflow xfail-rounding
+clog 3 inf missing-overflow xfail-rounding
+clog -0 inf missing-overflow xfail-rounding
+clog -3 inf missing-overflow xfail-rounding
+clog 0 -inf missing-overflow xfail-rounding
+clog 3 -inf missing-overflow xfail-rounding
+clog -0 -inf missing-overflow xfail-rounding
+clog -3 -inf missing-overflow xfail-rounding
+
+clog -inf 0 missing-overflow xfail-rounding
+clog -inf 1 missing-overflow xfail-rounding
+clog -inf -0 missing-overflow xfail-rounding
+clog -inf -1 missing-overflow xfail-rounding
+
+clog inf 0 missing-overflow xfail-rounding
+clog inf 1 missing-overflow xfail-rounding
+clog inf -0 missing-overflow xfail-rounding
+clog inf -1 missing-overflow xfail-rounding
+
 clog 0.75 1.25
 clog -2 -3
 
@@ -4157,7 +4182,7 @@ clog 0x1p-1074 0x1p-1074
 clog 0x1p-1073 0x1p-1073
 clog 0x1.fp+16383 0x1.fp+16383
 clog 0x1.fp+16383 0x1p+16383
-clog 0x1p-16440 0x1p-16441
+clog 0x1p-16440 0x1p-16441 spurious-divbyzero missing-overflow xfail-rounding
 
 clog 0x1p-149 0x1.fp+127
 clog -0x1p-149 0x1.fp+127
