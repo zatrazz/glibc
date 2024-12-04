@@ -4263,6 +4263,25 @@ clog 0xfd95243681c055c2632286921092p-113 0x1bccabcd29ca2152860ec29e34ef7p-113
 clog 0xdb85c467ee2aadd5f425fe0f4b8dp-114 0x3e83162a0f95f1dcbf97dddf410eap-114
 clog 0x1415bcaf2105940d49a636e98ae59p-115 0x7e6a150adfcd1b0921d44b31f40f4p-115
 
+clog10 -inf inf missing-overflow xfail-rounding
+
+clog10 inf inf missing-overflow xfail-rounding
+clog10 inf -inf missing-overflow xfail-rounding
+
+clog10 0 inf missing-overflow xfail-rounding
+clog10 3 inf missing-overflow xfail-rounding
+clog10 -0 inf missing-overflow xfail-rounding
+clog10 -3 inf missing-overflow xfail-rounding
+clog10 0 -inf missing-overflow xfail-rounding
+clog10 3 -inf missing-overflow xfail-rounding
+clog10 -0 -inf missing-overflow xfail-rounding
+clog10 -3 -inf missing-overflow xfail-rounding
+
+clog10 -inf 0 missing-overflow xfail-rounding
+clog10 -inf 1 missing-overflow xfail-rounding
+clog10 -inf -0 missing-overflow xfail-rounding
+clog10 -inf -1 missing-overflow xfail-rounding
+
 clog10 0.75 1.25
 clog10 -2 -3
 
@@ -4350,7 +4369,7 @@ clog10 0x1p-1074 0x1p-1074
 clog10 0x1p-1073 0x1p-1073
 clog10 0x1.fp+16383 0x1.fp+16383
 clog10 0x1.fp+16383 0x1p+16383
-clog10 0x1p-16440 0x1p-16441
+clog10 0x1p-16440 0x1p-16441 spurious-divbyzero missing-overflow xfail-rounding
 
 clog10 0x1p-149 0x1.fp+127
 clog10 -0x1p-149 0x1.fp+127
