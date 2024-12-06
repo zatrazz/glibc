@@ -18,6 +18,10 @@ Major new features:
 
 * On Linux, the pthread_gettid_np function has been added.
 
+* On Linux, the mseal function has been added.  It allows to seal memory
+  mappings to avoid further change during process execution such as protection
+  permissions, unmapping, moving to another location, or shrinking the size.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
   [Add deprecations, removals and changes affecting compatibility here]
