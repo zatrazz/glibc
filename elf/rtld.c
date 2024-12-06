@@ -1248,6 +1248,9 @@ rtld_setup_main_map (struct link_map *main_map)
 	break;
       }
 
+  /* Update the sealing mode based on the tunable.  */
+  _dl_mseal_update_map (main_map, 0);
+
   /* Adjust the address of the TLS initialization image in case
      the executable is actually an ET_DYN object.  */
   if (main_map->l_tls_initimage != NULL)
@@ -1764,6 +1767,8 @@ dl_main (const ElfW(Phdr) *phdr,
 	_dl_process_pt_gnu_property (&_dl_rtld_map, -1, &rtld_phdr[cnt]);
 	break;
       }
+
+  _dl_mseal_update_map (&_dl_rtld_map, 0);
 
   /* Add the dynamic linker to the TLS list if it also uses TLS.  */
   if (_dl_rtld_map.l_tls_blocksize != 0)

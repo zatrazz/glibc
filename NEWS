@@ -81,6 +81,12 @@ Major new features:
   memory sealing by default if the toochain supports it.  A new configure
   option, --disable-default-memory-seal, disables it.
 
+* A new tunable, glibc.rtld.seal, can enable memory sealing on the program
+  and all its dependencies.  The tunable accepts two different values,
+  with '0' applying the GNU attribute GNU_PROPERTY_MEMORY_SEAL (if present),
+  or '1' to enforce sealing the program and its dependencies (including
+  preload, audit modules, and objects opened with RTLD_NODELETE).
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The big-endian ARC port (arceb-linux-gnu) has been removed.

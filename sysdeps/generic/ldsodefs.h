@@ -996,6 +996,12 @@ void _dl_relocate_object_no_relro (struct link_map *map,
 /* Protect PT_GNU_RELRO area.  */
 extern void _dl_protect_relro (struct link_map *map) attribute_hidden;
 
+/* The the sealing mode of MAP based on open MODE and on the rtld.seal
+   tunable.  */
+extern void _dl_mseal_update_map (struct link_map *map,
+				  int mode)
+     attribute_hidden;
+
 /* Issue memory sealing for the link map MAP.  If MAP is contiguous the
    whole region is sealed, otherwise iterate over the program headerrs and
    seal each PT_LOAD segment.i

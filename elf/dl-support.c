@@ -346,6 +346,8 @@ _dl_non_dynamic_init (void)
 	_dl_process_pt_gnu_property (&_dl_main_map, -1, &ph[-1]);
 	break;
       }
+   /* Update the sealing mode based on the tunable.  */
+   _dl_mseal_update_map (&_dl_main_map, 0);
 
   if ((__glibc_unlikely (GL(dl_stack_flags)) & PF_X)
       && TUNABLE_GET (glibc, rtld, execstack, int32_t, NULL) == 0)
