@@ -671,4 +671,8 @@ libm {
     sinpif64x; sinpif128;
     tanpif64x; tanpif128;
   }
+  GLIBC_2.42 {
+    # No SVID compatible error handling.
+    log10f;
+  }
 }
