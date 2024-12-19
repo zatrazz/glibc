@@ -677,5 +677,6 @@ libm {
     lgammaf; lgammaf_r;
     acosf;
     asinf;
+    acoshf;
   }
 }
