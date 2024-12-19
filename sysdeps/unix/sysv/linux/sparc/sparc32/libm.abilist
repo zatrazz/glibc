@@ -1355,3 +1355,4 @@ GLIBC_2.41 tanpif32x F
 GLIBC_2.41 tanpif64 F
 GLIBC_2.41 tanpif64x F
 GLIBC_2.41 tanpil F
+GLIBC_2.42 log10f F
