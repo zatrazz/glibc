@@ -1069,6 +1069,7 @@ GLIBC_2.41 tanpil F
 GLIBC_2.42 acosf F
 GLIBC_2.42 acoshf F
 GLIBC_2.42 asinf F
+GLIBC_2.42 atan2f F
 GLIBC_2.42 lgammaf F
 GLIBC_2.42 lgammaf_r F
 GLIBC_2.42 log10f F
