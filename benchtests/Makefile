@@ -84,6 +84,7 @@ bench-math := \
   j1 \
   lgamma \
   lgammaf \
+  lgammaf_r \
   llrint \
   llrintf \
   log \
