@@ -1604,22 +1604,18 @@ ldouble: 4
 
 Function: "sinpi":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "sinpi_downward":
 double: 2
-float: 2
 ldouble: 2
 
 Function: "sinpi_towardzero":
 double: 2
-float: 1
 ldouble: 1
 
 Function: "sinpi_upward":
 double: 2
-float: 2
 ldouble: 2
 
 Function: "tan":

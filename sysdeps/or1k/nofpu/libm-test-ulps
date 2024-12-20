@@ -995,7 +995,6 @@ double: 3
 
 Function: "sinpi":
 double: 1
-float: 1
 
 Function: "tan_downward":
 double: 1
