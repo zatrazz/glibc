@@ -359,3 +359,15 @@ float: 0
 Function: "tan_upward":
 float: 0
 
+Function: "tanpi":
+float: 0
+
+Function: "tanpi_downward":
+float: 0
+
+Function: "tanpi_towardzero":
+float: 0
+
+Function: "tanpi_upward":
+float: 0
+
