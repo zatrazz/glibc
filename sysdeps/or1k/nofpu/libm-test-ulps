@@ -95,7 +95,6 @@ double: 3
 
 Function: "atanpi":
 double: 1
-float: 1
 
 Function: "cabs":
 double: 1

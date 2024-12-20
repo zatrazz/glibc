@@ -2,8 +2,8 @@
 
 Copyright (c) 2022 Alexei Sibidanov.
 
-This file is part of the CORE-MATH project
-(https://core-math.gitlabpages.inria.fr/).
+The original version of this file was copied from the CORE-MATH
+project (file src/binary32/atan2pi/atan2pif.c, revision bc385c2).
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
