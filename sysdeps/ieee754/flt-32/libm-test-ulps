@@ -323,6 +323,18 @@ float: 0
 Function: "sinh_upward":
 float: 0
 
+Function: "sinpi":
+float: 0
+
+Function: "sinpi_downward":
+float: 0
+
+Function: "sinpi_towardzero":
+float: 0
+
+Function: "sinpi_upward":
+float: 0
+
 Function: "tan":
 float: 0
 
