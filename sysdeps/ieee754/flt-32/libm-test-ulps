@@ -119,6 +119,18 @@ float: 0
 Function: "atanh_upward":
 float: 0
 
+Function: "atanpi":
+float: 0
+
+Function: "atanpi_downward":
+float: 0
+
+Function: "atanpi_towardzero":
+float: 0
+
+Function: "atanpi_upward":
+float: 0
+
 Function: "cbrt":
 float: 0
 
