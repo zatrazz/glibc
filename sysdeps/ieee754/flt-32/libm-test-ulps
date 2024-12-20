@@ -95,6 +95,18 @@ float: 0
 Function: "atan2_upward":
 float: 0
 
+Function: "atan2pi":
+float: 0
+
+Function: "atan2pi_downward":
+float: 0
+
+Function: "atan2pi_towardzero":
+float: 0
+
+Function: "atan2pi_upward":
+float: 0
+
 Function: "atanh":
 float: 0
 
