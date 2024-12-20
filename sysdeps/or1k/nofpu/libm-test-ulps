@@ -513,7 +513,6 @@ double: 2
 
 Function: "cospi":
 double: 1
-float: 1
 
 Function: Real part of "cpow":
 double: 2
