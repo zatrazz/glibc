@@ -155,6 +155,18 @@ float: 0
 Function: "cosh_upward":
 float: 0
 
+Function: "cospi":
+float: 0
+
+Function: "cospi_downward":
+float: 0
+
+Function: "cospi_towardzero":
+float: 0
+
+Function: "cospi_upward":
+float: 0
+
 Function: "erf":
 float: 0
 
