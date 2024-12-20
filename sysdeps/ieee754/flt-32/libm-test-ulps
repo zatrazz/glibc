@@ -23,6 +23,18 @@ float: 0
 Function: "acosh_upward":
 float: 0
 
+Function: "acospi":
+float: 0
+
+Function: "acospi_downward":
+float: 0
+
+Function: "acospi_towardzero":
+float: 0
+
+Function: "acospi_upward":
+float: 0
+
 Function: "asin":
 float: 0
 
