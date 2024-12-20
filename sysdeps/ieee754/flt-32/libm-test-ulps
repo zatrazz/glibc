@@ -59,6 +59,18 @@ float: 0
 Function: "asinh_upward":
 float: 0
 
+Function: "asinpi":
+float: 0
+
+Function: "asinpi_downward":
+float: 0
+
+Function: "asinpi_towardzero":
+float: 0
+
+Function: "asinpi_upward":
+float: 0
+
 Function: "atan":
 float: 0
 
