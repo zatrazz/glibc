@@ -175,7 +175,9 @@ extern __typeof (strnlen) strnlen attribute_hidden;
 extern __typeof (strsep) strsep attribute_hidden;
 #endif
 
-#if (!IS_IN (libc) || !defined SHARED) \
+/* Also exclude tests and related modules.  */
+#if ((!IS_IN (libc) || !defined SHARED) \
+     && !(IS_IN (testsuite_internal) || IS_IN (extramodules))) \
   && !defined NO_MEMPCPY_STPCPY_REDIRECT
 /* Redirect calls to __builtin_mempcpy and __builtin_stpcpy to call
    __mempcpy and __stpcpy if not inlined.  */

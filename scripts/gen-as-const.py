@@ -38,7 +38,8 @@ def gen_test(sym_data):
     for arg in sym_data:
         if isinstance(arg, str):
             if arg == 'START':
-                out_lines.append('#include <stdint.h>\n'
+                out_lines.append('#define NO_MEMPCPY_STPCPY_REDIRECT\n'
+                                 '#include <stdint.h>\n'
                                  '#include <stdio.h>\n'
                                  '#include <bits/wordsize.h>\n'
                                  '#if __WORDSIZE == 64\n'
