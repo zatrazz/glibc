@@ -313,6 +313,9 @@ tst-fopen-compat-ARGS = tst-fopen-compat.c
 # Disable PIE to trigger copy relocation.
 CFLAGS-tst-fopen-compat.c += -fno-pie
 tst-fopen-compat-no-pie = yes
+ifeq ($(have-test-clang),yes)
+CFLAGS-tst-fopen-compat.c += $(no-stack-protector)
+endif
 endif
 
 shared-only-routines = oldiofopen oldiofdopen oldiofclose oldfileops	\
