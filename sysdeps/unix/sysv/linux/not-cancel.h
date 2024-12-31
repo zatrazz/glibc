@@ -30,31 +30,31 @@
 #include <sys/random.h>
 
 /* Non cancellable open syscall.  */
-__typeof (open) __open_nocancel;
+int __open_nocancel (const char *, int, ...);
 
 /* Non cancellable open syscall (LFS version).  */
-__typeof (open64) __open64_nocancel;
+int __open64_nocancel (const char *, int, ...);
 
 /* Non cancellable openat syscall.  */
-__typeof (openat) __openat_nocancel;
+int __openat_nocancel (int, const char *, int, ...);
 
 /* Non cacellable openat syscall (LFS version).  */
-__typeof (openat64) __openat64_nocancel;
+int __openat64_nocancel (int, const char *, int, ...);
 
 /* Non cancellable read syscall.  */
-__typeof (__read) __read_nocancel;
+ssize_t __read_nocancel (int, void *, size_t);
 
 /* Non cancellable pread syscall (LFS version).  */
-__typeof (__pread64) __pread64_nocancel;
+ssize_t __pread64_nocancel (int, void *, size_t, __off64_t);
 
 /* Uncancelable write.  */
-__typeof (__write) __write_nocancel;
+ssize_t __write_nocancel (int, const void *, size_t);
 
 /* Uncancelable close.  */
-__typeof (__close) __close_nocancel;
+int __close_nocancel (int);
 
 /* Uncancelable fcntl.  */
-__typeof (__fcntl) __fcntl64_nocancel;
+int __fcntl64_nocancel (int, int, ...);
 
 #if IS_IN (libc) || IS_IN (rtld)
 hidden_proto (__open_nocancel)
