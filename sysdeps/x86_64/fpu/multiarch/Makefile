@@ -1,4 +1,5 @@
 ifeq ($(subdir),math)
+CFLAGS-e_acos-fma.c = -mfma -mavx2
 CFLAGS-e_asin-fma.c = -mfma -mavx2
 CFLAGS-e_atan2-fma.c = -mfma -mavx2
 CFLAGS-e_atanh-fma.c = -mfma -mavx2
@@ -57,6 +58,7 @@ sysdep_calls += \
 # sysdep_calls
 ifeq (no,$(have-x86-apx))
 libm-sysdep_routines += \
+  e_acos-fma4 \
   e_asin-fma4 \
   e_atan2-fma4 \
   e_exp-fma4 \
@@ -69,6 +71,7 @@ libm-sysdep_routines += \
 # libm-sysdep_routines
 endif
 libm-sysdep_routines += \
+  e_acos-fma \
   e_asin-fma \
   e_atan2-avx \
   e_atan2-fma \
@@ -140,6 +143,7 @@ sysdep_routines += $(sysdep_calls)
 libm-sysdep_routines += $(sysdep_calls:s_%=m_%)
 endif
 
+CFLAGS-e_acos-fma4.c = -mfma4
 CFLAGS-e_asin-fma4.c = -mfma4
 CFLAGS-e_atan2-fma4.c = -mfma4
 CFLAGS-e_exp-fma4.c = -mfma4
