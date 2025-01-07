@@ -1,4 +1,16 @@
 # Maximal error of functions:
+Function: "acos":
+double: 0
+
+Function: "acos_downward":
+double: 0
+
+Function: "acos_towardzero":
+double: 0
+
+Function: "acos_upward":
+double: 0
+
 Function: "acosh":
 double: 0
 
