@@ -40,6 +40,11 @@ unsupported (void)
 static void
 check_gcs (struct link_map *l, const char *program)
 {
+#ifdef SHARED
+  /* Ignore GCS marking on ld.so: its properties are not processed.  */
+  if (is_rtld_link_map (l->l_real))
+    return;
+#endif
   bool for_dlopen = program == NULL;
   if (!l->l_mach.gcs)
     {
