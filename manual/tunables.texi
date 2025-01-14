@@ -669,6 +669,15 @@ This tunable is specific to x86-64 and effective only when the lazy
 binding is disabled.
 @end deftp
 
+@deftp Tunable glibc.cpu.aarch64_gcs
+This tunable enables or disables Guarded Control Stack for a process.
+Value @code{0} will leave GCS disabled and value @code{1} will enable
+GCS via a @code{prctl} system call. Default is @code{0}, so GCS is
+disabled by default.
+
+This tunable is specific to AArch64.
+@end deftp
+
 @node Memory Related Tunables
 @section Memory Related Tunables
 @cindex memory related tunables
