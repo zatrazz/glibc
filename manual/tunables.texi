@@ -678,6 +678,38 @@ disabled by default.
 This tunable is specific to AArch64.
 @end deftp
 
+@deftp Tunable glibc.cpu.aarch64_gcs_policy
+The GCS policy tunable defines how the GCS tunable and the GCS marking
+of binaries being loaded turn into GCS state (enabled, disabled or error).
+
+If @code{glibc.cpu.aarch64_gcs} is not set, the GCS policy tunable has no
+effect.
+
+GCS policy @code{0} means that GCS is enabled if @code{glibc.cpu.aarch64_gcs}
+is set. Any GCS marking mismatch is ignored.
+
+GCS policy @code{1} means that GCS is enabled if @code{glibc.cpu.aarch64_gcs}
+is set and all binaries are GCS-marked. If GCS is required and an incompatible
+library is loaded via @code{dlopen}, it is an error, otherwise any
+incompatible binary will disable GCS.
+
+GCS policy @code{2} means that GCS is enabled if @code{glibc.cpu.aarch64_gcs}
+is set and all binaries are GCS-marked. Any incompatible binary will result in
+an error.
+
+For the avoidance of doubt, if @code{glibc.cpu.aarch64_gcs} is set and GCS
+marking is not ignored (i.e. @code{glibc.cpu.aarch64_gcs_policy} is set to
+either @code{1} or @code{2}), then loading an incompatible library via
+@code{dlopen} is always an error, otherwise, with policy @code{1} GCS will be
+disabled when one of the loaded binaries is not GCS-marked and with policy
+@code{2} it will be an error, so GCS policy @code{2} enforces all loaded
+binaries to be GCS-marked.
+
+The default is @code{0} .
+
+This tunable is specific to AArch64.
+@end deftp
+
 @node Memory Related Tunables
 @section Memory Related Tunables
 @cindex memory related tunables
