@@ -368,6 +368,7 @@ type-float-routines := \
   e_powf_log2_data \
   math_errf \
   s_sincosf_data \
+  s_sincospif_data \
   # type-float-routines
 
 # _Float128 support
