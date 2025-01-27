@@ -133,4 +133,6 @@ __asinpif (float x)
       return r;
     }
 }
+#ifndef __asinpif
 libm_alias_float (__asinpi, asinpi)
+#endif
