@@ -362,6 +362,7 @@ type-double-routines := \
 # float support
 type-float-suffix := f
 type-float-routines := \
+  e_asincosf_data \
   e_exp2f_data \
   e_log2f_data \
   e_logf_data \
