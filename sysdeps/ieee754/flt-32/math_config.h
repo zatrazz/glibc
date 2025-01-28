@@ -22,6 +22,7 @@
 #include <math.h>
 #include <math_private.h>
 #include <nan-high-order-bit.h>
+#include <math-use-builtins-fmax.h>
 #include <stdint.h>
 
 #ifndef WANT_ROUNDING
@@ -107,6 +108,12 @@ roundevenf_finite (float x)
     }
   return y;
 #endif
+}
+
+static inline double
+fmax_finite (double x, double y)
+{
+  return USE_FMAX_BUILTIN ? fmax (x, y) : (x < y ? y : x);
 }
 
 static inline uint32_t

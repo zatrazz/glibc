@@ -131,6 +131,18 @@ float: 0
 Function: "erfc_upward":
 float: 0
 
+Function: "exp":
+float: 0
+
+Function: "exp_downward":
+float: 0
+
+Function: "exp_towardzero":
+float: 0
+
+Function: "exp_upward":
+float: 0
+
 Function: "exp10m1":
 float: 0
 
