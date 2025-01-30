@@ -217,6 +217,7 @@ make_float (uint32_t x, int ep, uint32_t s)
 }
 
 attribute_hidden float __math_oflowf (uint32_t);
+attribute_hidden float __math_oflowf_value (float x);
 attribute_hidden float __math_uflowf (uint32_t);
 attribute_hidden float __math_may_uflowf (uint32_t);
 attribute_hidden float __math_divzerof (uint32_t);

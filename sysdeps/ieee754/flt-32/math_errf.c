@@ -85,6 +85,12 @@ __math_oflowf (uint32_t sign)
 }
 
 attribute_hidden float
+__math_oflowf_value (float x)
+{
+  return with_errnof (x, ERANGE);
+}
+
+attribute_hidden float
 __math_divzerof (uint32_t sign)
 {
   float y = 0;
