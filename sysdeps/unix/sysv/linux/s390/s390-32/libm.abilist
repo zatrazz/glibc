@@ -1397,3 +1397,4 @@ GLIBC_2.43 coshf F
 GLIBC_2.43 lgammaf F
 GLIBC_2.43 lgammaf_r F
 GLIBC_2.43 log10f F
+GLIBC_2.43 sinhf F
