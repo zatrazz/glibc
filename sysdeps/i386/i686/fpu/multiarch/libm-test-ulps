@@ -1520,7 +1520,6 @@ ldouble: 3
 
 Function: "log2":
 double: 1
-float: 1
 float128: 3
 ldouble: 1
 
@@ -1531,13 +1530,11 @@ ldouble: 1
 
 Function: "log2_towardzero":
 double: 1
-float: 1
 float128: 1
 ldouble: 1
 
 Function: "log2_upward":
 double: 1
-float: 1
 float128: 1
 ldouble: 1
 

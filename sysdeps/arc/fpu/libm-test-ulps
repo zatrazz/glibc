@@ -986,15 +986,12 @@ double: 2
 
 Function: "log2":
 double: 2
-float: 1
 
 Function: "log2_towardzero":
 double: 1
-float: 1
 
 Function: "log2_upward":
 double: 1
-float: 1
 
 Function: "log2p1":
 double: 2

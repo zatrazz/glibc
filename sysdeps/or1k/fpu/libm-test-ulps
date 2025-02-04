@@ -974,7 +974,6 @@ double: 2
 float: 2
 
 Function: "log2":
-float: 1
 
 Function: "log2_downward":
 double: 1

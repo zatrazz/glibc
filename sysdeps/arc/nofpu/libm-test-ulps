@@ -239,7 +239,6 @@ double: 1
 
 Function: "log2":
 double: 2
-float: 1
 
 Function: "log2p1":
 double: 1

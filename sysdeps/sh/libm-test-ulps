@@ -436,7 +436,6 @@ double: 2
 
 Function: "log2":
 double: 2
-float: 1
 
 Function: "log2_towardzero":
 double: 2

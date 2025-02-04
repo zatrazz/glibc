@@ -1416,7 +1416,6 @@ ldouble: 2
 
 Function: "log2":
 double: 1
-float: 1
 ldouble: 3
 
 Function: "log2_advsimd":
@@ -1425,7 +1424,6 @@ float: 2
 
 Function: "log2_downward":
 double: 3
-float: 3
 ldouble: 3
 
 Function: "log2_sve":
@@ -1434,12 +1432,10 @@ float: 2
 
 Function: "log2_towardzero":
 double: 2
-float: 2
 ldouble: 1
 
 Function: "log2_upward":
 double: 3
-float: 3
 ldouble: 1
 
 Function: "log2p1":

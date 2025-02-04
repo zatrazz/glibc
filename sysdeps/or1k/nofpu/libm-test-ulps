@@ -898,7 +898,6 @@ Function: "log1p_upward":
 double: 2
 
 Function: "log2":
-float: 1
 
 Function: "log2_downward":
 double: 1

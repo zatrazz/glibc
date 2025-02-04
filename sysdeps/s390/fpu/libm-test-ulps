@@ -1247,7 +1247,6 @@ double: 2
 ldouble: 2
 
 Function: "log2":
-float: 1
 ldouble: 3
 
 Function: "log2_downward":
