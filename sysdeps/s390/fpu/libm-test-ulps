@@ -986,7 +986,6 @@ ldouble: 5
 
 Function: "exp":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "exp10":
@@ -1060,15 +1059,12 @@ ldouble: 5
 
 Function: "exp_downward":
 double: 1
-float: 1
 
 Function: "exp_towardzero":
 double: 1
-float: 1
 
 Function: "exp_upward":
 double: 1
-float: 1
 
 Function: "expm1":
 double: 1

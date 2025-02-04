@@ -168,7 +168,6 @@ Function: "erfc":
 double: 3
 
 Function: "exp":
-float: 1
 
 Function: "exp10":
 double: 2

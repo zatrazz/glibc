@@ -188,7 +188,6 @@ double: 5
 
 Function: "exp":
 double: 1
-float: 1
 
 Function: "exp10":
 double: 2
