@@ -1262,7 +1262,6 @@ float128: 1
 ldouble: 1
 
 Function: "exp2_upward":
-float: 1
 float128: 2
 ldouble: 1
 

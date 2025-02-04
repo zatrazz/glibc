@@ -1273,7 +1273,6 @@ ldouble: 2
 
 Function: "exp2_upward":
 double: 1
-float: 1
 float128: 2
 ldouble: 2
 

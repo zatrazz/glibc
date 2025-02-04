@@ -1146,7 +1146,6 @@ ldouble: 6
 
 Function: "exp2":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "exp2_advsimd":
@@ -1155,7 +1154,6 @@ float: 1
 
 Function: "exp2_downward":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "exp2_sve":
@@ -1164,12 +1162,10 @@ float: 1
 
 Function: "exp2_towardzero":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "exp2_upward":
 double: 1
-float: 1
 ldouble: 2
 
 Function: "exp2m1":

@@ -754,7 +754,6 @@ double: 1
 
 Function: "exp2_upward":
 double: 1
-float: 1
 
 Function: "exp2m1":
 double: 2

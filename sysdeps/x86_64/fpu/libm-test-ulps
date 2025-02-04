@@ -1503,25 +1503,21 @@ ldouble: 6
 
 Function: "exp2":
 double: 1
-float: 1
 float128: 1
 ldouble: 1
 
 Function: "exp2_downward":
 double: 1
-float: 1
 float128: 1
 ldouble: 1
 
 Function: "exp2_towardzero":
 double: 1
-float: 1
 float128: 1
 ldouble: 1
 
 Function: "exp2_upward":
 double: 1
-float: 1
 float128: 2
 ldouble: 1
 

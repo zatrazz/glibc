@@ -174,7 +174,6 @@ double: 2
 
 Function: "exp2":
 double: 1
-float: 1
 
 Function: "expm1":
 double: 1
