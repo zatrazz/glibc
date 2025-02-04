@@ -791,20 +791,16 @@ double: 1
 
 Function: "exp10":
 double: 6
-float: 2
 ldouble: 6
 
 Function: "exp10_downward":
 double: 3
-float: 1
 
 Function: "exp10_towardzero":
 double: 3
-float: 1
 
 Function: "exp10_upward":
 double: 2
-float: 1
 
 Function: "exp10m1":
 double: 4

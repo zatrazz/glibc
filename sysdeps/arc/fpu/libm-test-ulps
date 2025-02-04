@@ -784,19 +784,15 @@ double: 1
 
 Function: "exp10":
 double: 4
-float: 1
 
 Function: "exp10_downward":
 double: 3
-float: 1
 
 Function: "exp10_towardzero":
 double: 3
-float: 1
 
 Function: "exp10_upward":
 double: 4
-float: 1
 
 Function: "exp10m1":
 double: 4

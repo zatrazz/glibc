@@ -100,7 +100,6 @@ double: 1
 
 Function: "exp10":
 double: 6
-float: 2
 
 Function: "expm1":
 double: 1

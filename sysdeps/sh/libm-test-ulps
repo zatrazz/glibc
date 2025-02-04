@@ -355,7 +355,6 @@ double: 2
 
 Function: "exp10_towardzero":
 double: 3
-float: 1
 
 Function: "exp2":
 double: 1
