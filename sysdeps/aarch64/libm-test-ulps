@@ -1344,7 +1344,6 @@ ldouble: 8
 
 Function: "log":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "log10":
@@ -1464,7 +1463,6 @@ double: 1
 float: 3
 
 Function: "log_downward":
-float: 2
 ldouble: 1
 
 Function: "log_sve":
@@ -1472,12 +1470,10 @@ double: 2
 float: 3
 
 Function: "log_towardzero":
-float: 2
 ldouble: 2
 
 Function: "log_upward":
 double: 1
-float: 2
 ldouble: 1
 
 Function: "logp1":

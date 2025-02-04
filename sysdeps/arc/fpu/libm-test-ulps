@@ -943,7 +943,6 @@ double: 7
 
 Function: "log":
 double: 1
-float: 1
 
 Function: "log10":
 double: 2
@@ -1011,11 +1010,9 @@ double: 2
 
 Function: "log_towardzero":
 double: 1
-float: 1
 
 Function: "log_upward":
 double: 1
-float: 1
 
 Function: "logp1":
 double: 1

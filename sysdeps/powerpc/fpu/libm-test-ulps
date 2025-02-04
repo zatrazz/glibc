@@ -1506,7 +1506,6 @@ ldouble: 11
 
 Function: "log":
 double: 1
-float: 1
 float128: 1
 ldouble: 1
 
@@ -1619,18 +1618,15 @@ float128: 3
 ldouble: 6
 
 Function: "log_downward":
-float: 2
 float128: 1
 ldouble: 1
 
 Function: "log_towardzero":
-float: 2
 float128: 2
 ldouble: 2
 
 Function: "log_upward":
 double: 1
-float: 2
 float128: 1
 ldouble: 1
 

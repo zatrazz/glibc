@@ -840,7 +840,6 @@ Function: "lgamma_upward":
 double: 5
 
 Function: "log":
-float: 1
 
 Function: "log10":
 double: 2
@@ -887,14 +886,11 @@ double: 3
 float: 3
 
 Function: "log_downward":
-float: 2
 
 Function: "log_towardzero":
-float: 2
 
 Function: "log_upward":
 double: 1
-float: 2
 
 Function: "logp1":
 double: 1
