@@ -212,16 +212,6 @@ attribute_hidden float __math_edomf (float x);
 
 /* Shared between expf, exp2f, exp10f, and powf.  */
 #define EXP2F_TABLE_BITS 5
-#define EXP2F_POLY_ORDER 3
-extern const struct exp2f_data
-{
-  uint64_t tab[1 << EXP2F_TABLE_BITS];
-  double shift_scaled;
-  double poly[EXP2F_POLY_ORDER];
-  double invln2_scaled;
-  double poly_scaled[EXP2F_POLY_ORDER];
-  double shift;
-} __exp2f_data attribute_hidden;
 
 extern const uint64_t __expf2_tb[] attribute_hidden;
 extern const double __expf2_b[] attribute_hidden;
