@@ -448,11 +448,9 @@ double: 2
 
 Function: "pow":
 double: 1
-float: 1
 
 Function: "pow_towardzero":
 double: 1
-float: 1
 
 Function: "sin":
 double: 1

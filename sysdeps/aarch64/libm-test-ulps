@@ -1490,7 +1490,6 @@ ldouble: 2
 
 Function: "pow":
 double: 1
-float: 1
 ldouble: 2
 
 Function: "pow_advsimd":
@@ -1499,7 +1498,6 @@ float: 2
 
 Function: "pow_downward":
 double: 1
-float: 1
 ldouble: 2
 
 Function: "pow_sve":
@@ -1508,12 +1506,10 @@ float: 2
 
 Function: "pow_towardzero":
 double: 1
-float: 1
 ldouble: 2
 
 Function: "pow_upward":
 double: 1
-float: 1
 ldouble: 2
 
 Function: "sin":

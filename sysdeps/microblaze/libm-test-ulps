@@ -216,7 +216,6 @@ Function: "logp1":
 double: 1
 
 Function: "pow":
-float: 1
 
 Function: "sin":
 float: 1

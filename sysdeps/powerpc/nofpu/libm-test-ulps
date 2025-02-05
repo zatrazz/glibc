@@ -1305,22 +1305,18 @@ ldouble: 1
 
 Function: "pow":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "pow_downward":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "pow_towardzero":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "pow_upward":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "scalb_downward":
