@@ -1334,22 +1334,18 @@ ldouble: 3
 
 Function: "sincos":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "sincos_downward":
 double: 1
-float: 2
 ldouble: 3
 
 Function: "sincos_towardzero":
 double: 1
-float: 1
 ldouble: 2
 
 Function: "sincos_upward":
 double: 1
-float: 2
 ldouble: 3
 
 Function: "sinh":

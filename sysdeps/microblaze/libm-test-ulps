@@ -219,7 +219,6 @@ Function: "pow":
 Function: "sin":
 
 Function: "sincos":
-float: 1
 
 Function: "sinh":
 double: 2

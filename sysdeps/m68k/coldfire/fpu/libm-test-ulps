@@ -128,7 +128,6 @@ float: 2
 
 Function: "sincos":
 double: 1
-float: 1
 
 Function: "tan":
 double: 1

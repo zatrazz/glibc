@@ -1706,25 +1706,21 @@ ldouble: 5
 
 Function: "sincos":
 double: 1
-float: 1
 float128: 1
 ldouble: 1
 
 Function: "sincos_downward":
 double: 1
-float: 2
 float128: 3
 ldouble: 4
 
 Function: "sincos_towardzero":
 double: 1
-float: 1
 float128: 2
 ldouble: 7
 
 Function: "sincos_upward":
 double: 1
-float: 2
 float128: 3
 ldouble: 7
 

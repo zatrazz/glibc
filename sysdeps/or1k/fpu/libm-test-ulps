@@ -1037,15 +1037,12 @@ double: 1
 
 Function: "sincos_downward":
 double: 1
-float: 1
 
 Function: "sincos_towardzero":
 double: 4
-float: 1
 
 Function: "sincos_upward":
 double: 1
-float: 1
 
 Function: "sinh":
 double: 2
