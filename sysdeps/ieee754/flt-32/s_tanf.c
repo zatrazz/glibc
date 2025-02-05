@@ -31,19 +31,6 @@ SOFTWARE.
 #include <math_uint128.h>
 #include "s_trig.h"
 
-/* argument reduction
-   for |z| < 2^28, return r such that 2/pi*x = q + r  */
-static inline double
-rltl (float z, int *q)
-{
-  double x = z;
-  double idl = -0x1.b1bbead603d8bp-32 * x;
-  double idh = 0x1.45f306ep-1 * x;
-  double id = roundeven_finite (idh);
-  *q = (int64_t) id;
-  return (idh - id) + idl;
-}
-
 float
 __tanf (float x)
 {
@@ -60,7 +47,7 @@ __tanf (float x)
 	  float x2 = x * x;
 	  return fmaf (x, 0x1.555556p-2f * x2, x);
 	}
-      z = rltl (x, &i);
+      z = rltl (x, &i, -0x1.b1bbead603d8bp-32, 0x1.45f306ep-1);
     }
   else if (e < 0xff)
     z = rbig (t, &i, 127);

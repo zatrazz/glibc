@@ -44,26 +44,6 @@ SOFTWARE.
 # define COSF_FUNC COSF
 #endif
 
-static inline double
-rltl (float z, int *q)
-{
-  double x = z;
-  double idl = -0x1.b1bbead603d8bp-29 * x, idh = 0x1.45f306ep+2 * x,
-	 id = roundeven_finite (idh);
-  double Q = 0x1.8p52 + id;
-  *q = asuint64 (Q);
-  return (idh - id) + idl;
-}
-
-static inline double
-rltl0 (double x, int *q)
-{
-  double idh = 0x1.45f306dc9c883p+2 * x, id = roundeven_finite (idh);
-  double Q =  0x1.8p52 + id;
-  *q = asuint64 (Q);
-  return idh - id;
-}
-
 static float __attribute__ ((noinline))
 as_cosf_database (float x, double r)
 {
@@ -170,7 +150,7 @@ COSF_FUNC (float x)
     }
   else
     {
-      z = rltl (z0, &ia);
+      z = rltl (z0, &ia, -0x1.b1bbead603d8bp-29, 0x1.45f306ep+2);
     }
   double z2 = z * z, z4 = z2 * z2;
   double aa = (a[0] + z2 * a[1]) + z4 * (a[2] + z2 * a[3]);

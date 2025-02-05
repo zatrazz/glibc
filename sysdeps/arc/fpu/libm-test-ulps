@@ -1033,19 +1033,15 @@ double: 2
 
 Function: "sin":
 double: 7
-float: 1
 
 Function: "sin_downward":
 double: 4
-float: 1
 
 Function: "sin_towardzero":
 double: 3
-float: 1
 
 Function: "sin_upward":
 double: 7
-float: 1
 
 Function: "sincos":
 double: 1

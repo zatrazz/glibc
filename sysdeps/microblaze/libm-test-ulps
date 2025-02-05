@@ -217,7 +217,6 @@ double: 1
 Function: "pow":
 
 Function: "sin":
-float: 1
 
 Function: "sincos":
 float: 1

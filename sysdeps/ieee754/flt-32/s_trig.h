@@ -5,6 +5,7 @@
 
 #include <stdint.h>
 #include <math_uint128.h>
+#include "math_config.h"
 
 /* argument reduction
    for |x| >= 2^28, return r such that 2/pi*x = q + r  */
@@ -58,5 +59,26 @@ rbig (uint32_t u, int *q, const int e_adj)
   return z;
 }
 
+static inline double
+rltl (float z, int *q, const double idl_f, const double idh_f)
+{
+  double x = z;
+  double idl = idl_f * x;
+  double idh = idh_f * x;
+  double id = roundeven_finite (idh);
+  double Q = 0x1.8p52 + id;
+  *q = asuint64 (Q);
+  return (idh - id) + idl;
+}
+
+static inline double
+rltl0 (double x, int *q)
+{
+  double idh = 0x1.45f306dc9c883p+2 * x;
+  double id = roundeven_finite (idh);
+  double Q =  0x1.8p52 + id;
+  *q = asuint64 (Q);
+  return idh - id;
+}
 
 #endif

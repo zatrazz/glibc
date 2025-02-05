@@ -1510,7 +1510,6 @@ ldouble: 2
 
 Function: "sin":
 double: 1
-float: 1
 ldouble: 2
 
 Function: "sin_advsimd":
@@ -1519,7 +1518,6 @@ float: 1
 
 Function: "sin_downward":
 double: 1
-float: 1
 ldouble: 3
 
 Function: "sin_sve":
@@ -1528,12 +1526,10 @@ float: 1
 
 Function: "sin_towardzero":
 double: 1
-float: 1
 ldouble: 2
 
 Function: "sin_upward":
 double: 1
-float: 1
 ldouble: 3
 
 Function: "sincos":

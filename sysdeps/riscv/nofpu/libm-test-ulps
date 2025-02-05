@@ -1209,7 +1209,6 @@ ldouble: 2
 
 Function: "sin":
 double: 1
-float: 1
 ldouble: 2
 
 Function: "sin_downward":
