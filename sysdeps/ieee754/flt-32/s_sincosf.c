@@ -23,9 +23,6 @@
 #include "math_config.h"
 #include "s_trig.h"
 
-#define CORE_MATH_SUPPORT_ERRNO
-#include <errno.h>
-
 #ifndef SECTION
 # define SECTION
 #endif
@@ -35,9 +32,6 @@
 #else
 # define SINCOSF_FUNC SINCOSF
 #endif
-
-typedef union {float f; uint32_t u;} b32u32_u;
-typedef union {double f; uint64_t u;} b64u64_u;
 
 static inline float
 add_sign (float x, float rh, float rl)
@@ -68,8 +62,8 @@ as_sincosf_database (float x, float *sout, float *cout)
     { { 0x1.3170fp+63 }, 0x1.5ac1eep-4, -0x1p-30, 0x1.fe2976p-1, 0x1p-26 },
     { { 0x1.2b9622p+67 }, -0x1.f983c2p-3, 0x1p-28, 0x1.f0285ep-1, -0x1p-26 },
   };
-  b32u32_u t = { .f = x };
-  uint32_t ax = t.u & (~0u >> 1);
+  uint32_t t = asuint (x);
+  uint32_t ax = t & (~0u >> 1);
   for (unsigned i = 0; i < array_length (st); i++)
     if (__glibc_unlikely (st[i].uarg == ax))
       {
@@ -104,8 +98,8 @@ static const double tb[] =
 static void __attribute__ ((noinline))
 as_sincosf_big (float x, float *sout, float *cout)
 {
-  b32u32_u t = { .f = x };
-  uint32_t ax = t.u << 1;
+  uint32_t t = asuint (x);
+  uint32_t ax = t << 1;
   if (__glibc_unlikely (ax >= 0xffu << 24))
     { // nan or +-inf
       if (ax << 8)
@@ -119,7 +113,7 @@ as_sincosf_big (float x, float *sout, float *cout)
       return;
     }
   int ia;
-  double z = rbig (t.u, &ia, 124);
+  double z = rbig (t, &ia, 124);
   double z2 = z * z, z4 = z2 * z2;
   double aa = (a[0] + z2 * a[1]) + z4 * (a[2] + z2 * a[3]);
   double bb = (b[0] + z2 * b[1]) + z4 * (b[2] + z2 * b[3]);
@@ -129,8 +123,8 @@ as_sincosf_big (float x, float *sout, float *cout)
   double c = c0 - z * (aa * s0 + bb * c0);
   *sout = s;
   *cout = c;
-  b64u64_u tr = { .f = c };
-  uint64_t tail = (tr.u + 6) & (~(uint64_t) 0 >> 36);
+  uint64_t tr = asuint64 (c);
+  uint64_t tail = (tr + 6) & (~(uint64_t) 0 >> 36);
   if (__glibc_unlikely (tail <= 12))
     return as_sincosf_database (x, sout, cout);
 }
@@ -139,8 +133,8 @@ void
 SECTION
 SINCOSF_FUNC (float x, float *sout, float *cout)
 {
-  b32u32_u t = { .f = x };
-  uint32_t ax = t.u << 1;
+  uint32_t t = asuint (x);
+  uint32_t ax = t << 1;
   int ia;
   double z0 = x, z;
   if (__glibc_likely (ax < 0x822d97c8u))

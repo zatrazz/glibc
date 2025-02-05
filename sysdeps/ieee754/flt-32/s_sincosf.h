@@ -26,43 +26,8 @@ static const double pi63 = 0x1.921FB54442D18p-62;
 /* PI / 4.  */
 static const float pio4 = 0x1.921FB6p-1f;
 
-/* Polynomial data (the cosine polynomial is negated in the 2nd entry).  */
-extern const sincos_t __sincosf_table[2] attribute_hidden;
-
 /* Table with 4/PI to 192 bit precision.  */
 extern const uint32_t __inv_pio4[] attribute_hidden;
-
-/* Top 12 bits of the float representation with the sign bit cleared.  */
-static inline uint32_t
-abstop12 (float x)
-{
-  return (asuint (x) >> 20) & 0x7ff;
-}
-
-/* Fast range reduction using single multiply-subtract.  Return the modulo of
-   X as a value between -PI/4 and PI/4 and store the quadrant in NP.
-   The values for PI/2 and 2/PI are accessed via P.  Since PI/2 as a double
-   is accurate to 55 bits and the worst-case cancellation happens at 6 * PI/4,
-   the result is accurate for |X| <= 120.0.  */
-static inline double
-reduce_fast (double x, const sincos_t *p, int *np)
-{
-  double r;
-#if TOINT_INTRINSICS
-  /* Use fast round and lround instructions when available.  */
-  r = x * p->hpi_inv;
-  *np = converttoint (r);
-  return x - roundtoint (r) * p->hpi;
-#else
-  /* Use scaled float to int conversion with explicit rounding.
-     hpi_inv is prescaled by 2^24 so the quadrant ends up in bits 24..31.
-     This avoids inaccuracies introduced by truncating negative values.  */
-  r = x * p->hpi_inv;
-  int n = ((int32_t)r + 0x800000) >> 24;
-  *np = n;
-  return x - n * p->hpi;
-#endif
-}
 
 /* Reduce the range of XI to a multiple of PI/2 using fast integer arithmetic.
    XI is a reinterpreted float and must be >= 2.0f (the sign bit is ignored).
