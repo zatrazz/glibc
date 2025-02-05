@@ -217,18 +217,6 @@ extern const uint64_t __expf2_tb[] attribute_hidden;
 extern const double __expf2_b[] attribute_hidden;
 extern const double __expf2_c[] attribute_hidden;
 
-#define LOGF_TABLE_BITS 4
-#define LOGF_POLY_ORDER 4
-extern const struct logf_data
-{
-  struct
-  {
-    double invc, logc;
-  } tab[1 << LOGF_TABLE_BITS];
-  double ln2;
-  double poly[LOGF_POLY_ORDER - 1]; /* First order coefficient is 1.  */
-} __logf_data attribute_hidden;
-
 #define POWF_LOG2_TABLE_BITS 4
 #define POWF_LOG2_POLY_ORDER 5
 #if TOINT_INTRINSICS

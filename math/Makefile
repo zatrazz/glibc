@@ -365,7 +365,6 @@ type-float-routines := \
   e_asincosf_data \
   e_sincoshf_data \
   e_exp2f_data \
-  e_logf_data \
   e_powf_log2_data \
   e_sincoshf_data \
   math_errf \
