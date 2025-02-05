@@ -570,16 +570,12 @@ ldouble: 2
 
 Function: "cos":
 double: 1
-float: 6
 
 Function: "cos_downward":
-float: 5
 
 Function: "cos_towardzero":
-float: 5
 
 Function: "cos_upward":
-float: 5
 
 Function: "cosh":
 double: 1

@@ -127,7 +127,6 @@ float: 2
 
 Function: "cos":
 double: 1
-float: 1
 
 Function: "cosh":
 double: 2

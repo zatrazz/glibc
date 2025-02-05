@@ -481,19 +481,15 @@ float: 2
 
 Function: "cos":
 double: 1
-float: 1
 
 Function: "cos_downward":
 double: 1
-float: 1
 
 Function: "cos_towardzero":
 double: 4
-float: 1
 
 Function: "cos_upward":
 double: 4
-float: 1
 
 Function: "cosh":
 double: 2

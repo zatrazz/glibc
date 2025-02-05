@@ -233,11 +233,9 @@ float: 3
 
 Function: "cos":
 double: 1
-float: 1
 
 Function: "cos_towardzero":
 double: 1
-float: 1
 
 Function: "cosh":
 double: 2

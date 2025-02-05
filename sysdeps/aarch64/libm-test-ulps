@@ -730,7 +730,6 @@ ldouble: 2
 
 Function: "cos":
 double: 1
-float: 1
 ldouble: 2
 
 Function: "cos_advsimd":
@@ -739,7 +738,6 @@ float: 1
 
 Function: "cos_downward":
 double: 1
-float: 1
 ldouble: 3
 
 Function: "cos_sve":
@@ -748,12 +746,10 @@ float: 1
 
 Function: "cos_towardzero":
 double: 1
-float: 1
 ldouble: 1
 
 Function: "cos_upward":
 double: 1
-float: 1
 ldouble: 2
 
 Function: "cosh":

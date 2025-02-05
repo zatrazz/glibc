@@ -62,7 +62,6 @@ float: 1
 
 Function: "cos":
 double: 2
-float: 1
 
 Function: Real part of "cpow":
 double: 2
