@@ -21,25 +21,51 @@
 #include <libm-alias-float.h>
 #include <math-svid-compat.h>
 #include <math.h>
-#include <math-narrow-eval.h>
-#include <math_private.h>
+#include "math_config.h"
 
 float
 __hypotf (float x, float y)
 {
-  if (!isfinite (x) || !isfinite (y))
+  float ax = fabsf (x), ay = fabsf (y);
+  uint32_t tx = asuint (ax), ty = asuint (ay);
+  if (__glibc_unlikely (tx >= (0xffu << 23) || ty >= (0xffu << 23)))
     {
-      if ((isinf (x) || isinf (y))
-	  && !issignaling (x) && !issignaling (y))
-	return INFINITY;
-      return x + y;
+      if ((tx == (0xffu << 23) || ty == (0xffu << 23)) // x == inf or x == inf
+         && !issignaling (x) && !issignaling (y))
+       return INFINITY;
+      return ax + ay;
     }
-
-  float r = math_narrow_eval ((float) sqrt ((double) x * (double) x
-					    + (double) y * (double) y));
-  if (!isfinite (r))
-    __set_errno (ERANGE);
-  return r;
+  float at = ax > ay ? ax : ay;
+  ay = ax < ay ? ax : ay;
+  double xd = at, yd = ay, x2 = xd * xd, y2 = yd * yd, r2 = x2 + y2;
+  if (__glibc_unlikely (yd < xd * 0x1.fffffep-13))
+    return fmaf (0x1p-13f, ay, at);
+  double r = sqrt (r2);
+  uint64_t t = asuint64 (r);
+  float c = r;
+  if (t > UINT64_C(0x47efffffe0000000))
+    {
+      if (c > 0x1.fffffep127f)
+       errno = ERANGE;
+      return c;
+    }
+  if (__glibc_likely ((t + 1) & 0xfffffff) > 2)
+    return c;
+  double cd = c;
+  if ((cd * cd - x2) - y2 == 0.0)
+    return c;
+  double ir2 = 0.5 / r2, dr2 = (x2 - r2) + y2;
+  double rs = r * ir2, dz = dr2 - fma (r, r, -r2), dr = rs * dz;
+  double rh = r + dr, rl = dr + (r - rh);
+  t = asuint64 (rh);
+  if (__glibc_likely ((t & 0xfffffff) == 0))
+    {
+      if (rl > 0.0)
+       t += 1;
+      if (rl < 0.0)
+       t -= 1;
+    }
+  return asdouble (t);
 }
 strong_alias (__hypotf, __ieee754_hypotf)
 #if LIBM_SVID_COMPAT
