@@ -1378,6 +1378,25 @@ fi
 LIBC_CONFIG_VAR([have-z-memory-seal], [$libc_cv_z_memory_seal])
 LIBC_CONFIG_VAR([enable-memory-seal], [$enable_memory_sealing])
 
+AC_CACHE_CHECK([PT_GNU_MUTABLE support],
+	       libc_cv_gnu_mutable, [dnl
+cat > conftest.c <<EOF
+int bar __attribute__ ((section (".gnu.mutable")));
+int main (void) { return bar; }
+EOF
+libc_cv_gnu_mutable=no
+if AC_TRY_COMMAND([${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS
+		        $no_ssp -o conftest conftest.c
+			-nostdlib -nostartfiles
+			1>&AS_MESSAGE_LOG_FD])
+then
+  if $READELF -lW conftest | grep 'GNU_MUTABLE' > /dev/null; then
+    libc_cv_gnu_mutable=yes
+  fi
+fi
+rm -r conftest*])
+LIBC_CONFIG_VAR([have-pt-gnu-mutable], [$libc_cv_gnu_mutable])
+
 
 AC_CACHE_CHECK(for GLOB_DAT reloc,
 	       libc_cv_has_glob_dat, [dnl

@@ -709,6 +709,8 @@ modules-names += \
   tst-dl_mseal-dlopen-2-1 \
   tst-dl_mseal-mod-1 \
   tst-dl_mseal-mod-2 \
+  tst-dl_mseal-mutable-dlopen \
+  tst-dl_mseal-mutable-mod \
   tst-dl_mseal-preload \
   # modules-names
 
@@ -732,6 +734,10 @@ $(objpfx)tst-dl_mseal-noseal.out: \
   $(objpfx)tst-dl_mseal-dlopen-2.so \
   $(objpfx)tst-dl_mseal-dlopen-2-1.so
 
+$(objpfx)tst-dl_mseal-mutable.out: \
+  $(objpfx)tst-dl_mseal-mutable-mod.so \
+  $(objpfx)tst-dl_mseal-mutable-dlopen.so
+
 ifeq ($(enable-memory-seal),yes)
 CFLAGS-tst-dl_mseal.c += -DDEFAULT_MEMORY_SEAL
 CFLAGS-tst-dl_mseal-noseal.c += -DDEFAULT_MEMORY_SEAL
@@ -739,6 +745,8 @@ endif
 
 LDFLAGS-tst-dl_mseal = -Wl,--no-as-needed -Wl,-z,memory-seal
 LDFLAGS-tst-dl_mseal-static = -Wl,--no-as-needed -Wl,-z,memory-seal
+LDFLAGS-tst-dl_mseal-mutable = -Wl,--no-as-needed -Wl,-z,memory-seal
+LDFLAGS-tst-dl_mseal-mutable-static = -Wl,-z,memory-seal
 LDFLAGS-tst-dl_mseal-mod-1.so = -Wl,--no-as-needed -Wl,-z,memory-seal
 LDFLAGS-tst-dl_mseal-mod-2.so = -Wl,-z,memory-seal
 LDFLAGS-tst-dl_mseal-dlopen-1.so = -Wl,--no-as-needed
@@ -764,6 +772,21 @@ tst-dl_mseal-ARGS = -- $(host-test-program-cmd)
 tst-dl_mseal-static-ARGS = -- $(host-test-program-cmd)
 tst-dl_mseal-noseal-ARGS = -- $(host-test-program-cmd)
 tst-dl_mseal-static-noseal-ARGS = -- $(host-test-program-cmd)
+
+ifeq ($(have-pt-gnu-mutable),yes)
+tests-static += \
+  tst-dl_mseal-mutable-static \
+  # tests-static
+
+tests += \
+  tst-dl_mseal-mutable \
+  # tests
+
+LDFLAGS-tst-dl_mseal-mutable-mod.so = -Wl,-z,memory-seal
+LDFLAGS-tst-dl_mseal-mutable-dlopen.so = -Wl,-z,memory-seal
+
+$(objpfx)tst-dl_mseal-mutable: $(objpfx)tst-dl_mseal-mutable-mod.so
+endif # $(have-pt-gnu-mutable) == yes
 endif
 
 endif # $(subdir) == elf
