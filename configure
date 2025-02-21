@@ -7465,6 +7465,39 @@ have-z-memory-seal = $libc_cv_z_memory_seal"
 config_vars="$config_vars
 enable-memory-seal = $enable_memory_sealing"
 
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking PT_GNU_MUTABLE support" >&5
+printf %s "checking PT_GNU_MUTABLE support... " >&6; }
+if test ${libc_cv_gnu_mutable+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat > conftest.c <<EOF
+int bar __attribute__ ((section (".gnu.mutable")));
+int main (void) { return bar; }
+EOF
+libc_cv_gnu_mutable=no
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS
+		        $no_ssp -o conftest conftest.c
+			-nostdlib -nostartfiles
+			1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then
+  if $READELF -lW conftest | grep 'GNU_MUTABLE' > /dev/null; then
+    libc_cv_gnu_mutable=yes
+  fi
+fi
+rm -r conftest* ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_gnu_mutable" >&5
+printf "%s\n" "$libc_cv_gnu_mutable" >&6; }
+config_vars="$config_vars
+have-pt-gnu-mutable = $libc_cv_gnu_mutable"
+
 
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for GLOB_DAT reloc" >&5
 printf %s "checking for GLOB_DAT reloc... " >&6; }
