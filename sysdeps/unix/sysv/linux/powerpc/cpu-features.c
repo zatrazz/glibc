@@ -24,6 +24,7 @@
 #include <dl-hwcap-info.h>
 #include <unistd.h>
 #include <string.h>
+#include <ldsodefs.h>
 
 #define ENABLE_BIT(__hwcap, __v)        __hwcap &= (__v)
 #define DISABLE_BIT(__hwcap, __h, __v)  __hwcap |= (__h) & (__v)
