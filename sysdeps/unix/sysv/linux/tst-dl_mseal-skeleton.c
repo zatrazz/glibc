@@ -236,6 +236,9 @@ do_test (int argc, char *argv[])
 #ifdef LD_AUDIT
     (char *) "LD_AUDIT=" LD_AUDIT,
 #endif
+#ifdef TUNABLE_ENV_VAR
+    TUNABLE_ENV_VAR,
+#endif
     NULL
   };
 

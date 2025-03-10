@@ -22,9 +22,18 @@
 #include <ldsodefs.h>
 #include <libintl.h>
 
+static inline bool
+is_sealing_enable (void)
+{
+  return TUNABLE_GET (glibc, rtld, seal, int32_t, NULL) == 1;
+}
+
 void
 _dl_mseal (void *addr, size_t len, const char *object)
 {
+  if (__glibc_unlikely (!is_sealing_enable ()))
+    return;
+
   int r = 0;
   bool fail = false;
 #if __ASSUME_MSEAL

@@ -699,6 +699,7 @@ tests += \
   $(tests-static) \
   tst-dl_mseal \
   tst-dl_mseal-noseal \
+  tst-dl_mseal-tunable \
   # tests
 
 modules-names += \
@@ -714,25 +715,22 @@ modules-names += \
   tst-dl_mseal-preload \
   # modules-names
 
-$(objpfx)tst-dl_mseal.out: \
+test-dl_mseal-mods = \
   $(objpfx)tst-dl_mseal-auditmod.so \
-  $(objpfx)tst-dl_mseal-preload.so \
+  $(objpfx)tst-dl_mseal-dlopen-1-1.so \
+  $(objpfx)tst-dl_mseal-dlopen-1.so \
+  $(objpfx)tst-dl_mseal-dlopen-2-1.so \
+  $(objpfx)tst-dl_mseal-dlopen-2.so \
   $(objpfx)tst-dl_mseal-mod-1.so \
   $(objpfx)tst-dl_mseal-mod-2.so \
-  $(objpfx)tst-dl_mseal-dlopen-1.so \
-  $(objpfx)tst-dl_mseal-dlopen-1-1.so \
-  $(objpfx)tst-dl_mseal-dlopen-2.so \
-  $(objpfx)tst-dl_mseal-dlopen-2-1.so
+  $(objpfx)tst-dl_mseal-preload.so \
+  # test-dl_mseal-mods
 
-$(objpfx)tst-dl_mseal-noseal.out: \
-  $(objpfx)tst-dl_mseal-auditmod.so \
-  $(objpfx)tst-dl_mseal-preload.so \
-  $(objpfx)tst-dl_mseal-mod-1.so \
-  $(objpfx)tst-dl_mseal-mod-2.so \
-  $(objpfx)tst-dl_mseal-dlopen-1.so \
-  $(objpfx)tst-dl_mseal-dlopen-1-1.so \
-  $(objpfx)tst-dl_mseal-dlopen-2.so \
-  $(objpfx)tst-dl_mseal-dlopen-2-1.so
+$(objpfx)tst-dl_mseal.out: $(test-dl_mseal-mods)
+
+$(objpfx)tst-dl_mseal-noseal.out: $(test-dl_mseal-mods)
+
+$(objpfx)tst-dl_mseal-tunable.out: $(test-dl_mseal-mods)
 
 $(objpfx)tst-dl_mseal-mutable.out: \
   $(objpfx)tst-dl_mseal-mutable-mod.so \
@@ -772,6 +770,7 @@ tst-dl_mseal-ARGS = -- $(host-test-program-cmd)
 tst-dl_mseal-static-ARGS = -- $(host-test-program-cmd)
 tst-dl_mseal-noseal-ARGS = -- $(host-test-program-cmd)
 tst-dl_mseal-static-noseal-ARGS = -- $(host-test-program-cmd)
+tst-dl_mseal-tunable-ARGS = -- $(host-test-program-cmd)
 
 ifeq ($(have-pt-gnu-mutable),yes)
 tests-static += \

@@ -32,6 +32,10 @@
 
 #include "tst-dl_mseal-common.h"
 
+#ifndef TEST_NAME
+# define TEST_NAME "tst-dl_mseal-noseal"
+#endif
+
 /* Expected libraries that loader will seal.  */
 static const char *expected_sealed_vmas[] =
 {
@@ -43,7 +47,7 @@ static const char *expected_non_sealed_vmas[] =
 {
   "libc.so",
   "ld.so",
-  "tst-dl_mseal-noseal",
+  TEST_NAME,
   LIB_PRELOAD,
   LIB_AUDIT,
   LIB_MODULE1,

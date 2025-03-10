@@ -35,6 +35,12 @@ Major new features:
 * A new configure option, "--enable-memory-sealing", can be used to build
   the GNU C Library libraries and programs with memory sealing.
 
+* A new tunable, glibc.rtld.seal, can enable memory sealing on the program
+  and all its dependencies.  The tunable accepts two different values, where
+  '0' disable memory sealing (even if the GNU_PROPERTY_MEMORY_SEAL attribute
+  is present), while '1' applies sealing accordingly to the sealing
+  attribute.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
   [Add deprecations, removals and changes affecting compatibility here]
