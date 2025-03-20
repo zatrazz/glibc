@@ -456,7 +456,6 @@ tests += \
   tst-noload \
   tst-non-directory-path \
   tst-null-argv \
-  tst-origin \
   tst-p_align1 \
   tst-p_align2 \
   tst-p_align3 \
@@ -3451,8 +3450,16 @@ $(objpfx)tst-dlopen-constructor-null-mod2.so: \
 
 CFLAGS-tst-origin.c += $(no-stack-protector)
 CFLAGS-liborigin-mod.c += $(no-stack-protector)
-LDFLAGS-tst-origin += -Wl,-rpath,\$$ORIGIN -L$(subst :, -L,$(rpath-link)) -lorigin-mod
-$(objpfx)tst-origin.out: tst-origin.sh $(objpfx)liborigin-mod.so $(objpfx)tst-origin
+# The test requires liborigin-mod.so as dependency without a path, which is
+# added by default.
+$(objpfx)tst-origin: $(objpfx)tst-origin.o $(objpfx)liborigin-mod.so
+	$(LINK.o) -nostdlib -nostartfiles \
+		$(sysdep-LDFLAGS) $(rtld-LDFLAGS) -B$(csu-objpfx) \
+		$(link-test-modules-rpath-link) \
+		$(objpfx)tst-origin.o \
+		-o $@ \
+		-Wl,-rpath,\$$ORIGIN -L$(subst :, -L,$(rpath-link)) -lorigin-mod
+$(objpfx)tst-origin.out: tst-origin.sh $(objpfx)tst-origin
 	$(SHELL) \
 		$< \
 		'$(common-objpfx)' \
