@@ -70,9 +70,12 @@ handle_signal (int signum)
       return;
     }
 
-  /* Do not check name for signal trampoline or cancellable syscall
-     wrappers (__syscall_cancel*).  */
-  for (; i < n - 1; i++)
+  /* Skip the signal trampoline and any cancellable syscall wrapper frames
+     (__syscall_cancel*) and require the read syscall wrapper to be present.
+     The loop counter must be reset here: the printing loop above leaves i
+     equal to n, so without this the search (and the fn check below) would
+     never run and the name checks would be silently skipped.  */
+  for (i = 1; i < n - 1; i++)
     if (match (symbols[i], "read"))
       break;
   if (i == n - 1)
@@ -81,7 +84,9 @@ handle_signal (int signum)
       return;
     }
 
-  for (; i < n - 1; i++)
+  /* The frames below read should be the fn recursion; skip the read frame
+     itself first.  */
+  for (i++; i < n - 1; i++)
     if (!match (symbols[i], "fn"))
       {
 	FAIL ();
