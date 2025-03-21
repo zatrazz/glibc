@@ -73,7 +73,7 @@ used by this function was added to the Linux kernel in version 3.17.)
 The combination of @var{buffer} and @var{length} arguments specifies
 an invalid memory range.
 
-@item EIO
+@item EINVAL
 @var{length} is larger than 256, or the kernel entropy pool has
 suffered a catastrophic failure.
 @end table

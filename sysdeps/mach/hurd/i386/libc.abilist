@@ -686,7 +686,7 @@ GLIBC_2.2.6 _libc_intl_domainname D 0x5
 GLIBC_2.2.6 _longjmp F
 GLIBC_2.2.6 _mcleanup F
 GLIBC_2.2.6 _mcount F
-GLIBC_2.2.6 _nl_default_dirname D 0xe
+GLIBC_2.2.6 _nl_default_dirname D 0x12
 GLIBC_2.2.6 _nl_domain_bindings D 0x4
 GLIBC_2.2.6 _nl_msg_cat_cntr D 0x4
 GLIBC_2.2.6 _null_auth D 0xc
@@ -2586,6 +2586,7 @@ GLIBC_2.41 pthread_mutexattr_settype F
 GLIBC_2.41 pthread_sigmask F
 GLIBC_2.42 __inet_ntop_chk F
 GLIBC_2.42 __inet_pton_chk F
+GLIBC_2.42 getentropy F
 GLIBC_2.42 pthread_barrier_destroy F
 GLIBC_2.42 pthread_barrier_init F
 GLIBC_2.42 pthread_barrier_wait F

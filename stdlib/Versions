@@ -224,6 +224,7 @@ libc {
     stdc_bit_ceil_ull;
   }
   GLIBC_2.42 {
+    getentropy;
     uabs;
     uimaxabs;
     ulabs;

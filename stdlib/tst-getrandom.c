@@ -1,4 +1,4 @@
-/* Tests for the getentropy, getrandom functions.
+/* Tests for the getrandom functions.
    Copyright (C) 2016-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -151,73 +151,6 @@ test_flags (unsigned int flags)
     }
 }
 
-static void
-test_getentropy (void)
-{
-  char buf[16];
-  memset (buf, '@', sizeof (buf));
-  if (getentropy (buf, 0) != 0)
-    {
-      printf ("error: getentropy zero length: %m\n");
-      errors = true;
-      return;
-    }
-  for (size_t i = 0; i < sizeof (buf); ++i)
-    if (buf[i] != '@')
-      {
-        printf ("error: getentropy modified zero-length buffer\n");
-        errors = true;
-        return;
-      }
-
-  if (getentropy (buf, sizeof (buf)) != 0)
-    {
-      printf ("error: getentropy buf: %m\n");
-      errors = true;
-      return;
-    }
-
-  char buf2[256];
-  _Static_assert (sizeof (buf) < sizeof (buf2), "buf and buf2 compatible");
-  memset (buf2, '@', sizeof (buf2));
-  if (getentropy (buf2, sizeof (buf)) != 0)
-    {
-      printf ("error: getentropy buf2: %m\n");
-      errors = true;
-      return;
-    }
-
-  /* The probability that these two buffers are equal is very
-     small. */
-  if (memcmp (buf, buf2, sizeof (buf)) == 0)
-    {
-      printf ("error: getentropy appears to return constant bytes\n");
-      errors = true;
-      return;
-    }
-
-  for (size_t i = sizeof (buf); i < sizeof (buf2); ++i)
-    if (buf2[i] != '@')
-      {
-        printf ("error: getentropy wrote beyond the end of the buffer\n");
-        errors = true;
-        return;
-      }
-
-  char buf3[257];
-  if (getentropy (buf3, sizeof (buf3)) == 0)
-    {
-      printf ("error: getentropy successful for 257 byte buffer\n");
-      errors = true;
-      return;
-    }
-  if (errno != EIO)
-    {
-      printf ("error: getentropy wrong error for 257 byte buffer: %m\n");
-      errors = true;
-      return;
-    }
-}
 
 static int
 do_test (void)
@@ -236,8 +169,6 @@ do_test (void)
           flags |= GRND_NONBLOCK;
         test_flags (flags);
       }
-
-  test_getentropy ();
 
   return errors;
 }

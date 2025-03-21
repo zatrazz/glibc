@@ -27,6 +27,9 @@ Deprecated and removed features, and other changes affecting compatibility:
   programs that require an executable stack through dynamic loaded
   shared libraries.
 
+* The getentropy function now follows POSIX 2024, which means that
+  unsupportd large buffer will return EINVAL instead of EIO.
+
 Changes to build and runtime requirements:
 
 * GCC 12.1 or later is now required to build the GNU C Library.

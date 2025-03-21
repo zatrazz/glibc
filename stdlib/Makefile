@@ -284,6 +284,7 @@ tests := \
   tst-environ-change-2 \
   tst-environ-change-3 \
   tst-environ-change-4 \
+  tst-getentropy \
   tst-getenv-signal \
   tst-getenv-static \
   tst-getenv-thread \
@@ -398,6 +399,13 @@ tests-container := \
 ifeq ($(build-hardcoded-path-in-tests),yes)
 tests += \
   tst-empty-env \
+  # tests
+endif
+
+# Test for the getentropy symbol versions required for POSIX 2024
+ifeq ($(have-GLIBC_2.42)$(build-shared),yesyes)
+tests += \
+  tst-getentropy-compat \
   # tests
 endif
 

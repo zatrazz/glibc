@@ -16,16 +16,65 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <sys/random.h>
+#include <stdio.h>
 #include <errno.h>
+#include <not-cancel.h>
+#include <sys/random.h>
+#include <shlib-compat.h>
 
 /* Write LENGTH bytes of randomness starting at BUFFER.  Return 0 on
    success and -1 on failure.  */
-int
-getentropy (void *buffer, size_t length)
+static int
+getentropy_base (void *buffer, size_t length, int err)
 {
-  __set_errno (ENOSYS);
-  return -1;
+  if (length > 256)
+    {
+      __set_errno (err);
+      return -1;
+    }
+
+  /* Try to fill the buffer completely.  Even with the 256 byte limit
+     above, we might still receive an EINTR error (when blocking
+     during boot).  */
+  void *end = buffer + length;
+  while (buffer < end)
+    {
+      /* NB: No cancellation point.  */
+      ssize_t bytes = __getrandom_nocancel (buffer, end - buffer, 0);
+      if (bytes < 0)
+        {
+          if (errno == EINTR)
+            /* Try again if interrupted by a signal.  */
+            continue;
+          else
+            return -1;
+        }
+      else if (bytes == 0)
+        /* No more bytes available.  This should not happen under normal
+	   circumstances.  */
+	{
+	  __set_errno (err);
+	  return -1;
+	}
+
+      /* Try again in case of a short read.  */
+      buffer += bytes;
+    }
+  return 0;
 }
 
-stub_warning (getentropy)
+int
+__new_getentropy (void *buffer, size_t length)
+{
+  return getentropy_base (buffer, length, EINVAL);
+}
+versioned_symbol (libc, __new_getentropy, getentropy, GLIBC_2_42);
+
+#if SHLIB_COMPAT (libc, GLIBC_2_25, GLIBC_2_42)
+int
+__old_getentropy (void *buffer, size_t length)
+{
+  return getentropy_base (buffer, length, EIO);
+}
+compat_symbol (libc, __old_getentropy, getentropy, GLIBC_2_25);
+#endif
