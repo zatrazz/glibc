@@ -33,7 +33,10 @@ typedef int kernel_timer_t;
 
 /* For !SIGEV_THREAD, the resulting 'timer_t' is the returned kernel timer
    identifier (kernel_timer_t), while for SIGEV_THREAD it assumes the
-   pthread_t is always 8-byte aligned.  */
+   pthread_t at least 8-bytes aligned.
+
+   For SIGEV_THREAD, the MSB bit (INT_MAX) is used on timer_delete to
+   signal the helper thread to stop and issue the timer_delete syscall.  */
 
 static inline timer_t
 kernel_timer_to_timerid (kernel_timer_t ktimerid)
@@ -63,9 +66,23 @@ static inline kernel_timer_t
 timerid_to_kernel_timer (timer_t timerid)
 {
   if (timer_is_sigev_thread (timerid))
-    return timerid_to_pthread (timerid)->timerid;
-  else
-    return (kernel_timer_t) ((uintptr_t) timerid);
+    {
+      struct pthread *pthr = timerid_to_pthread (timerid);
+      return pthr->timerid & INT_MAX;
+    }
+  return (uintptr_t) timerid;
+}
+
+static inline void
+timerid_signal_delete (kernel_timer_t *timerid)
+{
+  atomic_fetch_or_relaxed (timerid, INT_MIN);
+}
+
+static inline kernel_timer_t
+timerid_clear (kernel_timer_t timerid)
+{
+  return timerid & INT_MAX;
 }
 
 /* New targets use int instead of timer_t.  The difference only

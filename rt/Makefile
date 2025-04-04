@@ -79,7 +79,8 @@ tests := tst-shm tst-timer tst-timer2 \
 	 tst-cpuclock2 tst-cputimer1 tst-cputimer2 tst-cputimer3 \
 	 tst-clock_nanosleep2 \
 	 tst-shm-cancel \
-	 tst-mqueue10
+	 tst-mqueue10 \
+	 tst-timer6
 tests-internal := tst-timer-sigmask
 
 tests-time64 := \

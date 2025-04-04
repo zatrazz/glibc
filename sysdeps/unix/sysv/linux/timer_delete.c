@@ -15,10 +15,8 @@
    License along with the GNU C Library; see the file COPYING.LIB.  If
    not, see <https://www.gnu.org/licenses/>.  */
 
-#include <errno.h>
-#include <stdlib.h>
+#include <unistd.h>
 #include <time.h>
-#include <sysdep.h>
 #include "kernel-posix-timers.h"
 #include <pthreadP.h>
 #include <shlib-compat.h>
@@ -32,8 +30,11 @@ ___timer_delete (timer_t timerid)
 
       /* The helper thread itself will be responsible to call the
 	 timer_delete syscall.  */
-      atomic_fetch_or_relaxed (&th->timerid, INT_MIN);
-      __pthread_kill_internal ((pthread_t) th, SIGTIMER);
+      timerid_signal_delete (&th->timerid);
+      /* We can send the signal directly instead of through
+	 __pthread_kill_internal because the thread is not user-visible
+	 and it blocks SIGTIMER.  */
+      INTERNAL_SYSCALL_CALL (tgkill, __getpid (), th->tid, SIGTIMER);
       return 0;
     }
   return INLINE_SYSCALL_CALL (timer_delete, timerid);
