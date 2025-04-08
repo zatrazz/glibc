@@ -288,6 +288,7 @@ CFLAGS-mempcpy.c += $(config-cflags-wno-ignored-attributes)
 CFLAGS-stpcpy.c += $(config-cflags-wno-ignored-attributes)
 CFLAGS-strnlen.c += $(config-cflags-wno-ignored-attributes)
 CFLAGS-ffsll.c += $(config-cflags-wno-ignored-attributes)
+CFLAGS-strlen.c += $(config-cflags-wno-ignored-attributes)
 
 ifeq ($(run-built-tests),yes)
 $(objpfx)tst-svc-cmp.out: tst-svc.expect $(objpfx)tst-svc.out
