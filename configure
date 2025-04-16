@@ -702,6 +702,8 @@ INSTALL_DATA
 INSTALL_SCRIPT
 INSTALL_PROGRAM
 base_machine
+cflags_disable_ubsan
+cflags_enable_ubsan
 build_pt_chown
 build_nscd
 memory_tagging
@@ -822,6 +824,7 @@ enable_cet
 enable_scv
 enable_fortify_source
 enable_sframe
+enable_ubsan
 with_cpu
 '
       ac_precious_vars='build_alias
@@ -1508,6 +1511,7 @@ Optional Features:
                           hardening, defaults to highest possible value
                           supported by the build compiler.
   --enable-sframe         Enable building with SFrame support [default=no]
+  --enable-ubsan          Build glibc with -fsanitize=undefined
 
 Optional Packages:
   --with-PACKAGE[=ARG]    use PACKAGE [ARG=yes]
@@ -4895,6 +4899,32 @@ else case e in #(
 esac
 fi
 
+
+cflags_enable_ubsan=
+cflags_disable_ubsan=
+# Check whether --enable-ubsan was given.
+if test ${enable_ubsan+y}
+then :
+  enableval=$enable_ubsan; enable_ubsan=$enableval
+else case e in #(
+  e) enable_ubsan=no ;;
+esac
+fi
+
+config_vars="$config_vars
+enable-ubsan = $enable_ubsan"
+if test "$enable_ubsan" = yes; then
+  printf "%s\n" "#define ENABLE_UBSAN 1" >>confdefs.h
+
+  cflags_enable_ubsan="-fsanitize=undefined"
+  cflags_disable_ubsan="-fno-sanitize=undefined"
+fi
+
+
+config_vars="$config_vars
+cflags-enable-ubsan = $cflags_enable_ubsan"
+config_vars="$config_vars
+cflags-disable-ubsan = $cflags_disable_ubsan"
 
 # We keep the original values in `$config_*' and never modify them, so we
 # can write them unchanged into config.make.  Everything else uses

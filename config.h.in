@@ -225,6 +225,9 @@
 /* Define if __builtin_fmod/__builtin_remainder is inlined on x86.  */
 #undef HAVE_X86_INLINE_FMOD
 
+/* Define if glibc should be build with -fsanitize=undefined.  */
+#undef ENABLE_UBSAN
+
 /*
  */
 
