@@ -226,7 +226,36 @@ __debug_realloc (void *oldmem, size_t bytes)
   if ((!__is_malloc_debug_enabled (MALLOC_MCHECK_HOOK)
        || !realloc_mcheck_before (&oldmem, &bytes, &oldsize, &victim)))
     {
+<<<<<<< HEAD
       if (__is_malloc_debug_enabled (MALLOC_CHECK_HOOK))
+=======
+      mchunkptr oldp = oldmem != NULL ? mem2chunk (oldmem) : NULL;
+
+      /* If this is a faked mmapped chunk from the dumped main arena,
+	 always make a copy (and do not free the old chunk).  */
+      if (DUMPED_MAIN_ARENA_CHUNK (oldp))
+	{
+	  if (bytes == 0 && oldmem != NULL)
+	    victim = NULL;
+	  else
+	    {
+	      const INTERNAL_SIZE_T osize = chunksize (oldp);
+	      /* Must alloc, copy, free. */
+	      victim = __debug_malloc (bytes);
+	      /* Copy as many bytes as are available from the old chunk
+		 and fit into the new size.  NB: The overhead for faked
+		 mmapped chunks is only SIZE_SZ, not CHUNK_HDR_SZ as for
+		 regular mmapped chunks.  */
+	      if (victim != NULL)
+		{
+		  if (bytes > osize - SIZE_SZ)
+		    bytes = osize - SIZE_SZ;
+		  memcpy (victim, oldmem, bytes);
+		}
+	    }
+	}
+      else if (__is_malloc_debug_enabled (MALLOC_CHECK_HOOK))
+>>>>>>> 0fd666fb4b (malloc: Fix UB in malloc-debug)
 	victim =  realloc_check (oldmem, bytes);
       else
 	victim = __libc_realloc (oldmem, bytes);
