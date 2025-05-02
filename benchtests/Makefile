@@ -109,6 +109,7 @@ bench-math := \
   rintf \
   roundeven \
   roundevenf \
+  rsqrtf \
   sin \
   sincos \
   sincosf \
