@@ -6008,7 +6008,8 @@ $conftest_code
 EOF
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for clang in testing" >&5
 printf %s "checking for clang in testing... " >&6; }
 if test ${libc_cv_test_clang+y}
@@ -6084,7 +6085,8 @@ $conftest_code
 EOF
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for clang in testing" >&5
 printf %s "checking for clang in testing... " >&6; }
 if test ${libc_cv_test_clang_19_or_less+y}
@@ -6142,7 +6144,8 @@ if test "$TEST_CC" = "$CC"; then
 else
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for -fstack-protector in testing" >&5
 printf %s "checking for -fstack-protector in testing... " >&6; }
 if test ${libc_cv_test_ssp+y}
@@ -7354,7 +7357,8 @@ if test "$TEST_CC" = "$CC"; then
 else
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for -static-pie in testing" >&5
 printf %s "checking for -static-pie in testing... " >&6; }
 if test ${libc_cv_test_static_pie+y}
@@ -7461,7 +7465,8 @@ $conftest_code
 EOF
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for tls descriptor support in testing" >&5
 printf %s "checking for tls descriptor support in testing... " >&6; }
 if test ${libc_cv_test_mtls_descriptor+y}
@@ -7528,7 +7533,8 @@ if test "$TEST_CC" = "$CC"; then
 else
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if -Wno-ignored-attributes is required for aliases in testing" >&5
 printf %s "checking if -Wno-ignored-attributes is required for aliases in testing... " >&6; }
 if test ${libc_cv_test_wno_ignored_attributes+y}
@@ -7816,7 +7822,8 @@ if test "$TEST_CC" = "$CC"; then
 else
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for compiler option that -fsignaling-nans in testing" >&5
 printf %s "checking for compiler option that -fsignaling-nans in testing... " >&6; }
 if test ${libc_cv_test_cc_signaling_nans+y}
@@ -7851,7 +7858,8 @@ config-cflags-signaling-nans = $libc_cv_cc_signaling_nans"
 
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking -fsemantic-interposition in testing" >&5
 printf %s "checking -fsemantic-interposition in testing... " >&6; }
 if test ${libc_cv_test_cc_cflags_fsemantic_interposition+y}
@@ -7885,7 +7893,8 @@ have-test-cc-cflags-fsemantic-interposition = $libc_cv_test_cc_cflags_fsemantic_
 
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for -ffloat-store in testing" >&5
 printf %s "checking for -ffloat-store in testing... " >&6; }
 if test ${libc_cv_test_cc_float_store+y}
@@ -7951,7 +7960,8 @@ if test "$TEST_CC" = "$CC"; then
 else
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if __attribute__ ((__optimize__(\"-fno-tree-loop-distribute-patterns\"))) works in testing" >&5
 printf %s "checking if __attribute__ ((__optimize__(\"-fno-tree-loop-distribute-patterns\"))) works in testing... " >&6; }
 if test ${libc_cv_test_cc_loop_to_function+y}
@@ -8016,7 +8026,8 @@ if test "$TEST_CC" = "$CC"; then
 else
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for -Wimplicit-fallthrough in testing" >&5
 printf %s "checking for -Wimplicit-fallthrough in testing... " >&6; }
 if test ${libc_cv_test_cc_wimplicit_fallthrough+y}
@@ -8185,7 +8196,8 @@ $conftest_code
 EOF
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking support for trampolines in testing" >&5
 printf %s "checking support for trampolines in testing... " >&6; }
 if test ${libc_cv_test_cc_trampolines+y}
@@ -8218,7 +8230,8 @@ have-test-cc-trampoline = $libc_cv_test_cc_trampolines"
 
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking -Wno-restrict in testing" >&5
 printf %s "checking -Wno-restrict in testing... " >&6; }
 if test ${libc_cv_test_cflags_wno_restrict+y}
@@ -8252,7 +8265,8 @@ test-config-cflags-wno-restrict = $libc_cv_test_cflags_wno_restrict"
 
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking -Wno-fortify-source in testing" >&5
 printf %s "checking -Wno-fortify-source in testing... " >&6; }
 if test ${libc_cv_test_cflags_wno_fortify_source+y}
@@ -8286,7 +8300,8 @@ test-config-cflags-wno-fortify-source = $libc_cv_test_cflags_wno_fortify_source"
 
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking -finput-charset=ascii in testing" >&5
 printf %s "checking -finput-charset=ascii in testing... " >&6; }
 if test ${libc_cv_test_cflags_finput_charset_ascii+y}
@@ -8678,7 +8693,8 @@ if test "$TEST_CC" = "$CC"; then
 else
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for maximum supported _FORTIFY_SOURCE level in testing" >&5
 printf %s "checking for maximum supported _FORTIFY_SOURCE level in testing... " >&6; }
 if test ${libc_cv_test_supported_fortify_source+y}
@@ -9242,7 +9258,8 @@ if test "$TEST_CC" = "$CC"; then
 else
 
 saved_CC="$CC"
-CC="$TEST_CC"
+saved_CFLAGS="$CFLAGS"
+CC="$TEST_CC -Wno-unused-command-line-argument"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if compiler supports -mbranch-protection=gcs in testing" >&5
 printf %s "checking if compiler supports -mbranch-protection=gcs in testing... " >&6; }
 if test ${libc_cv_test_cc_gcs+y}
