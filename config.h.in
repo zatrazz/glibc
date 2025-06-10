@@ -216,6 +216,9 @@
 /* An integer used to scale the timeout of test programs.  */
 #define TIMEOUTFACTOR 1
 
+/* Define to 1 if compiler runtime provides __sfp_handle_exceptions */
+#undef HAVE_SFP_HANDLE_EXCEPTIONS
+
 /*
  */
 
