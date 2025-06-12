@@ -7054,23 +7054,65 @@ if test $libc_cv_have_sdata_section = yes; then
 
 fi
 
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for libunwind-support in compiler" >&5
-printf %s "checking for libunwind-support in compiler... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking if cleanup or thread cancellation requires libunwind" >&5
+printf %s "checking if cleanup or thread cancellation requires libunwind... " >&6; }
 if test ${libc_cv_cc_with_libunwind+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
-  e)
-  cat > conftest.c <<EOF
-int main (void) { return 0; }
-EOF
-  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -static -o conftest \
-     conftest.c -v 2>&1 >/dev/null | grep ' -lunwind ' >/dev/null; then
-    libc_cv_cc_with_libunwind=yes
-  else
-    libc_cv_cc_with_libunwind=no
+  e)   cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+extern long int _Unwind_GetIP (void *);
+int
+main (void)
+{
+_Unwind_GetIP (0)
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  libc_cv_cc_with_libunwind=no
+else case e in #(
+  e) libc_cv_cc_with_libunwind=yes ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+  if test $libc_cv_cc_with_libunwind = yes; then
+    # Also check if adding libuwind does resolve _Unwind_GetIP
+    old_LIBS="$LIBS"
+    LIBS="$LIBS -lunwind"
+    cat confdefs.h - <<_ACEOF >conftest.$ac_ext
+/* end confdefs.h.  */
+extern long int _Unwind_GetIP (void *);
+int
+main (void)
+{
+_Unwind_GetIP (0)
+  ;
+  return 0;
+}
+_ACEOF
+if ac_fn_c_try_link "$LINENO"
+then :
+  libc_cv_cc_with_libunwind_link=yes
+else case e in #(
+  e) libc_cv_cc_with_libunwind_link=no ;;
+esac
+fi
+rm -f core conftest.err conftest.$ac_objext conftest.beam \
+    conftest$ac_exeext conftest.$ac_ext
+    if test $libc_cv_cc_with_libunwind_link = no; then
+      { { printf "%s\n" "$as_me:${as_lineno-$LINENO}: error: in '$ac_pwd':" >&5
+printf "%s\n" "$as_me: error: in '$ac_pwd':" >&2;}
+as_fn_error $? "no compiler support found for unwind
+See 'config.log' for more details" "$LINENO" 5; }
+    fi
+    LIBS="$old_LIBS"
   fi
-  rm -f conftest* ;;
+   ;;
 esac
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_cc_with_libunwind" >&5

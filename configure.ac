@@ -1280,18 +1280,26 @@ if test $libc_cv_have_sdata_section = yes; then
   AC_DEFINE(HAVE_SDATA_SECTION)
 fi
 
-AC_CACHE_CHECK(for libunwind-support in compiler,
-	       libc_cv_cc_with_libunwind, [
-  cat > conftest.c <<EOF
-int main (void) { return 0; }
-EOF
-  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS -static -o conftest \
-     conftest.c -v 2>&1 >/dev/null | grep ' -lunwind ' >/dev/null; then
-    libc_cv_cc_with_libunwind=yes
-  else
-    libc_cv_cc_with_libunwind=no
+AC_CACHE_CHECK([if cleanup or thread cancellation requires libunwind],
+	       libc_cv_cc_with_libunwind, [dnl
+  AC_LINK_IFELSE([AC_LANG_PROGRAM([[extern long int _Unwind_GetIP (void *);]],
+                                  [[_Unwind_GetIP (0)]])],
+                 libc_cv_cc_with_libunwind=no,
+                 libc_cv_cc_with_libunwind=yes)
+  if test $libc_cv_cc_with_libunwind = yes; then
+    # Also check if adding libuwind does resolve _Unwind_GetIP
+    old_LIBS="$LIBS"
+    LIBS="$LIBS -lunwind"
+    AC_LINK_IFELSE([AC_LANG_PROGRAM([[extern long int _Unwind_GetIP (void *);]],
+                                    [[_Unwind_GetIP (0)]])],
+                   libc_cv_cc_with_libunwind_link=yes,
+                   libc_cv_cc_with_libunwind_link=no)
+    if test $libc_cv_cc_with_libunwind_link = no; then
+      AC_MSG_FAILURE([no compiler support found for unwind])
+    fi
+    LIBS="$old_LIBS"
   fi
-  rm -f conftest*])
+  ])
 AC_SUBST(libc_cv_cc_with_libunwind)
 if test $libc_cv_cc_with_libunwind = yes; then
   AC_DEFINE(HAVE_CC_WITH_LIBUNWIND)
