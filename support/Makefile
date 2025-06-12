@@ -281,14 +281,14 @@ CFLAGS-temp_file.c += -D_FILE_OFFSET_BITS=64 -D_TIME_BITS=64
 
 ifeq (,$(CXX))
 LINKS_DSO_PROGRAM = links-dso-program-c
-LDLIBS-links-dso-program-c = -lgcc
+LDLIBS-links-dso-program-c = $(gnulib)
 ifeq ($(have-libgcc_s),yes)
 CFLAGS-links-dso-program-c.c += -fexceptions
 LDLIBS-links-dso-program-c += $(libgcc_s) $(libunwind)
 endif
 else
 LINKS_DSO_PROGRAM = links-dso-program
-LDLIBS-links-dso-program = -lstdc++ -lgcc $(libgcc_s) $(libunwind)
+LDLIBS-links-dso-program = -lstdc++ $(gnulib) $(libgcc_s) $(libunwind)
 endif
 
 ifeq (yes,$(have-selinux))
