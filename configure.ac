@@ -2133,6 +2133,26 @@ AC_CACHE_CHECK([whether $CC can link against -lgcc_s], libc_cv_have_libgcc_s, [d
   LIBS="$old_LIBS"])
 LIBC_CONFIG_VAR([have-libgcc_s], [$libc_cv_have_libgcc_s])
 
+# Check which runtime library compiler uses
+AC_CACHE_CHECK([for the compiler runtime library], [libc_cv_compiler_runtime], [dnl
+  libgcc_name=`${CC-cc} $CFLAGS $CPPFLAGS -print-libgcc-file-name | sed 's:.*/::'`
+  case "$libgcc_name" in
+    libgcc*)
+      libc_cv_compiler_runtime=-lgcc
+      libc_cv_compiler_runtime_eh=-lgcc_eh
+      libc_cv_compiler_runtime_static=-static-libgcc
+      ;;
+    libclang_rt*)
+      libc_cv_compiler_runtime=-lclang_rt.builtins
+      libc_cv_compiler_runtime_eh=
+      libc_cv_compiler_runtime_static=
+      ;;
+    *) AC_MSG_FAILURE([non supported compiler runtime library]) ;;
+  esac])
+LIBC_CONFIG_VAR([compiler-runtime], [$libc_cv_compiler_runtime])
+LIBC_CONFIG_VAR([compiler-runtime_eh], [$libc_cv_compiler_runtime_eh])
+LIBC_CONFIG_VAR([compiler-runtime_static], [$libc_cv_compiler_runtime_static])
+
 # Check if compiler runtime library provides __sfp_handle_exceptions
 LIBC_TRY_CC_AND_TEST_LINK([for __sfp_handle_exceptions support],
   [void __sfp_handle_exceptions (int); __sfp_handle_exceptions (0)],

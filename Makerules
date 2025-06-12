@@ -543,7 +543,7 @@ lib%.so: lib%_pic.a $(+preinit) $(+postinit) $(link-libc-deps)
 	$(call after-link,$@)
 
 define build-shlib-helper
-$(LINK.o) -shared -static-libgcc -Wl,-O1 $(sysdep-LDFLAGS) \
+$(LINK.o) -shared $(compiler-runtime_static) -Wl,-O1 $(sysdep-LDFLAGS) \
 	  $(if $($(@F)-no-z-defs)$(no-z-defs),,-Wl,-z,defs) $(rtld-LDFLAGS) \
 	  $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(dt-relr-ldflag)) \
 	  $(extra-B-$(@F:lib%.so=%).so) -B$(csu-objpfx) \
@@ -559,7 +559,7 @@ $(build-shlib-helper) -o $@ \
 endef
 
 define build-module-helper
-$(LINK.o) -shared -static-libgcc $(sysdep-LDFLAGS) $(rtld-LDFLAGS) \
+$(LINK.o) -shared $(compiler-runtime_static) $(sysdep-LDFLAGS) $(rtld-LDFLAGS) \
 	  $(if $($(@F)-no-z-defs)$(no-z-defs),,-Wl,-z,defs) \
 	  $(if $($(@F)-no-dt-relr),$(no-dt-relr-ldflag),$(dt-relr-ldflag)) \
 	  -B$(csu-objpfx) $(load-map-file) \
