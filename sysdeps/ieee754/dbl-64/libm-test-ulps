@@ -23,6 +23,18 @@ double: 0
 Function: "acosh_upward":
 double: 0
 
+Function: "asin":
+double: 0
+
+Function: "asin_downward":
+double: 0
+
+Function: "asin_towardzero":
+double: 0
+
+Function: "asin_upward":
+double: 0
+
 Function: "asinh":
 double: 0
 

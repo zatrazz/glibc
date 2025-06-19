@@ -35,9 +35,11 @@
 
 #if defined __BITINT_MAXWIDTH__ && __BITINT_MAXWIDTH__ >= 128
 typedef unsigned _BitInt(128) u128;
+typedef          _BitInt(128) i128;
 # define __MATH_INT128_BUILTIN_TYPE 1
 #elif defined __SIZEOF_INT128__
 typedef unsigned __int128 u128;
+typedef          __int128 i128;
 # define __MATH_INT128_BUILTIN_TYPE 1
 #else
 # define __MATH_INT128_BUILTIN_TYPE 0
