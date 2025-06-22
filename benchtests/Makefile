@@ -34,6 +34,7 @@ bench-math := \
   asinf \
   asinh \
   asinhf \
+  asinpi \
   asinpif \
   atan \
   atan2 \
