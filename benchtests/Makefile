@@ -28,6 +28,7 @@ bench-math := \
   acosf \
   acosh \
   acoshf \
+  acospi \
   acospif \
   asin \
   asinf \
