@@ -83,6 +83,18 @@ double: 0
 Function: "atan_upward":
 double: 0
 
+Function: "atan2":
+double: 0
+
+Function: "atan2_downward":
+double: 0
+
+Function: "atan2_towardzero":
+double: 0
+
+Function: "atan2_upward":
+double: 0
+
 Function: "atanh":
 double: 0
 
