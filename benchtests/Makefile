@@ -43,6 +43,7 @@ bench-math := \
   atanf \
   atanh \
   atanhf \
+  atanpi \
   atanpif \
   cbrt \
   cbrtf \
