@@ -39,6 +39,7 @@ bench-math := \
   atan \
   atan2 \
   atan2f \
+  atan2pi \
   atan2pif \
   atanf \
   atanh \
