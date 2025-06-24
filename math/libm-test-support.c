@@ -143,6 +143,7 @@ static int ignore_max_ulp;	/* Should we ignore max_ulp?  */
 static int test_ibm128;		/* Is argument or result IBM long double?  */
 
 static FLOAT max_error, real_max_error, imag_max_error;
+static FLOAT max_error_all, real_max_error_all, imag_max_error_all;
 
 static FLOAT prev_max_error, prev_real_max_error, prev_imag_max_error;
 
@@ -251,15 +252,6 @@ init_max_error (const char *name, int exact, int testing_ibm128)
 				   array_length (func_imag_ulps),
 				   exact, testing_ibm128);
   max_valid_error = default_max_valid_error (exact, testing_ibm128);
-  prev_max_error = (prev_max_error <= max_valid_error
-		    ? prev_max_error
-		    : max_valid_error);
-  prev_real_max_error = (prev_real_max_error <= max_valid_error
-			 ? prev_real_max_error
-			 : max_valid_error);
-  prev_imag_max_error = (prev_imag_max_error <= max_valid_error
-			 ? prev_imag_max_error
-			 : max_valid_error);
   feclearexcept (FE_ALL_EXCEPT);
   errno = 0;
 }
@@ -267,7 +259,7 @@ init_max_error (const char *name, int exact, int testing_ibm128)
 static void
 set_max_error (FLOAT current, FLOAT *curr_max_error)
 {
-  if (current > *curr_max_error && current <= max_valid_error)
+  if (current > *curr_max_error /*&& current <= max_valid_error*/)
     *curr_max_error = current;
 }
 
@@ -425,6 +417,9 @@ check_max_error (const char *func_name)
       ok = 1;
     }
 
+  if (max_error > max_error_all)
+    max_error_all = max_error;
+
   if (!ok)
     print_function_ulps (func_name, max_error);
 
@@ -464,6 +459,11 @@ check_complex_max_error (const char *func_name)
     {
       imag_ok = 1;
     }
+
+  if (real_max_error > real_max_error_all)
+    real_max_error_all = real_max_error;
+  if (imag_max_error > imag_max_error_all)
+    imag_max_error_all = imag_max_error;
 
   ok = real_ok && imag_ok;
 
@@ -1343,15 +1343,15 @@ libm_test_finish (void)
     {
       char rmestr[FSTR_MAX];
       char imestr[FSTR_MAX];
-      FTOSTR (rmestr, FSTR_MAX, "%.0f", FUNC (ceil) (real_max_error));
-      FTOSTR (imestr, FSTR_MAX, "%.0f", FUNC (ceil) (imag_max_error));
+      FTOSTR (rmestr, FSTR_MAX, "%.0f", FUNC (ceil) (real_max_error_all));
+      FTOSTR (imestr, FSTR_MAX, "%.0f", FUNC (ceil) (imag_max_error_all));
       printf ("`%s' ulp for real part and `%s' ulp for imaginary part\n",
 	      rmestr, imestr);
     }
   else
     {
       char mestr[FSTR_MAX];
-      FTOSTR (mestr, FSTR_MAX, "%.0f", FUNC (ceil) (max_error));
+      FTOSTR (mestr, FSTR_MAX, "%.0f", FUNC (ceil) (max_error_all));
       printf ("`%s' ulp\n", mestr);
     }
   printf ("  %d max error test cases,\n", noMaxErrorTests);
