@@ -102,3 +102,17 @@ double: 1
 
 Function: "asin_upward":
 double: 1
+
+# sysdeps/ieee754/dbl-64/s_sin.c shows 1ulp error even with
+# -fexcess-precision=standard.
+Function: "sin":
+double: 1
+
+Function: "sin_downward":
+double: 1
+
+Function: "sin_towardzero":
+double: 1
+
+Function: "sin_upward":
+double: 1

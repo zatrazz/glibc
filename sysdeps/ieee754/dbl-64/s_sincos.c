@@ -29,7 +29,8 @@
 #endif
 
 #define IN_SINCOS
-#include "s_sin.c"
+#include "mydefs.h"
+#include "usncs.h"
 
 void
 SECTION

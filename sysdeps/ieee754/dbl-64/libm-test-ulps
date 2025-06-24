@@ -187,3 +187,15 @@ double: 10
 
 Function: "y1_upward":
 double: 10
+
+Function: "sin":
+double: 0
+
+Function: "sin_downward":
+double: 0
+
+Function: "sin_towardzero":
+double: 0
+
+Function: "sin_upward":
+double: 0
