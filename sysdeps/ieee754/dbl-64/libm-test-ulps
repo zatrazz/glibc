@@ -178,3 +178,12 @@ double: 0
 
 Function: "atan2pi_upward":
 double: 0
+
+Function: "j1_downward":
+double: 12
+
+Function: "j1_towardzero":
+double: 10
+
+Function: "y1_upward":
+double: 10
