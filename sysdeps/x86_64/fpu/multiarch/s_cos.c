@@ -1,4 +1,4 @@
-/* Multiple versions of sin.
+/* Multiple versions of cos.
    Copyright (C) 2017-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -20,14 +20,14 @@
 #if MINIMUM_X86_ISA_LEVEL < AVX2_X86_ISA_LEVEL
 # include <libm-alias-double.h>
 
-extern double __redirect_sin (double);
+extern double __redirect_cos (double);
 
-# define SYMBOL_NAME sin
+# define SYMBOL_NAME cos
 # include "ifunc-avx-fma4.h"
 
-libc_ifunc_redirected (__redirect_sin, __sin, IFUNC_SELECTOR ());
-libm_alias_double (__sin, sin)
+libc_ifunc_redirected (__redirect_cos, __cos, IFUNC_SELECTOR ());
+libm_alias_double (__cos, cos)
 
-# define __sin __sin_sse2
+# define __cos __cos_sse2
 #endif
-#include <sysdeps/ieee754/dbl-64/s_sin.c>
+#include <sysdeps/ieee754/dbl-64/s_cos.c>
