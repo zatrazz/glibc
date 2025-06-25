@@ -374,6 +374,7 @@ type-double-routines := \
 type-float-suffix := f
 type-float-routines := \
   e_acos_data \
+  e_asin_data \
   e_exp2f_data \
   e_log2f_data \
   e_logf_data \
