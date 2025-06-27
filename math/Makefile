@@ -363,6 +363,7 @@ type-double-routines := \
   k_rem_pio2 \
   math_err \
   s_asincosh_data \
+  s_atan2_data \
   s_atan_data \
   s_atanh_data \
   s_erf_common \

@@ -37,10 +37,6 @@ SOFTWARE.
 #include <math.h> // needed to provide atan2pi() since glibc does not have it
 #include <errno.h>
 #include <libm-alias-double.h>
-#define CORE_MATH_SUPPORT_ERRNO
-
-typedef union { double f; uint64_t u; } d64u64;
-
 #include "tint.h"
 
 #define MASK 0x7fffffffffffffffull // 2^63-1 (mask the sign bit)

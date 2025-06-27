@@ -24,9 +24,12 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <errno.h>
 #include <stdlib.h>
 #include <inttypes.h>
 #include <math_uint128.h>
+
+#define CORE_MATH_SUPPORT_ERRNO
 
 // the following represent (-1)^sgn*(h/2^64+m/2^128+l/2^192)*2^ex
 // we have either h=m=l=0 to represent +0 or -0
@@ -48,6 +51,8 @@ typedef union {
     uint64_t _sgn;
   };
 } tint_t;
+
+typedef union { double f; uint64_t u; } d64u64;
 
 // ZERO is a tint_t representation of 0
 static const tint_t ZERO = {.h = 0, .m = 0, .l = 0, .ex = -1076, .sgn = 0};
