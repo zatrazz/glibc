@@ -37,7 +37,7 @@ SOFTWARE.
 #include <fenv.h>
 #include <rounding-mode.h>
 #include <libm-alias-double.h>
-#include <math_uint128.h>
+#include <u128_u.h>
 #define CORE_MATH_SUPPORT_ERRNO
 
 typedef union {double f; uint64_t u;} b64u64_u;
