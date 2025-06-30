@@ -106,29 +106,30 @@ mul_tint (tint_t *r, const tint_t *a, const tint_t *b)
   r->ex = a->ex + b->ex;
   r->sgn = a->sgn ^ b->sgn;
 
-  u128 ah = a->h, am = a->m, al = a->l;
-  u128 bh = b->h, bm = b->m, bl = b->l;
-  u128 rh = ah * bh, rm1 = ah * bm, rm2 = am * bh;
-  u128 rl1 = ah * bl, rl2 = am * bm, rl3 = al * bh;
+  u128 ah = u128_from_u64(a->h), am = u128_from_u64(a->m), al = u128_from_u64(a->l);
+  u128 bh = u128_from_u64(b->h), bm = u128_from_u64(b->m), bl = u128_from_u64(b->l);
+  u128 rh = u128_mul(ah, bh), rm1 = u128_mul(ah, bm), rm2 = u128_mul(am, bh);
+  u128 rl1 = u128_mul(ah,bl), rl2 = u128_mul(am, bm), rl3 = u128_mul(al, bh);
   uint64_t h, l, cm;
-  r->h = rh >> 64;
-  r->m = rh; // cast to low 64 bits
+  r->h = u128_low(u128_rshift(rh, 64));
+  r->m = u128_low(rh); // cast to low 64 bits
   // accumulate rm1
-  r->l = rm1; // cast to low 64 bits
-  h = rm1 >> 64;
+  r->l = u128_low(rm1); // cast to low 64 bits
+  h = u128_low(u128_rshift(rm1, 64));
   r->m += h;
   r->h += r->m < h; // no overflow possible
   // accumulate rm2
-  l = rm2; // cast to low 64 bits
-  h = rm2 >> 64;
+  l = u128_low(rm2); // cast to low 64 bits
+  h = u128_low(u128_rshift(rm2, 64));
   r->l += l;
   cm = r->l < l; // carry at r->m
   r->m += h;
   r->h += r->m < h; // no overflow possible
   // accumulate rl1+rl2+rl3
-  rl1 = (rl1 >> 64) + (rl2 >> 64) + (rl3 >> 64);
-  l = rl1; // cast to low 64 bits
-  cm += rl1 >> 64;
+  rl1 = u128_add (u128_add (u128_rshift (rl1, 64), u128_rshift (rl2, 64)),
+		  u128_rshift (rl3, 64));
+  l = u128_low(rl1); // cast to low 64 bits
+  cm += u128_high (rl1);
   r->l += l;
   cm += r->l < l; // carry at r->m
   // accumulate cm
@@ -164,7 +165,7 @@ tint_zero_p (const tint_t *a)
 
 static inline int cmp(int64_t a, int64_t b) { return (a > b) - (a < b); }
 static inline int cmpu64(uint64_t a, uint64_t b) { return (a > b) - (a < b); }
-static inline int cmpu128(u128 a, u128 b) { return (a > b) - (a < b); }
+static inline int cmpu128(u128 a, u128 b) { return u128_gt (a, b) - u128_lt (a, b); }
 
 // Compare the absolute values of a and b
 // Return -1 if |a| < |b|
@@ -197,26 +198,30 @@ rshift (tint_t *a, const tint_t *b, int k)
   }
   else if (k < 64)
   {
-    a->_h = b->_h >> k;
-    a->_l = (b->_h << (64 - k)) | (b->_l >> k);
+    a->_h = u128_rshift (b->_h, k);
+    a->_l = u128_low (u128_or (u128_lshift (b->_h, (64 - k)),
+			       u128_from_u64 (b->_l >> k)));
   }
   else if (k == 64)
   {
-    a->_h = b->_h >> k;
-    a->_l = b->_h;
+    a->_h = u128_rshift (b->_h, k);
+    a->_l = u128_low (b->_h);
   }
   else if (k < 128)
   {
-    a->_h = b->_h >> k;
-    a->_l = b->_h >> (k - 64);
+    a->_h = u128_rshift (b->_h, k);
+    a->_l = u128_low (u128_rshift (b->_h, k - 64));
   }
   else if (k < 192)
   {
-    a->_h = 0;
-    a->_l = b->_h >> (k - 64);
+    a->_h = u128_from_u64 (0);
+    a->_l = u128_low (u128_rshift (b->_h, k - 64));
   }
   else
-    a->_h = a->_l = 0;
+  {
+    a->_h = u128_from_u64 (0);
+    a->_l = 0;
+  }
   // printf ("exit rshift a="); print_tint (a);
 }
 
@@ -231,26 +236,31 @@ lshift (tint_t *a, const tint_t *b, int k)
   }
   else if (k < 64)
   {
-    a->_h = (b->_h << k) | (b->_l >> (64 - k));
+    a->_h = u128_or (u128_lshift (b->_h, k),
+		     u128_rshift (u128_from_u64 (b->_l), 64 - k));
     a->_l = b->_l << k;
   }
   else if (k == 64)
   {
-    a->_h = (b->_h << k) | (u128) b->_l;
+    a->_h = u128_or (u128_lshift (b->_h, k), u128_from_u64 (b->_l));
     a->_l = 0;
   }
   else if (k < 128)
   {
-    a->_h = b->_h << k | ((u128) b->_l << (k - 64));
+    a->_h = u128_or (u128_lshift (b->_h, k),
+		     u128_lshift (u128_from_u64 (b->_l), k - 64));
     a->_l = 0;
   }
   else if (k < 192)
   {
-    a->_h = (u128) b->_l << (k - 64);
+    a->_h = u128_lshift (u128_from_u64 (b->_l), k - 64);
     a->_l = 0;
   }
   else
-    a->_h = a->_l = 0;
+  {
+    a->_h = u128_from_u64 (0);
+    a->_l = 0;
+  }
 }
 
 // Add two tint_t values, with error bounded by 2 ulps
@@ -283,11 +293,12 @@ add_tint (tint_t *r, const tint_t *a, const tint_t *b)
 
   if (a->sgn ^ b->sgn) { // opposite signs, it's a subtraction
     t->_l = a->_l - t->_l;
-    t->_h = a->_h - t->_h - (t->_l > a->_l);
-    uint64_t th = t->_h >> 64;
+    t->_h = u128_sub (a->_h, u128_sub (t->_h,
+				       u128_from_u64 (t->_l > a->_l)));
+    uint64_t th = u128_high (t->_h);
     uint64_t ex =
       th ? __builtin_clzll (th)
-      : (t->_h ? 64 + __builtin_clzll (t->_h) : 128 + __builtin_clzll (t->_l));
+      : (u128_low (t->_h) ? 64 + __builtin_clzll (u128_low (t->_h)) : 128 + __builtin_clzll (t->_l));
     if (ex <= 1 || sh == 0) {
       /* The maximal error of 1 ulp for the neglected low part of b is shifted
          by ex bits, thus contributes to < 2 ulps. And for sh=0, there is no
@@ -305,11 +316,12 @@ add_tint (tint_t *r, const tint_t *a, const tint_t *b)
       lshift (t, b, ex - sh);
       lshift (r, a, ex);
       t->_l = r->_l - t->_l;
-      t->_h = r->_h - t->_h - (t->_l > r->_l);
-      th = t->_h >> 64;
+      t->_h = u128_sub (r->_h, u128_sub (t->_h,
+					 u128_from_u64 (t->_l - r->_l)));
+      th = u128_high (t->_h);
       uint64_t ex1 =
         th ? __builtin_clzll (th)
-        : (t->_h ? 64 + __builtin_clzll (t->_h) : 128 + __builtin_clzll (t->_l));
+        : (u128_low (t->_h) ? 64 + __builtin_clzll (u128_low (t->_h)) : 128 + __builtin_clzll (t->_l));
       lshift (r, t, ex1);
       r->ex = a->ex - (ex + ex1);
       /* Since we shifted b left in this case, there is no neglected bit of b,
@@ -322,15 +334,22 @@ add_tint (tint_t *r, const tint_t *a, const tint_t *b)
     uint64_t al = a->_l;
     r->_l = al + t->_l;
     uint64_t cl = r->_l < al;
-    r->_h = ah + t->_h;
-    uint64_t ch = r->_h < ah;
-    r->_h += cl;
-    ch += r->_h < cl;
+    //r->_h = ah + t->_h;
+    r->_h = u128_add (ah, t->_h);
+    //uint64_t ch = r->_h < ah;
+    uint64_t ch = u128_lt (r->_h, ah);
+    //r->_h += cl;
+    r->_h = u128_add (r->_h, u128_from_u64 (cl));
+    //ch += r->_h < cl;
+    ch += u128_lt (r->_h, u128_from_u64 (cl));
     // up to here, the maximal error is < ulp(r) [shifted part of b]
     if (ch) { // can be at most 1
       r->ex = a->ex + 1;
-      r->_l = (r->_h << 63) | (r->_l >> 1);
-      r->_h = ((u128) ch << 127) | (r->_h >> 1);
+      //r->_l = (r->_h << 63) | (r->_l >> 1);
+      r->_l = u128_low (u128_lshift (r->_h, 63)) | (r->_l >> 1);
+      //r->_h = ((u128) ch << 127) | (r->_h >> 1);
+      r->_h = u128_or (u128_lshift (u128_from_u64 (ch), 127),
+		       u128_rshift (r->_h, 1));
       /* the maximal error from the shifted part of b is now < 1/2 ulp(r),
          and in addition the low bit of r->_l that disappeared might give
          1/2 ulp(r), thus the total error is still < ulp(r) */
@@ -366,9 +385,9 @@ static inline void tint_fromd (tint_t *a, double x)
 
 // copied from ../exp/exp.c
 static inline double as_ldexp(double x, int64_t i){
-    d64u64 ix = {.f = x};
-    ix.u += (uint64_t)i<<52;
-    return ix.f;
+  d64u64 ix = {.f = x};
+  ix.u += (uint64_t)i<<52;
+  return ix.f;
 }
 
 // convert a to a double with correct rouding
