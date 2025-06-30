@@ -40,54 +40,7 @@ SOFTWARE.
 #include <math_uint128.h>
 #define CORE_MATH_SUPPORT_ERRNO
 
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-typedef union {u128 a; struct {uint64_t bl, bh;};} u128_u;
-#else
-typedef union {u128 a; struct {uint64_t bh, bl;};} u128_u;
-#endif
 typedef union {double f; uint64_t u;} b64u64_u;
-
-inline static void shl(u128_u *a, int n){(*a).a <<= n;}
-inline static void shr(u128_u *a, int n){(*a).a >>= n;}
-
-inline static uint64_t muuh(uint64_t a, uint64_t b){return (a*(u128)b)>>64;}
-inline static int64_t mh(int64_t a, int64_t b){return (int64_t)((a*(i128)b)>>64);}
-inline static i128 imul(int64_t a, int64_t b){return a*(i128)b;}
-inline static u128 mUU(u128 a, u128 b){
-  u128_u x = {.a = a}, y = {.a = b};
-  u128 o = x.bh*(u128)y.bh;
-  o += (uint64_t)(x.bl*(u128)y.bh>>64);
-  o += (uint64_t)(x.bh*(u128)y.bl>>64);
-  return o;
-}
-
-inline static u128 muU(uint64_t a, u128 b){
-  u128_u y = {.a = b};
-  u128 o = a*(u128)y.bh;
-  o += a*(u128)y.bl>>64;
-  return o;
-}
-
-inline static u128 sqrU(u128 a){
-  u128_u x = {.a = a};
-  u128 os = x.bl*(u128)x.bh>>63;
-  u128 o = x.bh*(u128)x.bh;
-  return o + os;
-}
-
-static u128 pasin(u128 x){
-  uint64_t xh = x>>64;
-  static const uint64_t b[] = {0x5ba2e8ba2e8ad9b7, 0x0004713b13b29079, 0x000000393331e196, 0x0000000002f5c315};
-  static const u128_u ch[] = {
-    {.bl = 0xaaaaaaaaaaaaaaa5, .bh = 0x0002aaaaaaaaaaaa}, // *+1
-    {.bl = 0x3333333333333484, .bh = 0x0000001333333333}, // *+1
-    {.bl = 0xb6db6db6db6da950, .bh = 0x0000000000b6db6d}, // *+1
-    {.bl = 0x1c71c71c71c76217, .bh = 0x00000000000007c7}, // *+1
-  };
-  u128_u t = ch[3];
-  t.bl += muuh(xh, b[0] + muuh(xh, b[1] + muuh(xh, b[2] + muuh(xh, b[3]))));
-  return mUU(x, ch[0].a + mUU(x, ch[1].a + mUU(x, ch[2].a + mUU(x, t.a))));
-}
 
 // asinpi_begin
 #define INV_PI_H 0x517cc1b727220a94ul
@@ -138,19 +91,19 @@ static double asinpi_acc(double x){
 
   const unsigned rm = get_rounding_mode ();
   b64u64_u t = {.f = x};
-  int se = ((t.u>>52)&0x7ff)-0x3ff;
+  int se = (((int64_t)t.u>>52)&0x7ff)-0x3ff; // -26 <= se
   int64_t xsign = t.u&((uint64_t)1<<63);
   double ax = __builtin_fabs(x);
   u128_u fi;
   uint64_t sm = (t.u<<11)|(uint64_t)1<<63;
-  u128_u sm2 = {.a = (u128)sm * sm};
-  if(__builtin_expect(ax<0.0131875,0)) {
-    int ss = 2*se;
-    sm2.a >>= -14 - ss;
-    u128 Sm = (u128)(sm>>1)<<64;
-    fi.a = Sm + muU(sm>>1, pasin(sm2.a));
+  u128_u sm2 = {.a = u128_mul(u128_from_u64(sm), u128_from_u64(sm)) };
+  if(__builtin_expect(ax<0.0131875,0)) { // then -26 <= se <= -7
+    int ss = 2*se; // -52 <= ss <= -14
+    sm2.a = u128_rshift (sm2.a, -14 - ss); // the shift is well defined since 0 <= -14 - ss <= 38
+    u128 Sm = u128_lshift (u128_from_u64(sm>>1), 64);
+    fi.a = u128_add (Sm, muU(sm>>1, pasin(sm2.a)));
     se += 0x3ff;
-  } else {
+  } else { // |x| >= 0.0131875, -7 <= se <= -1
     double xx = __builtin_fma(x,-x,1.0);
     b64u64_u ixx = {.f = 1.0/xx}, c = {.f = __builtin_sqrt(xx)};
     ixx.f *= c.f;
@@ -160,66 +113,75 @@ static double asinpi_acc(double x){
     double c2 = ch[2] + ax*ch[3];
     c0 += x2*c2;
     b64u64_u ic = {.f = c0*c.f + 64.0};
-    int indx = ((ic.u&(~0ull>>12)) + (1ll<<(52-7)))>>(52-6);
-    uint64_t cm = (c.u<<11)|(uint64_t)1<<63; int ce = (c.u>>52) - 0x3ff;
-    u128_u cm2 = {.a = (u128)cm * cm};
+    int indx = ((ic.u&(~0ull>>12)) + ((int64_t)1<<(52-7)))>>(52-6);
+    uint64_t cm = (c.u<<11)|(uint64_t)1<<63; int ce = ((int64_t)c.u>>52) - 0x3ff;
+    u128_u cm2 = {.a = u128_mul (u128_from_u64 (cm), u128_from_u64 (cm)) };
     const int off = 36 - 22 + 14;
     int ss = 128 - 104 + 2*se + off;
     shl(&sm2, ss);
     int sc = 128 - 104 + 2*ce + off;
     shl(&cm2, sc);
-    sm2.a += cm2.a;
+    sm2.a = u128_add (sm2.a, cm2.a);
     int64_t h = sm2.bh;
-    uint64_t ixm = (ixx.u&(~0ull>>12))|1ll<<52; int ixe = (ixx.u>>52) - 0x3ff;
+    uint64_t ixm = (ixx.u&(~0ull>>12))|(int64_t)1<<52; int ixe = ((int64_t)ixx.u>>52) - 0x3ff;
     int64_t dc = mh(h, ixm);
-    u128_u dsm2 = {.a = (u128)imul(dc,cm>>1)};
-    dsm2.a <<= 13;
-    sm2.a -= dsm2.a;
-    u128_u dsm3 = {.a = (u128)imul(dc,dc)};
+    u128_u dsm2 = {.a = u128_from_i128(imul(dc,cm>>1))};
+    dsm2.a = u128_lshift (dsm2.a, 13);
+    sm2.a = u128_sub (sm2.a, dsm2.a);
+    u128_u dsm3 = {.a = u128_from_i128 (imul(dc,dc))};
     sc = 28 - ixe*2;
     if(__builtin_expect(sc>=0, 1))
       shr(&dsm3, sc);
     else
-      dsm3.a <<= -sc; // since sc < 0, the shift by -sc is legitimate
-    sm2.a += dsm3.a;
+      dsm3.a = u128_lshift (dsm3.a, -sc); // since sc < 0, the shift by -sc is legitimate
+    sm2.a = u128_add (sm2.a, dsm3.a);
     int k = ixe-ce;
     ss = 24 + k;
     u128_u Cm = {.bl = 0, .bh = cm},
       D = {.bl = (uint64_t)dc << ss, .bh = (uint64_t)(dc>>(64-ss))};
-    Cm.a -= D.a;
-    h = sm2.a>>14;
+    Cm.a = u128_sub (Cm.a, D.a);
+    h = u128_low (u128_rshift (sm2.a, 14));
     dc = mh(h, ixm);
     ss = 26-k;
     if(__builtin_expect(ss>=0,1))
-      Cm.a -= (i128)dc>> ss;
+      Cm.a = u128_sub (Cm.a, u128_from_i128 (i128_rshift (i128_from_i64 (dc), ss)));
     else
-      Cm.a -= (u128)dc<<-ss; // since ss < 0, the shift by -ss is legitimate
+      // since ss < 0, the shift by -ss is legitimate
+      Cm.a = u128_sub (Cm.a, u128_lshift (u128_from_i64 (dc), -ss));
     fi.bl = 0xd313198a2e037073;
     fi.bh = 0x3243f6a8885a308;
-    fi.a *= (uint64_t)(64u - indx);
+    fi.a = u128_mul (fi.a, u128_from_u64 (64u - indx));
     if(__builtin_expect(indx==0, 0)){
       shr(&Cm, -ce-7);
-      u128 c_2 = sqrU(Cm.a);
-      u128_u z = {.a = pasin(c_2)};
-      Cm.a += mUU(Cm.a, z.a);
-      fi.a -= Cm.a>>7;
+      u128 c2a = sqrU(Cm.a);
+      u128_u z = {.a = pasin(c2a)};
+      Cm.a = u128_add (Cm.a, mUU(Cm.a, z.a));
+      fi.a = u128_sub (fi.a, u128_rshift (Cm.a, 7));
     } else {
-      i128 v = muU(sm>>-se, s[indx-1].a) - (mUU(Cm.a,s[63-indx].a)>>-ce), msk = v>>127, v2 = sqrU(v) - (msk&(v+v)); // since se<0 and ce<0, the shifts by -se and -ce are legitimate
-      v2 = (u128)v2 << 14;
-      u128 p = pasin(v2);
-      v += mUU(p,v)-(msk&p);
-      fi.a += v;
+      i128 v = i128_from_u128 (u128_sub (muU(sm>>-se, s[indx-1].a),
+					 u128_rshift (mUU(Cm.a,s[63-indx].a),
+						      -ce)));
+      i128 msk = i128_rshift (v, 127);
+      // since se<0 and ce<0, the shifts by -se and -ce are legitimate
+      i128 v2 = i128_sub (i128_from_u128 (sqrU(u128_from_i128 (v))),
+			  i128_and (msk, (i128_add(v,v))));
+      v2 = i128_from_u128 (u128_lshift (u128_from_i128 (v2), 14));
+      u128 p = pasin(u128_from_i128 (v2));
+      v = i128_add (v,
+		    i128_sub (i128_from_u128 (mUU(p,u128_from_i128(v))),
+			      (i128_and(msk,p))));
+      fi.a = u128_add (fi.a, u128_from_i128 (v));
     }
     se = 0x3fe;
   }
 
   // asinpi_begin
   /* multiply by 1/pi */
-  u128 m1 = (u128) INV_PI_H * (u128) fi.bl;
-  u128 m2 = (u128) INV_PI_L * (u128) fi.bh;
-  fi.a = (u128) INV_PI_H * (u128) fi.bh;
-  fi.a += m1 >> 64;
-  fi.a += m2 >> 64;
+  u128 m1 = u128_mul (u128_from_u64 (INV_PI_H), u128_from_u64 (fi.bl));
+  u128 m2 = u128_mul (u128_from_u64 (INV_PI_L), u128_from_u64 (fi.bh));
+  fi.a = u128_mul (u128_from_u64 (INV_PI_H), u128_from_u64 (fi.bh));
+  fi.a = u128_add (fi.a, u128_rshift (m1, 64));
+  fi.a = u128_add (fi.a, u128_rshift (m2, 64));
   // asinpi_end
 
   int nz = __builtin_clzll(fi.bh);
@@ -491,11 +453,11 @@ double __asinpi(double x){
     /* fi.a/2^127 approximates y + 1/6*y^3 + 3/40*y^5 + ... + 63/2816*y^11 */
 
     // asinpi_begin
-    u128 m1 = (u128) INV_PI_H * (u128) fi.bl;
-    u128 m2 = (u128) INV_PI_L * (u128) fi.bh;
-    fi.a = (u128) INV_PI_H * (u128) fi.bh;
-    fi.a += m1 >> 64;
-    fi.a += m2 >> 64;
+    u128 m1 = u128_mul (u128_from_u64 (INV_PI_H), u128_from_u64 (fi.bl));
+    u128 m2 = u128_mul (u128_from_u64 (INV_PI_L), u128_from_u64 (fi.bh));
+    fi.a = u128_mul (u128_from_u64 (INV_PI_H), u128_from_u64 (fi.bh));
+    fi.a = u128_add (fi.a, u128_rshift (m1, 64));
+    fi.a = u128_add (fi.a, u128_rshift (m2, 64));
     /* now fi.a/2^127 approximates asinpi(x), with error < 15:
      * 13/pi < 5 coming from the error in the approximation y + 1/6*y^3 + ...
        which is multiplied by 1/pi
@@ -507,7 +469,7 @@ double __asinpi(double x){
     /* the number of leading zeros in fi.bh is usually 1, but it can also
        be 0, for example for x=0x1.fffffffffffffp-7, thus nz is 0, 1 or 2 */
     u128_u u = fi;
-    u.a += 15ll<<ss; // asinpi_specific
+    u.a = u128_add (u.a, u128_from_i64 (15ll<<ss)); // asinpi_specific
     /* Here fi is the 'left' approximation, and u is the 'right' approximation.
        We check the last bit (or the round bit for FE_TONEAREST) does not
        change between fi and u. */
@@ -574,7 +536,8 @@ double __asinpi(double x){
        |c'-sqrt(a)| = (sqrt(a)-c)^2/(2c).
        Here a=1-x^2, and since |c - sqrt(1-x^2)| < 2^-51.41, we get:
        |c'-sqrt(a)| < 2^-103.82/c. */
-    u128_u sm2 = {.a = (u128)sm * sm}, cm2 = {.a = (u128)cm * cm};
+    u128_u sm2 = { .a = u128_mul (u128_from_u64 (sm), u128_from_u64 (sm)) };
+    u128_u cm2 = { .a = u128_mul (u128_from_u64 (cm), u128_from_u64 (cm)) };
     /* x^2 = 2^(2*e)*sm2/2^126 and c^2 = 2^(2*ce)*cm2/2^126 */
     const int off = 36 - 22 + 14;   /* off = 28 */
     int ss = 128 - 104 + 2*e + off; /* ss = 52 + 2*e */
@@ -585,9 +548,9 @@ double __asinpi(double x){
     if(__builtin_expect(sc>=0, 1))
       shl(&cm2, sc);
     else
-      cm2.a >>= -sc; // since sc < 0, the shift by -sc is legitimate
+      cm2.a = u128_rshift (cm2.a, -sc); // since sc < 0, the shift by -sc is legitimate
     /* now frac(2^50*c^2) = cm2/2^128 */
-    sm2.a += cm2.a; /* now frac(2^50*(x^2+c^2)) = sm2/2^128 */
+    sm2.a = u128_add (sm2.a, cm2.a); /* now frac(2^50*(x^2+c^2)) = sm2/2^128 */
     /* since |c-sqrt(xx)| < 2^-51.41, we have:
        |c^2-xx| < 2^-51.41*|c+sqrt(xx)| < 2^-50.41 since c,xx < 1.
        This proves that |2^50*e| < 2^-0.41 with e = (1-x^2) - c^2.
@@ -662,21 +625,22 @@ double __asinpi(double x){
     fi.bl = 0xd313198a2e037073;
     fi.bh = 0x3243f6a8885a308;
     /* fi.a/2^127 approximates pi/2/64 */
-    fi.a *= (uint64_t)(64u - indx); /* multiply pi/2/64 by i=64-indx */
+    /* multiply pi/2/64 by i=64-indx */
+    fi.a = u128_mul (fi.a, u128_from_u64 ((uint64_t)(64u - indx)));
     /* we add v after normalization */
     uint64_t Vh = v>>5, Vl = (uint64_t)v<<59;
     /* the maximal error 24.08 on v translates into an error of 24.08*2^59
        on Vl */
-    i128 V = (u128)Vh<<64|Vl;
-    fi.a += V;
+    i128 V = i128_from_u128 (u128_or (u128_lshift (u128_from_u64 (Vh), 64), u128_from_u64 (Vl)));
+    fi.a = u128_add (fi.a, u128_from_i128  (V));
     /* now fi/2^127 approximates asin(|x|) */
 
     // asinpi_begin
-    u128 m1 = (u128) INV_PI_H * (u128) fi.bl;
-    u128 m2 = (u128) INV_PI_L * (u128) fi.bh;
-    fi.a = (u128) INV_PI_H * (u128) fi.bh;
-    fi.a += m1 >> 64;
-    fi.a += m2 >> 64;
+    u128 m1 = u128_mul (u128_from_u64 (INV_PI_H), u128_from_u64 (fi.bl));
+    u128 m2 = u128_mul (u128_from_u64 (INV_PI_L), u128_from_u64 (fi.bh));
+    fi.a = u128_mul (u128_from_u64 (INV_PI_H), u128_from_u64 (fi.bh));
+    fi.a = u128_add (fi.a, u128_rshift (m1, 64));
+    fi.a = u128_add (fi.a, u128_rshift (m2, 64));
     /* now fi.a/2^127 approximates asinpi(|x|), with error < 124*2^55:
      * 24.08*2^59/pi < 123*2^55 coming from the error in the approximation
        of asin(|x|) which is multiplied by 1/pi
@@ -686,8 +650,8 @@ double __asinpi(double x){
 
     int nz = __builtin_clzll(fi.bh) + (rm==FE_TONEAREST);    
     u128_u u = fi, d = fi;
-    u.a += 124ll<<55; // asinpi_specific
-    d.a -= 124ll<<55; // asinpi_specific
+    u.a = u128_add (u.a, u128_from_i64 (124ll<<55)); // asinpi_specific
+    u.a = u128_sub (u.a, u128_from_i64 (124ll<<55)); // asinpi_specific
     if( __builtin_expect(((d.bh^u.bh)>>(11-nz))&1, 0)){
       return asinpi_acc(x);
     }
