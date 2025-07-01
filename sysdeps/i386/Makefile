@@ -18,6 +18,7 @@ CFLAGS-s_cos.c += -fexcess-precision=standard
 CFLAGS-s_erf.c += -fexcess-precision=standard
 CFLAGS-s_erfc.c += -fexcess-precision=standard
 CFLAGS-s_sin.c += -fexcess-precision=standard
+CFLAGS-s_sincos.c += -fexcess-precision=standard
 endif
 
 ifeq ($(subdir),gmon)
