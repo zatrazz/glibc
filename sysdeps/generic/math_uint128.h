@@ -51,8 +51,12 @@ typedef          __int128 i128;
 # define u128_from_u64(__x)     (u128)(__x)
 # define u128_mul(__x, __y)     (__x) * (__y)
 # define u128_add(__x, __y)     (__x) + (__y)
+# define u128_sub(__x, __y)     (__x) - (__y)
 # define u128_lshift(__x, __y)  (__x) << (__y)
 # define u128_rshift(__x, __y)  (__x) >> (__y)
+# define u128_or(__x, __y)      (__x) | (__y)
+# define u128_gt(__x, __y)      ((__x) > (__y))
+# define u128_lt(__x, __y)      ((__x) < (__y))
 #else
 typedef struct
 {
@@ -63,6 +67,8 @@ typedef struct
 # define u128_high(__x)         (__x).high
 # define u128_low(__x)          (__x).low
 # define u128_from_u64(__x)     (u128){.low = (__x), .high = 0}
+# define u128_or(__x, __y)      (u128){.low  = (__x).low  | (__y).low, \
+                                       .high = (__x).high | (__y).high }
 
 # define MASK32                 (UINT64_C(0xffffffff))
 
@@ -70,6 +76,17 @@ static u128 u128_add (u128 x, u128 y)
 {
   bool carry = x.low + y.low < x.low;
   return (u128) { .high = x.high + y.high + carry, .low = x.low + y.low };
+}
+
+static u128 u128_neg (u128 x)
+{
+  u128 xbitnot = (u128){.high = ~x.high, .low = ~x.low};
+  return u128_add (xbitnot, u128_from_u64 (1));
+}
+
+static __attribute_maybe_unused__ u128 u128_sub (u128 x, u128 y)
+{
+  return u128_add (x, u128_neg (y));
 }
 
 static u128 u128_lshift (u128 x, unsigned int n)
@@ -147,6 +164,17 @@ static u128 u128_mul (u128 x, u128 y)
       return u128_add (r0, r1);
    }
 }
+
+static inline int u128_lt (u128 x, u128 y)
+{
+  return x.high < y.high || (x.high == y.high && x.low < y.low);
+}
+
+static inline int u128_gt (u128 x, u128 y)
+{
+  return u128_lt (y, x);
+}
+
 #endif /* __SIZEOF_INT128__ */
 
 #endif
