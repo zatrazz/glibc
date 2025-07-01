@@ -1050,12 +1050,13 @@ reduce (dint64_t *X)
   {
     /* multiply by T[0]/2^64 + T[1]/2^128, where
        |T[0]/2^64 + T[1]/2^128 - 1/(2pi)| < 2^-130.22 */
-    u = (u128) X->hi * (u128) T[1];
-    uint64_t tiny = u;
-    X->lo = u >> 64;
-    u = (u128) X->hi * (u128) T[0];
-    X->lo += u;
-    X->hi = (u >> 64) + (X->lo < (uint64_t) u);
+    u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[1]));
+    uint64_t tiny = u128_low (u);
+    X->lo = u128_high (u);
+    u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[0]));
+    X->lo += u128_low (u);
+    X->hi = u128_low (u128_add (u128_rshift (u, 64),
+				u128_from_u64 (X->lo < u128_low (u))));
     /* hi + lo/2^64 + tiny/2^128 = hi_in * (T[0]/2^64 + T[1]/2^128) thus
        |hi + lo/2^64 + tiny/2^128 - hi_in/(2*pi)| < hi_in * 2^-130.22
        Since X is normalized at input, hi_in >= 2^63, and since T[0] >= 2^61,
@@ -1089,18 +1090,21 @@ reduce (dint64_t *X)
   int i = (e < 127) ? 0 : (e - 127 + 64 - 1) / 64; // ceil((e-127)/64)
   // 0 <= i <= 15
   uint64_t c[5];
-  u = (u128) X->hi * (u128) T[i+3]; // i+3 <= 18
-  c[0] = u;
-  c[1] = u >> 64;
-  u = (u128) X->hi * (u128) T[i+2];
-  c[1] += u;
-  c[2] = (u >> 64) + (c[1] < (uint64_t) u);
-  u = (u128) X->hi * (u128) T[i+1];
-  c[2] += u;
-  c[3] = (u >> 64) + (c[2] < (uint64_t) u);
-  u = (u128) X->hi * (u128) T[i];
-  c[3] += u;
-  c[4] = (u >> 64) + (c[3] < (uint64_t) u);
+  u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[i+3]));
+  c[0] = u128_low (u);
+  c[1] = u128_high (u);
+  u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[i+2]));
+  c[1] += u128_low (u);
+  c[2] = u128_low (u128_add (u128_rshift (u, 64),
+			     u128_from_u64 (c[1] < u128_low (u))));
+  u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[i+1]));
+  c[2] += u128_low (u);
+  c[3] = u128_low (u128_add (u128_rshift (u, 64),
+			     u128_from_u64 (c[2] < u128_low (u))));
+  u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[i]));
+  c[3] += u128_low (u);
+  c[4] = u128_low (u128_add (u128_rshift (u, 64),
+			     u128_from_u64 (c[3] < u128_low (u))));
 
   /* up to here, the ignored part hi*(T[i+4]+T[i+5]+...) can contribute by
      less than 2^64 in c[0], thus less than 1 in c[1] */
@@ -1129,13 +1133,13 @@ reduce (dint64_t *X)
   {
     int g = f - 64; /* 1 <= g <= 63 */
     /* we compute an extra term */
-    u = (u128) X->hi * (u128) T[i+4]; // i+4 <= 19
-    u = u >> 64;
-    c[0] += u;
-    c[1] += (c[0] < u);
-    c[2] += (c[0] < u) && c[1] == 0;
-    c[3] += (c[0] < u) && c[1] == 0 && c[2] == 0;
-    c[4] += (c[0] < u) && c[1] == 0 && c[2] == 0 && c[3] == 0;
+    u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[i+4]));
+    u = u128_rshift (u, 64);
+    c[0] += u128_low (u);
+    c[1] += (c[0] < u128_low (u));
+    c[2] += (c[0] < u128_low (u)) && c[1] == 0;
+    c[3] += (c[0] < u128_low (u)) && c[1] == 0 && c[2] == 0;
+    c[4] += (c[0] < u128_low (u)) && c[1] == 0 && c[2] == 0 && c[3] == 0;
     X->hi = (c[3] << g) | (c[2] >> (64 - g));
     X->lo = (c[2] << g) | (c[1] >> (64 - g));
     tiny = (c[1] << g) | (c[0] >> (64 - g));
@@ -1286,16 +1290,16 @@ reduce_fast (double *h, double *l, double x)
       // x = m/2^53 * 2^(e-1022)
       if (e <= 1074) // 1025 <= e <= 1074: 2^2 <= x < 2^52
         {
-          v = (u128) m * (u128) T[2];
-          u = (u128) m * (u128) T[1];
-          c[0] = u + (v >> 64);
-          c[1] = (u >> 64) + (c[0] < (uint64_t) u);
+          v = u128_mul (u128_from_u64 (m), u128_from_u64 (T[2]));
+          u = u128_mul (u128_from_u64 (m), u128_from_u64 (T[1]));
+          c[0] = u128_low (u128_add (u, u128_rshift (v, 64)));
+          c[1] = u128_high (u) + (c[0] < u128_low (u));
           /* There can be no overflow in (u >> 64) + (c[0] < u) since
              u <= (2^64-1)*T[1] thus (u >> 64) < T[1], and T[1]+1
              does not overflow. */
-          u = (u128) m * (u128) T[0];
-          c[1] += u;
-          c[2] = (u >> 64) + (c[1] < (uint64_t) u);
+          u = u128_mul (u128_from_u64 (m), u128_from_u64 (T[0]));
+          c[1] += u128_low (u);
+          c[2] = u128_high (u) + (c[1] < u128_low (u));
           /* Up to here, we multiplied exactly m by T[0] and T[1] and
              took into account the upper part of m*T[2]:
              c[2]*2^128+c[1]*2^64+c[0] = m*(T[1]+2^64*T[0])+floor(m*T[2]/2^64)
@@ -1323,18 +1327,18 @@ reduce_fast (double *h, double *l, double x)
              m*T[i+3] contributes a multiple of 2^(-f-192),
                       and at most to 2^(-75-f) <= 2^-76
           */
-          v = (u128) m * (u128) T[i+3];
-          u = (u128) m * (u128) T[i+2];
-          c[0] = u + (v >> 64);
+          v = u128_mul (u128_from_u64 (m), u128_from_u64 (T[i+3]));
+          u = u128_mul (u128_from_u64 (m), u128_from_u64 (T[i+2]));
+          c[0] = u128_low (u) + u128_low (v);
           /* There can be no overflow in (u >> 64) + (c[0] < u) since
              u <= (2^64-1)*T[i+2] thus (u >> 64) < T[i+2], and T[i+2]+1
              does not overflow. */
-          c[1] = (u >> 64) + (c[0] < (uint64_t) u);
-          u = (u128) m * (u128) T[i+1];
-          c[1] += u;
-          c[2] = (u >> 64) + (c[1] < (uint64_t) u);
-          u = (u128) m * (u128) T[i];
-          c[2] += u;
+          c[1] = u128_high (u) + (c[0] < u128_low (u));
+          u = u128_mul (u128_from_u64 (m), u128_from_u64 (T[i+1]));
+          c[1] += u128_low (u);
+          c[2] = u128_high (u) + (c[1] < u128_low (u));
+          u = u128_mul (u128_from_u64 (m), u128_from_u64 (T[i]));
+          c[2] += u128_low (u);
           e = 1139 + (i<<6) - e; // 1 <= e <= 64
           /* Like in the previous case, the ignored part due to the
              ignored low part of m*T[i+3], and to the further terms

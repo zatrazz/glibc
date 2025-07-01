@@ -30,6 +30,7 @@ SOFTWARE.
 
 
 #include <fenv.h>
+#include <fenv_private.h>
 #include <stdint.h>
 #include <errno.h>
 #include <math.h>
@@ -198,13 +199,15 @@ atan2_accurate (double y, double x)
 {
   fenv_t env;
   __feholdexcept(&env);
-  int underflow;
+#ifdef FE_OVERFLOW
   int overflow = __fetestexcept (FE_OVERFLOW);
+#endif
   double res;
   /* First check when t=y/x is small and exact and x > 0, since for
      |t| <= 0x1.d12ed0af1a27fp-27, atan(t) rounds to t (to nearest). */
   double t = y / x;
 
+#ifdef FE_UNDERFLOW
   /* If t = y/x did underflow for x > 0, then atan(y/x) will underflow
      too, since the Taylor expansion of atan(z) is z - z^3/3 + o(z^3).
      If |t| < 2^-1022 and is exact, then atan(y/x) underflows, and also
@@ -213,16 +216,17 @@ atan2_accurate (double y, double x)
   double u = __builtin_copysign (1.0, y);
   double v = __builtin_fma (u, -0x1p-54, u);
   // when rounding toward zero, v != u, otherwise v = u
-  underflow = x > 0 && (__fetestexcept (FE_UNDERFLOW) ||
+  int underflow = x > 0 && (__fetestexcept (FE_UNDERFLOW) ||
                         (!inexact &&
                          (__builtin_fabs (t) < 0x1p-1022 ||
                           (__builtin_fabs (t) <= 0x1p-1022 && v != u))));
+#endif
 
   /* If t is exact and underflows, then atan(y/x) rounds to t for x > 0,
      to pi for y > 0 and x < 0, and to -pi for x, y < 0. */
   if (t == 0) {
     if (x > 0) {
-#ifdef CORE_MATH_SUPPORT_ERRNO
+#if defined FE_UNDERFLOW && defined CORE_MATH_SUPPORT_ERRNO
       if (underflow)
         errno = ERANGE; // underflow
 #endif
@@ -241,7 +245,7 @@ atan2_accurate (double y, double x)
          and t*x ~ y, the lower bit of t*x is >= 2^-1074, thus there is no
          underflow in t*x-y. */
       if (__builtin_fabs (y) >= 0x1p-915) {
-#ifdef CORE_MATH_SUPPORT_ERRNO
+#if defined FE_UNDERFLOW && defined CORE_MATH_SUPPORT_ERRNO
         if (underflow)
           errno = ERANGE; // underflow
 #endif
@@ -253,7 +257,7 @@ atan2_accurate (double y, double x)
       corr = __builtin_fma (t * 0x1p105, x, -y * 0x1p105);
       if (corr == 0) {
         res = __builtin_fma (t, -0x1p-54, t);
-#ifdef CORE_MATH_SUPPORT_ERRNO
+#if defined FE_UNDERFLOW && defined CORE_MATH_SUPPORT_ERRNO
         if (underflow)
           errno = ERANGE; // underflow
 #endif
@@ -378,6 +382,7 @@ atan2_accurate (double y, double x)
   }
   res = tint_tod (z, err, y, x);
  end:
+#ifdef FE_OVERFLOW
   if (!overflow)
     __feclearexcept (FE_OVERFLOW);
   if (!underflow)
@@ -385,6 +390,7 @@ atan2_accurate (double y, double x)
 #ifdef CORE_MATH_SUPPORT_ERRNO
   else
     errno = ERANGE; // underflow
+# endif
 #endif
   __feupdateenv(&env);
   return res;
@@ -457,6 +463,26 @@ static double __attribute__((noinline)) as_atan2_special(double y0, double x0){
 #ifndef SECTION
 # define SECTION
 #endif
+
+// avoid spurious underflow in 1/dh
+static __always_inline double
+rdh_div (double dh)
+{
+  double rdh;
+#ifdef FE_UNDERFLOW
+  if (__builtin_expect (__builtin_fabs (dh) <= 0x1p1022, 1))
+    rdh = 1/dh;
+  else {
+    fexcept_t flag;
+    __fegetexceptflag (&flag, FE_UNDERFLOW);
+    rdh = 1/dh;
+    __fesetexceptflag (&flag, FE_UNDERFLOW);
+  }
+#else
+  rdh = 1/dh;
+#endif
+  return rdh;
+}
 
 /* atan2 with max ULP of ~0.524 based on random sampling.  */
 double
@@ -556,14 +582,7 @@ __ieee754_atan2 (double y0, double x0)
     double dh = y*t0, dl = __builtin_fma(y,t0,-dh), e, rdh;
     dh = fasttwosum(x, dh, &e);
     // avoid spurious underflow in 1/dh
-    if (__builtin_expect (__builtin_fabs (dh) <= 0x1p1022, 1))
-      rdh = 1/dh;
-    else {
-      fexcept_t flag;
-      __fegetexceptflag (&flag, FE_UNDERFLOW);
-      rdh = 1/dh;
-      __fesetexceptflag (&flag, FE_UNDERFLOW);
-    }
+    rdh = rdh_div (dh);
     dl += e;
     double nh = x*t0, nl = __builtin_fma(x,t0,-nh);
     double dt = y-nh, y1 = dt+nh;
