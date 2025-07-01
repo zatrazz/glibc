@@ -365,7 +365,6 @@ type-double-routines := \
   s_atanh_data \
   s_erf_data \
   s_erfc_data \
-  sincostab \
   # type-double-routines
 
 # float support

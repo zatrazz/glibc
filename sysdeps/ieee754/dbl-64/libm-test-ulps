@@ -199,3 +199,15 @@ double: 0
 
 Function: "sin_upward":
 double: 0
+
+Function: "sincos":
+double: 0
+
+Function: "sincos_downward":
+double: 0
+
+Function: "sincos_towardzero":
+double: 0
+
+Function: "sincos_upward":
+double: 0
