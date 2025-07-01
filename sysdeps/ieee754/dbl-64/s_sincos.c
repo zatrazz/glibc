@@ -32,364 +32,12 @@ SOFTWARE.
 #include <errno.h>
 #include <get-rounding-mode.h>
 #include <libm-alias-double.h>
-#include <math_uint128.h>
+#include "dint.h"
 #define CORE_MATH_SUPPORT_ERRNO
 
 #ifndef SECTION
 # define SECTION
 #endif
-
-#if __BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__
-typedef union {
-  struct {
-    u128 r;
-    int64_t _ex;
-    uint64_t _sgn;
-  };
-  struct {
-    uint64_t lo;
-    uint64_t hi;
-    int64_t ex;
-    uint64_t sgn;
-  };
-} dint64_t;
-#else
-typedef union {
-  struct {
-    u128 r;
-    int64_t _ex;
-    uint64_t _sgn;
-  };
-  struct {
-    uint64_t hi;
-    uint64_t lo;
-    int64_t ex;
-    uint64_t sgn;
-  };
-} dint64_t;
-#endif
-
-typedef union {
-  u128 r;
-  struct {
-    uint64_t l;
-    uint64_t h;
-  };
-} uint128_t;
-
-typedef union {
-  double f;
-  uint64_t u;
-} f64_u;
-
-// Extract both the mantissa and exponent of a double
-static inline void fast_extract (int64_t *e, uint64_t *m, double x) {
-  f64_u _x = {.f = x};
-
-  *e = (_x.u >> 52) & 0x7ff;
-  *m = (_x.u & (~0ull >> 12)) + (*e ? (1ull << 52) : 0);
-  *e = *e - 0x3fe;
-}
-
-// Return non-zero if a = 0
-static inline int
-dint_zero_p (const dint64_t *a)
-{
-  return a->hi == 0;
-}
-
-static inline int cmp(int64_t a, int64_t b) { return (a > b) - (a < b); }
-
-static inline int cmpu128 (u128 a, u128 b) { return (a > b) - (a < b); }
-
-/* ZERO is a dint64_t representation of 0, which ensures that
-   dint_tod(ZERO) = 0 */
-static const dint64_t ZERO = {.hi = 0x0, .lo = 0x0, .ex = -1076, .sgn = 0x0};
-// MAGIC is a dint64_t representation of 1/2^11
-static const dint64_t MAGIC = {.hi = 0x8000000000000000, .lo = 0x0, .ex = -10, .sgn = 0x0};
-
-// Compare the absolute values of a and b
-// Return -1 if |a| < |b|
-// Return  0 if |a| = |b|
-// Return +1 if |a| > |b|
-static inline signed char
-cmp_dint_abs (const dint64_t *a, const dint64_t *b) {
-  if (dint_zero_p (a))
-    return dint_zero_p (b) ? 0 : -1;
-  if (dint_zero_p (b))
-    return +1;
-  char c1 = cmp (a->ex, b->ex);
-  return c1 ? c1 : cmpu128 (a->r, b->r);
-}
-
-// Copy a dint64_t value
-static inline void cp_dint(dint64_t *r, const dint64_t *a) {
-  r->ex = a->ex;
-  r->r = a->r;
-  r->sgn = a->sgn;
-}
-
-// Add two dint64_t values, with error bounded by 2 ulps (ulp_128)
-// (more precisely 1 ulp when a and b have same sign, 2 ulps otherwise)
-// Moreover, when Sterbenz theorem applies, i.e., |b| <= |a| <= 2|b|
-// and a,b are of different signs, there is no error, i.e., r = a-b.
-static inline void
-add_dint (dint64_t *r, const dint64_t *a, const dint64_t *b) {
-  if (!(a->hi | a->lo)) {
-    cp_dint (r, b);
-    return;
-  }
-
-  switch (cmp_dint_abs (a, b)) {
-  case 0:
-    if (a->sgn ^ b->sgn) {
-      cp_dint (r, &ZERO);
-      return;
-    }
-
-    cp_dint (r, a);
-    r->ex++;
-    return;
-
-  case -1: // |A| < |B|
-    {
-      // swap operands
-      const dint64_t *tmp = a; a = b; b = tmp;
-      break; // fall through the case |A| > |B|
-    }
-  }
-
-  // From now on, |A| > |B| thus a->ex >= b->ex
-
-  u128 A = a->r, B = b->r;
-  uint64_t k = a->ex - b->ex;
-
-  if (k > 0) {
-    /* Warning: the right shift x >> k is only defined for 0 <= k < n
-       where n is the bit-width of x. See for example
-       https://developer.arm.com/documentation/den0024/a/The-A64-instruction-set/Data-processing-instructions/Shift-operations
-       where it is said that k is interpreted modulo n. */
-    B = (k < 128) ? B >> k : 0;
-  }
-
-  u128 C;
-  unsigned char sgn = a->sgn;
-
-  r->ex = a->ex; /* tentative exponent for the result */
-
-  if (a->sgn ^ b->sgn) {
-    /* a and b have different signs C = A + (-B)
-       Sterbenz case |a|/2 <= |b| <= |a| can occur only when:
-       * k=0: then B is not truncated, and C is exact below
-       * k=1 and ex>0 below: then we ensure C is exact
-     */
-    C = A - B;
-    uint64_t ch = C >> 64;
-    /* We can't have C=0 here since we excluded the case |A| = |B|,
-       thus __builtin_clzll(C) is well-defined below. */
-    uint64_t ex = ch ? __builtin_clzll(ch) : 64 + __builtin_clzll(C);
-    /* The error from the truncated part of B (1 ulp) is multiplied by 2^ex,
-       thus by 2 ulps when ex <= 1. */
-    if (ex > 0)
-    {
-      if (k == 1) /* Sterbenz case */
-        C = (A << ex) - (b->r << (ex - 1));
-      else
-        C = (A << ex) - (B << ex);
-      /* If C0 is the previous value of C, we have:
-         (C0-1)*2^ex < A*2^ex-B*2^ex <= C0*2^ex
-         since some neglected bits from B might appear which contribute
-         a value less than ulp(C0)=1.
-         As a consequence since 2^(127-ex) <= C0 < 2^(128-ex), because C0 had
-         ex leading zero bits, we have 2^127-2^ex <= A*2^ex-B*2^ex < 2^128.
-         Thus the value of C, which is truncated to 128 bits, is the right
-         one (as if no truncation); moreover in some rare cases we need to
-         shift by 1 bit to the left. */
-      r->ex -= ex;
-      ex = __builtin_clzll (C >> 64);
-      /* Fall through with the code for ex = 0. */
-    }
-    C = C << ex;
-    r->ex -= ex;
-    /* The neglected part of B is bounded by 2 ulp(C) when ex=0, 1 ulp
-       when ex > 0 but ex=0 at the end, and by 2*ulp(C) when ex > 0 and there
-       is an extra shift at the end (in that case necessarily ex=1). */
-  } else {
-    C = A + B;
-    if (C < A)
-    {
-      C = ((u128) 1 << 127) | (C >> 1);
-      r->ex ++;
-    }
-  }
-
-  /* In the addition case, we loose the truncated part of B, which
-     contributes to at most 1 ulp. If there is an exponent shift, we
-     might also loose the least significant bit of C, which counts as
-     1/2 ulp, but the truncated part of B is now less than 1/2 ulp too,
-     thus in all cases the error is less than 1 ulp(r). */
-
-  r->sgn = sgn;
-  r->r = C;
-}
-
-// Multiply two dint64_t numbers, with error bounded by 6 ulps
-// on the 128-bit floating-point numbers.
-// Overlap between r and a is allowed
-static inline void
-mul_dint (dint64_t *r, const dint64_t *a, const dint64_t *b) {
-  u128 bh = b->hi, bl = b->lo;
-
-  /* compute the two middle terms */
-  u128 m1 = (u128)(a->hi) * bl;
-  u128 m2 = (u128)(a->lo) * bh;
-
-  /* put the 128-bit product of the high terms in r */
-  r->r = (u128)(a->hi) * bh;
-
-  /* there can be no overflow in the following addition since r <= (B-1)^2
-     with B=2^64, (m1>>64) <= B-1 and (m2>>64) <= B-1, thus the sum is
-     bounded by (B-1)^2+2*(B-1) = B^2-1 */
-  r->r += (m1 >> 64) + (m2 >> 64);
-
-  // Ensure that r->hi starts with a 1
-  uint64_t ex = r->hi >> 63;
-  r->r = r->r << (1 - ex);
-
-  // Exponent and sign
-  // if ex=1, then ex(r) = ex(a) + ex(b)
-  // if ex=0, then ex(r) = ex(a) + ex(b) - 1
-  r->ex = a->ex + b->ex + ex - 1;
-  r->sgn = a->sgn ^ b->sgn;
-
-  /* The ignored part can be as large as 3 ulps before the shift (one
-     for the low part of a->hi * bl, one for the low part of a->lo * bh,
-     and one for the neglected a->lo * bl term). After the shift this can
-     be as large as 6 ulps. */
-}
-
-// Multiply two dint64_t numbers, assuming the low part of b is zero
-// with error bounded by 2 ulps
-static inline void
-mul_dint_21 (dint64_t *r, const dint64_t *a, const dint64_t *b) {
-  u128 bh = b->hi;
-  u128 hi = (u128) (a->hi) * bh;
-  u128 lo = (u128) (a->lo) * bh;
-
-  /* put the 128-bit product of the high terms in r */
-  r->r = hi;
-
-  /* add the middle term */
-  r->r += lo >> 64;
-
-  // Ensure that r->hi starts with a 1
-  uint64_t ex = r->hi >> 63;
-  r->r = r->r << (1 - ex);
-
-  // Exponent and sign
-  r->ex = a->ex + b->ex + ex - 1;
-  r->sgn = a->sgn ^ b->sgn;
-
-  /* The ignored part can be as large as 1 ulp before the shift (truncated
-     part of lo). After the shift this can be as large as 2 ulps. */
-}
-
-// Convert a non-zero double to the corresponding dint64_t value
-static inline void dint_fromd (dint64_t *a, double b) {
-  fast_extract (&a->ex, &a->hi, b);
-
-  /* |b| = 2^(ex-52)*hi */
-
-  uint32_t t = __builtin_clzll (a->hi);
-
-  a->sgn = b < 0.0;
-  a->hi = a->hi << t;
-  a->ex = a->ex - (t > 11 ? t - 12 : 0);
-  /* b = 2^ex*hi/2^64 where 1/2 <= hi/2^64 < 1 */
-  a->lo = 0;
-}
-
-static inline void subnormalize_dint(dint64_t *a) {
-  if (a->ex > -1023)
-    return;
-
-  uint64_t ex = -(1011 + a->ex);
-
-  uint64_t hi = a->hi >> ex;
-  uint64_t md = (a->hi >> (ex - 1)) & 0x1;
-  uint64_t lo = (a->hi & (~0ull >> ex)) || a->lo;
-
-  switch (get_rounding_mode()) {
-  case FE_TONEAREST:
-    hi += lo ? md : hi & md;
-    break;
-  case FE_DOWNWARD:
-    hi += a->sgn & (md | lo);
-    break;
-  case FE_UPWARD:
-    hi += (!a->sgn) & (md | lo);
-    break;
-  }
-
-  a->hi = hi << ex;
-  a->lo = 0;
-
-  if (!a->hi) {
-    a->ex++;
-    a->hi = (1ull << 63);
-  }
-}
-
-// Convert a dint64_t value to a double
-static inline double dint_tod(dint64_t *a) {
-  subnormalize_dint (a);
-
-  f64_u r = {.u = (a->hi >> 11) | (0x3ffll << 52)};
-
-  double rd = 0.0;
-  if ((a->hi >> 10) & 0x1)
-    rd += 0x1p-53;
-
-  if (a->hi & 0x3ff || a->lo)
-    rd += 0x1p-54;
-
-  if (a->sgn)
-    rd = -rd;
-
-  r.u = r.u | a->sgn << 63;
-  r.f += rd;
-
-  f64_u e;
-
-  if (a->ex > -1022) { // The result is a normal double
-    if (a->ex > 1024)
-      if (a->ex == 1025) {
-        r.f = r.f * 0x1p+1;
-        e.f = 0x1p+1023;
-      } else {
-        r.f = 0x1.fffffffffffffp+1023;
-        e.f = 0x1.fffffffffffffp+1023;
-      }
-    else
-      e.u = ((a->ex + 1022) & 0x7ff) << 52;
-  } else {
-    if (a->ex < -1073) {
-      if (a->ex == -1074) {
-        r.f = r.f * 0x1p-1;
-        e.f = 0x1p-1074;
-      } else {
-        r.f = 0x0.0000000000001p-1022;
-        e.f = 0x0.0000000000001p-1022;
-      }
-    } else {
-      e.u = 1l << (a->ex + 1073);
-    }
-  }
-
-  return r.f * e.f;
-}
-
-/**************** end of code copied from dint.h and pow.[ch] ****************/
 
 typedef union {double f; uint64_t u;} b64u64_u;
 
@@ -1405,12 +1053,13 @@ reduce (dint64_t *X)
   {
     /* multiply by T[0]/2^64 + T[1]/2^128, where
        |T[0]/2^64 + T[1]/2^128 - 1/(2pi)| < 2^-130.22 */
-    u = (u128) X->hi * (u128) T[1];
-    uint64_t tiny = u;
-    X->lo = u >> 64;
-    u = (u128) X->hi * (u128) T[0];
-    X->lo += u;
-    X->hi = (u >> 64) + (X->lo < (uint64_t) u);
+    u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[1]));
+    uint64_t tiny = u128_low (u);
+    X->lo = u128_high (u);
+    u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[0]));
+    X->lo += u128_low (u);
+    X->hi = u128_low (u128_add (u128_rshift (u, 64),
+				u128_from_u64 (X->lo < u128_low (u))));
     /* hi + lo/2^64 + tiny/2^128 = hi_in * (T[0]/2^64 + T[1]/2^128) thus
        |hi + lo/2^64 + tiny/2^128 - hi_in/(2*pi)| < hi_in * 2^-130.22
        Since X is normalized at input, hi_in >= 2^63, and since T[0] >= 2^61,
@@ -1444,18 +1093,21 @@ reduce (dint64_t *X)
   int i = (e < 127) ? 0 : (e - 127 + 64 - 1) / 64; // ceil((e-127)/64)
   // 0 <= i <= 15
   uint64_t c[5];
-  u = (u128) X->hi * (u128) T[i+3]; // i+3 <= 18
-  c[0] = u;
-  c[1] = u >> 64;
-  u = (u128) X->hi * (u128) T[i+2];
-  c[1] += u;
-  c[2] = (u >> 64) + (c[1] < (uint64_t) u);
-  u = (u128) X->hi * (u128) T[i+1];
-  c[2] += u;
-  c[3] = (u >> 64) + (c[2] < (uint64_t) u);
-  u = (u128) X->hi * (u128) T[i];
-  c[3] += u;
-  c[4] = (u >> 64) + (c[3] < (uint64_t) u);
+  u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[i+3]));
+  c[0] = u128_low (u);
+  c[1] = u128_high (u);
+  u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[i+2]));
+  c[1] += u128_low (u);
+  c[2] = u128_low (u128_add (u128_rshift (u, 64),
+			     u128_from_u64 (c[1] < u128_low (u))));
+  u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[i+1]));
+  c[2] += u128_low (u);
+  c[3] = u128_low (u128_add (u128_rshift (u, 64),
+			     u128_from_u64 (c[2] < u128_low (u))));
+  u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[i]));
+  c[3] += u128_low (u);
+  c[4] = u128_low (u128_add (u128_rshift (u, 64),
+			     u128_from_u64 (c[3] < u128_low (u))));
 
   /* up to here, the ignored part hi*(T[i+4]+T[i+5]+...) can contribute by
      less than 2^64 in c[0], thus less than 1 in c[1] */
@@ -1484,13 +1136,13 @@ reduce (dint64_t *X)
   {
     int g = f - 64; /* 1 <= g <= 63 */
     /* we compute an extra term */
-    u = (u128) X->hi * (u128) T[i+4]; // i+4 <= 19
-    u = u >> 64;
-    c[0] += u;
-    c[1] += (c[0] < u);
-    c[2] += (c[0] < u) && c[1] == 0;
-    c[3] += (c[0] < u) && c[1] == 0 && c[2] == 0;
-    c[4] += (c[0] < u) && c[1] == 0 && c[2] == 0 && c[3] == 0;
+    u = u128_mul (u128_from_u64 (X->hi), u128_from_u64 (T[i+4]));
+    u = u128_rshift (u, 64);
+    c[0] += u128_low (u);
+    c[1] += (c[0] < u128_low (u));
+    c[2] += (c[0] < u128_low (u)) && c[1] == 0;
+    c[3] += (c[0] < u128_low (u)) && c[1] == 0 && c[2] == 0;
+    c[4] += (c[0] < u128_low (u)) && c[1] == 0 && c[2] == 0 && c[3] == 0;
     X->hi = (c[3] << g) | (c[2] >> (64 - g));
     X->lo = (c[2] << g) | (c[1] >> (64 - g));
     tiny = (c[1] << g) | (c[0] >> (64 - g));
@@ -1662,12 +1314,12 @@ reduce_fast (double *h, double *l, double x, double *err1)
         {
           /* In that case the contribution of x*T[2]/2^192 is less than
              2^(52+64-192) <= 2^-76. */
-          u = (u128) m * (u128) T[1];
-          c[0] = u;
-          c[1] = u >> 64;
-          u = (u128) m * (u128) T[0];
-          c[1] += u;
-          c[2] = (u >> 64) + (c[1] < (uint64_t) u);
+	  u = u128_mul (u128_from_u64 (m), u128_from_u64 (T[1]));
+          c[0] = u128_low (u);
+	  c[1] = u128_high (u);
+	  u = u128_mul (u128_from_u64 (m), u128_from_u64 (T[0]));
+	  c[1] += u128_low (u);
+          c[2] = u128_high (u) + (c[1] < u128_low (u));
           /* | c[2]*2^128+c[1]*2^64+c[0] - m/(2pi)*2^128 | < m*T[2]/2^64 < 2^53
              thus:
              | (c[2]*2^128+c[1]*2^64+c[0])*2^(e-1203) - x/(2pi) | < 2^(e-1150)
@@ -1688,14 +1340,14 @@ reduce_fast (double *h, double *l, double x, double *err1)
              m*T[i+3] contributes a multiple of 2^(-f-192),
                       and at most to 2^(-75-f) <= 2^-76
           */
-          u = (u128) m * (u128) T[i+2];
-          c[0] = u;
-          c[1] = u >> 64;
-          u = (u128) m * (u128) T[i+1];
-          c[1] += u;
-          c[2] = (u >> 64) + (c[1] < (uint64_t) u);
-          u = (u128) m * (u128) T[i];
-          c[2] += u;
+	  u = u128_mul (u128_from_u64 (m), u128_from_u64 (T[i+2]));
+	  c[0] = u128_low (u);
+	  c[1] = u128_high (u);
+	  u = u128_mul (u128_from_u64 (m), u128_from_u64 (T[i+1]));
+	  c[1] += u128_low (u);
+          c[2] = u128_high (u) + (c[1] < u128_low (u));
+          u = u128_mul (u128_from_u64 (m), u128_from_u64 (T[i]));
+	  c[2] += u128_low (u);
           e = 1139 + (i<<6) - e; // 1 <= e <= 64
           // e is the number of low bits of C[2] contributing to frac(x/(2pi))
         }
