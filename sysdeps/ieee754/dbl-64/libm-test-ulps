@@ -211,3 +211,15 @@ double: 0
 
 Function: "sincos_upward":
 double: 0
+
+Function: "sinh":
+double: 0
+
+Function: "sinh_downward":
+double: 0
+
+Function: "sinh_towardzero":
+double: 0
+
+Function: "sinh_upward":
+double: 0
