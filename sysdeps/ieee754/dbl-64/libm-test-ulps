@@ -179,6 +179,18 @@ double: 0
 Function: "atan2pi_upward":
 double: 0
 
+Function: "cosh":
+double: 0
+
+Function: "cosh_downward":
+double: 0
+
+Function: "cosh_towardzero":
+double: 0
+
+Function: "cosh_upward":
+double: 0
+
 Function: "j1_downward":
 double: 12
 
