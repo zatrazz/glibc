@@ -19,6 +19,7 @@
 #ifndef _MATH_INT128_H
 #define _MATH_INT128_H
 
+#include <stdint.h>
 #include <stdbool.h>
 #include <endian.h>
 

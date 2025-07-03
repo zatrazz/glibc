@@ -96,6 +96,9 @@ static inline int cmpu128(u128 a, u128 b) { return u128_gt (a, b) - u128_lt (a, 
 /* ZERO is a dint64_t representation of 0, which ensures that
    dint_tod(ZERO) = 0 */
 static const dint64_t ZERO = {.hi = 0x0, .lo = 0x0, .ex = -1076, .sgn = 0x0};
+/* ONE is a dint64_t representation of 1 */
+static const dint64_t ONE = {
+    .hi = 0x8000000000000000, .lo = 0x0, .ex = 1, .sgn = 0x0};
 // MAGIC is a dint64_t representation of 1/2^11
 static const dint64_t MAGIC = {.hi = 0x8000000000000000, .lo = 0x0, .ex = -10, .sgn = 0x0};
 
@@ -286,6 +289,128 @@ mul_dint_21 (dint64_t *r, const dint64_t *a, const dint64_t *b) {
   /* The ignored part can be as large as 1 ulp before the shift (truncated
      part of lo). After the shift this can be as large as 2 ulps. */
 }
+
+
+/* put in r an approximation of 1/a, assuming a is not zero,
+   with error bounded by 4.003 ulps (relative error < 2^-124.999) */
+static inline void inv_dint (dint64_t *r, dint64_t *a)
+{
+  extern const uint64_t __dint_Tinv[256] attribute_hidden;
+#define Tinv __dint_Tinv
+  uint64_t h = a->hi; /* 2^63 <= h < 2^64 */
+  /* First compute a 64-bit inverse t of h, such that
+     t*h ~ 2^127, see routine inv_dint() in tan.sage.
+     We note a = h/2^63, then 1 <= a < 2, and we write x = t/2^64 for
+     the approximation of 1/a, with 1/2 <= x < 1. */
+  int i = (h>>55) & 0xff;
+  uint64_t t = Tinv[i];
+  /* now t is accurate to about 8 bits, more precisely the integer residual
+     2^127 - h*t is bounded by 662027951208051476078044039717322752 < 2^118.995
+     (attained for i=0 and h=2^63). The integer residual 2^127 - t*h
+     equals 2^127*(1-a*x), thus 0 <= 1-ax < 2^-8.005. */
+
+  /* first Newton iteration */
+  // exact
+  u128 e = u128_sub (u128_lshift (u128_from_u64 (1), 127),
+		     u128_mul (u128_from_u64 (h), u128_from_u64 (t)));
+  /* as Tinv was computed, we have 0 < e < 2^119 */
+  e = u128_mul (u128_from_u64 (t), u128_rshift (e, 55));
+  t = u128_low (u128_add (u128_from_u64 (t), u128_rshift (e, 72)));
+  /* If we had no truncation, the residual 1-ax is squared at each iteration,
+     thus we would get 2^127 - h*t < 2^(2*118.995)/2^127 <= 2^110.99.
+     The truncation e>>55 induces an error of at most t < 2^64 on the
+     value of e after e = (u128) t * (e >> 55), thus of at most 2^-8 on t,
+     while the truncation e >> 72 induces an error of at most 1 on t,
+     thus the error on t is at most 1+2^-8.
+     Since h < 2^64, this can increase by at most 2^64*(1+2^-8) the value
+     of 2^127 - h*t:
+     2^127 - h*t < 2^110.99 + 2^64*(1+2^-8) < 2^110.991.
+  */
+
+  /* second Newton iteration */
+  // 0 <= e < 2^111
+  e = u128_sub (u128_lshift (u128_from_u64 (1), 127),
+		u128_mul (u128_from_u64 (h), u128_from_u64 (t)));
+  e = u128_mul (u128_from_u64 (t), u128_rshift (e, 47));
+  t = u128_low (u128_add (u128_from_u64 (t), u128_rshift (e, 80)));
+  /* With the same reasoning as above, the truncation e >> 47 induces an
+     error of at most 2^-16 on t, and the truncation e >> 80 an error of
+     at most 1, giving a total of 1+2^-16.
+     Since h < 2^64, this can increase by at most 2^64*(1+2^-16) the value
+     of 2^127 - h*t:
+     2^127 - h*t < 2^(2*110.991)/2^127 + 2^64*(1+2^-16) < 2^94.9821. */
+     
+
+  /* third Newton iteration */
+  // 0 <= e < 2^95
+  e = u128_sub (u128_lshift (u128_from_u64 (1), 127),
+		u128_mul (u128_from_u64 (h), u128_from_u64 (t)));
+  e = u128_mul (u128_from_u64 (t), u128_rshift (e, 31));
+  t = u128_low (u128_add (u128_from_u64 (t), u128_rshift (e, 96)));
+  /* With the same reasoning as above, the truncation e >> 31 induces an
+     error of at most 2^-32 on t, and the truncation e >> 96 an error of
+     at most 1, giving a total of 1+2^-32.
+     Since h < 2^64, this can increase by at most 2^64*(1+2^-32) the value
+     of 2^127 - h*t:
+     2^127 - h*t < 2^(2*94.9821)/2^127 + 2^64*(1+2^-32) < 2^64.574.
+     This corresponds to:
+     1 - a*x < 2^64.574/2^127 = 2^-62.426, thus the relative error is at
+     most 2^-62.426. */
+  
+  dint64_t q[1];
+  r->hi = t;
+  r->lo = 0;
+  /* if a->ex = 0, then 1/2 <= a < 1, thus we should have
+     1 < 1/a <= 2, thus r->ex = 1 */
+  r->ex = 1 - a->ex;
+  r->sgn = 1;
+  /* we use Newton's iteration: r -> r + r*(1-a*r) */
+  mul_dint_21 (q, a, r);     /* -a*r, error <= 2 ulps */
+  r->sgn = 0;                /* restore sign */
+  add_dint (q, &ONE, q);     /* 1-a*r, error <= 2 ulps */
+  mul_dint (q, r, q);        /* r*(1-a*r), error <= 6 ulps */
+  add_dint (r, r, q);        /* error <= 2 ulps */
+  /* If all computations were exact, the residual would be squared,
+     thus we would get 1-a*r = 2^(-2*62.426) = 2^-124.852.
+     To simplify the error analysis, we assume 1 <= a < 2 and thus
+     1/2 <= r <= 1.
+     * since |ar| <= 1, the error of at most 2 ulps from mul_dint_21()
+       translates to an absolute error of at most 2^-127; this error
+       is multiplied by r <= 1, thus contributes to at most 2^-127 in the
+       final value of r.
+     * since 1-a*r < 2^-62.426, the error of at most 2 ulps in
+       add_dint (&q, &ONE, &q) translates to an absolute error of at most
+       2^-189; this error is multiplied by r <= 1, thus contributes to at most
+       2^-189 in the final value of r.
+     * since q < 2^-62.426 and r < 1, the value of q after mul_dint()
+       satisfies q < 2^-62.426, thus the error of at most 6 ulps translates
+       into an absolute error of at most 2^-187 in the final value of r.
+     * since r <= 1, the error of at most 2 ulps in add_dint (r, r, &q)
+       translates into an absolute error of at most 2^-127 in the final
+       value of r.
+     This yields a maximal absolute error of 2^-127+2^-189+2^-187+2^-127
+     < 2^-125.999. Since r >= 1/2, this corresponds to a relative error
+     bounded by 2^-124.999, or to less than 4.003 ulps, since in the
+     binade [1/2,1), the ulp is 2^-128.
+  */
+#undef Tinv
+}
+
+/* put in r an approximation of b/a, assuming a is not zero,
+   with relative error < 2^-123.67 */
+static inline void div_dint (dint64_t *r, dint64_t *b, dint64_t *a)
+{
+  inv_dint (r, a);    // relative error bounded by 2^-124.999
+  mul_dint (r, r, b); // error bounded by 6 ulps
+  /* The error bound of 6 ulps for mul_dint() corresponds to a maximal
+     error of 6*2^-128 in the binade [1/2,1), thus to a maximal relative
+     error of 12*2^-128:
+     r = b/a * (1 + eps1) * (1 + eps2)
+     with |eps1| < 2^-124.999 and |eps2| < 12*2^-128,
+     thus r = b/a * (1 + eps) with eps < (1 + 2^-124.999) * (1 + 12*2^-128) - 1
+     < 2^-123.67. */
+}
+
 
 // Convert a non-zero double to the corresponding dint64_t value
 static inline void dint_fromd (dint64_t *a, double b) {

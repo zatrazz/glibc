@@ -355,6 +355,7 @@ type-ldouble-yes := ldouble
 type-double-suffix :=
 type-double-routines := \
   branred \
+  dint \
   e_exp_data \
   e_log2_data \
   e_log_data \
