@@ -20,7 +20,7 @@
 #include <math-inline-asm.h>
 
 int
-fegetexceptflag (fexcept_t *flagp, int excepts)
+__fegetexceptflag (fexcept_t *flagp, int excepts)
 {
   fexcept_t temp;
   unsigned int mxscr;
@@ -34,3 +34,5 @@ fegetexceptflag (fexcept_t *flagp, int excepts)
   /* Success.  */
   return 0;
 }
+weak_alias (__fegetexceptflag, fegetexceptflag)
+libm_hidden_def (__fegetexceptflag)
