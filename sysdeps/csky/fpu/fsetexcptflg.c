@@ -21,7 +21,7 @@
 #include <fenv_libc.h>
 
 int
-fesetexceptflag (const fexcept_t *flagp, int excepts)
+__fesetexceptflag (const fexcept_t *flagp, int excepts)
 {
   fpu_control_t temp;
 
@@ -41,3 +41,5 @@ fesetexceptflag (const fexcept_t *flagp, int excepts)
   /* Success.  */
   return 0;
 }
+libm_hidden_def (__fesetexceptflag)
+weak_alias (__fesetexceptflag, fesetexceptflag)
