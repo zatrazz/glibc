@@ -19,10 +19,12 @@
 #include <fenv_private.h>
 
 int
-fegetexceptflag (fexcept_t *flagp, int excepts)
+__fegetexceptflag (fexcept_t *flagp, int excepts)
 {
   *flagp = libc_fetestexcept_s390 (excepts);
 
   /* Success.  */
   return 0;
 }
+libm_hidden_def (__fegetexceptflag)
+weak_alias (__fegetexceptflag, fegetexceptflag)

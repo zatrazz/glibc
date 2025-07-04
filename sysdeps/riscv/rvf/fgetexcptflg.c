@@ -20,7 +20,7 @@
 #include <fenv_private.h>
 
 int
-fegetexceptflag (fexcept_t *flagp, int excepts)
+__fegetexceptflag (fexcept_t *flagp, int excepts)
 {
   /* Get the current exceptions.  */
   *flagp = riscv_getflags () & excepts;
@@ -28,3 +28,5 @@ fegetexceptflag (fexcept_t *flagp, int excepts)
   /* Success.  */
   return 0;
 }
+libm_hidden_def (__fegetexceptflag)
+weak_alias (__fegetexceptflag, fegetexceptflag)

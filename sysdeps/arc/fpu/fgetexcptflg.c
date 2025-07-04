@@ -20,7 +20,7 @@
 #include <fenv_private.h>
 
 int
-fegetexceptflag (fexcept_t *flagp, int excepts)
+__fegetexceptflag (fexcept_t *flagp, int excepts)
 {
   unsigned int fpsr;
 
@@ -29,3 +29,5 @@ fegetexceptflag (fexcept_t *flagp, int excepts)
 
   return 0;
 }
+libm_hidden_def (__fegetexceptflag)
+weak_alias (__fegetexceptflag, fegetexceptflag)
