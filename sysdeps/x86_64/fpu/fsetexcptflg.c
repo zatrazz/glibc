@@ -20,7 +20,7 @@
 #include <math.h>
 
 int
-fesetexceptflag (const fexcept_t *flagp, int excepts)
+__fesetexceptflag (const fexcept_t *flagp, int excepts)
 {
   /* The flags can be set in the 387 unit or in the SSE unit.
      When we need to clear a flag, we need to do so in both units,
@@ -55,3 +55,5 @@ fesetexceptflag (const fexcept_t *flagp, int excepts)
   /* Success.  */
   return 0;
 }
+weak_alias (__fesetexceptflag, fesetexceptflag)
+libm_hidden_def (__fesetexceptflag)

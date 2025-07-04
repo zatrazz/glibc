@@ -40,7 +40,7 @@ fesetexcept (int excepts)
 
       /* Deal with FE_INVALID_SOFTWARE not being implemented on some chips.  */
       if (excepts & FE_INVALID)
-	feraiseexcept (FE_INVALID);
+	__feraiseexcept (FE_INVALID);
     }
 
   return 0;

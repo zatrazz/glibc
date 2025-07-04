@@ -22,7 +22,7 @@
 
 
 int
-fesetexceptflag (const fexcept_t *flagp, int excepts)
+__fesetexceptflag (const fexcept_t *flagp, int excepts)
 {
   fpu_control_t fpscr, new_fpscr;
 
@@ -43,3 +43,5 @@ fesetexceptflag (const fexcept_t *flagp, int excepts)
 
   return 0;
 }
+weak_alias (__fesetexceptflag, fesetexceptflag)
+libm_hidden_def (__fesetexceptflag)

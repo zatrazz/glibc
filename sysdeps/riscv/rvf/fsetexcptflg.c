@@ -20,7 +20,7 @@
 #include <fpu_control.h>
 
 int
-fesetexceptflag (const fexcept_t *flagp, int excepts)
+__fesetexceptflag (const fexcept_t *flagp, int excepts)
 {
   fexcept_t flags = *flagp;
   asm volatile ("csrc fflags, %0" : : "r" (excepts));
@@ -28,3 +28,5 @@ fesetexceptflag (const fexcept_t *flagp, int excepts)
 
   return 0;
 }
+weak_alias (__fesetexceptflag, fesetexceptflag)
+libm_hidden_def (__fesetexceptflag)
