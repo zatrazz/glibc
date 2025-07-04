@@ -20,7 +20,7 @@
 #include <fpu_control.h>
 
 int
-fesetexceptflag (const fexcept_t *flagp, int excepts)
+__fesetexceptflag (const fexcept_t *flagp, int excepts)
 {
   fpu_fpsr_t fpsr;
   fpu_fpsr_t fpsr_new;
@@ -39,3 +39,5 @@ fesetexceptflag (const fexcept_t *flagp, int excepts)
 
   return 0;
 }
+weak_alias (__fesetexceptflag, fesetexceptflag)
+libm_hidden_def (__fesetexceptflag)
