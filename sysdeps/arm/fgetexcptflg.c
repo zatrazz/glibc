@@ -21,7 +21,7 @@
 
 
 int
-fegetexceptflag (fexcept_t *flagp, int excepts)
+__fegetexceptflag (fexcept_t *flagp, int excepts)
 {
   /* Fail if a VFP unit isn't present.  */
   if (!ARM_HAVE_VFP)
@@ -30,3 +30,5 @@ fegetexceptflag (fexcept_t *flagp, int excepts)
   *flagp = libc_fetestexcept_vfp (excepts);
   return 0;
 }
+libm_hidden_def (__fegetexceptflag)
+weak_alias (__fegetexceptflag, fegetexceptflag)
