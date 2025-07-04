@@ -20,7 +20,7 @@
 #include <fpu_control.h>
 
 int
-fegetexceptflag (fexcept_t *flagp, int excepts)
+__fegetexceptflag (fexcept_t *flagp, int excepts)
 {
   fpu_control_t temp;
 
@@ -36,3 +36,5 @@ fegetexceptflag (fexcept_t *flagp, int excepts)
   /* Success.  */
   return 0;
 }
+libm_hidden_def (__fegetexceptflag)
+weak_alias (__fegetexceptflag, fegetexceptflag)
