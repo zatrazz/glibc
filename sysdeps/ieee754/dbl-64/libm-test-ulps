@@ -212,6 +212,18 @@ double: 0
 Function: "sin_upward":
 double: 0
 
+Function: "sinpi":
+double: 0
+
+Function: "sinpi_downward":
+double: 0
+
+Function: "sinpi_towardzero":
+double: 0
+
+Function: "sinpi_upward":
+double: 0
+
 Function: "sincos":
 double: 0
 
