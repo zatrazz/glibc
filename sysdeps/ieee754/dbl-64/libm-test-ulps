@@ -191,6 +191,18 @@ double: 0
 Function: "cosh_upward":
 double: 0
 
+Function: "cospi":
+double: 0
+
+Function: "cospi_downward":
+double: 0
+
+Function: "cospi_towardzero":
+double: 0
+
+Function: "cospi_upward":
+double: 0
+
 Function: "j1_downward":
 double: 12
 
