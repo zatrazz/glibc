@@ -25,6 +25,7 @@ CFLAGS-s_sincos.c += -fexcess-precision=standard
 CFLAGS-s_sinpi.c += -fexcess-precision=standard
 CFLAGS-s_tan.c += -fexcess-precision=standard
 CFLAGS-s_tanh.c += -fexcess-precision=standard
+CFLAGS-s_tanpi.c += -fexcess-precision=standard
 endif
 
 ifeq ($(subdir),gmon)
