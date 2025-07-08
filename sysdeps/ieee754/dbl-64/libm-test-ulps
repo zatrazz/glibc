@@ -283,3 +283,15 @@ double: 0
 
 Function: "tanh_upward":
 double: 0
+
+Function: "tanpi":
+double: 0
+
+Function: "tanpi_downward":
+double: 0
+
+Function: "tanpi_towardzero":
+double: 0
+
+Function: "tanpi_upward":
+double: 0
