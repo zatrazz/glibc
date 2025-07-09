@@ -54,6 +54,7 @@ typedef          __int128 i128;
 # define u128_high(__x)         (uint64_t)((__x) >> 64)
 # define u128_low(__x)          (uint64_t)(__x)
 # define u128_from_u64(__x)     (u128)(__x)
+# define u128_from_u64_hl(__hi, __lo)  ((u128)(__hi)<<64|__lo)
 # define u128_from_i64(__x)     (u128)(__x)
 # define u128_from_i128(__x)    (u128)(__x)
 # define u128_mul(__x, __y)     (__x) * (__y)
@@ -64,6 +65,8 @@ typedef          __int128 i128;
 # define u128_or(__x, __y)      (__x) | (__y)
 # define u128_gt(__x, __y)      ((__x) > (__y))
 # define u128_lt(__x, __y)      ((__x) < (__y))
+# define u128_bitwise_xor(__x, __y) ((__x) ^ (__y))
+# define u128_logical_not(__x)  (!(__x))
 
 # define i128_high(__x)         (int64_t)((__x) >> 64)
 # define i128_low(__x)          (int64_t)(__x)
@@ -102,11 +105,14 @@ typedef struct
 # define u128_high(__x)         (__x).high
 # define u128_low(__x)          (__x).low
 # define u128_from_u64(__x)     (u128){.low = (__x), .high = 0}
+# define u128_from_u64_hl(__hi, __lo)  (u128){.low = (__lo), .high =(__hi)}
 # define u128_from_i64(__x)     (u128){.low = (uint64_t)(__x), \
                                        .high = -(uint64_t)(__x < 0)}
 # define u128_from_i128(__x)    (u128){.low = (__x).low, .high = (__x).high}
 # define u128_or(__x, __y)      (u128){.low  = (__x).low  | (__y).low, \
                                        .high = (__x).high | (__y).high }
+# define u128_bitwise_xor(__x, __y)  (u128){.low = (__x).low ^ (__y).low, \
+					    .high = (__x).high ^ (__y).high }
 
 # define i128_high(__x)         (int64_t)(__x).high
 # define i128_low(__x)          (int64_t)(__x).low
@@ -283,6 +289,11 @@ static inline int u128_lt (u128 x, u128 y)
 static inline int u128_gt (u128 x, u128 y)
 {
   return u128_lt (y, x);
+}
+
+static inline bool u128_logical_not (u128 x)
+{
+  return !x.low && !x.high;
 }
 
 static __attribute_maybe_unused__ i128 i128_mul (i128 x, i128 y)
