@@ -28,9 +28,9 @@ SOFTWARE.
 #include <errno.h>
 #include <fenv.h>
 #include <stdint.h>
-#include <math_uint128.h>
 #include <get-rounding-mode.h>
 #include <libm-alias-double.h>
+#include <math_uint128.h>
 #define CORE_MATH_SUPPORT_ERRNO
 
 typedef uint64_t u64;
@@ -53,30 +53,35 @@ static double __attribute__((noinline)) as_rsqrt_refine(double rf, double a){
     u64 rm, am;
     rm = (ir.u<<11|1ull<<63)>>11;
     am = ((ia.u&(~0ull>>12))|1ull<<52)<<(5-e);
-    u128 rt = (u128)rm*am;
-    u64 rth = rt>>64, rtl = rt;
-    u128 rrt = (u128)rtl*rm;
-    u64 t0 = rrt, t1 = (rrt>>64) + rth*rm;
-    rrt = (u128)t1<<64|t0;
-    i64 s = rrt>>127, dd = 1 - 2*s;
-    u128 rts = ((rt<<1)^(-s)) + s;
+    u128 rt = u128_mul (u128_from_u64 (rm), u128_from_u64 (am));
+    u64 rth = u128_high (rt), rtl = u128_low (rt);
+    u128 rrt = u128_mul (u128_from_u64 (rtl), u128_from_u64 (rm));
+    u64 t0 = u128_low (rrt), t1 = u128_high (rrt) + rth*rm;
+    rrt = u128_from_u64_hl (t1, t0);
+    i64 s = u128_low (u128_rshift (rrt, 127)), dd = 1 - 2*s;
+    u128 rts = u128_add (u128_bitwise_xor (u128_lshift (rt, 1),
+					   u128_from_i64 (-s)),
+			 u128_from_i64 (s));
     u128 prrt;
     u64 am2 = am<<1, am20 = -am;
     do {
       ir.u -= dd;
       prrt = rrt;
       am20 += am2;
-      u128 tt = rts - am20;
-      rrt -= tt;
-    } while(__builtin_expect(!((prrt^rrt)>>127), 0));
-    ir.u += (rrt>>127)?0:dd;
-    rrt = (rrt>>127)?rrt:prrt;
+      u128 tt = u128_sub (rts, u128_from_u64 (am20));
+      //rrt -= tt;
+      rrt = u128_sub (rrt, tt);
+    } while (u128_logical_not (u128_rshift(u128_bitwise_xor (prrt,
+							     rrt),127)));
+    ir.u += u128_low (u128_rshift (rrt, 127))?0:dd;
+    rrt = u128_low (u128_rshift (rrt, 127)) ? rrt : prrt;
+
     if(__builtin_expect(mode==FE_TONEAREST, 1)){
       rm = (ir.u<<11|1ull<<63)>>11;
-      rt = (u128)rm*am;
-      rrt += am>>2;
-      rrt += rt;
-      u64 inc = rrt>>127;
+      rt = u128_mul(u128_from_u64 (rm), u128_from_u64 (am));
+      rrt = u128_add (rrt, u128_from_u64 (am >> 2));
+      rrt = u128_add (rrt, rt);
+      u64 inc = u128_low (u128_rshift (rrt, 127));
       ir.u += inc;
     } else {
       ir.u += mode==FE_UPWARD;
