@@ -239,6 +239,18 @@ double: 0
 Function: "exp_upward":
 double: 0
 
+Function: "expm1":
+double: 0
+
+Function: "expm1_downward":
+double: 0
+
+Function: "expm1_towardzero":
+double: 0
+
+Function: "expm1_upward":
+double: 0
+
 Function: "hypot":
 double: 0
 
