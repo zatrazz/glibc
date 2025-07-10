@@ -27,6 +27,8 @@ SOFTWARE.
 #ifndef _E_EXP_DATA_H
 #define _E_EXP_DATA_H
 
+#include <stddef.h>
+
 extern const double __exp_data_db[] attribute_hidden;
 extern const size_t __exp_data_db_size attribute_hidden;
 #define DB       __exp_data_db
