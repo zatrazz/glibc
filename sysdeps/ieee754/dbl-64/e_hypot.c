@@ -136,10 +136,10 @@ static double  __attribute__((noinline)) as_hypot_hard(double x, double y) {
     lm <<= ls;
     m2 += lm*lm;
   } else {
-    u128 lm2 = (u128)lm*lm;
-    ls *= 2;
-    m2 += lm2 >> -ls; // since ls < 0, the shift by -ls is legitimate
-    m2 |= !!(lm2 << (128 + ls));
+    u128 lm2 = u128_mul (u128_from_u64 (lm), u128_from_u64 (lm));
+    ls += 2;
+    m2 += u128_low (u128_rshift (lm2, -ls)); // since ls < 0, the shift by -ls is legitimate
+    m2 |= !(u128_logical_not ((u128_lshift (lm2, 128 + ls))));
   }
   int k = bs+re;
   i64 D;
