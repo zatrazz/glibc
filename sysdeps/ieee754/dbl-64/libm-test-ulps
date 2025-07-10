@@ -227,6 +227,18 @@ double: 0
 Function: "erf_upward":
 double: 0
 
+Function: "exp":
+double: 0
+
+Function: "exp_downward":
+double: 0
+
+Function: "exp_towardzero":
+double: 0
+
+Function: "exp_upward":
+double: 0
+
 Function: "hypot":
 double: 0
 
