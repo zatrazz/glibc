@@ -227,6 +227,18 @@ double: 0
 Function: "erf_upward":
 double: 0
 
+Function: "exp2":
+double: 0
+
+Function: "exp2_downward":
+double: 0
+
+Function: "exp2_towardzero":
+double: 0
+
+Function: "exp2_upward":
+double: 0
+
 Function: "exp10":
 double: 0
 
