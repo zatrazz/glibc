@@ -239,6 +239,18 @@ double: 0
 Function: "exp10_upward":
 double: 0
 
+Function: "exp10m1":
+double: 0
+
+Function: "exp10m1_downward":
+double: 0
+
+Function: "exp10m1_towardzero":
+double: 0
+
+Function: "exp10m1_upward":
+double: 0
+
 Function: "exp":
 double: 0
 
