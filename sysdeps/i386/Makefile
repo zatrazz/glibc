@@ -19,6 +19,7 @@ CFLAGS-s_atan2pi.c += -fexcess-precision=standard
 CFLAGS-s_cos.c += -fexcess-precision=standard
 CFLAGS-s_erf.c += -fexcess-precision=standard
 CFLAGS-s_erfc.c += -fexcess-precision=standard
+CFLAGS-s_exp10m1.c += -fexcess-precision=standard
 CFLAGS-s_cospi.c += -fexcess-precision=standard
 CFLAGS-s_rsqrt.c += -fexcess-precision=standard
 CFLAGS-s_sin.c += -fexcess-precision=standard
