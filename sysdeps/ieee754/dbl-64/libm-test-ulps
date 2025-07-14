@@ -311,6 +311,18 @@ double: 0
 Function: "hypot_upward":
 double: 0
 
+Function: "log":
+double: 0
+
+Function: "log_downward":
+double: 0
+
+Function: "log_towardzero":
+double: 0
+
+Function: "log_upward":
+double: 0
+
 Function: "j1_downward":
 double: 12
 

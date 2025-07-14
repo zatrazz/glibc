@@ -173,7 +173,7 @@ sin_accurate (double x)
   double absx = (x > 0) ? x : -x;
 
   dint64_t X[1];
-  dint_fromd (X, absx);
+  dint_fromd (X, absx, 0x3fe);
 
   /* reduce argument */
   reduce (X);
@@ -334,7 +334,7 @@ static double
 cos_accurate (double x)
 {
   dint64_t X[1];
-  dint_fromd (X, x);
+  dint_fromd (X, x, 0x3fe);
 
   /* reduce argument */
   reduce (X);
