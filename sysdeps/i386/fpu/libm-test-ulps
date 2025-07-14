@@ -187,6 +187,19 @@ double: 1
 Function: "log_upward":
 double: 1
 
+# sysdeps/i386/fpu/s_log1p.S is not correctly rounded
+Function: "log1p":
+double: 1
+
+Function: "log1p_downward":
+double: 1
+
+Function: "log1p_towardzero":
+double: 1
+
+Function: "log1p_upward":
+double: 1
+
 # sysdeps/i386/fpu/e_hypot.c is not correctly rounded
 Function: "hypot":
 double: 1
