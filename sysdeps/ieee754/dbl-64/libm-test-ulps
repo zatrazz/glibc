@@ -323,6 +323,18 @@ double: 0
 Function: "log_upward":
 double: 0
 
+Function: "log1p":
+double: 0
+
+Function: "log1p_downward":
+double: 0
+
+Function: "log1p_towardzero":
+double: 0
+
+Function: "log1p_upward":
+double: 0
+
 Function: "j1_downward":
 double: 12
 
