@@ -65,6 +65,8 @@ typedef          __int128 i128;
 # define u128_or(__x, __y)      (__x) | (__y)
 # define u128_gt(__x, __y)      ((__x) > (__y))
 # define u128_lt(__x, __y)      ((__x) < (__y))
+# define u128_bitwise_and(__x, __y) ((__x) & (__y))
+# define u128_bitwise_or(__x, __y) ((__x) | (__y))
 # define u128_bitwise_xor(__x, __y) ((__x) ^ (__y))
 # define u128_logical_not(__x)  (!(__x))
 
@@ -111,6 +113,10 @@ typedef struct
 # define u128_from_i128(__x)    (u128){.low = (__x).low, .high = (__x).high}
 # define u128_or(__x, __y)      (u128){.low  = (__x).low  | (__y).low, \
                                        .high = (__x).high | (__y).high }
+# define u128_bitwise_and(__x, __y)  (u128){.low = (__x).low & (__y).low, \
+					    .high = (__x).high & (__y).high }
+# define u128_bitwise_or(__x, __y)  (u128){.low = (__x).low | (__y).low, \
+					    .high = (__x).high | (__y).high }
 # define u128_bitwise_xor(__x, __y)  (u128){.low = (__x).low ^ (__y).low, \
 					    .high = (__x).high ^ (__y).high }
 

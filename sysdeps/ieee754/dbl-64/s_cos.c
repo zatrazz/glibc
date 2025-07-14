@@ -154,7 +154,7 @@ static double
 cos_accurate (double x)
 {
   dint64_t X[1];
-  dint_fromd (X, x);
+  dint_fromd (X, x, 0x3fe);
 
   /* reduce argument */
   reduce (X);

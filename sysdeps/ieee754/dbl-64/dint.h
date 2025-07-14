@@ -72,14 +72,13 @@ typedef union {
   uint64_t u;
 } f64_u;
 
+// add two 128 bit integers and return 1 if an overflow occured
+static inline int addu_128(uint128_t a, uint128_t b, uint128_t *r) {
+  r->l = a.l + b.l;
+  r->h = a.h + b.h + (r->l < a.l);
 
-// Extract both the mantissa and exponent of a double
-static inline void fast_extract (int64_t *e, uint64_t *m, double x) {
-  f64_u _x = {.f = x};
-
-  *e = (_x.u >> 52) & 0x7ff;
-  *m = (_x.u & (~0ull >> 12)) + (*e ? (1ull << 52) : 0);
-  *e = *e - 0x3fe;
+  // return the overflow
+  return r->h == a.h ? r->l < a.l : r->h < a.h;
 }
 
 // Return non-zero if a = 0
@@ -99,8 +98,23 @@ static const dint64_t ZERO = {.hi = 0x0, .lo = 0x0, .ex = -1076, .sgn = 0x0};
 /* ONE is a dint64_t representation of 1 */
 static const dint64_t ONE = {
     .hi = 0x8000000000000000, .lo = 0x0, .ex = 1, .sgn = 0x0};
+
+static const dint64_t M_ONE = {
+    .hi = 0x8000000000000000, .lo = 0x0, .ex = 0, .sgn = 0x1};
+
+/* the following is an approximation of log(2), with absolute error less
+   than 2^-129.97 */
+static const dint64_t LOG2 = {
+    .hi = 0xb17217f7d1cf79ab, .lo = 0xc9e3b39803f2f6af, .ex = -1, .sgn = 0x0};
 // MAGIC is a dint64_t representation of 1/2^11
 static const dint64_t MAGIC = {.hi = 0x8000000000000000, .lo = 0x0, .ex = -10, .sgn = 0x0};
+
+extern const dint64_t __dint_INVERSE_2[] attribute_hidden;
+#define _INVERSE_2 __dint_INVERSE_2
+extern const dint64_t __dint_LOG_INV_2[] attribute_hidden;
+#define _LOG_INV_2 __dint_LOG_INV_2
+extern const dint64_t __dint_P_2[] attribute_hidden;
+#define P_2 __dint_P_2
 
 // Compare the absolute values of a and b
 // Return -1 if |a| < |b|
@@ -264,6 +278,70 @@ mul_dint (dint64_t *r, const dint64_t *a, const dint64_t *b) {
      be as large as 6 ulps. */
 }
 
+// Multiply two dint64_t numbers, with 126 bits of accuracy
+static inline void
+mul_dint_126 (dint64_t *r, const dint64_t *a, const dint64_t *b) {
+  uint128_t t = {.r = u128_mul(u128_from_u64(a->hi), u128_from_u64(b->hi))};
+  uint128_t m1 = {.r = u128_mul(u128_from_u64(a->hi), u128_from_u64(b->lo))};
+  uint128_t m2 = {.r = u128_mul(u128_from_u64(a->lo), u128_from_u64(b->hi))};
+
+  uint128_t m;
+  // If we only garantee 127 bits of accuracy, we improve the simplicity of the
+  // code uint64_t l = ((u128)(a->lo) * (u128)(b->lo)) >> 64; m.l += l; m.h +=
+  // (m.l < l);
+  t.h += addu_128(m1, m2, &m);
+  t.r = u128_add (t.r, u128_from_u64 (m.h));
+
+  // Ensure that r->hi starts with a 1
+  uint64_t ex = !(t.h >> 63);
+  if (ex)
+    t.r = u128_lshift (t.r, 1);
+
+  //t.r += (m.l >> 63);
+  t.r = u128_add (t.r, u128_from_u64 (m.l >> 63));
+
+  r->hi = t.h;
+  r->lo = t.l;
+
+  // Exponent and sign
+  r->ex = a->ex + b->ex - ex + 1;
+  r->sgn = a->sgn ^ b->sgn;
+}
+
+// Multiply an integer with a dint64_t variable
+static inline void mul_dint_2(dint64_t *r, int64_t b, const dint64_t *a) {
+  uint128_t t;
+
+  if (!b) {
+    cp_dint(r, &ZERO);
+    return;
+  }
+
+  uint64_t c = b < 0 ? -b : b;
+  r->sgn = b < 0 ? !a->sgn : a->sgn;
+
+  t.r = u128_mul (u128_from_u64 (a->hi), u128_from_u64 (c));
+
+  int m = t.h ? __builtin_clzll(t.h) : 64;
+  t.r = u128_lshift (t.r, m);
+
+  // Will pose issues if b is too large but for now we assume it never happens
+  // TODO: FIXME
+  uint128_t l = {.r = u128_mul (u128_from_u64 (a->lo), u128_from_u64 (c))};
+  l.r = u128_rshift (u128_lshift (l.r, m - 1), 63);
+
+  if (addu_128(l, t, &t)) {
+    t.r = u128_add (t.r, u128_bitwise_and (t.r, u128_from_u64 (0x1)));
+    t.r = u128_bitwise_or (u128_lshift (u128_from_u64 (1), 127),
+			   u128_rshift (t.r, 1));
+    m--;
+  }
+
+  r->hi = t.h;
+  r->lo = t.l;
+  r->ex = a->ex + 64 - m;
+}
+
 // Multiply two dint64_t numbers, assuming the low part of b is zero
 // with error bounded by 2 ulps
 static inline void
@@ -412,9 +490,18 @@ static inline void div_dint (dint64_t *r, dint64_t *b, dint64_t *a)
 }
 
 
+// Extract both the mantissa and exponent of a double
+static inline void fast_extract (int64_t *e, uint64_t *m, double x, int bias) {
+  f64_u _x = {.f = x};
+
+  *e = (_x.u >> 52) & 0x7ff;
+  *m = (_x.u & (~0ull >> 12)) + (*e ? (1ull << 52) : 0);
+  *e = *e - bias;
+}
+
 // Convert a non-zero double to the corresponding dint64_t value
-static inline void dint_fromd (dint64_t *a, double b) {
-  fast_extract (&a->ex, &a->hi, b);
+static inline void dint_fromd (dint64_t *a, double b, int bias) {
+  fast_extract (&a->ex, &a->hi, b, bias);
 
   /* |b| = 2^(ex-52)*hi */
 
@@ -503,6 +590,35 @@ static inline double dint_tod(dint64_t *a) {
       e.u = 1l << (a->ex + 1073);
     }
   }
+
+  return r.f * e.f;
+}
+
+// Convert a dint64_t value to a double
+// assuming the input is not in the subnormal range
+static inline double dint_tod_not_subnormal (dint64_t *a) {
+
+  f64_u r = {.u = (a->hi >> 11) | (0x3ffll << 52)};
+  /* r contains the upper 53 bits of a->hi, 1 <= r < 2 */
+
+  double rd = 0.0;
+  /* if round bit is 1, add 2^-53 */
+  if ((a->hi >> 10) & 0x1)
+    rd += 0x1p-53;
+
+  /* if trailing bits after the rounding bit are non zero, add 2^-54 */
+  if (a->hi & 0x3ff || a->lo)
+    rd += 0x1p-54;
+
+  r.u = r.u | a->sgn << 63;
+  r.f += (a->sgn == 0) ? rd : -rd;
+
+  f64_u e;
+
+  /* For log, the result is always in the normal range,
+     thus a->ex > -1023. Similarly, we cannot have a->ex > 1023. */
+
+  e.u = ((a->ex + 1023) & 0x7ff) << 52;
 
   return r.f * e.f;
 }
