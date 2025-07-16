@@ -358,6 +358,18 @@ double: 0
 Function: "log2p1_upward":
 double: 0
 
+Function: "log10":
+double: 0
+
+Function: "log10_downward":
+double: 0
+
+Function: "log10_towardzero":
+double: 0
+
+Function: "log10_upward":
+double: 0
+
 Function: "j1_downward":
 double: 12
 

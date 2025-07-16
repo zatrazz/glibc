@@ -213,6 +213,19 @@ double: 1
 Function: "log2_upward":
 double: 1
 
+# sysdeps/i386/fpu/e_log10.S is not correctly rounded
+Function: "log10":
+double: 1
+
+Function: "log10_downward":
+double: 1
+
+Function: "log10_towardzero":
+double: 1
+
+Function: "log10_upward":
+double: 1
+
 # sysdeps/i386/fpu/e_hypot.c is not correctly rounded
 Function: "hypot":
 double: 1

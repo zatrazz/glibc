@@ -117,6 +117,11 @@ static const dint64_t MAGIC = {.hi = 0x8000000000000000, .lo = 0x0, .ex = -10, .
 static const dint64_t LOG2_INV = {
     .hi = 0xb8aa3b295c17f0bb, .lo = 0xbe87fed0691d3e89, .ex = 12, .sgn = 0x0};
 
+/* the following is an approximation of 1/log(10), with absolute error
+   less than 2^-131.72 */
+static const dint64_t ONE_OVER_LOG10 = {
+  .hi = 0xde5bd8a937287195, .lo = 0x355baaafad33dc32, .ex = -2, .sgn = 0x0};
+
 extern const dint64_t __dint_INVERSE_2[] attribute_hidden;
 #define _INVERSE_2 __dint_INVERSE_2
 extern const dint64_t __dint_LOG_INV_2[] attribute_hidden;
