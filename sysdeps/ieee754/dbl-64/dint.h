@@ -99,6 +99,9 @@ static const dint64_t ZERO = {.hi = 0x0, .lo = 0x0, .ex = -1076, .sgn = 0x0};
 static const dint64_t ONE = {
     .hi = 0x8000000000000000, .lo = 0x0, .ex = 1, .sgn = 0x0};
 
+static const dint64_t ONE_2 = {
+    .hi = 0x8000000000000000, .lo = 0x0, .ex = 0, .sgn = 0x0};
+
 static const dint64_t M_ONE = {
     .hi = 0x8000000000000000, .lo = 0x0, .ex = 0, .sgn = 0x1};
 
@@ -108,6 +111,11 @@ static const dint64_t LOG2 = {
     .hi = 0xb17217f7d1cf79ab, .lo = 0xc9e3b39803f2f6af, .ex = -1, .sgn = 0x0};
 // MAGIC is a dint64_t representation of 1/2^11
 static const dint64_t MAGIC = {.hi = 0x8000000000000000, .lo = 0x0, .ex = -10, .sgn = 0x0};
+
+/* the following is an approximation of 2^12/log(2), with absolute error less
+   than 2^-118.63: |(hi/2^63+lo/2^127)*2^12 - 2^12/log(2)| < 2^-118.63 */
+static const dint64_t LOG2_INV = {
+    .hi = 0xb8aa3b295c17f0bb, .lo = 0xbe87fed0691d3e89, .ex = 12, .sgn = 0x0};
 
 extern const dint64_t __dint_INVERSE_2[] attribute_hidden;
 #define _INVERSE_2 __dint_INVERSE_2
@@ -512,6 +520,30 @@ static inline void dint_fromd (dint64_t *a, double b, int bias) {
   a->ex = a->ex - (t > 11 ? t - 12 : 0);
   /* b = 2^ex*hi/2^64 where 1/2 <= hi/2^64 < 1 */
   a->lo = 0;
+}
+
+/* put in r an approximation of 1/a, assuming a is not zero */
+static inline void inv_dint_d (dint64_t *r, double a)
+{
+  dint64_t q, A;
+  // we convert 4/a and divide by 4 to avoid a spurious underflow
+  dint_fromd (r, 4.0 / a, 0x3ff); /* accurate to about 53 bits */
+  r->ex -= 2;
+  /* we use Newton's iteration: r -> r + r*(1-a*r) */
+  dint_fromd (&A, -a, 0x3ff);
+  mul_dint_126 (&q, &A, r);    /* -a*r */
+  add_dint (&q, &ONE_2, &q); /* 1-a*r */
+  mul_dint_126 (&q, r, &q);    /* r*(1-a*r) */
+  add_dint (r, r, &q);
+}
+
+/* put in r an approximation of b/a, assuming a is not zero */
+static inline void div_dint_d (dint64_t *r, double b, double a)
+{
+  dint64_t B;
+  inv_dint_d (r, a);
+  dint_fromd (&B, b, 0x3ff);
+  mul_dint_126 (r, r, &B);
 }
 
 static inline void subnormalize_dint(dint64_t *a) {

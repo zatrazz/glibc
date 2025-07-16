@@ -345,6 +345,17 @@ Function: "log2_towardzero":
 double: 0
 
 Function: "log2_upward":
+
+Function: "log2p1":
+double: 0
+
+Function: "log2p1_downward":
+double: 0
+
+Function: "log2p1_towardzero":
+double: 0
+
+Function: "log2p1_upward":
 double: 0
 
 Function: "j1_downward":
