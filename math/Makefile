@@ -206,8 +206,6 @@ libm-calls = \
   e_sqrtF \
   gamma_productF \
   k_tanF \
-  lgamma_negF \
-  lgamma_productF \
   s_asinhF \
   s_atanF \
   s_cbrtF \
@@ -348,6 +346,8 @@ type-ldouble-routines := \
   k_sinl \
   s_iscanonicall \
   t_sincosl \
+  lgamma_negl \
+  lgamma_productl \
   # type-ldouble-routines
 type-ldouble-yes := ldouble
 
@@ -390,6 +390,8 @@ type-float128-routines := \
   k_sincosf128 \
   k_sinf128 \
   t_sincosf128 \
+  lgamma_negf128 \
+  lgamma_productf128 \
   # type-float128-routines
 type-float128-yes := float128
 
