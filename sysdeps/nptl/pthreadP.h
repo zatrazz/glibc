@@ -210,12 +210,10 @@ libc_hidden_proto (__pthread_keys)
 extern unsigned int __nptl_nthreads;
 libc_hidden_proto (__nptl_nthreads)
 
-#ifndef __ASSUME_SET_ROBUST_LIST
 /* True if the set_robust_list system call works.  Initialized in
    __tls_init_tp.  */
 extern bool __nptl_set_robust_list_avail;
 rtld_hidden_proto (__nptl_set_robust_list_avail)
-#endif
 
 /* Thread Priority Protection.  */
 extern int __sched_fifo_min_prio;

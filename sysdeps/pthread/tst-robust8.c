@@ -10,6 +10,8 @@
 
 #include <pthreadP.h>
 
+#include <support/check.h>
+#include <support/xthread.h>
 
 
 static void prepare (void);
@@ -143,6 +145,10 @@ child (int round)
 static int
 do_test (void)
 {
+  /* Process shared robust mutexes requires kernel support.  */
+  if (!support_mutex_robust ())
+    FAIL_UNSUPPORTED ("robust mutexes not supported");
+
   if (ftruncate (fd, N * sizeof (pthread_mutex_t)) != 0)
     {
       puts ("cannot size new file");

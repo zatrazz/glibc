@@ -159,9 +159,20 @@ one_test (int parent_bits, int child_bits, int nonshared_bits,
   xmunmap (shared, sizeof (*shared));
 }
 
+static inline bool
+is_robust_pshared (int bits)
+{
+  return (bits & (mutex_robust | mutex_pshared))
+    == (mutex_robust | mutex_pshared);
+}
+
 static int
 do_test (void)
 {
+  bool robust_support = support_mutex_robust ();
+  if (test_verbose)
+    printf ("info: robust_support=%d\n", robust_support);
+
   for (int parent_bits = 0; parent_bits <= mutex_all_bits; ++parent_bits)
     for (int child_bits = 0; child_bits <= mutex_all_bits; ++child_bits)
       for (int nonshared_bits = 0; nonshared_bits <= mutex_all_bits;
@@ -175,6 +186,16 @@ do_test (void)
                         parent_bits, child_bits, nonshared_bits,
                         lock_nonshared ? " lock_nonshared" : "",
                         lock_child ? " lock_child" : "");
+	      if ((is_robust_pshared (parent_bits)
+		   || is_robust_pshared (child_bits)
+		   || is_robust_pshared (nonshared_bits))
+		  && !robust_support)
+		{
+		  if (test_verbose)
+		    printf ("info:   skipping tests due missing robust mutex"
+			    "support");
+		  continue;
+		}
               one_test (parent_bits, child_bits, nonshared_bits,
                         lock_nonshared, lock_child);
             }

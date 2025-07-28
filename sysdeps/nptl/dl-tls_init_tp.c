@@ -28,10 +28,8 @@
 #define TUNABLE_NAMESPACE pthread
 #include <dl-tunables.h>
 
-#ifndef __ASSUME_SET_ROBUST_LIST
 bool __nptl_set_robust_list_avail;
 rtld_hidden_data_def (__nptl_set_robust_list_avail)
-#endif
 
 bool __nptl_initial_report_events;
 rtld_hidden_def (__nptl_initial_report_events)
@@ -94,11 +92,7 @@ __tls_init_tp (void)
     int res = INTERNAL_SYSCALL_CALL (set_robust_list, &pd->robust_head,
                                      sizeof (struct robust_list_head));
     if (!INTERNAL_SYSCALL_ERROR_P (res))
-      {
-#ifndef __ASSUME_SET_ROBUST_LIST
-        __nptl_set_robust_list_avail = true;
-#endif
-      }
+      __nptl_set_robust_list_avail = true;
   }
 
   {

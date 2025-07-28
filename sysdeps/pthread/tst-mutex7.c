@@ -21,6 +21,9 @@
 #include <stdlib.h>
 #include <time.h>
 
+#include <support/check.h>
+#include <support/xthread.h>
+
 /* This test is a template for other tests to use.  Other tests define
    the following macros to change the behaviour of the template test.
    The test is very simple, it configures N threads given the parameters
