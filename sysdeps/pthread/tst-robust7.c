@@ -21,6 +21,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <support/check.h>
+#include <support/xthread.h>
 
 static pthread_barrier_t b;
 static pthread_cond_t c = PTHREAD_COND_INITIALIZER;

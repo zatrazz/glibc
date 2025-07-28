@@ -20,6 +20,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+#include <support/check.h>
+#include <support/xthread.h>
+
 
 static pthread_mutex_t m1;
 static pthread_mutex_t m2;

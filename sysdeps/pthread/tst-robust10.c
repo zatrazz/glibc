@@ -22,6 +22,9 @@
 #include <string.h>
 #include <errno.h>
 
+#include <support/check.h>
+#include <support/xthread.h>
+
 pthread_mutex_t mutex;
 
 static void *

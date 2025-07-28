@@ -42,11 +42,6 @@
 # undef __ASSUME_GETPEERNAME_SYSCALL
 #endif
 
-/* No support for PI futexes or robust mutexes before 3.10 for m68k.  */
-#if __LINUX_KERNEL_VERSION < 0x030a00
-# undef __ASSUME_SET_ROBUST_LIST
-#endif
-
 /* m68k only supports ipc syscall before 5.1.  */
 #if __LINUX_KERNEL_VERSION < 0x050100
 # undef __ASSUME_DIRECT_SYSVIPC_SYSCALLS

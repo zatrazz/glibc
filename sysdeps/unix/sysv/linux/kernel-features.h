@@ -49,11 +49,6 @@
    SH this appeared first in 2.6.19-rc1.  */
 #define __ASSUME_PSELECT	1
 
-/* Support for inter-process robust mutexes was added in 2.6.17 (but
-   some architectures lack futex_atomic_cmpxchg_inatomic in some
-   configurations).  */
-#define __ASSUME_SET_ROBUST_LIST	1
-
 /* The termios2 interface was introduced across all architectures except
    Alpha in kernel 2.6.22. */
 #define __ASSUME_TERMIOS2	1

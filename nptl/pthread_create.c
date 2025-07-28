@@ -380,9 +380,7 @@ start_thread (void *arg)
       __libc_fatal ("Fatal glibc error: rseq registration failed\n");
   }
 
-#ifndef __ASSUME_SET_ROBUST_LIST
   if (__nptl_set_robust_list_avail)
-#endif
     {
       /* This call should never fail because the initial call in init.c
 	 succeeded.  */
@@ -517,7 +515,6 @@ start_thread (void *arg)
   pd->exiting = true;
   __libc_lock_unlock (pd->exit_lock);
 
-#ifndef __ASSUME_SET_ROBUST_LIST
   /* If this thread has any robust mutexes locked, handle them now.  */
 # if __PTHREAD_MUTEX_HAVE_PREV
   void *robust = pd->robust_head.list;
@@ -548,7 +545,6 @@ start_thread (void *arg)
 	}
       while (robust != (void *) &pd->robust_head);
     }
-#endif
 
   /* Release the vDSO getrandom per-thread buffer with all signal blocked,
      to avoid creating a new free-state block during thread release.  */

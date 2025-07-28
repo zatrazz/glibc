@@ -58,7 +58,9 @@ do_test (void)
 	  xpthread_mutexattr_setrobust (&attr, robust[r]);
 
 	  pthread_mutex_t mtx;
-	  xpthread_mutex_init (&mtx, &attr);
+	  if (pthread_mutex_init (&mtx, &attr) == ENOTSUP
+	      && robust[r] == PTHREAD_MUTEX_ROBUST)
+	    continue;
 
 	  /* Uncontended case does not trigger any futex call.  */
 	  struct timespec tmo = timespec_add (xclock_now (clocks[c].clk),
