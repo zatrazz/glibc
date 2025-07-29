@@ -201,6 +201,7 @@ __pthread_mutex_lock_full (pthread_mutex_t *mutex)
     case PTHREAD_MUTEX_ROBUST_ERRORCHECK_NP:
     case PTHREAD_MUTEX_ROBUST_NORMAL_NP:
     case PTHREAD_MUTEX_ROBUST_ADAPTIVE_NP:
+      robust_list_setup (THREAD_SELF);
       THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending,
 		     &mutex->__data.__list.__next);
       /* We need to set op_pending before starting the operation.  Also
@@ -385,6 +386,7 @@ __pthread_mutex_lock_full (pthread_mutex_t *mutex)
 
 	if (robust)
 	  {
+	    robust_list_setup (THREAD_SELF);
 	    /* Note: robust PI futexes are signaled by setting bit 0.  */
 	    THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending,
 			   (void *) (((uintptr_t) &mutex->__data.__list.__next)

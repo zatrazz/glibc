@@ -611,14 +611,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
   /* The robust mutex lists also need to be initialized
      unconditionally because the cleanup for the previous stack owner
      might have happened in the kernel.  */
-  pd->robust_head.futex_offset = (offsetof (pthread_mutex_t, __data.__lock)
-				  - offsetof (pthread_mutex_t,
-					      __data.__list.__next));
-  pd->robust_head.list_op_pending = NULL;
-#if __PTHREAD_MUTEX_HAVE_PREV
-  pd->robust_prev = &pd->robust_head;
-#endif
-  pd->robust_head.list = &pd->robust_head;
+  robust_list_init (pd);
 
   /* We place the thread descriptor at the end of the stack.  */
   *pdp = pd;
