@@ -94,7 +94,7 @@ ___pthread_mutex_init (pthread_mutex_t *mutex,
   if ((imutexattr->mutexkind & PTHREAD_MUTEXATTR_FLAG_ROBUST) != 0)
     {
       if ((imutexattr->mutexkind & PTHREAD_MUTEXATTR_FLAG_PSHARED) != 0
-	  && !__nptl_set_robust_list_avail)
+	  && !robust_list_setup (THREAD_SELF))
 	return ENOTSUP;
       mutex_kind |= PTHREAD_MUTEX_ROBUST_NORMAL_NP;
     }

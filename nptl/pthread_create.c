@@ -380,14 +380,6 @@ start_thread (void *arg)
       __libc_fatal ("Fatal glibc error: rseq registration failed\n");
   }
 
-  if (__nptl_set_robust_list_avail)
-    {
-      /* This call should never fail because the initial call in init.c
-	 succeeded.  */
-      INTERNAL_SYSCALL_CALL (set_robust_list, &pd->robust_head,
-			     sizeof (struct robust_list_head));
-    }
-
   /* This is where the try/finally block should be created.  For
      compilers without that support we do use setjmp.  */
   struct pthread_unwind_buf unwind_buf;

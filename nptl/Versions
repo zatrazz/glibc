@@ -533,6 +533,5 @@ libpthread {
 ld {
   GLIBC_PRIVATE {
      __nptl_initial_report_events;
-     __nptl_set_robust_list_avail;
   }
 }

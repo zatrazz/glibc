@@ -28,9 +28,6 @@
 #define TUNABLE_NAMESPACE pthread
 #include <dl-tunables.h>
 
-bool __nptl_set_robust_list_avail;
-rtld_hidden_data_def (__nptl_set_robust_list_avail)
-
 bool __nptl_initial_report_events;
 rtld_hidden_def (__nptl_initial_report_events)
 
@@ -81,19 +78,7 @@ __tls_init_tp (void)
   THREAD_SETMEM (pd, report_events, __nptl_initial_report_events);
 
   /* Initialize the robust mutex data.  */
-  {
-#if __PTHREAD_MUTEX_HAVE_PREV
-    pd->robust_prev = &pd->robust_head;
-#endif
-    pd->robust_head.list = &pd->robust_head;
-    pd->robust_head.futex_offset = (offsetof (pthread_mutex_t, __data.__lock)
-                                    - offsetof (pthread_mutex_t,
-                                                __data.__list.__next));
-    int res = INTERNAL_SYSCALL_CALL (set_robust_list, &pd->robust_head,
-                                     sizeof (struct robust_list_head));
-    if (!INTERNAL_SYSCALL_ERROR_P (res))
-      __nptl_set_robust_list_avail = true;
-  }
+  robust_list_init (pd);
 
   {
     /* If the registration fails or is disabled by tunable, the public

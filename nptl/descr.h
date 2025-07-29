@@ -454,6 +454,38 @@ cancel_enabled_and_canceled_and_async (int value)
     == (CANCELTYPE_BITMASK | CANCELED_BITMASK);
 }
 
+static inline void
+robust_list_init (struct pthread *pd)
+{
+  pd->robust_head.list_op_pending = NULL;
+#if __PTHREAD_MUTEX_HAVE_PREV
+  pd->robust_prev = &pd->robust_head;
+#endif
+  pd->robust_head.list = &pd->robust_head;
+  pd->robust_head.futex_offset = 0;
+}
+
+extern bool __nptl_robust_setup (struct robust_list_head *robust_head)
+     attribute_hidden;
+
+static inline bool
+robust_list_setup (struct pthread *pd)
+{
+  /* The current thread was already initialized.  */
+  if (pd->robust_head.futex_offset != 0)
+    return true;
+
+  if (__nptl_robust_setup (&pd->robust_head))
+    {
+      pd->robust_head.futex_offset = (offsetof (pthread_mutex_t, __data.__lock)
+				      -  offsetof (pthread_mutex_t,
+						   __data.__list.__next));
+      return true;
+    }
+
+  return false;
+}
+
 /* This yields the pointer that TLS support code calls the thread pointer.  */
 #if TLS_TCB_AT_TP
 # define TLS_TPADJ(pd) (pd)

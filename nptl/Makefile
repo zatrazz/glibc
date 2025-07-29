@@ -55,6 +55,7 @@ routines = \
   nptl_deallocate_tsd \
   nptl_free_tcb \
   nptl_nthreads \
+  nptl_robust_setup \
   nptl_setxid \
   nptlfreeres \
   old_pthread_cond_broadcast \
