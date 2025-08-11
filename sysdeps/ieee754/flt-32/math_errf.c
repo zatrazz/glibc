@@ -113,3 +113,9 @@ __math_invalidf_li (long int x)
   math_force_eval (y);
   return with_errnof_li (x, EDOM);
 }
+
+attribute_hidden float
+__math_erange (float x)
+{
+  return with_errnof (x, ERANGE);
+}
