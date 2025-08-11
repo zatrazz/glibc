@@ -79,6 +79,12 @@ __math_may_uflowf (uint32_t sign)
 #endif
 
 attribute_hidden float
+__math_range (float x)
+{
+  return with_errnof (x, ERANGE);
+}
+
+attribute_hidden float
 __math_oflowf (uint32_t sign)
 {
   return xflowf (sign, 0x1p97f);

@@ -1,212 +1,141 @@
-/* Single-precision 10^x function.
-   Copyright (C) 2020-2025 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
+/* Correctly-rounded 10^x function for binary32 value.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
+Copyright (c) 2023-2025 Alexei Sibidanov.
 
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
+This file is part of the CORE-MATH project
+(https://core-math.gitlabpages.inria.fr/).
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <https://www.gnu.org/licenses/>.  */
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
 
 #include <math.h>
-#include <math-narrow-eval.h>
 #include <stdint.h>
 #include <libm-alias-finite.h>
 #include <libm-alias-float.h>
 #include <shlib-compat.h>
+#include <stdbit.h>
 #include <math-svid-compat.h>
 #include "math_config.h"
-
-/*
-  EXP2F_TABLE_BITS 5
-  EXP2F_POLY_ORDER 3
-
-  Max. ULP error: 0.502 (normal range, nearest rounding).
-  Max. relative error: 2^-33.240 (before rounding to float).
-  Wrong count: 169839.
-  Non-nearest ULP error: 1 (rounded ULP error).
-
-  Detailed error analysis (for EXP2F_TABLE_BITS=3 thus N=32):
-
-  - We first compute z = RN(InvLn10N * x) where
-
-      InvLn10N = N*log(10)/log(2) * (1 + theta1) with |theta1| < 2^-54.150
-
-    since z is rounded to nearest:
-
-      z = InvLn10N * x * (1 + theta2) with |theta2| < 2^-53
-
-    thus z =  N*log(10)/log(2) * x * (1 + theta3) with |theta3| < 2^-52.463
-
-  - Since |x| < 38 in the main branch, we deduce:
-
-    z = N*log(10)/log(2) * x + theta4 with |theta4| < 2^-40.483
-
-  - We then write z = k + r where k is an integer and |r| <= 0.5 (exact)
-
-  - We thus have
-
-    x = z*log(2)/(N*log(10)) - theta4*log(2)/(N*log(10))
-      = z*log(2)/(N*log(10)) + theta5 with |theta5| < 2^-47.215
-
-    10^x = 2^(k/N) * 2^(r/N) * 10^theta5
-         =  2^(k/N) * 2^(r/N) * (1 + theta6) with |theta6| < 2^-46.011
-
-  - Then 2^(k/N) is approximated by table lookup, the maximal relative error
-    is for (k%N) = 5, with
-
-      s = 2^(i/N) * (1 + theta7) with |theta7| < 2^-53.249
-
-  - 2^(r/N) is approximated by a degree-3 polynomial, where the maximal
-    mathematical relative error is 2^-33.243.
-
-  - For C[0] * r + C[1], assuming no FMA is used, since |r| <= 0.5 and
-    |C[0]| < 1.694e-6, |C[0] * r| < 8.47e-7, and the absolute error on
-    C[0] * r is bounded by 1/2*ulp(8.47e-7) = 2^-74.  Then we add C[1] with
-    |C[1]| < 0.000235, thus the absolute error on C[0] * r + C[1] is bounded
-    by 2^-65.994 (z is bounded by 0.000236).
-
-  - For r2 = r * r, since |r| <= 0.5, we have |r2| <= 0.25 and the absolute
-    error is bounded by 1/4*ulp(0.25) = 2^-56 (the factor 1/4 is because |r2|
-    cannot exceed 1/4, and on the left of 1/4 the distance between two
-    consecutive numbers is 1/4*ulp(1/4)).
-
-  - For y = C[2] * r + 1, assuming no FMA is used, since |r| <= 0.5 and
-    |C[2]| < 0.0217, the absolute error on C[2] * r is bounded by 2^-60,
-    and thus the absolute error on C[2] * r + 1 is bounded by 1/2*ulp(1)+2^60
-    < 2^-52.988, and |y| < 1.01085 (the error bound is better if a FMA is
-    used).
-
-  - for z * r2 + y: the absolute error on z is bounded by 2^-65.994, with
-    |z| < 0.000236, and the absolute error on r2 is bounded by 2^-56, with
-    r2 < 0.25, thus |z*r2| < 0.000059, and the absolute error on z * r2
-    (including the rounding error) is bounded by:
-
-      2^-65.994 * 0.25 + 0.000236 * 2^-56 + 1/2*ulp(0.000059) < 2^-66.429.
-
-    Now we add y, with |y| < 1.01085, and error on y bounded by 2^-52.988,
-    thus the absolute error is bounded by:
-
-      2^-66.429 + 2^-52.988 + 1/2*ulp(1.01085) < 2^-51.993
-
-  - Now we convert the error on y into relative error.  Recall that y
-    approximates 2^(r/N), for |r| <= 0.5 and N=32. Thus 2^(-0.5/32) <= y,
-    and the relative error on y is bounded by
-
-      2^-51.993/2^(-0.5/32) < 2^-51.977
-
-  - Taking into account the mathematical relative error of 2^-33.243 we have:
-
-      y = 2^(r/N) * (1 + theta8) with |theta8| < 2^-33.242
-
-  - Since we had s = 2^(k/N) * (1 + theta7) with |theta7| < 2^-53.249,
-    after y = y * s we get y = 2^(k/N) * 2^(r/N) * (1 + theta9)
-    with |theta9| < 2^-33.241
-
-  - Finally, taking into account the error theta6 due to the rounding error on
-    InvLn10N, and when multiplying InvLn10N * x, we get:
-
-      y = 10^x * (1 + theta10) with |theta10| < 2^-33.240
-
-  - Converting into binary64 ulps, since y < 2^53*ulp(y), the error is at most
-    2^19.76 ulp(y)
-
-  - If the result is a binary32 value in the normal range (i.e., >= 2^-126),
-    then the error is at most 2^-9.24 ulps, i.e., less than 0.00166 (in the
-    subnormal range, the error in ulps might be larger).
-
-  Note that this bound is tight, since for x=-0x25.54ac0p0 the final value of
-  y (before conversion to float) differs from 879853 ulps from the correctly
-  rounded value, and 879853 ~ 2^19.7469.  */
-
-#define N (1 << EXP2F_TABLE_BITS)
-
-#define InvLn10N (0x3.5269e12f346e2p0 * N) /* log(10)/log(2) to nearest */
-#define T __exp2f_data.tab
-#define C __exp2f_data.poly_scaled
-#define SHIFT __exp2f_data.shift
-
-static inline uint32_t
-top13 (float x)
-{
-  return asuint (x) >> 19;
-}
 
 float
 __exp10f (float x)
 {
-  uint32_t abstop;
-  uint64_t ki, t;
-  double kd, xd, z, r, r2, y, s;
-
-  xd = (double) x;
-  abstop = top13 (x) & 0xfff; /* Ignore sign.  */
-  if (__glibc_unlikely (abstop >= top13 (38.0f)))
+  static const double c[]
+      = { 0x1.62e42fefa39efp-1, 0x1.ebfbdff82c58fp-3,  0x1.c6b08d702e0edp-5,
+	  0x1.3b2ab6fb92e5ep-7, 0x1.5d886e6d54203p-10, 0x1.430976b8ce6efp-13 };
+  static const double b[] = { 1, 0x1.62e42fef4c4e7p-6, 0x1.ebfd1b232f475p-13,
+			      0x1.c6b19384ecd93p-20 };
+  static const uint64_t tb[]
+      = { 0x3ff0000000000000, 0x3ff059b0d3158574, 0x3ff0b5586cf9890f,
+	  0x3ff11301d0125b51, 0x3ff172b83c7d517b, 0x3ff1d4873168b9aa,
+	  0x3ff2387a6e756238, 0x3ff29e9df51fdee1, 0x3ff306fe0a31b715,
+	  0x3ff371a7373aa9cb, 0x3ff3dea64c123422, 0x3ff44e086061892d,
+	  0x3ff4bfdad5362a27, 0x3ff5342b569d4f82, 0x3ff5ab07dd485429,
+	  0x3ff6247eb03a5585, 0x3ff6a09e667f3bcd, 0x3ff71f75e8ec5f74,
+	  0x3ff7a11473eb0187, 0x3ff82589994cce13, 0x3ff8ace5422aa0db,
+	  0x3ff93737b0cdc5e5, 0x3ff9c49182a3f090, 0x3ffa5503b23e255d,
+	  0x3ffae89f995ad3ad, 0x3ffb7f76f2fb5e47, 0x3ffc199bdd85529c,
+	  0x3ffcb720dcef9069, 0x3ffd5818dcfba487, 0x3ffdfc97337b9b5f,
+	  0x3ffea4afa2a490da, 0x3fff50765b6e4540 };
+  static const float ex[]
+      = { 10,	   100,	     1000,	10000,	    100000,
+	  1000000, 10000000, 100000000, 1000000000, 10000000000 };
+  const double iln102 = 0x1.a934f0979a371p+6, iln102h = 0x1.a934f09p+1,
+	       iln102l = 0x1.e68dc57f2496p-29;
+  uint32_t t = asuint (x);
+  double z = x;
+  uint32_t ux = t << 1;
+  if (__glibc_unlikely (ux > 0x84344134u || ux < 0x72adf1c6u))
     {
-      /* |x| >= 38 or x is nan.  */
-      if (asuint (x) == asuint (-INFINITY))
-        return 0.0f;
-      if (abstop >= top13 (INFINITY))
-        return x + x;
-      /* 0x26.8826ap0 is the largest value such that 10^x < 2^128.  */
-      if (x > 0x26.8826ap0f)
-        return __math_oflowf (0);
-      /* -0x2d.278d4p0 is the smallest value such that 10^x > 2^-150.  */
-      if (x < -0x2d.278d4p0f)
-        return __math_uflowf (0);
-#if WANT_ERRNO_UFLOW
-      if (x < -0x2c.da7cfp0)
-        return __math_may_uflowf (0);
-#endif
-      /* the smallest value such that 10^x >= 2^-126 (normal range)
-         is x = -0x25.ee060p0 */
-      /* we go through here for 2014929 values out of 2060451840
-         (not counting NaN and infinities, i.e., about 0.1% */
+      // |x| > 0x1.344134p+5 or x=nan or |x| < 0x1.adf1c6p-13
+      if (ux < 0x72adf1c6u) // |x| < 0x1.adf1c6p-13
+	return 1.0
+	       + z
+		     * (0x1.26bb1bbb55516p+1
+			+ z
+			      * (0x1.53524c73cea69p+1
+				 + z * 0x1.0470591de2ca4p+1));
+      if (ux >= 0xffu << 24)
+	{ // x is inf or nan
+	  if (ux > 0xffu << 24)
+	    return x + x; // x = nan
+	  static const float ir[] = { INFINITY, 0.0f };
+	  return ir[t >> 31]; // x = +-inf
+	}
+      if (t > 0xc23369f4u)
+	{ // x < -0x1.66d3e8p+5
+	  double y
+	      = 0x1p-149 + (z + 0x1.66d3e7bd9a403p+5) * 0x1.a934f0979a37p-149;
+	  y = fmax_finite (y, 0x1p-151);
+	  /* underflow */
+	  return __math_range (y);
+	}
+      if (t < 0x80000000u)
+	{ // x > 0x1.344134p+5
+	  float r = 0x1p127f * 0x1p127f;
+	  return __math_range (r);
+	}
     }
-
-  /* x*N*Ln10/Ln2 = k + r with r in [-1/2, 1/2] and int k.  */
-  z = InvLn10N * xd;
-  /* |xd| < 38 thus |z| < 1216 */
-#if TOINT_INTRINSICS
-  kd = roundtoint (z);
-  ki = converttoint (z);
-#else
-# define SHIFT __exp2f_data.shift
-  kd = math_narrow_eval ((double) (z + SHIFT)); /* Needs to be double.  */
-  ki = asuint64 (kd);
-  kd -= SHIFT;
+  if (__glibc_unlikely (!(t << 12)))
+    {
+      unsigned k = (t >> 20) - 1016;
+      if (k <= 26)
+	{
+	  unsigned bt = 1 << k, msk = 0x7551101;
+	  if (bt & msk)
+	    return ex[stdc_count_ones (msk & (bt - 1))];
+	}
+    }
+  double a = iln102 * z, ia = roundeven_finite (a), h = a - ia;
+  int64_t ja = ia;
+  double sv = asdouble (tb[ja & 0x1f] + ((uint64_t) (ja >> 5) << 52));
+  double h2 = h * h, r = ((b[0] + h * b[1]) + h2 * (b[2] + h * (b[3]))) * (sv);
+  float ub = r, lb = r - r * 1.45e-10;
+  if (__glibc_unlikely (ub != lb))
+    {
+      h = (iln102h * z - ia * 0.03125) + iln102l * z;
+      double s = sv;
+      h2 = h * h;
+      double w = s * h;
+      r = s
+	  + w
+		* ((c[0] + h * c[1])
+		   + h2 * ((c[2] + h * c[3]) + h2 * (c[4] + h * c[5])));
+      ub = r;
+    }
+#ifdef CORE_MATH_SUPPORT_ERRNO
+  // for x <= -0x1.2f7032p+5, exp10(x) underflows, whatever the rounding mode
+  if (x <= -0x1.2f7032p+5f)
+    errno = ERANGE; // underflow
 #endif
-  r = z - kd;
-
-  /* 10^x = 10^(k/N) * 10^(r/N) ~= s * (C0*r^3 + C1*r^2 + C2*r + 1)  */
-  t = T[ki % N];
-  t += ki << (52 - EXP2F_TABLE_BITS);
-  s = asdouble (t);
-  z = C[0] * r + C[1];
-  r2 = r * r;
-  y = C[2] * r + 1;
-  y = z * r2 + y;
-  y = y * s;
-  return (float) y;
+  return ub;
 }
 #ifndef __exp10f
 strong_alias (__exp10f, __ieee754_exp10f)
 libm_alias_finite (__ieee754_exp10f, __exp10f)
 /* For architectures that already provided exp10f without SVID support, there
    is no need to add a new version.  */
-#if !LIBM_SVID_COMPAT
-# define EXP10F_VERSION GLIBC_2_26
-#else
-# define EXP10F_VERSION GLIBC_2_32
-#endif
+#  if !LIBM_SVID_COMPAT
+#    define EXP10F_VERSION GLIBC_2_26
+#  else
+#    define EXP10F_VERSION GLIBC_2_32
+#  endif
 versioned_symbol (libm, __exp10f, exp10f, EXP10F_VERSION);
 libm_alias_float_other (__exp10, exp10)
 #endif

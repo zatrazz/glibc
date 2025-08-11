@@ -155,6 +155,18 @@ float: 0
 Function: "exp2_upward":
 float: 0
 
+Function: "exp10":
+float: 0
+
+Function: "exp10_downward":
+float: 0
+
+Function: "exp10_towardzero":
+float: 0
+
+Function: "exp10_upward":
+float: 0
+
 Function: "exp10m1":
 float: 0
 
