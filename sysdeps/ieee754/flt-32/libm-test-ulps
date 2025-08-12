@@ -227,6 +227,18 @@ float: 0
 Function: "lgamma_upward":
 float: 0
 
+Function: "log":
+float: 0
+
+Function: "log_downward":
+float: 0
+
+Function: "log_towardzero":
+float: 0
+
+Function: "log_upward":
+float: 0
+
 Function: "log10":
 float: 0
 
