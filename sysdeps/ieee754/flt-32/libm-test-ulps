@@ -239,6 +239,18 @@ float: 0
 Function: "log_upward":
 float: 0
 
+Function: "log2":
+float: 0
+
+Function: "log2_downward":
+float: 0
+
+Function: "log2_towardzero":
+float: 0
+
+Function: "log2_upward":
+float: 0
+
 Function: "log10":
 float: 0
 
