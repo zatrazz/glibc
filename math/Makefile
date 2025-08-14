@@ -368,11 +368,11 @@ type-double-routines := \
 type-float-suffix := f
 type-float-routines := \
   e_exp10f_data \
-  e_exp2f_data \
   e_expf_data \
   e_log2f_data \
   e_logf_data \
-  e_powf_log2_data \
+  e_logf_data \
+  e_log2f_data \
   e_powf_data \
   e_sincoshf_data \
   math_errf \
