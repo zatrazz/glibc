@@ -311,6 +311,18 @@ float: 0
 Function: "log2p1_upward":
 float: 0
 
+Function: "pow":
+float: 0
+
+Function: "pow_downward":
+float: 0
+
+Function: "pow_towardzero":
+float: 0
+
+Function: "pow_upward":
+float: 0
+
 Function: "rsqrt":
 float: 0
 
