@@ -95,6 +95,18 @@ float: 0
 Function: "cbrt_upward":
 float: 0
 
+Function: "cos":
+float: 0
+
+Function: "cos_downward":
+float: 0
+
+Function: "cos_towardzero":
+float: 0
+
+Function: "cos_upward":
+float: 0
+
 Function: "cosh":
 float: 0
 
