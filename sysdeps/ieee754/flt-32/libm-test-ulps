@@ -347,6 +347,18 @@ float: 0
 Function: "rsqrt_upward":
 float: 0
 
+Function: "sin":
+float: 0
+
+Function: "sin_downward":
+float: 0
+
+Function: "sin_towardzero":
+float: 0
+
+Function: "sin_upward":
+float: 0
+
 Function: "sinh":
 float: 0
 
