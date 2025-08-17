@@ -359,6 +359,18 @@ float: 0
 Function: "sin_upward":
 float: 0
 
+Function: "sincos":
+float: 0
+
+Function: "sincos_downward":
+float: 0
+
+Function: "sincos_towardzero":
+float: 0
+
+Function: "sincos_upward":
+float: 0
+
 Function: "sinh":
 float: 0
 
