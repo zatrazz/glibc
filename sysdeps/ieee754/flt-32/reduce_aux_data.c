@@ -1,4 +1,4 @@
-/* Compute sine and cosine of argument.
+/* Data definitions for reduce_aux.h.
    Copyright (C) 2018-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -17,43 +17,6 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <stdint.h>
-#include <math.h>
-#include <sysdeps/ieee754/flt-32/math_config.h>
-#include <s_sincosf.h>
-
-/* The constants and polynomials for sine and cosine.  The 2nd entry
-   computes -cos (x) rather than cos (x) to get negation for free.  */
-const sincos_t __sincosf_table[2] =
-{
-  {
-    { 1.0, -1.0, -1.0, 1.0 },
-#if TOINT_INTRINSICS
-    0x1.45F306DC9C883p-1,
-#else
-    0x1.45F306DC9C883p+23,
-#endif
-    0x1.921FB54442D18p0,
-    0x1p0,
-    -0x1.ffffffd0c621cp-2,
-    { -0x1.555545995a603p-3, 0x1.55553e1068f19p-5 },
-    { 0x1.1107605230bc4p-7, -0x1.6c087e89a359dp-10 },
-    { -0x1.994eb3774cf24p-13, 0x1.99343027bf8c3p-16 }
-  },
-  {
-    { 1.0, -1.0, -1.0, 1.0 },
-#if TOINT_INTRINSICS
-    0x1.45F306DC9C883p-1,
-#else
-    0x1.45F306DC9C883p+23,
-#endif
-    0x1.921FB54442D18p0,
-    -0x1p0,
-    0x1.ffffffd0c621cp-2,
-    { -0x1.555545995a603p-3, -0x1.55553e1068f19p-5 },
-    { 0x1.1107605230bc4p-7, 0x1.6c087e89a359dp-10 },
-    { -0x1.994eb3774cf24p-13, -0x1.99343027bf8c3p-16 }
-  }
-};
 
 /* Table with 4/PI to 192 bit precision.  To avoid unaligned accesses
    only 8 new bits are added per entry, making the table 4 times larger.  */

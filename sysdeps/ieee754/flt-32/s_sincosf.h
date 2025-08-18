@@ -16,80 +16,91 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <stdint.h>
-#include <math.h>
+#ifndef _S_SINCOSF_H
+#define _S_SINCOSF_H
+
 #include "math_config.h"
-#include <sincosf_poly.h>
+#include <math_uint128.h>
 
-/* 2PI * 2^-64.  */
-static const double pi63 = 0x1.921FB54442D18p-62;
-/* PI / 4.  */
-static const float pio4 = 0x1.921FB6p-1f;
-
-/* Polynomial data (the cosine polynomial is negated in the 2nd entry).  */
-extern const sincos_t __sincosf_table[2] attribute_hidden;
-
-/* Table with 4/PI to 192 bit precision.  */
-extern const uint32_t __inv_pio4[] attribute_hidden;
-
-/* Top 12 bits of the float representation with the sign bit cleared.  */
-static inline uint32_t
-abstop12 (float x)
+static double __attribute__ ((noinline)) __attribute_maybe_unused__
+rbig (uint32_t u, int *q)
 {
-  return (asuint (x) >> 20) & 0x7ff;
+  static const uint64_t ipi[] = { 0xfe5163abdebbc562, 0xdb6295993c439041,
+				  0xfc2757d1f534ddc0, 0xa2f9836e4e441529 };
+  int e = (u >> 23) & 0xff, i;
+  uint64_t m = (u & (~0u >> 9)) | 1 << 23;
+  u128 p0 = u128_mul (u128_from_u64 (m), u128_from_u64 (ipi[0]));
+  u128 p1 = u128_mul (u128_from_u64 (m), u128_from_u64 (ipi[1]));
+  p1 = u128_add (p1, u128_rshift (p0, 64));
+  u128 p2 = u128_mul (u128_from_u64 (m), u128_from_u64 (ipi[2]));
+  p2 = u128_add (p2, u128_rshift (p1, 64));
+  u128 p3 = u128_mul (u128_from_u64 (m), u128_from_u64 (ipi[3]));
+  p3 = u128_add (p3, u128_rshift (p2, 64));
+  uint64_t p3h = u128_high (p3),
+	   p3l = u128_low (p3),
+	   p2l = u128_low (p2),
+	   p1l = u128_low (p1);
+  int64_t a;
+  int k = e - 124, s = k - 23;
+  /* in cr_sinf(), rbig() is called in the case 127+28 <= e < 0xff
+     thus 155 <= e <= 254, which yields 28 <= k <= 127 and 5 <= s <= 104 */
+  if (s < 64)
+    {
+      i = p3h << s | p3l >> (64 - s);
+      a = p3l << s | p2l >> (64 - s);
+    }
+  else if (s == 64)
+    {
+      i = p3l;
+      a = p2l;
+    }
+  else
+    { /* s > 64 */
+      i = p3l << (s - 64) | p2l >> (128 - s);
+      a = p2l << (s - 64) | p1l >> (128 - s);
+    }
+  int sgn = u;
+  sgn >>= 31;
+  int64_t sm = a >> 63;
+  i -= sm;
+  double z = (a ^ sgn) * 0x1p-64;
+  i = (i ^ sgn) - sgn;
+  *q = i;
+  return z;
 }
 
-/* Fast range reduction using single multiply-subtract.  Return the modulo of
-   X as a value between -PI/4 and PI/4 and store the quadrant in NP.
-   The values for PI/2 and 2/PI are accessed via P.  Since PI/2 as a double
-   is accurate to 55 bits and the worst-case cancellation happens at 6 * PI/4,
-   the result is accurate for |X| <= 120.0.  */
 static inline double
-reduce_fast (double x, const sincos_t *p, int *np)
+rltl (float z, int *q)
 {
-  double r;
-#if TOINT_INTRINSICS
-  /* Use fast round and lround instructions when available.  */
-  r = x * p->hpi_inv;
-  *np = converttoint (r);
-  return x - roundtoint (r) * p->hpi;
-#else
-  /* Use scaled float to int conversion with explicit rounding.
-     hpi_inv is prescaled by 2^24 so the quadrant ends up in bits 24..31.
-     This avoids inaccuracies introduced by truncating negative values.  */
-  r = x * p->hpi_inv;
-  int n = ((int32_t)r + 0x800000) >> 24;
-  *np = n;
-  return x - n * p->hpi;
+  double x = z;
+  double idl = -0x1.b1bbead603d8bp-29 * x, idh = 0x1.45f306ep+2 * x,
+	 id = roundeven_finite (idh);
+  *q = asuint64 (0x1.8p52 + id);
+  return (idh - id) + idl;
+}
+
+static inline double
+rltl0 (double x, int *q)
+{
+  double idh = 0x1.45f306dc9c883p+2 * x, id = roundeven_finite (idh);
+  *q = asuint64 (0x1.8p52 + id);
+  return idh - id;
+}
+
+static inline float
+add_sign (float x, float rh, float rl)
+{
+  float sgn = copysignf (1.0f, x);
+  return sgn * rh + sgn * rl;
+}
+
+extern const double __sincosf_data_b[] attribute_hidden;
+#define B __sincosf_data_b
+extern const double __sincosf_data_a[] attribute_hidden;
+#define A __sincosf_data_a
+extern const double __sincosf_data_tb[] attribute_hidden;
+#define TB __sincosf_data_tb
+extern const double __sincosf_data_tb_c[] attribute_hidden;
+#define TB_C __sincosf_data_tb_c
+
 #endif
-}
-
-/* Reduce the range of XI to a multiple of PI/2 using fast integer arithmetic.
-   XI is a reinterpreted float and must be >= 2.0f (the sign bit is ignored).
-   Return the modulo between -PI/4 and PI/4 and store the quadrant in NP.
-   Reduction uses a table of 4/PI with 192 bits of precision.  A 32x96->128 bit
-   multiply computes the exact 2.62-bit fixed-point modulo.  Since the result
-   can have at most 29 leading zeros after the binary point, the double
-   precision result is accurate to 33 bits.  */
-static inline double
-reduce_large (uint32_t xi, int *np)
-{
-  const uint32_t *arr = &__inv_pio4[(xi >> 26) & 15];
-  int shift = (xi >> 23) & 7;
-  uint64_t n, res0, res1, res2;
-
-  xi = (xi & 0xffffff) | 0x800000;
-  xi <<= shift;
-
-  res0 = xi * arr[0];
-  res1 = (uint64_t)xi * arr[4];
-  res2 = (uint64_t)xi * arr[8];
-  res0 = (res2 >> 32) | (res0 << 32);
-  res0 += res1;
-
-  n = (res0 + (1ULL << 61)) >> 62;
-  res0 -= n << 62;
-  double x = (int64_t)res0;
-  *np = n;
-  return x * pi63;
-}
