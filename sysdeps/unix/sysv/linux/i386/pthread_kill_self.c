@@ -1,5 +1,5 @@
-/* Symbol rediretion for loader/static initialization code.
-   Copyright (C) 2022-2025 Free Software Foundation, Inc.
+/* Send a signal to a specific pthread.  Stub version.
+   Copyright (C) 2014-2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,11 +16,11 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#ifndef _DL_IFUNC_GENERIC_H
-#define _DL_IFUNC_GENERIC_H
-
-asm ("memcpy = __memcpy_generic");
-asm ("memset = __memset_generic");
-asm ("strlen = __strlen_generic");
-
+/* This is called from abort() (issued by ssert()) before TLS setup is done,
+   so it can not use "call *%gs:SYSINFO_OFFSET" during startup in static
+   PIE.  */
+#if BUILD_PIE_DEFAULT
+# define I386_USE_SYSENTER 0
 #endif
+
+#include <nptl/pthread_kill_self.c>

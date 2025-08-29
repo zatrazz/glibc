@@ -21,11 +21,15 @@
 
 #include <ifunc-memset.h>
 #include <ifunc-memcmp.h>
+#include <ifunc-strchrnul.h>
 
 #define IFUNC_SYMBOL_STR1(s)	#s
 #define IFUNC_SYMBOL_STR(s)	IFUNC_SYMBOL_STR1(s)
 
+#ifndef SHARED
 asm ("memset = " IFUNC_SYMBOL_STR(MEMSET_DEFAULT));
 asm ("memcmp = " IFUNC_SYMBOL_STR(MEMCMP_DEFAULT));
+asm ("__strchrnul = " IFUNC_SYMBOL_STR(STRCHRNUL_DEFAULT));
+#endif
 
 #endif

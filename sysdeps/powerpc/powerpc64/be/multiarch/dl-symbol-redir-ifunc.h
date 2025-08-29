@@ -1,5 +1,5 @@
 /* Symbol rediretion for loader/static initialization code.
-   Copyright (C) 2022-2025 Free Software Foundation, Inc.
+   Copyright (C) 2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -19,8 +19,9 @@
 #ifndef _DL_IFUNC_GENERIC_H
 #define _DL_IFUNC_GENERIC_H
 
-asm ("memcpy = __memcpy_generic");
-asm ("memset = __memset_generic");
-asm ("strlen = __strlen_generic");
+#ifndef SHARED
+asm ("__mempcpy = __mempcpy_ppc");
+asm ("__strchrnul = __strchrnul_ppc");
+#endif
 
 #endif

@@ -114,6 +114,11 @@ sysdep_routines += \
   xstat \
   xstat64 \
   # sysdep_routines
+#
+# Called during static library initialization, so turn stack-protection
+# off for non-shared builds.
+CFLAGS-setvmaname.o = $(no-stack-protector)
+CFLAGS-setvmaname.op = $(no-stack-protector)
 
 CFLAGS-gethostid.c = -fexceptions
 CFLAGS-tee.c = -fexceptions -fasynchronous-unwind-tables

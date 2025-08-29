@@ -104,6 +104,11 @@ routines_no_fortify += \
   # routines_no_fortify
 endif
 
+# Called during static library initialization, so turn stack-protection
+# off for non-shared builds.
+CFLAGS-strchrnul-c.o = $(no-stack-protector)
+CFLAGS-strchrnul-c.op = $(no-stack-protector)
+
 ifeq ($(subdir),wcsmbs)
 sysdep_routines += wcslen wcslen-vx wcslen-c \
 		   wcsnlen wcsnlen-vx wcsnlen-c \

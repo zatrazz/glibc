@@ -21,5 +21,6 @@
 
 asm ("memset = __memset_power8");
 asm ("__mempcpy = __mempcpy_power7");
+asm ("__strchrnul = __strchrnul_power8");
 
 #endif

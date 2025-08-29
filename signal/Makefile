@@ -65,6 +65,11 @@ tests := \
 
 include ../Rules
 
+# Called during static library initialization, so turn stack-protection
+# off for non-shared builds.
+CFLAGS-raise.o = $(no-stack-protector)
+CFLAGS-raise.op = $(no-stack-protector)
+
 CFLAGS-raise.c += -fasynchronous-unwind-tables
 CFLAGS-sigpause.c += -fexceptions
 CFLAGS-sigsuspend.c += -fexceptions -fasynchronous-unwind-tables

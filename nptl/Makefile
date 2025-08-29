@@ -614,6 +614,11 @@ endif
 # function frequently to get a thread-specific handle.
 CFLAGS-pthread_self.os += -fomit-frame-pointer
 
+# It is also called during static library initialization (during abort()/assert()),
+# so turn stack-protection off for non-shared builds.
+CFLAGS-pthread_kill_self.o = $(no-stack-protector)
+CFLAGS-pthread_kill_self.op = $(no-stack-protector)
+
 # Run the cancellation and cleanup tests also for the modern, exception-based
 # implementation.  For this we have to pass the -fexceptions parameter.
 CFLAGS-tst-cancelx7.c += -fexceptions

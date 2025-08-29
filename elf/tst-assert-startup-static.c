@@ -1,5 +1,5 @@
-/* Symbol rediretion for loader/static initialization code.
-   Copyright (C) 2022-2025 Free Software Foundation, Inc.
+/* Check if assert work during program startup.
+   Copyright (C) 2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,11 +16,20 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#ifndef _DL_IFUNC_GENERIC_H
-#define _DL_IFUNC_GENERIC_H
+#include <stdlib.h>
+#include <assert.h>
 
-asm ("memcpy = __memcpy_generic");
-asm ("memset = __memset_generic");
-asm ("strlen = __strlen_generic");
+/* The __tunables_init is called just before self-relocation and TLS setup,
+   and the __libc_assert_fail is used internally for assert() calls.  */
+extern _Noreturn __typeof (__assert_fail) __libc_assert_fail;
 
-#endif
+void __tunables_init (char **env)
+{
+  __libc_assert_fail ("error", __FILE__, __LINE__, __func__);
+}
+
+int main (int argc, char *argv[])
+{
+  /* Fail with a different error code than abort().  */
+  exit (EXIT_FAILURE);
+}
