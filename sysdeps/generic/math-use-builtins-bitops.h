@@ -1,0 +1,2 @@
+#define USE_CLZ_BUILTIN 1
+#define USE_CTZ_BUILTIN 1
