@@ -21,6 +21,7 @@ libc_hidden_proto (__pthread_barrier_wait)
 extern void __pthread_initialize (void) __attribute__ ((weak));
 
 extern int __pthread_kill (pthread_t threadid, int signo);
+extern int __pthread_kill_self (int signo) attribute_hidden;
 
 extern pthread_t __pthread_self (void);
 

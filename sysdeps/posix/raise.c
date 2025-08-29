@@ -23,7 +23,7 @@
 int
 raise (int sig)
 {
-  int ret = __pthread_kill (__pthread_self (), sig);
+  int ret = __pthread_kill_self (sig);
   if (ret != 0)
     {
       __set_errno (ret);
