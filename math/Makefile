@@ -358,6 +358,7 @@ type-double-routines := \
   dint \
   e_exp_data \
   e_log_data \
+  e_pow_data \
   e_sincosh_data \
   k_rem_pio2 \
   math_err \
