@@ -40,20 +40,23 @@ SOFTWARE.
   Type definition
 */
 
-static inline int cmpu128 (u128 a, u128 b) { return (a > b) - (a < b); }
+static inline int cmpu128 (u128 a, u128 b)
+{
+  return u128_gt (a, b) - u128_lt (a, b);
+}
 
 // Add two 128-bit integers and return 1 if a carry occured
 static inline int addu128 (u128 a, u128 b, u128 *r) {
-  *r = a + b;
+  *r = u128_add (a, b);
   // Return the carry
-  return *r < a;
+  return u128_lt (*r, a);
 }
 
 // Subtract two 128-bit integers and return 1 if a borrow occured
 static inline int subu128 (u128 a, u128 b, u128 *r) {
-  *r = a - b;
+  *r = u128_sub (a, b);
   // Return the borrow
-  return *r > a;
+  return u128_gt (*r, a);
 }
 
 typedef union {
@@ -90,16 +93,16 @@ typedef union {
 
 // Add two 128-bit integers and return 1 if a carry occured
 static inline int addu_128 (uint128_t a, uint128_t b, uint128_t *r) {
-  r->r = a.r + b.r;
+  r->r = u128_add (a.r, b.r);
   // Return the carry
-  return r->r < a.r;
+  return u128_lt (r->r, a.r);
 }
 
 // Subtract two 128-bit integers and return 1 if a borrow occured
 static inline int subu_128 (uint128_t a, uint128_t b, uint128_t *r) {
-  r->r = a.r - b.r;
+  r->r = u128_sub (a.r, b.r);
   // Return the borrow
-  return r->r > a.r;
+  return u128_gt (r->r, a.r);
 }
 
 // Compare two 64-bit signed integers

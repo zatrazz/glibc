@@ -151,12 +151,14 @@ static inline signed char cmp_qint_22(const qint64_t *a, const qint64_t *b) {
    with |a|/2 <= |b| <= |a|, then the operation is exact. */
 static inline void
 add_qint (qint64_t *r, const qint64_t *a, const qint64_t *b) {
-  if (a->rh == 0 && a->rl == 0) {
+  if (u128_eq (a->rh, u128_from_u64 (0))
+      && u128_eq (a->rl, u128_from_u64 (0))) {
     cp_qint (r, b); // exact
     return;
   }
 
-    if (b->rh == 0 && b->rl == 0) {
+  if (u128_eq (b->rh, u128_from_u64 (0))
+      && u128_eq (b->rl, u128_from_u64 (0))) {
     cp_qint (r, a); // exact
     return;
   }
@@ -187,11 +189,11 @@ add_qint (qint64_t *r, const qint64_t *a, const qint64_t *b) {
 
   if (k > 0) {
     if (k >= 128) {
-      bl = (k < 256) ? bh >> (k - 128) : 0;
-      bh = 0;
+      bl = (k < 256) ? u128_rshift (bh, k - 128) : u128_from_u64 (0);
+      bh = u128_from_u64 (0);
     } else { /* 1 <= k <= 127 */
-      bl = (bl >> k) | (bh << (128 - k));
-      bh = bh >> k;
+      bl = u128_or (u128_rshift (bl, k), u128_lshift (bh, 128 - k));
+      bh = u128_rshift (bh, k);
     }
   }
 
@@ -206,17 +208,17 @@ add_qint (qint64_t *r, const qint64_t *a, const qint64_t *b) {
 
   if (a->sgn ^ b->sgn) { // subtraction case
     /* a and b have different signs: C = A + (-B) */
-    ch = ah - bh;
+    ch = u128_sub (ah, bh);
 
     if (subu128 (al, bl, &cl))
-      ch --;
+      ch = u128_sub (ch, u128_from_u64 (1));
     /* we cannot have C=0 since |A| > |B| */
-    uint64_t chh = ch >> 64, clh = cl >> 64;
+    uint64_t chh = u128_high (ch), clh = u128_high (cl);
     ex =
       chh ? __builtin_clzll(chh)
-      : 64 + (ch ? __builtin_clzll(ch)
+      : 64 + (!u128_eq (ch, u128_from_u64(0)) ? __builtin_clzll(u128_low(ch))
               : 64 + (clh ? __builtin_clzll(clh)
-                      : 64 + __builtin_clzll(cl)));
+                      : 64 + __builtin_clzll(u128_low(cl))));
     /* ex < 256 since |A| > |B| */
 
     /* If ex=0 or ex=1, the rounding error is bounded by 2 ulps. */
@@ -225,55 +227,55 @@ add_qint (qint64_t *r, const qint64_t *a, const qint64_t *b) {
         /* shift A by ex bits to the left, and B by ex-k bits to the left */
         if (ex >= 128)
           {
-            ah = al << (ex - 128);
-            al = 0;
+            ah = u128_lshift (al, ex - 128);
+            al = u128_from_u64 (0);
           }
         else /* 1 <= ex < 128 */
           {
-            ah = (ah << ex) | (al >> (128 - ex));
-            al = al << ex;
+            ah = u128_or (u128_lshift (ah, ex), u128_rshift (al, 128 - ex));
+            al = u128_lshift (al, ex);
           }
         int sh = ex - k;
         bh = b->rh;
         bl = b->rl;
         if (sh >= 0) {
           if (sh >= 128) {
-            bh = bl << (sh - 128);
-            bl = 0;
+            bh = u128_lshift (bl, sh - 128);
+            bl = u128_from_u64 (0);
           }
           else if (sh > 0) { /* 1 <= sh < 128 */
-            bh = (bh << sh) | (bl >> (128 - sh));
-            bl = bl << sh;
+            ah = u128_or (u128_lshift (bh, sh), u128_rshift (bl, 128 - sh));
+            bl = u128_lshift (bl, sh);
           }
         }
         else { /* sh < 0: shift b by -sh bits to the right */
           int j = -sh;
           if (j >= 128) {
-            bl = bh >> (j - 128);
-            bh = 0;
+	    bl = u128_rshift (bh, j - 128);
+            bh = u128_from_u64 (0);
           }
           else { /* 0 < j < 128 (j cannot be 0 since sh < 0) */
-            bl = (bh << (128 - j)) | (bl >> j);
-            bh = bh >> j;
+            bl = u128_or (u128_lshift (bh, 128 - j), u128_rshift (bl, j));
+            bh = u128_rshift (bh, j);
           }
         }
         r->ex -= ex;
-        ch = ah - bh;
+        ch = u128_sub (ah, bh);
 
         if (subu128 (al, bl, &cl))
-          ch --;
+          ch = u128_sub (ch, u128_from_u64 (1));
         /* we cannot have C=0 since |A| > |B| */
-        chh = ch >> 64;
-        clh = cl >> 64;
+        chh = u128_high (ch);
+        clh = u128_high (cl);
         ex =
           chh ? __builtin_clzll(chh)
-          : 64 + (ch ? __builtin_clzll(ch)
+          : 64 + (!u128_eq (ch, u128_from_u64(0)) ? __builtin_clzll(u128_low(ch))
                   : 64 + (clh ? __builtin_clzll(clh)
-                          : 64 + __builtin_clzll(cl)));
+                          : 64 + __builtin_clzll(u128_low(cl))));
       }
     if (ex) {
-      ch = (ch << ex) | (cl >> (128 - ex));
-      cl = cl << ex;
+      ch = u128_or (u128_lshift (ch, ex), u128_rshift (cl, 128 - ex));
+      cl = u128_lshift (cl, ex);
     }
     r->ex -= ex;
     /* We distinguish three cases according to the first value of ex:
@@ -287,13 +289,14 @@ add_qint (qint64_t *r, const qint64_t *a, const qint64_t *b) {
     char cy = addu128 (ah, bh, &ch);
 
     if (addu128 (al, bl, &cl))
-      cy += !(++ch);
+      cy += !u128_eq (u128_add (ch, u128_from_u64 (1)), u128_from_u64 (0));
 
     /* 0 <= cy <= 1 */
 
     if (cy) { // carry in the 256-bit addition
-      cl = (ch << 127) | (cl >> 1);
-      ch = ((u128)1 << 127) | (ch >> 1);
+      cl = u128_or (u128_lshift (ch, 127), u128_rshift (cl, 1));
+      //ch = ((u128)1 << 127) | (ch >> 1);
+      ch = u128_or (u128_lshift (u128_from_u64 (1), 127), u128_rshift (ch, 1));
       r->ex ++;
     }
     /* In the addition case, the rounding error is bounded by 1 ulp. */
@@ -308,12 +311,12 @@ add_qint (qint64_t *r, const qint64_t *a, const qint64_t *b) {
    with rounding error < 2 ulps(128) */
 static inline void
 add_qint_22 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
-  if (a->rh == 0) {
+  if (u128_eq (a->rh, u128_from_u64 (0))) {
     cp_qint (r, b); // exact
     return;
   }
 
-    if (b->rh == 0) {
+  if (u128_eq (b->rh, u128_from_u64 (0))) {
     cp_qint (r, a); // exact
     return;
   }
@@ -343,7 +346,8 @@ add_qint_22 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
   uint64_t k = a->ex - b->ex;
 
   if (k > 0)
-    bh = (k >= 128) ? 0 : bh >> k;
+    //bh = (k >= 128) ? 0 : bh >> k;
+    bh = (k >= 128) ? u128_from_u64 (0) : u128_rshift (bh, k);
 
   /* now we have to add ah + bh, with error <= 1 ulp
      corresponding to the ignored part of bh */
@@ -356,41 +360,42 @@ add_qint_22 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
 
   if (a->sgn ^ b->sgn) { // subtraction case
     /* a and b have different signs: C = A + (-B) */
-    ch = ah - bh;
+    ch = u128_sub (ah, bh);
 
     /* we cannot have ch=0 since |A| > |B| */
-    uint64_t chh = ch >> 64;
-    ex = chh ? __builtin_clzll(chh) : 64 + __builtin_clzll(ch);
+    uint64_t chh = u128_high (ch);
+    ex = chh ? __builtin_clzll(chh) : 64 + __builtin_clzll(u128_low (ch));
 
     /* ex < 128 since |A| > |B| */
 
     if (ex > 0)
       {
         /* shift A and B by ex bits to the left */
-        ah = ah << ex;
+        ah = u128_lshift (ah, ex);
         /* for B, we have to shift by k bits to the right and ex to the left */
         if (ex >= k)
-          bh = b->rh << (ex - k); // since ex < 128, the shift is well defined
+	  bh = u128_lshift (b->rh, ex -k); // since ex < 128, the shift is well defined
         else
-          bh = b->rh >> (k - ex);
+          bh = u128_rshift (b->rh, k - ex);
         /* since k < 128 (otherwise bh=0 and ch=ah thus ex=0), this shift is
            also well defined */
         r->ex -= ex;
-        ch = ah - bh;
+        ch = u128_sub (ah, bh);
 
         /* we cannot have C=0 since |A| > |B| */
-        chh = ch >> 64;
-        ex = chh ? __builtin_clzll(chh) : 64 + __builtin_clzll(ch);
+        chh = u128_high (ch);
+        ex = chh ? __builtin_clzll(chh) : 64 + __builtin_clzll(u128_low(ch));
         /* rounding error is bounded by 1 ulp(128) */
       }
-    ch = ch << ex;
+    ch = u128_lshift (ch, ex);
     /* if ex=1, the rounding error is multiplied by 2, thus < 2 ulp(128) */
     r->ex -= ex;
   } else { // addition case
     char cy = addu128 (ah, bh, &ch);
 
     if (cy) { // carry in the 128-bit addition
-      ch = ((u128) 1 << 127) | (ch >> 1);
+      ch = u128_or (u128_lshift (u128_from_u64 (1), 127),
+		    u128_rshift (ch, 1));
       r->ex ++;
     }
     /* In the addition case, the rounding error is bounded by 1 ulp(128) */
@@ -398,46 +403,49 @@ add_qint_22 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
 
   r->sgn = sgn;
   r->rh = ch;
-  r->rl = 0;
+  r->rl = u128_from_u64 (0);
 }
 
 // Multiply two dint64_t numbers, with error < 14 ulps
 static inline void
 mul_qint (qint64_t *r, const qint64_t *a, const qint64_t *b) {
-  u128 r33 = (u128)(a->hh) * (u128)(b->hh);
+  u128 r33 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (b->hh));
 
-  u128 r32 = (u128)(a->hh) * (u128)(b->hl);
-  u128 r23 = (u128)(a->hl) * (u128)(b->hh);
+  u128 r32 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (b->hl));
+  u128 r23 = u128_mul (u128_from_u64 (a->hl), u128_from_u64 (b->hh));
 
-  u128 r31 = (u128)(a->hh) * (u128)(b->lh);
-  u128 r13 = (u128)(a->lh) * (u128)(b->hh);
-  u128 r22 = (u128)(a->hl) * (u128)(b->hl);
+  u128 r31 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (b->lh));
+  u128 r13 = u128_mul (u128_from_u64 (a->lh), u128_from_u64 (b->hh));
+  u128 r22 = u128_mul (u128_from_u64 (a->hl), u128_from_u64 (b->hl));
 
-  u128 r30 = (u128)(a->hh) * (u128)(b->ll);
-  u128 r03 = (u128)(a->ll) * (u128)(b->hh);
-  u128 r21 = (u128)(a->hl) * (u128)(b->lh);
-  u128 r12 = (u128)(a->lh) * (u128)(b->hl);
+  u128 r30 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (b->ll));
+  u128 r03 = u128_mul (u128_from_u64 (a->ll), u128_from_u64 (b->hh));
+  u128 r21 = u128_mul (u128_from_u64 (a->hl), u128_from_u64 (b->lh));
+  u128 r12 = u128_mul (u128_from_u64 (a->lh), u128_from_u64 (b->hl));
 
   u128 t6, t5, t4, t3;
   u128 c5, c4;
 
-  t3 = (r12 >> 64) + (r21 >> 64) + (r03 >> 64) + (r30 >> 64);
+  t3 = u128_add (u128_add (u128_rshift (r12, 64), u128_rshift (r21, 64)),
+		 u128_add (u128_rshift (r03, 64), u128_rshift (r30, 64)));
   /* no overflow since each term is < 2^64, thus the sum < 2^66 */
 
   /* t3 is the sum of the terms of "degree" 3 divided by 2^64 */
 
-  c4 = addu128 (r22, t3, &t4);
-  c4 += addu128 (r13, t4, &t4);
-  c4 += addu128 (r31, t4, &t4);
+  c4 = u128_from_u64 (addu128 (r22, t3, &t4));
+  c4 = u128_add (c4, u128_from_u64 (addu128 (r13, t4, &t4)));
+  c4 = u128_add (c4, u128_from_u64 (addu128 (r31, t4, &t4)));
 
   /* (c4:1,t4:128) is the sum of the terms of "degree" 3 and 4 */
 
-  c5 = addu128 (r23, t4 >> 64, &t5);
-  c5 += addu128 (r32, t5, &t5);
+  c5 = u128_from_u64 (addu128 (r23, u128_rshift (t4, 64), &t5));
+  c5 = u128_add (c5, u128_from_u64 (addu128 (r32, t5, &t5)));
 
   /* (c5:1,t5:128,low(t4):64) is the sum of the terms of "degree" 3 to 5 */
 
-  t6 = r33 + ((c5 << 64) | (t5 >> 64)) + c4;
+  t6 = u128_add (u128_add (r33, u128_or (u128_lshift (c5, 64),
+					 u128_rshift (t5, 64))),
+		 c4);
 
   /* (t6:128,low(t5):64,low(t4):64) is the sum of the terms of "degree" 3-6 */
 
@@ -455,12 +463,13 @@ mul_qint (qint64_t *r, const qint64_t *a, const qint64_t *b) {
      This yields an error bound of 7 ulps so far.
   */
 
-  uint64_t ex = !(t6 >> 127);
+  uint64_t ex = !(u128_low (u128_rshift (t6, 127)));
 
-  t5 = (t5 << 64) | (t4 & (u128) 0xffffffffffffffff);
+  t5 = u128_or (u128_lshift (t5, 64),
+		u128_and (t4, u128_from_u64 (UINT64_C(0xffffffffffffffff))));
   if (ex) { /* ex=1 */
-    r->rh = (t6 << 1) | (t5 >> 127);
-    r->rl = t5 << 1;
+    r->rh = u128_or (u128_lshift (t6, 1), u128_rshift (t5, 127));
+    r->rl = u128_lshift (t5, 1);
     /* the previous rounding error is multiplied by 2, thus < 14 ulps now */
   }
   else { /* ex=0 */
@@ -478,38 +487,40 @@ mul_qint (qint64_t *r, const qint64_t *a, const qint64_t *b) {
    and with error < 6 ulps */
 static inline void
 mul_qint_33 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
-  u128 r33 = (u128)(a->hh) * (u128)(b->hh);
+  u128 r33 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (b->hh));
 
-  u128 r32 = (u128)(a->hh) * (u128)(b->hl);
-  u128 r23 = (u128)(a->hl) * (u128)(b->hh);
+  u128 r32 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (b->hl));
+  u128 r23 = u128_mul (u128_from_u64 (a->hl), u128_from_u64 (b->hh));
 
-  u128 r31 = (u128)(a->hh) * (u128)(b->lh);
-  u128 r13 = (u128)(a->lh) * (u128)(b->hh);
-  u128 r22 = (u128)(a->hl) * (u128)(b->hl);
+  u128 r31 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (b->lh));
+  u128 r13 = u128_mul (u128_from_u64 (a->lh), u128_from_u64 (b->hh));
+  u128 r22 = u128_mul (u128_from_u64 (a->hl), u128_from_u64 (b->hl));
 
-  u128 r21 = (u128)(a->hl) * (u128)(b->lh);
-  u128 r12 = (u128)(a->lh) * (u128)(b->hl);
+  u128 r21 = u128_mul (u128_from_u64 (a->hl), u128_from_u64 (b->lh));
+  u128 r12 = u128_mul (u128_from_u64 (a->lh), u128_from_u64 (b->hl));
 
   u128 t6, t5, t4, t3;
   u128 c5, c4;
 
-  t3 = (r12 >> 64) + (r21 >> 64);
+  t3 = u128_add (u128_rshift (r12, 64), u128_rshift (r21, 64));
   /* no overflow since each term is < 2^64, thus the sum < 2*2^64 */
 
   /* t3 is the sum of the terms of "degree" 3 divided by 2^64 */
 
-  c4 = addu128 (r22, t3, &t4);
-  c4 += addu128 (r13, t4, &t4);
-  c4 += addu128 (r31, t4, &t4);
+  c4 = u128_from_u64 (addu128 (r22, t3, &t4));
+  c4 = u128_add (c4, u128_from_u64 (addu128 (r13, t4, &t4)));
+  c4 = u128_add (c4, u128_from_u64 (addu128 (r31, t4, &t4)));
 
   /* (c4:1,t4:128) is the sum of the terms of "degree" 3 and 4 */
 
-  c5 = addu128 (r23, t4 >> 64, &t5);
-  c5 += addu128 (r32, t5, &t5);
+  c5 = u128_from_u64 (addu128 (r23, u128_rshift (t4, 64), &t5));
+  c5 = u128_add (c5, u128_from_u64 (addu128 (r32, t5, &t5)));
 
   /* (c5:1,t5:128,low(t4):64) is the sum of the terms of "degree" 3 to 5 */
 
-  t6 = r33 + ((c5 << 64) | (t5 >> 64)) + c4;
+  t6 = u128_add (u128_add (r33, u128_or (u128_lshift (c5, 64),
+					 u128_rshift (t5, 64))),
+		 c4);
 
   /* (t6:128,low(t5):64,low(t4):64) is the sum of the terms of "degree" 3-6 */
 
@@ -524,12 +535,13 @@ mul_qint_33 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
      This yields an error bound of 3 ulps so far.
   */
 
-  uint64_t ex = !(t6 >> 127);
+  uint64_t ex = !(u128_low (u128_rshift (t6, 127)));
 
-  t5 = (t5 << 64) | (t4 & (u128) 0xffffffffffffffff);
+  t5 = u128_or (u128_lshift (t5, 64),
+		u128_and (t4, u128_from_u64 (UINT64_C(0xffffffffffffffff))));
   if (ex) { /* ex=1 */
-    r->rh = (t6 << 1) | (t5 >> 127);
-    r->rl = t5 << 1;
+    r->rh = u128_or (u128_lshift (t6, 1), u128_rshift (t5, 127));
+    r->rl = u128_lshift (t5, 1);
     /* the previous rounding error is multiplied by 2, thus < 6 ulps now */
   }
   else { /* ex=0 */
@@ -547,30 +559,32 @@ mul_qint_33 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
    and with error < 2 ulps */
 static inline void
 mul_qint_41 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
-  u128 r33 = (u128)(a->hh) * (u128)(b->hh);
+  u128 r33 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (b->hh));
 
-  u128 r23 = (u128)(a->hl) * (u128)(b->hh);
+  u128 r23 = u128_mul (u128_from_u64 (a->hl), u128_from_u64 (b->hh));
 
-  u128 r13 = (u128)(a->lh) * (u128)(b->hh);
+  u128 r13 = u128_mul (u128_from_u64 (a->lh), u128_from_u64 (b->hh));
 
-  u128 r03 = (u128)(a->ll) * (u128)(b->hh);
+  u128 r03 = u128_mul (u128_from_u64 (a->ll), u128_from_u64 (b->hh));
 
   u128 t6, t5, t4, t3;
   u128 c5, c4;
 
-  t3 = r03 >> 64;
+  t3 = u128_rshift (r03, 64);
 
   /* t3 is the term of "degree" 3 divided by 2^64 */
 
-  c4 = addu128 (r13, t3, &t4);
+  c4 = u128_from_u64 (addu128 (r13, t3, &t4));
 
   /* (c4:1,t4:128) is the sum of the terms of "degree" 3 and 4 */
 
-  c5 = addu128 (r23, t4 >> 64, &t5);
+  c5 = u128_from_u64 (addu128 (r23, u128_rshift (t4, 64), &t5));
 
   /* (c5:1,t5:128,low(t4):64) is the sum of the terms of "degree" 3 to 5 */
 
-  t6 = r33 + ((c5 << 64) | (t5 >> 64)) + c4;
+  t6 = u128_add (u128_add (r33, u128_or (u128_lshift (c5, 64),
+					 u128_rshift (t5, 64))),
+		 c4);
 
   /* (t6:128,low(t5):64,low(t4):64) is the sum of the terms of "degree" 3-6 */
 
@@ -581,12 +595,13 @@ mul_qint_41 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
      with error bounded by 1 ulp for the neglected low part of r03.
   */
 
-  uint64_t ex = !(t6 >> 127);
+  uint64_t ex = !(u128_low (u128_rshift (t6, 127)));
 
-  t5 = (t5 << 64) | (t4 & (u128) 0xffffffffffffffff);
+  t5 = u128_or (u128_lshift (t5, 64),
+		u128_and (t4, u128_from_u64 (UINT64_C(0xffffffffffffffff))));
   if (ex) { /* ex=1 */
-    r->rh = (t6 << 1) | (t5 >> 127);
-    r->rl = t5 << 1;
+    r->rh = u128_or (u128_lshift (t6, 1), u128_rshift (t5, 127));
+    r->rl = u128_lshift (t5, 1);
     /* the previous rounding error is multiplied by 2, thus < 2 ulps now */
   }
   else { /* ex=0 */
@@ -604,9 +619,9 @@ mul_qint_41 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
    and the upper limb from b, with no error (exact product) */
 static inline void
 mul_qint_31 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
-  u128 r33 = (u128)(a->hh) * (u128)(b->hh);
-  u128 r23 = (u128)(a->hl) * (u128)(b->hh);
-  u128 r13 = (u128)(a->lh) * (u128)(b->hh);
+  u128 r33 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (b->hh));
+  u128 r23 = u128_mul (u128_from_u64 (a->hl), u128_from_u64 (b->hh));
+  u128 r13 = u128_mul (u128_from_u64 (a->lh), u128_from_u64 (b->hh));
 
   u128 t6, t5, t4;
   u128 c5;
@@ -615,11 +630,12 @@ mul_qint_31 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
 
   /* t4 is the only term of "degree" 4 */
 
-  c5 = addu128 (r23, t4 >> 64, &t5);
+  c5 = u128_from_u64 (addu128 (r23, u128_rshift (t4, 64), &t5));
 
   /* (c5:1,t5:128,low(t4):64) is the sum of the terms of "degree" 4 to 5 */
 
-  t6 = r33 + ((c5 << 64) | (t5 >> 64));
+  t6 = u128_add (r33, u128_or (u128_lshift (c5, 64),
+			       u128_rshift (t5, 64)));
 
   /* (t6:128,low(t5):64,low(t4):64) is the sum of the terms of "degree" 4-6 */
 
@@ -630,12 +646,13 @@ mul_qint_31 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
      with no error.
   */
 
-  uint64_t ex = !(t6 >> 127);
+  uint64_t ex = !(u128_low (u128_rshift (t6, 127)));
 
-  t5 = (t5 << 64) | (t4 & (u128) 0xffffffffffffffff);
+  t5 = u128_or (u128_lshift (t5, 64),
+		u128_and (t4, u128_from_u64 (UINT64_C(0xffffffffffffffff))));
   if (ex) { /* ex=1 */
-    r->rh = (t6 << 1) | (t5 >> 127);
-    r->rl = t5 << 1;
+    r->rh = u128_or (u128_lshift (t6, 1), u128_rshift (t5, 127));
+    r->rl = u128_lshift (t5, 1);
     /* the previous rounding error is multiplied by 2, thus < 2 ulps now */
   }
   else { /* ex=0 */
@@ -653,24 +670,25 @@ mul_qint_31 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
    with no error (exact product) */
 static inline void
 mul_qint_22 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
-  u128 r33 = (u128)(a->hh) * (u128)(b->hh);
+  u128 r33 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (b->hh));
 
-  u128 r32 = (u128)(a->hh) * (u128)(b->hl);
-  u128 r23 = (u128)(a->hl) * (u128)(b->hh);
+  u128 r32 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (b->hl));
+  u128 r23 = u128_mul (u128_from_u64 (a->hl), u128_from_u64 (b->hh));
 
-  u128 r22 = (u128)(a->hl) * (u128)(b->hl);
+  u128 r22 = u128_mul (u128_from_u64 (a->hl), u128_from_u64 (b->hl));
 
   u128 t6, t5, t4;
   u128 c5;
 
   t4 = r22;
 
-  c5 = addu128 (r23, t4 >> 64, &t5);
-  c5 += addu128 (r32, t5, &t5);
+  c5 = u128_from_u64 (addu128 (r23, u128_rshift (t4, 64), &t5));
+  c5 = u128_add (c5, u128_from_u64 (addu128 (r32, t5, &t5)));
 
   /* (c5:1,t5:128,low(t4):64) is the sum of the terms of "degree" 3 to 5 */
 
-  t6 = r33 + ((c5 << 64) | (t5 >> 64));
+  t6 = (u128_add (r33, u128_or (u128_lshift (c5, 64),
+				u128_rshift (t5, 64))));
 
   /* (t6:128,low(t5):64,low(t4):64) is the sum of the terms of "degree" 3-6 */
 
@@ -680,12 +698,13 @@ mul_qint_22 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
      t6 (128 bits) + low(t5) (64 bits) + low(t4) (64 bits)
   */
 
-  uint64_t ex = !(t6 >> 127);
+  uint64_t ex = !(u128_low (u128_rshift (t6, 127)));
 
-  t5 = (t5 << 64) | (t4 & (u128) 0xffffffffffffffff);
+  t5 = u128_or (u128_lshift (t5, 64),
+		u128_and (t4, u128_from_u64 (UINT64_C(0xffffffffffffffff))));
   if (ex) { /* ex=1 */
-    r->rh = (t6 << 1) | (t5 >> 127);
-    r->rl = t5 << 1;
+    r->rh = u128_or (u128_lshift (t6, 1), u128_rshift (t5, 127));
+    r->rl = u128_lshift (t5, 1);
   }
   else { /* ex=0 */
     r->rh = t6;
@@ -701,21 +720,21 @@ mul_qint_22 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
    upper limb of b, with no error (exact product) */
 static inline void
 mul_qint_21 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
-  u128 r33 = (u128)(a->hh) * (u128)(b->hh);
-  u128 r23 = (u128)(a->hl) * (u128)(b->hh);
+  u128 r33 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (b->hh));
+  u128 r23 = u128_mul (u128_from_u64 (a->hl), u128_from_u64 (b->hh));
 
-  u128 t6 = r33 + (r23 >> 64);
+  u128 t6 = u128_add (r33, u128_lshift (r23, 64));
 
   /* No carry can happen since the full product of the significands is
      bounded by 2^512.
   */
 
-  uint64_t ex = !(t6 >> 127);
+  uint64_t ex = !(u128_low (u128_rshift (t6, 127)));
 
-  u128 t5 = r23 << 64;
+  u128 t5 = u128_lshift (r23, 64);
   if (ex) { /* ex=1 */
-    r->rh = (t6 << 1) | (t5 >> 127);
-    r->rl = t5 << 1;
+    r->rh = u128_or (u128_lshift (t6, 1), u128_rshift (t5, 127));
+    r->rl = u128_lshift (t5, 1);
   }
   else { /* ex=0 */
     r->rh = t6;
@@ -731,13 +750,14 @@ mul_qint_21 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
    with no error (exact product) */
 static inline void
 mul_qint_11 (qint64_t *r, const qint64_t *a, const qint64_t *b) {
-  u128 t6 = (u128)(a->hh) * (u128)(b->hh);
-  uint64_t ex = !(t6 >> 127);
+  u128 t6 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (b->hh));
+
+  uint64_t ex = !(u128_low (u128_rshift (t6, 127)));
 
   /* ex can be 0 or 1 */
 
-  r->rh = t6 << ex;
-  r->rl = 0;
+  r->rh = u128_lshift (t6, ex);
+  r->rl = u128_from_u64 (0);
   r->ex = a->ex + b->ex + 1 - ex;
   r->sgn = a->sgn ^ b->sgn;
 }
@@ -765,38 +785,38 @@ static inline void mul_qint_2 (qint64_t *r, int64_t b, const qint64_t *a) {
   c = c << k;
   r->ex -= k;
 
-  u128 t3 = (u128) a->hh * (u128) c;
-  u128 t2 = (u128) a->hl * (u128) c;
-  u128 t1 = (u128) a->lh * (u128) c;
-  u128 t0 = (u128) a->ll * (u128) c;
+  u128 t3 = u128_mul (u128_from_u64 (a->hh), u128_from_u64 (c));
+  u128 t2 = u128_mul (u128_from_u64 (a->hl), u128_from_u64 (c));
+  u128 t1 = u128_mul (u128_from_u64 (a->lh), u128_from_u64 (c));
+  u128 t0 = u128_mul (u128_from_u64 (a->ll), u128_from_u64 (c));
 
   u128 cy;
-  u128 t = t0 >> 64;
+  u128 t = u128_rshift (t0, 64);
 
   /* t:64 is the term of degree 0 (divided by 2^64) */
 
-  cy = addu128 (t, t1, &t1);
+  cy = u128_from_u64 (addu128 (t, t1, &t1));
   /* (cy:1,t1:128) is the sum of the terms of degree 0 and 1 */
 
-  t = ((u128) cy << 64) | (t1 >> 64);
-  cy = addu128 (t, t2, &t2);
+  t = u128_or (u128_lshift (cy, 64), u128_rshift (t1, 64));
+  cy = u128_from_u64 (addu128 (t, t2, &t2));
   /* (cy:1,t2:128,low(t1):64) is the sum of the terms of degree 0 to 2 */
 
-  t3 += (((u128) cy << 64) | (t2 >> 64));
+  t3 = u128_add (t3, u128_or (u128_lshift (cy, 64), u128_rshift (t2, 64)));
   /* (t3,low(t2):64,low(t1):64) is the sum of the terms of degree 0 to 3 */
 
-  uint32_t ex = __builtin_clzll (t3 >> 64);
+  uint32_t ex = __builtin_clzll (u128_high (t3));
 
-  t2 = (t2 << 64) | (t1 & (u128) 0xffffffffffffffff);
-
+  t2 = u128_or (u128_lshift (t2, 64),
+		u128_and (t1, u128_from_u64 (UINT64_C(0xffffffffffffffff))));
   /* ex is 0 or 1 because a and c are normalized (2^63 <= a->hh, c < 2^64) */
 
   /* we only ignore the low part of t0 which contributes less than 1 ulp */
 
   if (ex)
     {
-      r->rh = (t3 << 1) | (t2 >> 127);
-      r->rl = t2 << 1;
+      r->rh = u128_or (u128_lshift (t3, 1), u128_rshift (t2, 127));
+      r->rl = u128_lshift (t2, 1);
       /* the error is scaled by 2, thus less than 2 ulps */
       r->ex --;
     }

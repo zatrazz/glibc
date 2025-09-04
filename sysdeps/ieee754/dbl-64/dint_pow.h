@@ -174,7 +174,7 @@ add_dint (dint64_t *r, const dint64_t *a, const dint64_t *b) {
        where n is the bit-width of x. See for example
        https://developer.arm.com/documentation/den0024/a/The-A64-instruction-set/Data-processing-instructions/Shift-operations
        where it is said that k is interpreted modulo n. */
-    B = (k < 128) ? B >> k : 0;
+    B = (k < 128) ? u128_rshift (B, k) : u128_from_u64 (0);
   }
 
   u128 C;
@@ -188,19 +188,20 @@ add_dint (dint64_t *r, const dint64_t *a, const dint64_t *b) {
        * k=0: then B is not truncated, and C is exact below
        * k=1 and ex>0 below: then we ensure C is exact
      */
-    C = A - B;
-    uint64_t ch = C >> 64;
+    C = u128_sub (A, B);
+    uint64_t ch = u128_high (C);
     /* We can't have C=0 here since we excluded the case |A| = |B|,
        thus __builtin_clzll(C) is well-defined below. */
-    uint64_t ex = ch ? __builtin_clzll(ch) : 64 + __builtin_clzll(C);
+    uint64_t ex = ch ? __builtin_clzll(ch)
+		     : 64 + __builtin_clzll(u128_low(C));
     /* The error from the truncated part of B (1 ulp) is multiplied by 2^ex,
        thus by 2 ulps when ex <= 1. */
     if (ex > 0)
     {
       if (k == 1) /* Sterbenz case */
-        C = (A << ex) - (b->r << (ex - 1));
+        C = u128_sub (u128_lshift (A, ex), (u128_lshift (b->r, ex - 1)));
       else
-        C = (A << ex) - (B << ex);
+        C = u128_sub (u128_lshift (A, ex), (u128_lshift (B, ex)));
       /* If C0 is the previous value of C, we have:
          (C0-1)*2^ex < A*2^ex-B*2^ex <= C0*2^ex
          since some neglected bits from B might appear which contribute
@@ -211,19 +212,20 @@ add_dint (dint64_t *r, const dint64_t *a, const dint64_t *b) {
          one (as if no truncation); moreover in some rare cases we need to
          shift by 1 bit to the left. */
       r->ex -= ex;
-      ex = __builtin_clzll (C >> 64);
+      ex = __builtin_clzll (u128_high (C));
       /* Fall through with the code for ex = 0. */
     }
-    C = C << ex;
+    C = u128_lshift (C, ex);
     r->ex -= ex;
     /* The neglected part of B is bounded by 2 ulp(C) when ex=0, 1 ulp
        when ex > 0 but ex=0 at the end, and by 2*ulp(C) when ex > 0 and there
        is an extra shift at the end (in that case necessarily ex=1). */
   } else {
-    C = A + B;
-    if (C < A)
+    C = u128_add (A, B);
+    if (u128_lt (C, A))
     {
-      C = ((u128) 1 << 127) | (C >> 1);
+      C = u128_or (u128_lshift (u128_from_u64 (1), 127),
+		   u128_rshift (C, 1));
       r->ex ++;
     }
   }
@@ -291,16 +293,16 @@ add_dint_11 (dint64_t *r, const dint64_t *a, const dint64_t *b) {
 
   if (a->sgn ^ b->sgn) {
     // a and b have different signs C = A + (-B)
-    C = A - B;
+    C = u128_from_u64 (A - B);
     /* we can't have C=0 here since we excluded the case |A| = |B|,
        thus __builtin_clzll(C) is well-defined below */
-    uint64_t ex = __builtin_clzll (C);
+    uint64_t ex = __builtin_clzll (u128_low (C));
     /* The error from the truncated part of B (1 ulp) is multiplied by 2^ex.
        Thus for ex <= 2, we get an error bounded by 4 ulps in the final result.
        For ex >= 3, we pre-shift the operands. */
     if (ex > 0)
     {
-      C = (A << ex) - (B << ex);
+      C = u128_from_u64 ((A << ex) - (B << ex));
       /* If C0 is the previous value of C, we have:
          (C0-1)*2^ex < A*2^ex-B*2^ex <= C0*2^ex
          since here some neglected bits from B might appear which contribute
@@ -311,19 +313,20 @@ add_dint_11 (dint64_t *r, const dint64_t *a, const dint64_t *b) {
          one (as if no truncation); moreover in some rare cases we need to
          shift by 1 bit to the left. */
       r->ex -= ex;
-      ex = __builtin_clzll (C);
+      ex = __builtin_clzll (u128_low (C));
       /* Fall through with the code for ex = 0. */
     }
-    C = C << ex;
+    C = u128_lshift (C, ex);
     r->ex -= ex;
     /* The neglected part of B is bounded by ulp(C) when ex=0, or when
        ex > 0 but the ex=0 at the end, and by 2*ulp(C) when ex>0 and there
        is an extra shift at the end (in that case necessarily ex=1). */
   } else {
-    C = A + B;
-    if (C < A)
+    C = u128_from_u64 (A + B);
+    if (u128_lt (C, u128_from_u64 (A)))
     {
-      C = ((uint64_t) 1 << 63) | (C >> 1);
+      C = u128_or (u128_from_u64 (UINT64_C(1) << 63),
+		   u128_rshift (C, 1));
       r->ex ++;
     }
   }
@@ -335,7 +338,7 @@ add_dint_11 (dint64_t *r, const dint64_t *a, const dint64_t *b) {
      thus in all cases the error is less than 1 ulp(r). */
 
   r->sgn = sgn;
-  r->hi = C;
+  r->hi = u128_low (C);
 }
 
 // Multiply two dint64_t numbers, with error bounded by 6 ulps
@@ -343,23 +346,24 @@ add_dint_11 (dint64_t *r, const dint64_t *a, const dint64_t *b) {
 // Overlap between r and a is allowed
 static inline void
 mul_dint (dint64_t *r, const dint64_t *a, const dint64_t *b) {
-  u128 bh = b->hi, bl = b->lo;
+  u128 bh = u128_from_u64 (b->hi), bl = u128_from_u64 (b->lo);
 
   /* compute the two middle terms */
-  u128 m1 = (u128)(a->hi) * bl;
-  u128 m2 = (u128)(a->lo) * bh;
+  u128 m1 = u128_mul (u128_from_u64 (a->hi), bl);
+  u128 m2 = u128_mul (u128_from_u64 (a->lo), bh);
 
   /* put the 128-bit product of the high terms in r */
-  r->r = (u128)(a->hi) * bh;
+  r->r = u128_mul (u128_from_u64 (a->hi), bh);
 
   /* there can be no overflow in the following addition since r <= (B-1)^2
      with B=2^64, (m1>>64) <= B-1 and (m2>>64) <= B-1, thus the sum is
      bounded by (B-1)^2+2*(B-1) = B^2-1 */
-  r->r += (m1 >> 64) + (m2 >> 64);
+  r->r = u128_add (r->r, u128_add (u128_from_u64 (u128_high (m1)),
+				   u128_from_u64 (u128_high (m2))));
 
   // Ensure that r->hi starts with a 1
   uint64_t ex = r->hi >> 63;
-  r->r = r->r << (1 - ex);
+  r->r = u128_lshift (r->r, 1 - ex);
 
   // Exponent and sign
   r->ex = a->ex + b->ex + ex;
@@ -375,19 +379,19 @@ mul_dint (dint64_t *r, const dint64_t *a, const dint64_t *b) {
 // with error bounded by 2 ulps
 static inline void
 mul_dint_21 (dint64_t *r, const dint64_t *a, const dint64_t *b) {
-  u128 bh = b->hi;
-  u128 hi = (u128) (a->hi) * bh;
-  u128 lo = (u128) (a->lo) * bh;
+  u128 bh = u128_from_u64 (b->hi);
+  u128 hi = u128_mul (u128_from_u64 (a->hi), bh);
+  u128 lo = u128_mul (u128_from_u64 (a->lo), bh);
 
   /* put the 128-bit product of the high terms in r */
   r->r = hi;
 
   /* add the middle term */
-  r->r += lo >> 64;
+  r->r = u128_add (r->r, u128_from_u64 (u128_high (lo)));
 
   // Ensure that r->hi starts with a 1
   uint64_t ex = r->hi >> 63;
-  r->r = r->r << (1 - ex);
+  r->r = u128_lshift (r->r, 1 - ex);
 
   // Exponent and sign
   r->ex = a->ex + b->ex + ex;
@@ -409,19 +413,20 @@ static inline void mul_dint_2(dint64_t *r, int64_t b, const dint64_t *a) {
   uint64_t c = b < 0 ? -b : b;
   r->sgn = b < 0 ? !a->sgn : a->sgn;
 
-  t.r = (u128)(a->hi) * (u128)c;
+  t.r = u128_mul (u128_from_u64 (a->hi), u128_from_u64 (c));
 
   int m = t.h ? __builtin_clzll(t.h) : 64;
-  t.r = (t.r << m);
+  t.r = u128_lshift (t.r, m);
 
   // Will pose issues if b is too large but for now we assume it never happens
   // TODO: FIXME
-  uint128_t l = {.r = (u128)(a->lo) * (u128)c};
-  l.r = (l.r << (m - 1)) >> 63;
+  uint128_t l = {.r = u128_mul (u128_from_u64 (a->lo), u128_from_u64 (c))};
+  l.r = u128_rshift (u128_lshift (l.r, m - 1), 63);
 
   if (addu_128(l, t, &t)) {
-    t.r += t.r & 0x1;
-    t.r = ((u128)1 << 127) | (t.r >> 1);
+    t.r = u128_add (t.r, u128_bitwise_and (t.r, u128_from_u64 (0x1)));
+    t.r = u128_bitwise_or (u128_lshift (u128_from_u64 (1), 127),
+			   u128_rshift (t.r, 1));
     m--;
   }
 
@@ -435,11 +440,12 @@ static inline void mul_dint_2(dint64_t *r, int64_t b, const dint64_t *a) {
 static inline void
 mul_dint_11 (dint64_t *r, const dint64_t *a, const dint64_t *b) {
   /* put the 128-bit product of the high terms in r */
-  r->r = (u128)(a->hi) * (u128)(b->hi);
+  r->r = u128_mul (u128_from_u64 (a->hi), u128_from_u64 (b->hi));
 
   // Ensure that r->hi starts with a 1
   uint64_t ex = r->hi >> 63;
-  r->r = r->r << (1 - ex);
+  //r->r = r->r << (1 - ex);
+  r->r = u128_lshift (r->r, 1 - ex);
 
   // Exponent and sign
   r->ex = a->ex + b->ex + ex;
@@ -459,26 +465,28 @@ mul_dint_int64 (dint64_t *r, const dint64_t *a, int64_t b) {
   r->sgn = b < 0 ? !a->sgn : a->sgn;
   r->ex = a->ex + 64;
 
-  r->r = (u128) (a->hi) * (u128) c;
+  r->r = u128_mul (u128_from_u64 (a->hi), u128_from_u64 (c));
 
   // Warning: if c=1, we might have r->hi=0
   int m = r->hi ? __builtin_clzll (r->hi) : 64;
-  r->r = r->r << m;
+  //r->r = r->r << m;
+  r->r = u128_lshift (r->r, m);
   r->ex -= m;
 
   // Will pose issues if b is too large but for now we assume it never happens
   // TODO: FIXME
-  u128 l = (u128) a->lo * (u128) c;
+  u128 l = u128_mul (u128_from_u64 (a->lo), u128_from_u64 (c));
   /* We have to shift l by 64 bits to the right to align with hi*c,
      and by m bits to the left to align with t.r << m. Since hi*c < 2^(128-m)
      and hi >= 2^63, we know that c < 2^(65-m) thus
      l*2^(m-1) < 2^64*2^(65-m)*2^(m-1) = 2^128, and l << (m - 1) will
      not overflow. */
-  l = (l << (m - 1)) >> 63;
+  l = u128_rshift (u128_lshift (l, m - 1), 63);
 
-  r->r += l;
-  if (r->r < l) {
-    r->r = ((u128) 1 << 127) | (r->r >> 1);
+  r->r = u128_add (r->r, l);
+  if (u128_lt (r->r, l)) {
+    r->r = u128_or (u128_lshift (u128_from_u64 (1), 127),
+		    u128_rshift (r->r, 1));
     r->ex ++;
   }
 

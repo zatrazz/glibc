@@ -63,8 +63,10 @@ typedef          __int128 i128;
 # define u128_lshift(__x, __y)  (__x) << (__y)
 # define u128_rshift(__x, __y)  (__x) >> (__y)
 # define u128_or(__x, __y)      (__x) | (__y)
+# define u128_and(__x, __y)      (__x) & (__y)
 # define u128_gt(__x, __y)      ((__x) > (__y))
 # define u128_lt(__x, __y)      ((__x) < (__y))
+# define u128_eq(__x, __y)      ((__x) == (__y))
 # define u128_bitwise_and(__x, __y) ((__x) & (__y))
 # define u128_bitwise_or(__x, __y) ((__x) | (__y))
 # define u128_bitwise_xor(__x, __y) ((__x) ^ (__y))
@@ -113,6 +115,8 @@ typedef struct
 # define u128_from_i128(__x)    (u128){.low = (__x).low, .high = (__x).high}
 # define u128_or(__x, __y)      (u128){.low  = (__x).low  | (__y).low, \
                                        .high = (__x).high | (__y).high }
+# define u128_and(__x, __y)      (u128){.low  = (__x).low  & (__y).low, \
+                                        .high = (__x).high & (__y).high }
 # define u128_bitwise_and(__x, __y)  (u128){.low = (__x).low & (__y).low, \
 					    .high = (__x).high & (__y).high }
 # define u128_bitwise_or(__x, __y)  (u128){.low = (__x).low | (__y).low, \
@@ -295,6 +299,11 @@ static inline int u128_lt (u128 x, u128 y)
 static inline int u128_gt (u128 x, u128 y)
 {
   return u128_lt (y, x);
+}
+
+static inline int u128_eq (u128 x, u128 y)
+{
+  return x.low == y.low && x.high == y.high;
 }
 
 static inline bool u128_logical_not (u128 x)
