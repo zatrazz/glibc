@@ -223,37 +223,4 @@ check_uflow (double x)
   return WANT_ERRNO ? __math_check_uflow (x) : x;
 }
 
-#define EXP_TABLE_BITS 7
-#define EXP_POLY_ORDER 5
-#define EXP2_POLY_ORDER 5
-extern const struct exp_data
-{
-  double invln2N;
-  double negln2hiN;
-  double negln2loN;
-  double poly[4]; /* Last four coefficients.  */
-  double shift;
-
-  double exp2_shift;
-  double exp2_poly[EXP2_POLY_ORDER];
-
-  double neglog10_2hiN;
-  double neglog10_2loN;
-  double exp10_poly[5];
-  double invlog10_2N;
-  uint64_t tab[2*(1 << EXP_TABLE_BITS)];
-} __exp_data attribute_hidden;
-
-#define POW_LOG_TABLE_BITS 7
-#define POW_LOG_POLY_ORDER 8
-extern const struct pow_log_data
-{
-  double ln2hi;
-  double ln2lo;
-  double poly[POW_LOG_POLY_ORDER - 1]; /* First coefficient is 1.  */
-  /* Note: the pad field is unused, but allows slightly faster indexing.  */
-  /* See e_pow_log_data.c for details.  */
-  struct {double invc, pad, logc, logctail;} tab[1 << POW_LOG_TABLE_BITS];
-} __pow_log_data attribute_hidden;
-
 #endif
