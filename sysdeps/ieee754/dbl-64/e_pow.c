@@ -76,15 +76,21 @@ SOFTWARE.
 static fexcept_t
 get_flag (void)
 {
+#ifdef FE_INEXACT
   fexcept_t flag;
   __fegetexceptflag (&flag, FE_INEXACT);
   return flag;
+#else
+  return 0;
+#endif
 }
 
 static void
 set_flag (fexcept_t flag)
 {
+#ifdef FE_INEXACT
   __fesetexceptflag (&flag, FE_INEXACT);
+#endif
 }
 
 

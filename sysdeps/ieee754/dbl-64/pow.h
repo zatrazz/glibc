@@ -273,14 +273,20 @@ static inline double dint_tod_subnormal(dint64_t *a, int exact) {
       ret = (ex > 64 || rb == 0 || sb == 0) ? +0.0 : 0x1p-1074;
       ret = (a->sgn) ? -ret : ret;
       break;
+#ifdef FE_DOWNWARD
     case FE_DOWNWARD:
       ret = (a->sgn) ? -0x1p-1074 : +0.0;
       break;
+#endif
+#ifdef FE_UPWARD
     case FE_UPWARD:
       ret = (!a->sgn) ? 0x1p-1074 : -0.0;
       break;
+#endif
+#ifdef FE_TOWARDZERO
     case FE_TOWARDZERO:
       ret = (a->sgn) ? -0.0 : +0.0;
+#endif
     }
     goto end;
   }
@@ -303,15 +309,19 @@ static inline double dint_tod_subnormal(dint64_t *a, int exact) {
         underflow = 0;
     }
     break;
+#ifdef FE_DOWNWARD
   case FE_DOWNWARD:
     hi += a->sgn & (sb | rb);
     break;
+#endif
+#ifdef FE_UPWARD
   case FE_UPWARD:
     // if ex=12 there is no underflow when hi rounds to 2^52 and rb=1
     hi += (!a->sgn) & (sb | rb);
     if (ex == 12 && (hi >> 52) && rb)
       underflow = 0;
     break;
+#endif
   // for rounding towards zero, don't do anything
   }
 
@@ -442,12 +452,16 @@ static inline void subnormalize_qint(qint64_t *a) {
   case FE_TONEAREST:
     hi += lo ? md : hi & md;
     break;
+#ifdef FE_DOWNWARD
   case FE_DOWNWARD:
     hi += a->sgn & (md | lo);
     break;
+#endif
+#ifdef FE_UPWARD
   case FE_UPWARD:
     hi += (!a->sgn) & (md | lo);
     break;
+#endif
   }
 
   a->hh = hi << ex;
