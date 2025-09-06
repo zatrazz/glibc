@@ -73,27 +73,6 @@ SOFTWARE.
 #define ENABLE_EXACT (POW_ITERATION & 0x4)
 #define ENABLE_ZIV3 (POW_ITERATION & 0x8)
 
-static fexcept_t
-get_flag (void)
-{
-#ifdef FE_INEXACT
-  fexcept_t flag;
-  __fegetexceptflag (&flag, FE_INEXACT);
-  return flag;
-#else
-  return 0;
-#endif
-}
-
-static void
-set_flag (fexcept_t flag)
-{
-#ifdef FE_INEXACT
-  __fesetexceptflag (&flag, FE_INEXACT);
-#endif
-}
-
-
 /***************** polynomial approximations of exp(z) ***********************/
 
 /* Given z such that |z| < 2^-12.905,
@@ -1698,8 +1677,6 @@ __pow (double x, double y)
 
   double lh, ll;
 
-  fexcept_t flag = get_flag ();
-
   // approximate log(x)
   int cancel = log_1 (&lh, &ll, x);
 
@@ -1743,9 +1720,6 @@ __pow (double x, double y)
      equality between res_min and res_max, it does not matter */
 
   int exact = is_exact (x, y);
-  if (exact)
-    // restore inexact flag
-    set_flag (flag);
 
   if (__builtin_expect (res_min == res_max, 1)) {
     /* when res_min * ex is in the subnormal range, exp_1() returns NaN
@@ -1768,13 +1742,8 @@ __pow (double x, double y)
 #ifdef CORE_MATH_SUPPORT_ERRNO
     if (__builtin_fabs (x) >= 0x1p512)
       errno = ERANGE; // overflow
-    /* we have underflow for |x| < 2^-511, since even for RNDU and
-       x = nextbelow(2^-511), x^2 would be rounded to 0x1.fffffffffffffp-1023
-       with unbouded exponent range, which is not representable */
-    if (__builtin_fabs (x) < 0x1p-511 && !exact)
-      errno = ERANGE; // underflow
 #endif
-      return z;
+    return z;
   }
 
   if (y == 0.5)

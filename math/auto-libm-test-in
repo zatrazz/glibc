@@ -8381,6 +8381,8 @@ pow -0x1.7ac7cp+5 23
 # BZ33411.  xfail for binary32 due to BZ#33563.
 pow 0x1p+8192 1.0 xfail:binary32
 
+pow 0x1.486ba08p-535 0x1p+1
+
 pown 0 0
 pown 0 -0
 pown -0 0
