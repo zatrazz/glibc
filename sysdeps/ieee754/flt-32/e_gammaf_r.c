@@ -25,31 +25,23 @@ SOFTWARE.
  */
 
 /* Changes with respect to the original CORE-MATH code:
-   - removed the dealing with errno
-     (this is done in the wrapper math/w_tgammaf_compat.c)
    - usage of math_narrow_eval to deal with underflow/overflow
-   - deal with signgamp
  */
 
+#include <errno.h>
 #include <math.h>
 #include <float.h>
 #include <stdint.h>
 #include <stddef.h>
+#include <libm-alias-float.h>
+#include <math-svid-compat.h>
 #include <libm-alias-finite.h>
 #include <math-narrow-eval.h>
 #include "math_config.h"
 
 float
-__ieee754_gammaf_r (float x, int *signgamp)
+__tgammaf (float x)
 {
-  /* The wrapper in math/w_tgamma_template.c expects *signgamp to be set to a
-     non-negative value if the returned value is gamma(x), and to a negative
-     value if it is -gamma(x).
-     Since the code here directly computes gamma(x), we set it to 1.
-  */
-  if (signgamp != NULL)
-    *signgamp = 1;
-
   /* List of exceptional cases. Each entry contains the 32-bit encoding u of x,
      a binary32 approximation f of gamma(x), and a correction term df.  */
   static const struct
@@ -89,6 +81,16 @@ __ieee754_gammaf_r (float x, int *signgamp)
 	* z - 0x1.2788cfc6fb619p-1;
       double f = 1.0 / z + d;
       float r = f;
+      /* tgamma(x) overflows for:
+       * 0 <= x < 0x1p-128 whatever the rounding mode
+       * x = 0x1p-128 and rounding to nearest or away from zero
+	 (in which case the result is +Inf)
+       * -0x1p-128 <= x <= 0 whatever the rounding mode
+       */
+      if (fabsf (x) < 0x1p-128f ||
+	  (x == 0x1p-128f && r > 0x1.fffffep+127f) || x == -0x1p-128f)
+	errno = ERANGE; /* overflow */
+
       uint64_t rt = asuint64 (f);
       if (((rt + 2) & 0xfffffff) < 4)
 	{
@@ -104,7 +106,7 @@ __ieee754_gammaf_r (float x, int *signgamp)
       /* Overflow case.  The original CORE-MATH code returns
 	 0x1p127f * 0x1p127f, but apparently some compilers replace this
 	 by +Inf.  */
-      return math_narrow_eval (x * 0x1p127f);
+      return __math_oflowf_value (math_narrow_eval (x * 0x1p127f));
     }
   /* compute k only after the overflow check, otherwise the case to integer
      might overflow */
@@ -112,7 +114,7 @@ __ieee754_gammaf_r (float x, int *signgamp)
   if (__glibc_unlikely (fx == x))
     { /* x is integer */
       if (x == 0.0f)
-	return 1.0f / x;
+	return __math_oflowf_value (1.0f / x);
       if (x < 0.0f)
 	return __math_invalidf (0.0f);
       double t0 = 1, x0 = 1;
@@ -125,7 +127,7 @@ __ieee754_gammaf_r (float x, int *signgamp)
       /* For x < -42, x non-integer, |gamma(x)| < 2^-151.  */
       static const float sgn[2] = { 0x1p-127f, -0x1p-127f };
       /* Underflows always happens */
-      return math_narrow_eval (0x1p-127f * sgn[k & 1]);
+      return __math_oflowf_value (math_narrow_eval (0x1p-127f * sgn[k & 1]));
     }
   /* The array c[] stores a degree-15 polynomial approximation for
      gamma(x).  */
@@ -164,6 +166,8 @@ __ieee754_gammaf_r (float x, int *signgamp)
   f *= w;
   uint64_t rt = asuint64 (f);
   float r = f;
+  if (fabsf (r) < 0x1p-126f)
+    errno = ERANGE; // underflow
   /* Deal with exceptional cases.  */
   if (__glibc_unlikely (((rt + 2) & 0xfffffff) < 8))
     {
@@ -173,4 +177,11 @@ __ieee754_gammaf_r (float x, int *signgamp)
     }
   return r;
 }
-libm_alias_finite (__ieee754_gammaf_r, __gammaf_r)
+
+#if LIBM_SVID_COMPAT
+versioned_symbol (libm, __tgammaf, tgammaf, GLIBC_2_43);
+libm_alias_float_other (__tgamma, tgamma)
+#else
+libm_alias_float (__tgamma, tgamma)
+#endif
+libm_alias_finite (__tgammaf, __gammaf_r)

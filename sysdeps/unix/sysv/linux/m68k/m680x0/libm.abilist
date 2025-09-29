@@ -989,3 +989,4 @@ GLIBC_2.42 rsqrtl F
 GLIBC_2.43 acoshf F
 GLIBC_2.43 lgammaf F
 GLIBC_2.43 lgammaf_r F
+GLIBC_2.43 tgammaf F
