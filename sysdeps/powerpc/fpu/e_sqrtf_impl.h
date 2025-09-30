@@ -16,18 +16,12 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <math.h>
-#include <math_private.h>
 #include <fenv_libc.h>
-#include <libm-alias-finite.h>
-#include <math-use-builtins.h>
+#include "math_config.h"
 
-float
-__ieee754_sqrtf (float x)
+static inline float
+sqrtf_impl (float x)
 {
-#if USE_SQRTF_BUILTIN
-  return __builtin_sqrtf (x);
-#else
 /* The method is based on a description in
    Computation of elementary functions on the IBM RISC System/6000 processor,
    P. W. Markstein, IBM J. Res. Develop, 34(1) 1990.
@@ -106,7 +100,7 @@ __ieee754_sqrtf (float x)
 	  /* For denormalised numbers, we normalise, calculate the
 	     square root, and return an adjusted result.  */
 	  fesetenv_register (fe);
-	  return __ieee754_sqrtf (x * 0x1p+48) * 0x1p-24;
+	  return sqrtf_impl (x * 0x1p+48) * 0x1p-24;
 	}
     }
   else if (x < 0)
@@ -115,14 +109,8 @@ __ieee754_sqrtf (float x)
 	 FE_INVALID_SQRT.  */
 # ifdef FE_INVALID_SQRT
       feraiseexcept (FE_INVALID_SQRT);
-
-      fenv_union_t u = { .fenv = fegetenv_register () };
-      if ((u.l & FE_INVALID) == 0)
 # endif
-	feraiseexcept (FE_INVALID);
-      x = NAN;
+      return __math_invalidf (x);
     }
   return f_washf (x);
-#endif /* USE_SQRTF_BUILTIN  */
 }
-libm_alias_finite (__ieee754_sqrtf, __sqrtf)

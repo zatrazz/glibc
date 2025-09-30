@@ -698,5 +698,6 @@ libm {
     coshf;
     sinhf;
     tgammaf;
+    sqrtf;
   }
 }
