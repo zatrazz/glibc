@@ -15,6 +15,9 @@
 #include <math.h>
 #include <math_private.h>
 #include <libm-alias-finite.h>
+#include <libm-alias-float.h>
+#include <math-svid-compat.h>
+#include "math_config.h"
 
 static const float zero = 0.0;
 
@@ -33,7 +36,9 @@ __ieee754_remainderf(float x, float p)
 	hx &= 0x7fffffff;
 
     /* purge off exception values */
-	if(hp==0) return (x*p)/(x*p);		/* p = 0 */
+	if((hp==0)||
+	   ((hx==0x7f800000) && hp<=0x7f800000))
+	  return __math_invalidf (x);
 	if((hx>=0x7f800000)||			/* x not finite */
 	  ((hp>0x7f800000)))			/* p is NaN */
 	    return (x*p)/(x*p);
@@ -63,3 +68,10 @@ __ieee754_remainderf(float x, float p)
 	return x;
 }
 libm_alias_finite (__ieee754_remainderf, __remainderf)
+#if LIBM_SVID_COMPAT
+versioned_symbol (libm, __ieee754_remainderf, remainderf, GLIBC_2_43);
+libm_alias_float_other (__ieee754_remainder, remainder)
+#else
+libm_alias_float (__ieee754_remainder, remainder)
+weak_alias (__ieee754_remainderf, dremf)
+#endif

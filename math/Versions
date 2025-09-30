@@ -699,5 +699,6 @@ libm {
     sinhf;
     tgammaf;
     sqrtf;
+    remainderf;
   }
 }

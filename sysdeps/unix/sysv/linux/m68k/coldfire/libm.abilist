@@ -959,6 +959,7 @@ GLIBC_2.43 coshf F
 GLIBC_2.43 lgammaf F
 GLIBC_2.43 lgammaf_r F
 GLIBC_2.43 log10f F
+GLIBC_2.43 remainderf F
 GLIBC_2.43 sinhf F
 GLIBC_2.43 sqrtf F
 GLIBC_2.43 tgammaf F
