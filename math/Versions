@@ -700,5 +700,6 @@ libm {
     tgammaf;
     sqrtf;
     remainderf;
+    j0f; y0f;
   }
 }
