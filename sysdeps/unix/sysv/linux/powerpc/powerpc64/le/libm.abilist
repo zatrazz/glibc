@@ -1481,6 +1481,7 @@ GLIBC_2.43 atan2f F
 GLIBC_2.43 atanhf F
 GLIBC_2.43 coshf F
 GLIBC_2.43 j0f F
+GLIBC_2.43 j1f F
 GLIBC_2.43 lgammaf F
 GLIBC_2.43 lgammaf_r F
 GLIBC_2.43 log10f F
@@ -1489,3 +1490,4 @@ GLIBC_2.43 sinhf F
 GLIBC_2.43 sqrtf F
 GLIBC_2.43 tgammaf F
 GLIBC_2.43 y0f F
+GLIBC_2.43 y1f F

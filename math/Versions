@@ -701,5 +701,6 @@ libm {
     sqrtf;
     remainderf;
     j0f; y0f;
+    j1f; y1f;
   }
 }

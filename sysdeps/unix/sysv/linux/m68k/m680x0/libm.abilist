@@ -988,8 +988,10 @@ GLIBC_2.42 rsqrtf64 F
 GLIBC_2.42 rsqrtl F
 GLIBC_2.43 acoshf F
 GLIBC_2.43 j0f F
+GLIBC_2.43 j1f F
 GLIBC_2.43 lgammaf F
 GLIBC_2.43 lgammaf_r F
 GLIBC_2.43 sqrtf F
 GLIBC_2.43 tgammaf F
 GLIBC_2.43 y0f F
+GLIBC_2.43 y1f F
