@@ -35,6 +35,46 @@ ll_highpart (mp_limb_t t)
   return t >> (BITS_PER_MP_LIMB / 2);
 }
 
+/* umul_ppmm(high_prod, low_prod, multiplier, multiplicand) multiplies two
+   UWtype integers MULTIPLIER and MULTIPLICAND, and generates a two UWtype
+   word product in HIGH_PROD and LOW_PROD.  */
+static __always_inline void
+umul_ppmm_generic (mp_limb_t *w1, mp_limb_t *w0, mp_limb_t u, mp_limb_t v)
+{
+#if __WORDSIZE == 32
+  uint64_t t0 = (uint64_t)u * v;
+  *w1 = t0 >> 32;
+  *w0 = t0;
+#else
+  mp_limb_t ul = ll_lowpart (u);
+  mp_limb_t uh = ll_highpart (u);
+  mp_limb_t vl = ll_lowpart (v);
+  mp_limb_t vh = ll_highpart (v);
+
+  mp_limb_t x0 = ul * vl;
+  mp_limb_t x1 = ul * vh;
+  mp_limb_t x2 = uh * vl;
+  mp_limb_t x3 = uh * vh;
+
+  x1 += ll_highpart (x0);
+  x1 += x2;
+  if (x1 < x2)
+    x3 += LL_B;
+
+  *w1 = x3 + ll_highpart (x1);
+  *w0 = ll_lowpart (x1) * LL_B + ll_lowpart (x0);
+#endif
+}
+#undef umul_ppmm
+#define umul_ppmm(__w1, __w0, __u, __v)			\
+  ({							\
+    __typeof (__w0) __w0t;				\
+    __typeof (__w1) __w1t;				\
+    umul_ppmm_generic (&__w1t, &__w0t, __u, __v);	\
+    __w1 = __w1t;					\
+    __w0 = __w0t;					\
+  })
+
 /* udiv_qrnnd(quotient, remainder, high_numerator, low_numerator,
    denominator) divides a UDWtype, composed by the UWtype integers
    HIGH_NUMERATOR and LOW_NUMERATOR, by DENOMINATOR and places the quotient

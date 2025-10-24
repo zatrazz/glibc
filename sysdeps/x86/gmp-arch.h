@@ -22,6 +22,27 @@
 #include <gmp.h>
 
 static __always_inline void
+umul_ppmm_generic (mp_limb_t *w1, mp_limb_t *w0, mp_limb_t u, mp_limb_t v)
+{
+#ifdef __x86_64__
+  asm ("mul{q} %3"
+       : "=a" (*w0),
+         "=d" (*w1)
+       : "%0" (u),
+         "rm" (v));
+#else
+  asm ("mul{l} %3"
+       : "=a" (*w0),
+         "=d" (*w1)
+       : "%0" (u),
+         "rm" (v));
+#endif
+}
+#undef umul_ppmm
+#define umul_ppmm(__w1, __w0, __u, __v) \
+  umul_ppmm_generic (&__w1, &__w0, __u, __v)
+
+static __always_inline void
 udiv_qrnnd_x86 (mp_limb_t *q, mp_limb_t *r, mp_limb_t n1, mp_limb_t n0,
 		mp_limb_t d)
 {
