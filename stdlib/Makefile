@@ -506,7 +506,6 @@ routines := \
   # routines
 aux += \
   fpioconst \
-  mp_clz_tab \
   # aux
 
 tests-extras += \
