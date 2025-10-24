@@ -95,4 +95,38 @@ udiv_qrnnd_generic (mp_limb_t *q, mp_limb_t *r, mp_limb_t n1, mp_limb_t n0,
 #undef UDIV_NEEDS_NORMALIZATION
 #define UDIV_NEEDS_NORMALIZATION 1
 
+
+/* add_ssaaaa(high_sum, low_sum, high_addend_1, low_addend_1,
+   high_addend_2, low_addend_2) adds two UWtype integers, composed by
+   HIGH_ADDEND_1 and LOW_ADDEND_1, and HIGH_ADDEND_2 and LOW_ADDEND_2
+   respectively.  The result is placed in HIGH_SUM and LOW_SUM.  Overflow
+   (i.e. carry out) is not stored anywhere, and is lost.  */
+static __always_inline void
+add_ssaaaa_generic (mp_limb_t *sh, mp_limb_t *sl, mp_limb_t ah,
+		    mp_limb_t al,  mp_limb_t bh,  mp_limb_t bl)
+{
+  *sl = al + bl;
+  *sh = (ah + bh) + (*sl < al);
+}
+#undef add_ssaaaa
+#define add_ssaaaa(sh, sl, ah, al, bh, bl) \
+  add_ssaaaa_generic (&sh, &sl, ah, al, bh, bl)
+
+/* sub_ddmmss(high_difference, low_difference, high_minuend, low_minuend,
+   high_subtrahend, low_subtrahend) subtracts two two-word UWtype integers,
+   composed by HIGH_MINUEND_1 and LOW_MINUEND_1, and HIGH_SUBTRAHEND_2 and
+   LOW_SUBTRAHEND_2 respectively.  The result is placed in HIGH_DIFFERENCE
+   and LOW_DIFFERENCE.  Overflow (i.e. carry out) is not stored anywhere,
+   and is lost.  */
+static __always_inline void
+sub_ssaaaa_generic (mp_limb_t *sh, mp_limb_t *sl, mp_limb_t ah,
+		    mp_limb_t al,  mp_limb_t bh,  mp_limb_t bl)
+{
+  *sl = al - bl;
+  *sh = (ah - bh) - (*sl > al);
+}
+#undef sub_ssaaaa
+#define sub_ssaaaa(sh, sl, ah, al, bh, bl) \
+  sub_ssaaaa_generic (&sh, &sl, ah, al, bh, bl)
+
 #endif

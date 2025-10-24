@@ -18,9 +18,15 @@ typedef long int __gcc_CMPtype;
 
 #ifdef __x86_64__
 # define _FP_W_TYPE_SIZE	64
-# define _FP_W_TYPE		unsigned long long
-# define _FP_WS_TYPE		signed long long
-# define _FP_I_TYPE		long long
+# ifndef __ILP32__
+#  define _FP_W_TYPE		unsigned long
+#  define _FP_WS_TYPE		signed long
+#  define _FP_I_TYPE		long
+# else
+#  define _FP_W_TYPE		unsigned long long
+#  define _FP_WS_TYPE		signed long long
+#  define _FP_I_TYPE		long long
+# endif
 
 typedef int TItype __attribute__ ((mode (TI)));
 typedef unsigned int UTItype __attribute__ ((mode (TI)));
