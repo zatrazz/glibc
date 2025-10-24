@@ -47,4 +47,56 @@ udiv_qrnnd_x86 (mp_limb_t *q, mp_limb_t *r, mp_limb_t n1, mp_limb_t n0,
 #define udiv_qrnnd(__q, __r, __n1, __n0, __d) \
   udiv_qrnnd_x86 (&__q, &__r, __n1, __n0, __d)
 
+static __always_inline void
+add_ssaaaa_x86 (mp_limb_t *sh, mp_limb_t *sl, mp_limb_t ah,
+		mp_limb_t al, mp_limb_t bh, mp_limb_t bl)
+{
+#ifdef __x86_64__
+  asm ("add{q} {%5,%1|%1,%5}\n\tadc{q} {%3,%0|%0,%3}"
+       : "=r" (*sh),
+         "=&r" (*sl)
+       : "%0" (ah),
+         "rme" (bh),
+	 "%1" (al),
+	 "rme" (bl));
+#else
+  asm ("add{l} {%5,%1|%1,%5}\n\tadc{l} {%3,%0|%0,%3}"
+       : "=r" (*sh),
+         "=&r" (*sl)
+       : "%0" (ah),
+          "g" (bh),
+	  "%1" (al),
+	  "g" (bl));
+#endif
+}
+#undef add_ssaaaa
+#define add_ssaaaa(__sh, __sl, __ah, __al, __bh, __bl) \
+  add_ssaaaa_x86 (&__sh, &__sl, __ah, __al, __bh, __bl)
+
+static __always_inline void
+sub_ddmmss_x86 (mp_limb_t *sh, mp_limb_t *sl, mp_limb_t ah,
+		mp_limb_t al, mp_limb_t bh, mp_limb_t bl)
+{
+#ifdef __x86_64__
+  asm ("sub{q} {%5,%1|%1,%5}\n\tsbb{q} {%3,%0|%0,%3}"
+       : "=r" (*sh),
+         "=&r" (*sl)
+       : "0" (ah),
+         "rme" (bh),
+	 "1" (al),
+	 "rme" (bl));
+#else
+  asm ("sub{l} {%5,%1|%1,%5}\n\tsbb{l} {%3,%0|%0,%3}"
+       : "=r" (*sh),
+         "=&r" (*sl)
+       : "0" (ah),
+         "g" (bh),
+	 "1" (al),
+	 "g" (bl));
+#endif
+}
+#undef sub_ddmmss
+#define sub_ddmmss(__sh, __sl, __ah, __al, __bh, __bl) \
+  sub_ddmmss_x86 (&__sh, &__sl, __ah, __al, __bh, __bl)
+
 #endif
