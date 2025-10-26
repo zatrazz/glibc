@@ -18,9 +18,6 @@
 #include <sgidefs.h>
 #include <sysdeps/unix/sysdep.h>
 
-#ifndef __mips_isa_rev
-# define __mips_isa_rev 0
-#endif
 
 #ifdef __ASSEMBLER__
 
