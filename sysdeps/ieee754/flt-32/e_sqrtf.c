@@ -15,7 +15,6 @@
 #include <math.h>
 #include <math_private.h>
 #include <libm-alias-finite.h>
-#include <math-use-builtins.h>
 
 float
 __ieee754_sqrtf(float x)
