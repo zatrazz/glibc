@@ -6,3 +6,6 @@
   libm_alias_float128_other_r (from, to, r)
 #endif
 #include "../ldbl-128/s_fabsl.c"
+#ifndef __USE_EXTERN_INLINES
+libm_hidden_def (fabsf128)
+#endif
