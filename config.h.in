@@ -320,4 +320,7 @@
 /* Define if trunc is inlined on x86.  */
 #undef HAVE_X86_INLINE_TRUNC
 
+/* Define if compiler suport __attribute__ ((mode (__libgcc_cmp_return__))).  */
+#undef HAVE_X86_LIBGCC_CMP_RETURN_ATTR
+
 #endif
