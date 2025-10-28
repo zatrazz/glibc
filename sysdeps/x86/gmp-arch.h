@@ -38,7 +38,6 @@ umul_ppmm_generic (mp_limb_t *w1, mp_limb_t *w0, mp_limb_t u, mp_limb_t v)
          "rm" (v));
 #endif
 }
-#undef umul_ppmm
 #define umul_ppmm(__w1, __w0, __u, __v) \
   umul_ppmm_generic (&__w1, &__w0, __u, __v)
 
@@ -62,9 +61,7 @@ udiv_qrnnd_x86 (mp_limb_t *q, mp_limb_t *r, mp_limb_t n1, mp_limb_t n0,
 	 "rm" (d));
 #endif
 }
-#undef UDIV_NEEDS_NORMALIZATION
 #define UDIV_NEEDS_NORMALIZATION 0
-#undef udiv_qrnnd
 #define udiv_qrnnd(__q, __r, __n1, __n0, __d) \
   udiv_qrnnd_x86 (&__q, &__r, __n1, __n0, __d)
 
@@ -90,7 +87,6 @@ add_ssaaaa_x86 (mp_limb_t *sh, mp_limb_t *sl, mp_limb_t ah,
 	  "g" (bl));
 #endif
 }
-#undef add_ssaaaa
 #define add_ssaaaa(__sh, __sl, __ah, __al, __bh, __bl) \
   add_ssaaaa_x86 (&__sh, &__sl, __ah, __al, __bh, __bl)
 
@@ -116,7 +112,6 @@ sub_ddmmss_x86 (mp_limb_t *sh, mp_limb_t *sl, mp_limb_t ah,
 	 "g" (bl));
 #endif
 }
-#undef sub_ddmmss
 #define sub_ddmmss(__sh, __sl, __ah, __al, __bh, __bl) \
   sub_ddmmss_x86 (&__sh, &__sl, __ah, __al, __bh, __bl)
 
