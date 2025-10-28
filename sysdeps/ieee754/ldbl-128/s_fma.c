@@ -26,7 +26,6 @@
 #include <ieee754.h>
 #include <libm-alias-double.h>
 #include <math-narrow-alias.h>
-#include <math-use-builtins.h>
 
 /* This implementation relies on long double being more than twice as
    precise as double and uses rounding to odd in order to avoid problems
