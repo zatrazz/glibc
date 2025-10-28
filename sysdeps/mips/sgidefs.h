@@ -24,6 +24,9 @@
 #undef __ASM_SGIDEFS_H
 #define __ASM_SGIDEFS_H
 
+#ifndef __mips_isa_rev
+# define __mips_isa_rev 0
+#endif
 /*
  * And remove any damage it might have already done
  */
