@@ -147,7 +147,7 @@ libm_hidden_proto (fabsf128)
 /* NO_MATH_REDIRECT must be defined in the source implementing function,
    FUNC, if FUNC is implemented as an alias of __FUNC or vice versa to
    avoid redirecting FUNC to __FUNC.  */
-# include <math-use-builtins.h>
+#  include <math-use-builtins.h>
 /* NB: Do not redirect math builtin functions when they are inlined.  */
 #  ifndef NO_MATH_REDIRECT
 /* Declare some functions for use within GLIBC.  Compilers typically
