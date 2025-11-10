@@ -1520,26 +1520,6 @@ else
   AC_DEFINE(__HAVE_64B_ATOMICS, 0)
  fi
 
-AC_CACHE_CHECK(for redirection of built-in functions, libc_cv_gcc_builtin_redirection, [dnl
-cat > conftest.c <<\EOF
-extern char *strstr (const char *, const char *) __asm ("my_strstr");
-char *foo (const char *a, const char *b)
-{
-  return __builtin_strstr (a, b);
-}
-EOF
-dnl
-if AC_TRY_COMMAND([${CC-cc} -O3 -S conftest.c -o - | grep -F "my_strstr" > /dev/null]);
-then
-  libc_cv_gcc_builtin_redirection=yes
-else
-  libc_cv_gcc_builtin_redirection=no
-fi
-rm -f conftest* ])
-if test "$libc_cv_gcc_builtin_redirection" = no; then
-  AC_MSG_ERROR([support for the symbol redirection needed])
-fi
-
 dnl Determine how to disable generation of FMA instructions.
 AC_CACHE_CHECK([for compiler option to disable generation of FMA instructions],
 	       libc_cv_cc_nofma, [dnl
