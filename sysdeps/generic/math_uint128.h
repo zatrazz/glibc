@@ -64,13 +64,13 @@ typedef struct
 
 # define MASK32                 (UINT64_C(0xffffffff))
 
-static u128 u128_add (u128 x, u128 y)
+static inline u128 u128_add (u128 x, u128 y)
 {
   bool carry = x.low + y.low < x.low;
   return (u128) { .high = x.high + y.high + carry, .low = x.low + y.low };
 }
 
-static u128 u128_lshift (u128 x, unsigned int n)
+static inline u128 u128_lshift (u128 x, unsigned int n)
 {
   switch (n)
     {
@@ -82,7 +82,7 @@ static u128 u128_lshift (u128 x, unsigned int n)
     }
 }
 
-static u128 u128_rshift (u128 x, unsigned int n)
+static inline u128 u128_rshift (u128 x, unsigned int n)
 {
   switch (n)
     {
@@ -94,7 +94,7 @@ static u128 u128_rshift (u128 x, unsigned int n)
     }
 }
 
-static u128 u128_mul (u128 x, u128 y)
+static inline u128 u128_mul (u128 x, u128 y)
 {
   if (x.high == 0 && y.high == 0)
     {
