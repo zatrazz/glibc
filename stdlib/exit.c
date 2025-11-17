@@ -21,6 +21,7 @@
 #include <pointer_guard.h>
 #include <libc-lock.h>
 #include <set-freeres.h>
+#include <ldsodefs.h>
 #include "exit.h"
 
 /* Initialize the flag that indicates exit function processing
@@ -113,10 +114,17 @@ __run_exit_handlers (int status, struct exit_function_list **listp,
 	      arg = f->func.cxa.arg;
 	      PTR_DEMANGLE (cxafct);
 
+	      /* Track the DSO handle of the currently-executing callback so
+		 that _dl_close_worker can protect it from being unloaded if a
+		 destructor calls dlclose on another library (BZ 33598).  */
+	      GL(dl_exit_cxa_dso_handle) = f->func.cxa.dso_handle;
+
 	      /* Unlock the list while we call a foreign function.  */
 	      __libc_lock_unlock (__exit_funcs_lock);
 	      cxafct (arg, status);
 	      __libc_lock_lock (__exit_funcs_lock);
+
+	      GL(dl_exit_cxa_dso_handle) = NULL;
 	      break;
 	    }
 

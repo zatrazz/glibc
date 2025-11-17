@@ -144,6 +144,10 @@ _dl_close_worker (struct link_map *map, bool force)
   bool any_tls = false;
   const unsigned int nloaded = ns->_ns_nloaded;
   struct link_map *maps[nloaded];
+  /* If a __cxa_atexit callback is currently running, its library must not
+     be unloaded while still on the call stack.  Get the address of the DSO
+     handle to identify which map to protect in the loop below.  */
+  ElfW(Addr) cxa_dso = (ElfW(Addr)) GL(dl_exit_cxa_dso_handle);
 
   /* Run over the list and assign indexes to the link maps and enter
      them into the MAPS array.  */
@@ -185,7 +189,12 @@ _dl_close_worker (struct link_map *map, bool force)
 	  /* See CONCURRENCY NOTES in cxa_thread_atexit_impl.c to know why
 	     acquire is sufficient and correct.  */
 	  && atomic_load_acquire (&l->l_tls_dtor_count) == 0
-	  && !l->l_map_used)
+	  && !l->l_map_used
+	  /* Protect the library whose __cxa_atexit callback is currently
+	     executing: its pages must not be unmapped while still in use.  */
+	  && (cxa_dso == 0
+	      || cxa_dso < l->l_map_start
+	      || cxa_dso >= l->l_map_end))
 	continue;
 
       /* We need this object and we handle it now.  */

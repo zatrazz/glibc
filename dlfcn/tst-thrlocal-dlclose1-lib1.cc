@@ -1,0 +1,50 @@
+/* Module for tst-thrlocal-dlclose test.
+   Copyright (C) 2025 Free Software Foundation, Inc.
+   This file is part of the GNU C Library.
+
+   The GNU C Library is free software; you can redistribute it and/or
+   modify it under the terms of the GNU Lesser General Public
+   License as published by the Free Software Foundation; either
+   version 2.1 of the License, or (at your option) any later version.
+
+   The GNU C Library is distributed in the hope that it will be useful,
+   but WITHOUT ANY WARRANTY; without even the implied warranty of
+   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
+   Lesser General Public License for more details.
+
+   You should have received a copy of the GNU Lesser General Public
+   License along with the GNU C Library; if not, see
+   <https://www.gnu.org/licenses/>.  */
+
+#include <assert.h>
+#include <memory>
+#include <dlfcn.h>
+
+thread_local std::unique_ptr<int> tlp;
+
+static struct c1
+{
+  void *h;
+  int lib2_fini_ran = 0;
+
+  c1 ()
+  {
+    h = dlopen ("tst-thrlocal-dlclose1-lib2.so", RTLD_NOW);
+    assert (h != NULL);
+
+    void (*set_fini_flag)(int *) =
+      (void (*)(int *)) dlsym (h, "set_fini_flag");
+    assert (set_fini_flag != NULL);
+    set_fini_flag (&lib2_fini_ran);
+
+    tlp = std::make_unique<int>();
+  }
+
+  ~c1 ()
+  {
+    assert (dlclose (h) == 0);
+    /* Verify lib2's destructor ran during dlclose, not deferred to
+       _dl_fini.  */
+    assert (lib2_fini_ran == 1);
+  }
+} c1;

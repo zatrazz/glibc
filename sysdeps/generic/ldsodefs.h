@@ -441,6 +441,11 @@ struct rtld_global
   /* Generation counter for the dtv.  */
   EXTERN size_t _dl_tls_generation;
 
+  /* DSO handle of the __cxa_atexit callback currently executing, or NULL.
+     Used in _dl_close_worker to protect the executing library from being
+     unloaded while its destructor is still on the call stack (BZ 33598).  */
+  EXTERN void *_dl_exit_cxa_dso_handle;
+
   /* Scopes to free after next THREAD_GSCOPE_WAIT ().  */
   EXTERN struct dl_scope_free_list
   {

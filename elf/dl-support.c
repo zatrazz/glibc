@@ -169,6 +169,8 @@ fpu_control_t _dl_fpu_control = _FPU_DEFAULT;
 /* Required flags used for stack allocation.  */
 int _dl_stack_prot_flags = DEFAULT_STACK_PROT_PERMS;
 
+void *_dl_exit_cxa_dso_handle = NULL;
+
 #if __PTHREAD_NPTL
 list_t _dl_stack_used;
 list_t _dl_stack_user;
