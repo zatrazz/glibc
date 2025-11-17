@@ -1,5 +1,5 @@
-/* Close a handle opened by `dlopen'.
-   Copyright (C) 1995-2025 Free Software Foundation, Inc.
+/* Module for tst-thrlocal-dlclose test.
+   Copyright (C) 2025 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,28 +16,38 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <assert.h>
+#include <memory>
 #include <dlfcn.h>
-#include <ldsodefs.h>
-#include <shlib-compat.h>
 
-static void
-dlclose_doit (void *handle)
+thread_local std::unique_ptr<int> tlp;
+
+static struct c1
 {
-  GLRO (dl_close) (handle, false);
-}
+  void *h;
 
-int
-__dlclose (void *handle)
-{
-#ifdef SHARED
-  if (GLRO (dl_dlfcn_hook) != NULL)
-    return GLRO (dl_dlfcn_hook)->dlclose (handle);
-#endif
+  void (*init)(void);
+  void (*cleanup)(void);
 
-  return _dlerror_run (dlclose_doit, handle) ? -1 : 0;
-}
-versioned_symbol (libc, __dlclose, dlclose, GLIBC_2_34);
+  c1 ()
+  {
+    h = dlopen ("tst-thrlocal-dlclose2-lib2.so", RTLD_NOW);
+    assert (h != NULL);
 
-#if OTHER_SHLIB_COMPAT (libdl, GLIBC_2_0, GLIBC_2_34)
-compat_symbol (libdl, __dlclose, dlclose, GLIBC_2_0);
-#endif
+    init = (void (*)(void)) dlsym (h, "init");
+    assert (init);
+
+    cleanup = (void (*)(void)) dlsym (h, "cleanup");
+    assert(cleanup);
+
+    init ();
+
+    tlp = std::make_unique<int>();
+  }
+
+  ~c1 ()
+  {
+    cleanup ();
+    assert (dlclose (h) == 0);
+  }
+} c1;

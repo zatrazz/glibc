@@ -106,7 +106,7 @@ remove_slotinfo (size_t idx, struct dtv_slotinfo_list *listp, size_t disp,
 }
 
 void
-_dl_close_worker (struct link_map *map, bool force)
+_dl_close_worker (struct link_map *map, bool force, bool ignore_at_exit)
 {
   /* One less direct use.  */
   --map->l_direct_opencount;
@@ -139,6 +139,14 @@ _dl_close_worker (struct link_map *map, bool force)
   bool any_tls = false;
   const unsigned int nloaded = ns->_ns_nloaded;
   struct link_map *maps[nloaded];
+  /* Assume all objects are still in use during process exit to avoid
+     potential issues where an object is unmapped while still in use
+     (BZ 33598).
+     Also handle special cases where libc requires the object to be unmapped,
+     and not doing so would report a leak issue (__libc_freeres, used by
+     malloc trace).  For this case, libc knows it is safe to unmap the
+     object.  */
+  bool assume_in_use = ignore_at_exit || !GL(dl_at_exit);
 
   /* Run over the list and assign indexes to the link maps and enter
      them into the MAPS array.  */
@@ -180,7 +188,8 @@ _dl_close_worker (struct link_map *map, bool force)
 	  /* See CONCURRENCY NOTES in cxa_thread_atexit_impl.c to know why
 	     acquire is sufficient and correct.  */
 	  && atomic_load_acquire (&l->l_tls_dtor_count) == 0
-	  && !l->l_map_used)
+	  && !l->l_map_used
+	  && assume_in_use)
 	continue;
 
       /* We need this object and we handle it now.  */
@@ -754,7 +763,7 @@ _dl_close_worker (struct link_map *map, bool force)
 
 
 void
-_dl_close (void *_map)
+_dl_close (void *_map, bool ignore_at_exit)
 {
   struct link_map *map = _map;
 
@@ -790,7 +799,7 @@ _dl_close (void *_map)
       _dl_signal_error (0, map->l_name, NULL, N_("shared object not open"));
     }
 
-  _dl_close_worker (map, false);
+  _dl_close_worker (map, false, ignore_at_exit);
 
   __rtld_lock_unlock_recursive (GL(dl_load_lock));
 }
