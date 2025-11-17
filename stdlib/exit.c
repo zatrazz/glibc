@@ -21,6 +21,7 @@
 #include <pointer_guard.h>
 #include <libc-lock.h>
 #include <set-freeres.h>
+#include <ldsodefs.h>
 #include "exit.h"
 
 /* Initialize the flag that indicates exit function processing
@@ -45,6 +46,9 @@ __run_exit_handlers (int status, struct exit_function_list **listp,
 {
   /* The exit should never return, so there is no need to unlock it.  */
   __libc_lock_lock_recursive (__exit_lock);
+
+  /* Disable unmap objects through dlclose by TLS destructor (BZ 33598).  */
+  GL(dl_at_exit) = true;
 
   /* First, call the TLS destructors.  */
   if (run_dtors)

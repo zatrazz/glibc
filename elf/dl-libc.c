@@ -122,7 +122,7 @@ do_dlvsym (void *ptr)
 static void
 do_dlclose (void *ptr)
 {
-  GLRO(dl_close) ((struct link_map *) ptr);
+  GLRO(dl_close) ((struct link_map *) ptr, true);
 }
 
 #ifndef SHARED

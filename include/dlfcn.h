@@ -68,11 +68,11 @@ extern int _dl_addr (const void *address, Dl_info *info,
 struct link_map;
 
 /* Close an object previously opened by _dl_open.  */
-extern void _dl_close (void *map) attribute_hidden;
+extern void _dl_close (void *map, bool ignore_at_exit) attribute_hidden;
 /* Same as above, but without locking and safety checks for user
    provided map arguments.  */
-extern void _dl_close_worker (struct link_map *map, bool force)
-    attribute_hidden;
+extern void _dl_close_worker (struct link_map *map, bool force,
+			      bool ignore_at_exit) attribute_hidden;
 
 /* Look up NAME in shared object HANDLE (which may be RTLD_DEFAULT or
    RTLD_NEXT).  WHO is the calling function, for RTLD_NEXT.  Returns
