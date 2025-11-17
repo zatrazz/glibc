@@ -67,6 +67,12 @@ struct do_dlopen_args
   struct link_map *map;
 };
 
+struct dl_dlclose_args
+{
+  void *handler;
+  void *caller;
+};
+
 struct do_dlsym_args
 {
   /* Arguments to do_dlsym.  */
@@ -122,7 +128,8 @@ do_dlvsym (void *ptr)
 static void
 do_dlclose (void *ptr)
 {
-  GLRO(dl_close) ((struct link_map *) ptr);
+  struct dl_dlclose_args *args = (struct dl_dlclose_args *) ptr;
+  GLRO(dl_close) (args->handler, args->caller);
 }
 
 #ifndef SHARED
@@ -224,5 +231,8 @@ __libc_dlclose (void *map)
   if (GLRO (dl_dlfcn_hook) != NULL)
     return GLRO (dl_dlfcn_hook)->libc_dlclose (map);
 #endif
-  return dlerror_run (do_dlclose, map);
+
+  return dlerror_run (do_dlclose, &(struct dl_dlclose_args) {
+				    .handler = map,
+				    .caller = RETURN_ADDRESS (0)});
 }

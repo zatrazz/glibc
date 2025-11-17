@@ -887,7 +887,7 @@ unload_audit_module (struct link_map *map, int original_tls_idx)
 #ifndef NDEBUG
   Lmid_t ns = map->l_ns;
 #endif
-  _dl_close (map);
+  _dl_close (map, dl_main);
 
   /* Make sure the namespace has been cleared entirely.  */
   assert (GL(dl_ns)[ns]._ns_loaded == NULL);

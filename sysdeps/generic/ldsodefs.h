@@ -648,7 +648,7 @@ struct rtld_global_ro
 				   struct link_map *);
   void *(*_dl_open) (const char *file, int mode, const void *caller_dlopen,
 		     Lmid_t nsid, int argc, char *argv[], char *env[]);
-  void (*_dl_close) (void *map);
+  void (*_dl_close) (void *map, void *caller_dlclose);
   /* libdl in a secondary namespace (after dlopen) must use
      _dl_catch_error from the main namespace, so it has to be
      exported in some way.  */

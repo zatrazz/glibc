@@ -20,18 +20,51 @@
 #include <ldsodefs.h>
 #include <shlib-compat.h>
 
-int
-__dlclose (void *handle)
+struct dlclose_args
 {
+  void *handle;
+  void *caller;
+};
+
+static void
+dlclose_doit (void *a)
+{
+  struct dlclose_args *args = (struct dlclose_args *) a;
+  GLRO(dl_close) (args->handle, args->caller);
+}
+
+static int
+dlclose_implementation (void *handle, void *dl_caller)
+{
+  return _dlerror_run (dlclose_doit, &(struct dlclose_args) {
+				       .handle= handle,
+				       .caller = RETURN_ADDRESS (0)}) ? -1 : 0;
+}
+
 #ifdef SHARED
+int
+___dlclose (void *handle)
+{
   if (GLRO (dl_dlfcn_hook) != NULL)
-    return GLRO (dl_dlfcn_hook)->dlclose (handle);
+    return GLRO (dl_dlfcn_hook)->dlclose (handle, RETURN_ADDRESS (0));
+  return dlclose_implementation (handle, RETURN_ADDRESS (0));
+}
+versioned_symbol (libc, ___dlclose, dlclose, GLIBC_2_34);
+#else
+int
+__dlclose (void *handle, void *dl_caller)
+{
+  return dlclose_implementation (handle, dl_caller);
+}
+
+int
+___dlclose (void *handle)
+{
+  return __dlclose (handle, RETURN_ADDRESS (0));
+}
+weak_alias (___dlclose, dlclose)
 #endif
 
-  return _dlerror_run (GLRO (dl_close), handle) ? -1 : 0;
-}
-versioned_symbol (libc, __dlclose, dlclose, GLIBC_2_34);
-
 #if OTHER_SHLIB_COMPAT (libdl, GLIBC_2_0, GLIBC_2_34)
-compat_symbol (libdl, __dlclose, dlclose, GLIBC_2_0);
+compat_symbol (libdl, ___dlclose, dlclose, GLIBC_2_0);
 #endif

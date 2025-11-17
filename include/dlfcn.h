@@ -68,10 +68,12 @@ extern int _dl_addr (const void *address, Dl_info *info,
 struct link_map;
 
 /* Close an object previously opened by _dl_open.  */
-extern void _dl_close (void *map) attribute_hidden;
+extern void _dl_close (void *map, void *dl_caller) attribute_hidden;
 /* Same as above, but without locking and safety checks for user
    provided map arguments.  */
-extern void _dl_close_worker (struct link_map *map, bool force)
+extern void _dl_close_worker (struct link_map *map,
+			      const struct link_map *caller,
+			      bool force)
     attribute_hidden;
 
 /* Look up NAME in shared object HANDLE (which may be RTLD_DEFAULT or
@@ -100,7 +102,7 @@ struct dlfcn_hook
 {
   /* Public interfaces.  */
   void *(*dlopen) (const char *file, int mode, void *dl_caller);
-  int (*dlclose) (void *handle);
+  int (*dlclose) (void *handle, void *dl_caller);
   void *(*dlsym) (void *handle, const char *name, void *dl_caller);
   void *(*dlvsym) (void *handle, const char *name, const char *version,
 		   void *dl_caller);
@@ -125,7 +127,7 @@ struct dlfcn_hook
 extern void *__dlopen (const char *file, int mode, void *caller);
 extern void *__dlmopen (Lmid_t nsid, const char *file, int mode,
 			void *dl_caller);
-extern int __dlclose (void *handle);
+extern int __dlclose (void *handle, void *caller);
 extern void *__dlsym (void *handle, const char *name, void *dl_caller);
 extern void *__dlvsym (void *handle, const char *name, const char *version,
 		       void *dl_caller);

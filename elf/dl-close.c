@@ -106,7 +106,8 @@ remove_slotinfo (size_t idx, struct dtv_slotinfo_list *listp, size_t disp,
 }
 
 void
-_dl_close_worker (struct link_map *map, bool force)
+_dl_close_worker (struct link_map *map, const struct link_map *caller_map,
+		  bool force)
 {
   /* One less direct use.  */
   --map->l_direct_opencount;
@@ -180,7 +181,8 @@ _dl_close_worker (struct link_map *map, bool force)
 	  /* See CONCURRENCY NOTES in cxa_thread_atexit_impl.c to know why
 	     acquire is sufficient and correct.  */
 	  && atomic_load_acquire (&l->l_tls_dtor_count) == 0
-	  && !l->l_map_used)
+	  && !l->l_map_used
+	  && l != caller_map)
 	continue;
 
       /* We need this object and we handle it now.  */
@@ -754,7 +756,7 @@ _dl_close_worker (struct link_map *map, bool force)
 
 
 void
-_dl_close (void *_map)
+_dl_close (void *_map, void *caller_dlclose)
 {
   struct link_map *map = _map;
 
@@ -790,7 +792,16 @@ _dl_close (void *_map)
       _dl_signal_error (0, map->l_name, NULL, N_("shared object not open"));
     }
 
-  _dl_close_worker (map, false);
+  const struct link_map *caller_map;
+  {
+    struct dl_find_object dlfo;
+    if (_dl_find_object (caller_dlclose, &dlfo) == 0)
+      caller_map = dlfo.dlfo_link_map;
+    else
+      caller_map = GL(dl_ns)[LM_ID_BASE]._ns_loaded;
+  }
+
+  _dl_close_worker (map, caller_map, false);
 
   __rtld_lock_unlock_recursive (GL(dl_load_lock));
 }

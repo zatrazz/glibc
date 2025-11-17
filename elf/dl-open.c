@@ -929,7 +929,7 @@ no more namespaces available for dlmopen()"));
 	 state if relocation failed, for example.  */
       if (args.map)
 	{
-	  _dl_close_worker (args.map, true);
+	  _dl_close_worker (args.map, caller_dlopen, true);
 
 	  /* All l_nodelete_pending objects should have been deleted
 	     at this point, which is why it is not necessary to reset
