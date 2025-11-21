@@ -1633,6 +1633,26 @@ LIBC_TRY_TEST_CC_OPTION([-Wno-fortify-source],
 LIBC_CONFIG_VAR([test-config-cflags-wno-fortify-source],
 		[$libc_cv_test_cflags_wno_fortify_source])
 
+dnl Check how to suppress C23-qualifier-generic const warnings.  GCC has
+dnl -Wno-discarded-qualifiers, while clang -Wno-incompatible-pointer-types-discards-qualifiers
+LIBC_TRY_TEST_CC_OPTION([-Wno-discarded-qualifiers],
+  [-Werror -Wno-discarded-qualifiers],
+  libc_cv_test_cflags_wno_discarded_qualifiers,
+  [libc_cv_test_cflags_wno_discarded_qualifiers=-Wno-discarded-qualifiers],
+  [libc_cv_test_cflags_wno_discarded_qualifiers=]
+)
+if test -z "$libc_cv_test_cflags_wno_discarded_qualifiers"; then
+  LIBC_TRY_TEST_CC_OPTION([-Wno-incompatible-pointer-types-discards-qualifiers],
+    [-Werror -Wno-incompatible-pointer-types-discards-qualifiers],
+    libc_cv_test_cflags_wno_incompatible_pointer_type_discards_qualifiers,
+    [libc_cv_test_cflags_wno_incompatible_pointer_type_discards_qualifiers=-Wno-incompatible-pointer-types-discards-qualifiers],
+    [libc_cv_test_cflags_wno_incompatible_pointer_type_discards_qualifiers=]
+  )
+  libc_cv_test_cflags_wno_discarded_qualifiers=$libc_cv_test_cflags_wno_incompatible_pointer_type_discards_qualifiers
+fi
+LIBC_CONFIG_VAR([test-config-cflags-wno-discarded-qualifiers],
+		[$libc_cv_test_cflags_wno_discarded_qualifiers])
+
 dnl Check if TEST_CC supports -finput-charset=ascii.
 LIBC_TRY_TEST_CC_OPTION([-finput-charset=ascii],
   [-Werror -finput-charset=ascii],

@@ -8191,6 +8191,74 @@ test-config-cflags-wno-fortify-source = $libc_cv_test_cflags_wno_fortify_source"
 
 saved_CC="$CC"
 CC="$TEST_CC"
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking -Wno-discarded-qualifiers in testing" >&5
+printf %s "checking -Wno-discarded-qualifiers in testing... " >&6; }
+if test ${libc_cv_test_cflags_wno_discarded_qualifiers+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) if { ac_try='${CC-cc} -Werror -Wno-discarded-qualifiers -xc /dev/null -S -o /dev/null'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then :
+  libc_cv_test_cflags_wno_discarded_qualifiers=-Wno-discarded-qualifiers
+else case e in #(
+  e) libc_cv_test_cflags_wno_discarded_qualifiers=
+ ;;
+esac
+fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_test_cflags_wno_discarded_qualifiers" >&5
+printf "%s\n" "$libc_cv_test_cflags_wno_discarded_qualifiers" >&6; }
+
+CC="$saved_CC"
+
+
+if test -z "$libc_cv_test_cflags_wno_discarded_qualifiers"; then
+
+
+saved_CC="$CC"
+CC="$TEST_CC"
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking -Wno-incompatible-pointer-types-discards-qualifiers in testing" >&5
+printf %s "checking -Wno-incompatible-pointer-types-discards-qualifiers in testing... " >&6; }
+if test ${libc_cv_test_cflags_wno_incompatible_pointer_type_discards_qualifiers+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) if { ac_try='${CC-cc} -Werror -Wno-incompatible-pointer-types-discards-qualifiers -xc /dev/null -S -o /dev/null'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then :
+  libc_cv_test_cflags_wno_incompatible_pointer_type_discards_qualifiers=-Wno-incompatible-pointer-types-discards-qualifiers
+else case e in #(
+  e) libc_cv_test_cflags_wno_incompatible_pointer_type_discards_qualifiers=
+   ;;
+esac
+fi ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_test_cflags_wno_incompatible_pointer_type_discards_qualifiers" >&5
+printf "%s\n" "$libc_cv_test_cflags_wno_incompatible_pointer_type_discards_qualifiers" >&6; }
+
+CC="$saved_CC"
+
+
+  libc_cv_test_cflags_wno_discarded_qualifiers=$libc_cv_test_cflags_wno_incompatible_pointer_type_discards_qualifiers
+fi
+config_vars="$config_vars
+test-config-cflags-wno-discarded-qualifiers = $libc_cv_test_cflags_wno_discarded_qualifiers"
+
+
+
+saved_CC="$CC"
+CC="$TEST_CC"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking -finput-charset=ascii in testing" >&5
 printf %s "checking -finput-charset=ascii in testing... " >&6; }
 if test ${libc_cv_test_cflags_finput_charset_ascii+y}
