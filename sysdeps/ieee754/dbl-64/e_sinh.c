@@ -26,8 +26,9 @@ SOFTWARE.
 
 #include <math.h>
 #include <stdint.h>
-#include <errno.h>
 #include <libm-alias-finite.h>
+#include <libm-alias-double.h>
+#include <math-svid-compat.h>
 #include <ddcoremath.h>
 #include "math_config.h"
 
@@ -167,7 +168,7 @@ as_sinh_database (double x, double f)
 
 SECTION
 double
-__ieee754_sinh (double x)
+__sinh (double x)
 {
   /*
     The function sinh(x) is approximated by a minimax polynomial for
@@ -322,17 +323,12 @@ __ieee754_sinh (double x)
   if (__glibc_unlikely (aix < UINT64_C (0x3fd0000000000000)))
     { // |x| < 0x1p-2
       if (__glibc_unlikely (aix < UINT64_C (0x3e57137449123ef7)))
-	{
-	  // |x| < 0x1.7137449123ef7p-26
-	  /* We have underflow exactly when 0 < |x| < 2^-1022:
-	     for RNDU, sinh(2^-1022-2^-1074) would round to 2^-1022-2^-1075
-	     with unbounded exponent range */
-#ifdef CORE_MATH_SUPPORT_ERRNO
-	  if (x != 0 && fabs (x) < 0x1p-1022)
-	    errno = ERANGE; // underflow
-#endif
-	  return fma (x, 0x1p-55, x);
-	}
+	// |x| < 0x1.7137449123ef7p-26
+	/* We have underflow exactly when 0 < |x| < 2^-1022:
+	   for RNDU, sinh(2^-1022-2^-1074) would round to 2^-1022-2^-1075
+	   with unbounded exponent range */
+	return fma (x, 0x1p-55, x);
+
       static const double c[] = { 0x1.5555555555555p-3, 0x1.1111111111087p-7,
 				  0x1.a01a01a12e1c3p-13, 0x1.71de2e415aa36p-19,
 				  0x1.aed2bff4269e6p-26 };
@@ -349,10 +345,7 @@ __ieee754_sinh (double x)
     { // |x| >~ 710.47586
       if (aix >= UINT64_C (0x7ff0000000000000))
 	return x + x; // nan Inf
-#ifdef CORE_MATH_SUPPORT_ERRNO
-      errno = ERANGE;
-#endif
-      return copysign (0x1p1023, x) * 2.0;
+      return __math_oflow_value (copysign (0x1p1023, x) * 2.0);
     }
   int64_t il = ((uint64_t) jt << 14) >> 40, jl = -il;
   int64_t i1 = il & 0x3f, i0 = (il >> 6) & 0x3f, ie = il >> 12;
@@ -467,6 +460,13 @@ __ieee754_sinh (double x)
   return rh;
 }
 
-#ifndef __ieee754_sinh
+#ifndef __sinh
+strong_alias (__sinh, __ieee754_sinh)
+# if LIBM_SVID_COMPAT
+versioned_symbol (libm, __sinh, sinh, GLIBC_2_43);
+libm_alias_double_other (__sinh, sinh)
+# else
+libm_alias_double (__sinh, sinh)
+# endif
 libm_alias_finite (__ieee754_sinh, __sinh)
 #endif
