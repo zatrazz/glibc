@@ -2030,7 +2030,7 @@ LIBC_CONFIG_VAR([cc-pie-default], [$libc_cv_cc_pie_default])
 # non-zero load address.  This is only used by glibc tests to verify
 # that PIE and static PIE with non-zero load address work correctly.
 AC_CACHE_CHECK([PDE load address],
-	       libc_cv_pde_load_address, [dnl
+	       libc_cv_test_pde_load_address, [dnl
 cat > conftest.S <<EOF
 .globl _start
 _start:
@@ -2045,22 +2045,22 @@ if ${CC-cc} $pde_ld_flags $CFLAGS $CPPFLAGS $LDFLAGS \
 	    -nostartfiles -nostdlib $no_ssp \
 	    -o conftest conftest.S 1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD; then
   # Get the load address of the first PT_LOAD segment.
-  libc_cv_pde_load_address=$(LC_ALL=C $READELF -Wl conftest \
+  libc_cv_test_pde_load_address=$(LC_ALL=C $READELF -Wl conftest \
 			     | $AWK '/LOAD/ { print $3; exit 0; }')
 else
   AC_MSG_ERROR([${CC-cc} can not create PDE])
 fi
 rm -f conftest*])
-LIBC_CONFIG_VAR([pde-load-address], [$libc_cv_pde_load_address])
+LIBC_CONFIG_VAR([pde-load-address], [$libc_cv_test_pde_load_address])
 
 # Get the linker command-line option to load executable at a non-zero
 # load address.  This is only used by glibc tests to verify that PIE and
 # static PIE with non-zero load address work correctly.
-LIBC_LINKER_FEATURE([-Ttext-segment=$libc_cv_pde_load_address],
-		    [-Wl,-Ttext-segment=$libc_cv_pde_load_address],
-		    [libc_cv_load_address_ldflag=-Wl,-Ttext-segment],
-		    [libc_cv_load_address_ldflag=])
-LIBC_CONFIG_VAR([load-address-ldflag], [$libc_cv_load_address_ldflag])
+LIBC_TEST_LINKER_FEATURE([--image-base=$libc_cv_test_pde_load_address],
+			 [-Wl,--image-base=$libc_cv_test_pde_load_address],
+			 [libc_cv_test_load_address_ldflag=-Wl,--image-base],
+			 [libc_cv_test_load_address_ldflag=])
+LIBC_CONFIG_VAR([load-address-ldflag], [$libc_cv_test_load_address_ldflag])
 
 # Check if compiler supports -fno-fp-int-builtin-inexact
 LIBC_TRY_CC_AND_TEST_CC_OPTION([if compiler supports -fno-fp-int-builtin-inexact],

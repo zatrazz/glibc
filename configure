@@ -9090,7 +9090,7 @@ cc-pie-default = $libc_cv_cc_pie_default"
 # that PIE and static PIE with non-zero load address work correctly.
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking PDE load address" >&5
 printf %s "checking PDE load address... " >&6; }
-if test ${libc_cv_pde_load_address+y}
+if test ${libc_cv_test_pde_load_address+y}
 then :
   printf %s "(cached) " >&6
 else case e in #(
@@ -9108,7 +9108,7 @@ if ${CC-cc} $pde_ld_flags $CFLAGS $CPPFLAGS $LDFLAGS \
 	    -nostartfiles -nostdlib $no_ssp \
 	    -o conftest conftest.S 1>&5 2>&5; then
   # Get the load address of the first PT_LOAD segment.
-  libc_cv_pde_load_address=$(LC_ALL=C $READELF -Wl conftest \
+  libc_cv_test_pde_load_address=$(LC_ALL=C $READELF -Wl conftest \
 			     | $AWK '/LOAD/ { print $3; exit 0; }')
 else
   as_fn_error $? "${CC-cc} can not create PDE" "$LINENO" 5
@@ -9116,22 +9116,24 @@ fi
 rm -f conftest* ;;
 esac
 fi
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_pde_load_address" >&5
-printf "%s\n" "$libc_cv_pde_load_address" >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_test_pde_load_address" >&5
+printf "%s\n" "$libc_cv_test_pde_load_address" >&6; }
 config_vars="$config_vars
-pde-load-address = $libc_cv_pde_load_address"
+pde-load-address = $libc_cv_test_pde_load_address"
 
 # Get the linker command-line option to load executable at a non-zero
 # load address.  This is only used by glibc tests to verify that PIE and
 # static PIE with non-zero load address work correctly.
-{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for linker that supports -Ttext-segment=$libc_cv_pde_load_address" >&5
-printf %s "checking for linker that supports -Ttext-segment=$libc_cv_pde_load_address... " >&6; }
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for linker that supports --image-base=$libc_cv_test_pde_load_address" >&5
+printf %s "checking for linker that supports --image-base=$libc_cv_test_pde_load_address... " >&6; }
 libc_linker_feature=no
 cat > conftest.c <<EOF
 int _start (void) { return 42; }
 EOF
+saved_CC="$CC"
+CC="$TEST_CC"
 if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
-		  -Wl,-Ttext-segment=$libc_cv_pde_load_address -nostdlib -nostartfiles
+		  -Wl,--image-base=$libc_cv_test_pde_load_address -nostdlib -nostartfiles
 		  -fPIC -shared -o conftest.so conftest.c
 		  1>&5'
   { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
@@ -9140,9 +9142,9 @@ if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
   printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
   test $ac_status = 0; }; }
 then
-  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,-Ttext-segment=$libc_cv_pde_load_address -nostdlib \
+  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,--image-base=$libc_cv_test_pde_load_address -nostdlib \
       -nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
-      | grep "warning: -Ttext-segment=$libc_cv_pde_load_address ignored" > /dev/null 2>&1; then
+      | grep "warning: --image-base=$libc_cv_test_pde_load_address ignored" > /dev/null 2>&1; then
     true
   else
     libc_linker_feature=yes
@@ -9150,14 +9152,15 @@ then
 fi
 rm -f conftest*
 if test $libc_linker_feature = yes; then
-  libc_cv_load_address_ldflag=-Wl,-Ttext-segment
+  libc_cv_test_load_address_ldflag=-Wl,--image-base
 else
-  libc_cv_load_address_ldflag=
+  libc_cv_test_load_address_ldflag=
 fi
+CC="$saved_CC"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_linker_feature" >&5
 printf "%s\n" "$libc_linker_feature" >&6; }
 config_vars="$config_vars
-load-address-ldflag = $libc_cv_load_address_ldflag"
+load-address-ldflag = $libc_cv_test_load_address_ldflag"
 
 # Check if compiler supports -fno-fp-int-builtin-inexact
 
