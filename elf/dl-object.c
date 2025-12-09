@@ -59,7 +59,7 @@ _dl_new_object (char *realname, const char *libname, int type,
 {
 #ifdef SHARED
   unsigned int naudit;
-  if (__glibc_unlikely ((mode & (__RTLD_OPENEXEC | __RTLD_VDSO)) != 0))
+  if (__glibc_unlikely ((mode & __RTLD_OPENEXEC) != 0 || type == lt_vdso))
     {
       if (mode & __RTLD_OPENEXEC)
 	{

@@ -517,8 +517,9 @@ _dlfo_process_initial (void)
       /* Skip the main map processed above, and proxy maps.  */
       if (l != main_map && l == l->l_real)
         {
-          /* lt_library link maps are implicitly NODELETE.  */
-          if (l->l_type == lt_library || l->l_nodelete_active)
+          /* lt_library and lt_vdso link maps are implicitly NODELETE.  */
+          if (l->l_type == lt_library || l->l_type == lt_vdso
+              || l->l_nodelete_active)
             {
               /* The kernel may have loaded ld.so with gaps.   */
               if (!l->l_contiguous && is_rtld_link_map (l))

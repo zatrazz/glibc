@@ -175,7 +175,8 @@ struct link_map
       {
 	lt_executable,		/* The main executable program.  */
 	lt_library,		/* Library needed by main executable.  */
-	lt_loaded		/* Extra run-time loaded shared object.  */
+	lt_loaded,		/* Extra run-time loaded shared object.  */
+	lt_vdso,		/* The vDSO object provided by the kernel.  */
       } l_type:2;
     unsigned int l_dt_relr_ref:1; /* Nonzero if GLIBC_ABI_DT_RELR is
 				     referenced.  */

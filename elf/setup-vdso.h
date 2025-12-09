@@ -29,8 +29,8 @@ setup_vdso (struct link_map *main_map __attribute__ ((unused)),
      better be, since it's read-only and so we couldn't relocate it).
      We just want our data structures to describe it as if we had just
      mapped and relocated it normally.  */
-  struct link_map *l = _dl_new_object ((char *) "", "", lt_library, NULL,
-				       __RTLD_VDSO, LM_ID_BASE);
+  struct link_map *l = _dl_new_object ((char *) "", "", lt_vdso, NULL,
+				       0, LM_ID_BASE);
   bool l_addr_set = false;
   if (__glibc_likely (l != NULL))
     {
