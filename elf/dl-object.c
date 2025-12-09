@@ -98,6 +98,7 @@ _dl_new_object (char *realname, const char *libname, int type,
   new->l_real = new;
   new->l_symbolic_searchlist.r_list = (struct link_map **) ((char *) (new + 1)
 							    + audit_space);
+  new->l_vdso = !!(mode & __RTLD_VDSO);
 
   new->l_libname = newname
     = (struct libname_list *) (new->l_symbolic_searchlist.r_list + 1);

@@ -86,3 +86,5 @@ ASFLAGS-.os += -Wa,-execstack
 ASFLAGS-.op += -Wa,-execstack
 ASFLAGS-.oS += -Wa,-execstack
 endif
+
+vdso-name := linux-vdso

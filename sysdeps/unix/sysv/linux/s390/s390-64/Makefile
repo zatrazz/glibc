@@ -16,3 +16,5 @@ endif
 ifeq ($(subdir),stdlib)
 sysdep_routines += __makecontext_ret
 endif
+
+vdso-name := linux-vdso64

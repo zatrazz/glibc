@@ -1904,8 +1904,11 @@ _dl_lookup_map (Lmid_t nsid, const char *name)
     {
       /* If the requested name matches the soname of a loaded object,
 	 use that object.  Elide this check for names that have not
-	 yet been opened.  */
-      if (__glibc_unlikely ((l->l_faked | l->l_removed) != 0))
+	 yet been opened.
+
+	 Also, avoid matching the vDSO; if the DSO requires it, assume it is
+	 provided by a real object (rather than the implicitly loaded one).  */
+      if (__glibc_unlikely ((l->l_faked | l->l_removed | l->l_vdso) != 0))
 	continue;
       if (!_dl_name_match_p (name, l))
 	{

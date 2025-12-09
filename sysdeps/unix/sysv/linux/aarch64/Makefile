@@ -158,3 +158,5 @@ endif
 
 abi-lp64-condition := !defined __AARCH64EB__
 abi-lp64_be-condition := defined __AARCH64EB__
+
+vdso-name := linux-vdso

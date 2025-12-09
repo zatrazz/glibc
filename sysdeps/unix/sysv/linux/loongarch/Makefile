@@ -10,3 +10,5 @@ endif
 
 abi-lp64s-condition	:= __WORDSIZE == 64 && defined __loongarch_soft_float
 abi-lp64d-condition	:= __WORDSIZE == 64 && defined __loongarch_double_float
+
+vdso-name := linux-vdso

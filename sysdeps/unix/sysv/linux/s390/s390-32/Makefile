@@ -29,3 +29,5 @@ shared-only-routines += divdi3
 CPPFLAGS-divdi3.c = -Din_divdi3_c
 endif
 endif
+
+vdso-name := linux-vdso32

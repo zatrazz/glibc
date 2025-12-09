@@ -25,3 +25,5 @@ abi-ilp32-condition   := __WORDSIZE == 32 && defined __riscv_float_abi_soft
 abi-ilp32d-condition  := __WORDSIZE == 32 && defined __riscv_float_abi_double
 abi-lp64-condition    := __WORDSIZE == 64 && defined __riscv_float_abi_soft
 abi-lp64d-condition   := __WORDSIZE == 64 && defined __riscv_float_abi_double
+
+vdso-name := linux-vdso

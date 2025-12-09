@@ -1,6 +1,8 @@
 # The default ABI is 32.
 default-abi := 32
 
+vdso-name := linux-gate
+
 ifeq ($(subdir),misc)
 sysdep_routines += ioperm iopl vm86
 

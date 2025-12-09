@@ -121,3 +121,5 @@ tests += tst-cet-setcontext-1
 CFLAGS-tst-cet-setcontext-1.c += -mshstk
 endif
 endif
+
+vdso-name := linux-vdso

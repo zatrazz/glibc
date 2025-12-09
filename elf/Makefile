@@ -1447,7 +1447,18 @@ CFLAGS-tst-_dl_addr_inside_object.c += $(PIE-ccflag)
 endif
 
 ifeq ($(run-built-tests),yes)
-tests-special += $(objpfx)tst-origin.out
+tests-special += \
+  $(objpfx)tst-origin.out \
+  $(objpfx)tst-vdso-2.out \
+  # tests-special
+endif
+
+ifndef (,$(vdso-name))
+tests += tst-vdso-1
+
+ifeq ($(run-built-tests),yes)
+tests-special += $(objpfx)tst-vdso-2.out
+endif
 endif
 
 include ../Rules
@@ -3534,3 +3545,34 @@ $(objpfx)tst-origin.out: tst-origin.sh $(objpfx)tst-origin
 	$(evaluate-test)
 
 $(objpfx)tst-dlopen-sgid.out: $(objpfx)tst-dlopen-sgid-mod.so
+
+ifndef (,$(vdso-name))
+CFLAGS-linux-vdso.c += $(no-stack-protector)
+$(objpfx)linux-vdso.os: linux-vdso.c $(before-compile)
+	$(compile-command.c) -UMODULE_NAME -DMODULE_NAME=testsuite
+$(objpfx)$(vdso-name).so: $(objpfx)linux-vdso.os
+	$(LINK.o) -nodefaultlibs  -Wl,--soname,$(vdso-name).so.1 -shared \
+		  -o $@ -B$(csu-objpfx) $(LDFLAGS.so) $<
+$(objpfx)$(vdso-name).so.1: $(objpfx)$(vdso-name).so
+	$(make-link)
+
+# Link tst-vdso-1 with $(vdso-name).so, but without a full path.
+LDFLAGS-tst-vdso-1 += -Wl,-rpath,\$$ORIGIN -L$(subst :, -L,$(rpath-link))
+LDLIBS-tst-vdso-1 += -l:$(vdso-name).so
+$(objpfx)tst-vdso-1: +nolink-deps += $(objpfx)$(vdso-name).so
+$(objpfx)tst-vdso-1: $(objpfx)$(vdso-name).so.1
+
+# The tst-vdso-2 requires a special link rule to put the vDSO on the last
+# tag in the dynamic section (to trigger the circular dependency as
+# described by BZ 33335)
+$(objpfx)tst-vdso-2: +nolink-deps += $(objpfx)$(vdso-name).so
+$(objpfx)tst-vdso-2: $(objpfx)tst-vdso-2.o $(objpfx)$(vdso-name).so.1 $(libsupport)
+	$(LINK.o) -nodefaultlibs -o $@ $< \
+	  $(libsupport) $(static-gnulib) $(common-objpfx)libc_nonshared.a \
+	  $(link-libc-rpath) \
+	  -Wl,-rpath,\$$ORIGIN -L$(subst :, -L,$(rpath-link)) \
+	  -lc -l:$(vdso-name).so \
+	  -Wl,--dynamic-linker=$(objpfx)ld.so,--no-as-needed $(objpfx)ld.so
+
+$(objpfx)tst-vdso-2.out: $(objpfx)tst-vdso-2
+endif

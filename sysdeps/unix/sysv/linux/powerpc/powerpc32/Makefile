@@ -13,3 +13,5 @@ ifeq ($(subdir),conform)
 # For bug 21635.
 conformtest-xfail-conds += powerpc32-linux
 endif
+
+vdso-name := linux-vdso32
