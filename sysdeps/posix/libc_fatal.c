@@ -94,7 +94,7 @@ __libc_message_impl (const char *vma_name, const char *fmt, ...)
       total += len;
       iovcnt++;
 
-      if (__glibc_unlikely (iovcnt > IOVEC_MAX))
+      if (__glibc_unlikely (iovcnt >= IOVEC_MAX))
 	{
 	  len = IOVEC_MAX_ERR_MSG_LEN;
 	  iov[0].iov_base = (char *) IOVEC_MAX_ERR_MSG;
