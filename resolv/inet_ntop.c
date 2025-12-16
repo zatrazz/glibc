@@ -99,9 +99,9 @@ struct best_t
 static inline uint16_t
 in6_addr_addr16 (const struct in6_addr *src, int idx)
 {
-  const struct { uint16_t x; } __attribute__((__packed__)) *pptr =
-    (typeof(pptr))(&src->s6_addr16[idx]);
-  return ntohs (pptr->x);
+  uint16_t t;
+  memcpy (&t, (const char *)src + (idx * sizeof (t)), sizeof(t));
+  return ntohs (t);
 }
 
 static __always_inline char *
