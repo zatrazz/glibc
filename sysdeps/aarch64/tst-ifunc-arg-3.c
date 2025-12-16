@@ -76,7 +76,7 @@ test_one (const unsigned long *arg)
 static int
 do_test (void)
 {
-  uint64_t arg[_IFUNC_HWCAP_MAX + 1] = {
+  uint64_t arg[_IFUNC_HWCAP_MAX + 2] = {
     0, /* Placeholder for size */
     _IFUNC_ARG_AT_HWCAP, /* AT_HWCAP */
     _IFUNC_ARG_AT_HWCAP2, /* AT_HWCAP2 */
