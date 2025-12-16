@@ -33,7 +33,7 @@ __frexpf (float x, int *eptr)
     {
       int e = ex - EXPONENT_BIAS + 1;
       *eptr = e;
-      return asfloat (hx - (e << MANTISSA_WIDTH));
+      return asfloat (hx - ((uint32_t) e << MANTISSA_WIDTH));
     }
 
   /* Handle zero, infinity, and NaN.  */
