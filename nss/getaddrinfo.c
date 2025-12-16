@@ -1642,7 +1642,9 @@ rfc3484_sort (const void *p1, const void *p2, void *arg)
 	  struct sockaddr_in *in1_src
 	    = (struct sockaddr_in *) &a1->source_addr;
 	  in_addr_t in1_src_addr = ntohl (in1_src->sin_addr.s_addr);
-	  in_addr_t netmask1 = 0xffffffffu << (32 - a1->prefixlen);
+	  in_addr_t netmask1 = a1->prefixlen == 0
+	    ? 0
+	    : 0xffffffffu << (32 - a1->prefixlen);
 
 	  if ((in1_src_addr & netmask1) == (in1_dst_addr & netmask1))
 	    bit1 = stdc_leading_zeros (in1_dst_addr ^ in1_src_addr);
@@ -1653,7 +1655,9 @@ rfc3484_sort (const void *p1, const void *p2, void *arg)
 	  struct sockaddr_in *in2_src
 	    = (struct sockaddr_in *) &a2->source_addr;
 	  in_addr_t in2_src_addr = ntohl (in2_src->sin_addr.s_addr);
-	  in_addr_t netmask2 = 0xffffffffu << (32 - a2->prefixlen);
+	  in_addr_t netmask2 = a2->prefixlen == 0
+	    ? 0
+	    : 0xffffffffu << (32 - a2->prefixlen);
 
 	  if ((in2_src_addr & netmask2) == (in2_dst_addr & netmask2))
 	    bit2 = stdc_leading_zeros (in2_dst_addr ^ in2_src_addr);
