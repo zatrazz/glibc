@@ -505,7 +505,6 @@ tests += \
   tst-tlsgap \
   tst-unique1 \
   tst-unique2 \
-  tst-unwind-ctor \
   tst-unwind-main \
   tst-version-hash-zero \
   unload3 \
@@ -525,6 +524,9 @@ ifeq ($(have-test-stb-gnu-unique), yes)
 tests-cxx += \
   tst-dlopen-nodelete-reloc \
   # tests-cxx
+endif
+ifeq ($(have-cc-with-libunwind), no)
+tests += tst-unwind-ctor
 endif
 
 tests += $(if $(CXX),$(tests-cxx))
@@ -1063,7 +1065,6 @@ modules-names += \
   tst-unique1mod2 \
   tst-unique2mod1 \
   tst-unique2mod2 \
-  tst-unwind-ctor-lib \
   tst-version-hash-zero-linkmod \
   tst-version-hash-zero-mod \
   tst-version-hash-zero-refmod \
@@ -1091,6 +1092,9 @@ modules-names += \
   vismod2 \
   vismod3 \
   # modules-names
+ifeq ($(have-cc-with-libunwind), no)
+modules-names += tst-unwind-ctor-lib
+endif
 
 modules-names-cxx = \
   tst-nodelete-rtldmod \
