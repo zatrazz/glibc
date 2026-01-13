@@ -26,7 +26,11 @@ __fmax (double x, double y)
      already raises FE_INVALID if an operand is a sNaN.  So there is no need
      to check for issignaling.  */
   if (__glibc_likely (!isunordered (x, y)))
-    return x > y ? x : y;
+    {
+      if (__glibc_unlikely (x == y))
+       return signbit (x) ? y : x;
+      return x > y ? x : y;
+    }
   return isnan (y) ? x : y;
 }
 libm_alias_double (__fmax, fmax)

@@ -26,7 +26,11 @@ __fminf (float x, float y)
      already raises FE_INVALID if an operand is a sNaN.  So there is no need
      to check for issignaling.  */
   if (__glibc_likely (!isunordered (x, y)))
-    return x > y ? y : x;
+    {
+      if (__glibc_unlikely (x == y))
+	return signbit (x) ? x : y;
+      return x > y ? y : x;
+    }
   return isnan (y) ? x : y;
 }
 libm_alias_float (__fmin, fmin)
