@@ -1,5 +1,5 @@
-/* Compute maximum of two numbers, regarding NaN as missing argument.
-   Copyright (C) 1997-2026 Free Software Foundation, Inc.
+/* Return maximum numeric value of X and Y.  i386 version.
+   Copyright (C) 2026 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,28 +16,17 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <sysdep.h>
+#include <math.h>
 #include <libm-alias-float.h>
 
-	.text
-ENTRY(__fmaxf)
-	flds	8(%esp)		// y
-	fxam
-	fnstsw
-	flds	4(%esp)		// y : x
-
-	andb	$0x45, %ah
-	cmpb	$0x01, %ah
-	je	1f		// y == NaN
-
-	fucom	%st(1)
-	fnstsw
-	sahf
-	jnc	1f
-
-	fxch	%st(1)
-1:	fstp	%st(1)
-
-	ret
-END(__fmaxf)
+float
+__fmaxf (float x, float y)
+{
+  /* gcc optimizes isunordered to 'fucomi' (i686) or 'fucom' (i486), and both
+     already raises FE_INVALID if an operand is a sNaN.  So there is no need
+     to check for issignaling.  */
+  if (__glibc_likely (!isunordered (x, y)))
+    return x > y ? x : y;
+  return isnan (y) ? x : y;
+}
 libm_alias_float (__fmax, fmax)
