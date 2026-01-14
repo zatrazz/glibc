@@ -28,7 +28,7 @@ M_DECL_FUNC (__fminmag) (FLOAT x, FLOAT y)
   else if (isgreater (ax, ay))
     return y;
   else if (ax == ay)
-    return x < y ? x : y;
+    return signbit (x) ? x : y;
   else if (issignaling (x) || issignaling (y))
     return x + y;
   else

@@ -28,7 +28,7 @@ M_DECL_FUNC (__fmaxmag) (FLOAT x, FLOAT y)
   else if (isless (ax, ay))
     return y;
   else if (ax == ay)
-    return x > y ? x : y;
+    return signbit (x) ? y : x;
   else if (issignaling (x) || issignaling (y))
     return x + y;
   else
