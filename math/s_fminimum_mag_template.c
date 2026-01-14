@@ -28,7 +28,7 @@ M_DECL_FUNC (__fminimum_mag) (FLOAT x, FLOAT y)
   else if (isgreater (ax, ay))
     return y;
   else if (ax == ay)
-    return (M_COPYSIGN (1, x) <= M_COPYSIGN (1, y) ? x : y);
+    return signbit (x) ? x : y;
   else
     return x + y;
 }
