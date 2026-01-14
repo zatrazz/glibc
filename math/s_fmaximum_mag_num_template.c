@@ -28,7 +28,7 @@ M_DECL_FUNC (__fmaximum_mag_num) (FLOAT x, FLOAT y)
   else if (isless (ax, ay))
     return y;
   else if (ax == ay)
-    return (M_COPYSIGN (1, x) >= M_COPYSIGN (1, y) ? x : y);
+    return signbit (x) ? y : x;
   else
     return isnan (y) ? (isnan (x) ? x + y : x) : y;
 }
