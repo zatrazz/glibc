@@ -21,12 +21,14 @@
 FLOAT
 M_DECL_FUNC (__fminimum_num) (FLOAT x, FLOAT y)
 {
-  if (isless (x, y))
-    return x;
-  else if (isgreater (x, y))
-    return y;
-  else if (x == y)
-    return (M_COPYSIGN (1, x) <= M_COPYSIGN (1, y) ? x : y);
+  if (__glibc_likely (!isunordered (x, y)))
+    {
+      if (isless (x, y))
+	return x;
+      else if (isgreater (x, y))
+	return y;
+      return signbit (x) ? x : y;
+    }
   else
     return isnan (y) ? (isnan (x) ? x + y : x) : y;
 }
