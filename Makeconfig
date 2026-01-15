@@ -1015,6 +1015,9 @@ endif	# $(+cflags) == ""
 	   $(+stack-protector) -fno-common
 +gcc-nowarn := -w
 
+# Filter out fortify source hardening if compiler defines iy by default.
++cflags += $(no-default-fortify-source)
+
 # We must filter out elf because the early bootstrap of the dynamic loader
 # cannot be fortified. Likewise we exclude dlfcn because it is entangled
 # with the loader. We must filter out csu because early startup, like the

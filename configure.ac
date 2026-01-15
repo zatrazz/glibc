@@ -1844,6 +1844,18 @@ AS_IF([test "$libc_cv_compiler_default_time_bits" = yes],
 AC_SUBST(no_time_bits_source)
 LIBC_CONFIG_VAR([no-time-bits-source], [$no_time_bits_source])
 
+dnl Check if compiler defines _FORTIFY_SOURCE by default
+AC_PREPROC_IFELSE([AC_LANG_PROGRAM([[]], [[
+#ifndef _FORTIFY_SOURCE
+# error _FORTIFY_SOURCE not defined
+#endif]])],
+	       [libc_cv_compiler_default_fortify_source=yes],
+	       [libc_cv_compiler_default_fortify_source=no])
+AS_IF([test "$libc_cv_compiler_default_fortify_source" = yes],
+      [no_default_fortify_source="-U_FORTIFY_SOURCE"])
+AC_SUBST(no_default_fortify_source)
+LIBC_CONFIG_VAR([no-default-fortify-source], [$no_default_fortify_source])
+
 dnl Starting with binutils 2.35, GAS can attach multiple symbol versions
 dnl to one symbol (PR 23840).
 AC_CACHE_CHECK(whether the assembler requires one version per symbol,
