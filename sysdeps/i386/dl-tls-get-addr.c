@@ -24,6 +24,7 @@
 
 # define SYMBOL_NAME ___tls_get_addr
 # include <init-arch.h>
+# include <libc-diag.h>
 
 extern __typeof (REDIRECT_NAME) OPTIMIZE (fnsave) attribute_hidden;
 extern __typeof (REDIRECT_NAME) OPTIMIZE (fxsave) attribute_hidden;
@@ -57,7 +58,11 @@ libc_ifunc_redirected (__redirect____tls_get_addr, ___tls_get_addr,
    an additional underscore at the beginning.  The Sun version uses
    the normal calling convention.  */
 
+/* clang issues attribute declaration must precede definition.  */
+DIAG_PUSH_NEEDS_COMMENT_CLANG;
+DIAG_IGNORE_NEEDS_COMMENT_CLANG (21, "-Wignored-attributes");
 rtld_hidden_proto (___tls_get_addr)
+DIAG_POP_NEEDS_COMMENT_CLANG;
 rtld_hidden_def (___tls_get_addr)
 
 void *
