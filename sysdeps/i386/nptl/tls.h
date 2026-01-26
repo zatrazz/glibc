@@ -252,10 +252,18 @@ tls_fill_user_desc (union user_desc_init *desc,
 #define THREAD_GSCOPE_FLAG_UNUSED 0
 #define THREAD_GSCOPE_FLAG_USED   1
 #define THREAD_GSCOPE_FLAG_WAIT   2
+
+/* clang does not support __seg_gs in asm constraint.  */
+#ifdef __clang__
+# define FS_ASM "%%gs:"
+#else
+# define FS_ASM
+#endif
+
 #define THREAD_GSCOPE_RESET_FLAG() \
   do									      \
     { int __res;							      \
-      asm volatile ("xchgl %1, %0"					      \
+      asm volatile ("xchgl " FS_ASM "%1, %0"				      \
 		    : "=r" (__res)					      \
 		    : "m" (((struct pthread __seg_gs *)0)->header.gscope_flag), \
 		      "0" (THREAD_GSCOPE_FLAG_UNUSED));			      \
