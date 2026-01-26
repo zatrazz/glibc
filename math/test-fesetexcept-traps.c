@@ -46,9 +46,13 @@ do_test (void)
      Also check if the function does not alter the exception mask.  */
   ret = fesetexcept (FE_ALL_EXCEPT);
 
-  _Static_assert (!(EXCEPTION_SET_FORCES_TRAP && !EXCEPTION_TESTS(float)),
-		  "EXCEPTION_SET_FORCES_TRAP only makes sense if the "
-		  "architecture supports exceptions");
+  if (EXCEPTION_SET_FORCES_TRAP)
+    {
+      _Static_assert (EXCEPTION_TESTS(float),
+		      "EXCEPTION_SET_FORCES_TRAP only makes sense if the "
+		      "architecture supports exceptions");
+    }
+
   {
     int exc_before = fegetexcept ();
     ret = fesetexcept (FE_ALL_EXCEPT);
