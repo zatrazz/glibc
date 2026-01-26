@@ -74,7 +74,7 @@ versioned_symbol (libm, __remainder, remainder, GLIBC_2_43);
 libm_alias_double_other (__remainder, remainder)
 #else
 libm_alias_double (__remainder, remainder)
-weak_alias (__remainder, drem)
+static_weak_alias (__remainder, drem)
 # ifdef NO_LONG_DOUBLE
 weak_alias (__remainder, dreml)
 # endif

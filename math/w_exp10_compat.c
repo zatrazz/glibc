@@ -66,7 +66,7 @@ compat_symbol (libm, __pow10, pow10, GLIBC_2_1);
 # endif
 # ifdef NO_LONG_DOUBLE
 #  if SHLIB_COMPAT (libm, GLIBC_2_1, GLIBC_2_27)
-strong_alias (exp10l, __pow10l)
+strong_alias (__exp10_compat, __pow10l)
 compat_symbol (libm, __pow10l, pow10l, GLIBC_2_1);
 #  endif
 # endif

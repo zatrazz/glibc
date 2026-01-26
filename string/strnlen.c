@@ -32,7 +32,7 @@ __strnlen (const char *str, size_t maxlen)
 }
 
 #ifndef STRNLEN
-weak_alias (__strnlen, strnlen)
+static_weak_alias (__strnlen, strnlen)
 libc_hidden_def (__strnlen)
 libc_hidden_def (strnlen)
 #endif

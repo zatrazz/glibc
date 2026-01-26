@@ -83,6 +83,6 @@ __memchr (void const *s, int c_in, size_t n)
   return NULL;
 }
 #ifndef MEMCHR
-weak_alias (__memchr, memchr)
+static_weak_alias (__memchr, memchr)
 libc_hidden_builtin_def (memchr)
 #endif

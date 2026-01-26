@@ -36,7 +36,7 @@ __new_getrlimit (enum __rlimit_resource resource, struct rlimit *rlim)
 {
   return INLINE_SYSCALL_CALL (ugetrlimit, resource, rlim);
 }
-weak_alias (__new_getrlimit, __getrlimit)
+static_weak_alias (__new_getrlimit, __getrlimit)
 hidden_weak (__getrlimit)
 
 # if SHLIB_COMPAT (libc, GLIBC_2_0, GLIBC_2_2)

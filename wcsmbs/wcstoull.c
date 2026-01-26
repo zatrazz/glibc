@@ -20,6 +20,6 @@
 
 #include "wcstoul.c"
 
-weak_alias (wcstoull, wcstouq)
-weak_alias (wcstoull, wcstoumax)
+weak_alias (__wcstoull, wcstouq)
+weak_alias (__wcstoull, wcstoumax)
 weak_alias (__isoc23_wcstoull, __isoc23_wcstoumax)
