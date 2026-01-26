@@ -94,7 +94,7 @@ __libc_fcntl (int fd, int cmd, ...)
 }
 libc_hidden_def (__libc_fcntl)
 
-weak_alias (__libc_fcntl, __fcntl)
+static_weak_alias (__libc_fcntl, __fcntl)
 libc_hidden_weak (__fcntl)
 
 # include <shlib-compat.h>

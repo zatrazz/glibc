@@ -29,7 +29,7 @@ compat_symbol (libc, __strtoll_internal, __strtoq_internal, GLIBC_2_0);
 #  endif
 
 # endif
-weak_alias (strtoll, strtoq)
-weak_alias (strtoll, strtoimax)
+weak_alias (__strtoll, strtoq)
+weak_alias (__strtoll, strtoimax)
 weak_alias (__isoc23_strtoll, __isoc23_strtoimax)
 #endif
