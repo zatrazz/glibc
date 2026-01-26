@@ -70,71 +70,71 @@ typedef unsigned int UTItype __attribute__ ((mode (TI)));
 	   "adc{l} {%9,%2|%2,%9}\n\t"				\
 	   "adc{l} {%7,%1|%1,%7}\n\t"				\
 	   "adc{l} {%5,%0|%0,%5}"				\
-	   : "=r" ((USItype) (r3)),				\
-	     "=&r" ((USItype) (r2)),				\
-	     "=&r" ((USItype) (r1)),				\
-	     "=&r" ((USItype) (r0))				\
-	   : "%0" ((USItype) (x3)),				\
-	     "g" ((USItype) (y3)),				\
-	     "%1" ((USItype) (x2)),				\
-	     "g" ((USItype) (y2)),				\
-	     "%2" ((USItype) (x1)),				\
-	     "g" ((USItype) (y1)),				\
-	     "%3" ((USItype) (x0)),				\
-	     "g" ((USItype) (y0)))
+	   : "=r" ((r3)),				\
+	     "=&r" ((r2)),				\
+	     "=&r" ((r1)),				\
+	     "=&r" ((r0))				\
+	   : "%0" ((x3)),				\
+	     "g" ((y3)),				\
+	     "%1" ((x2)),				\
+	     "g" ((y2)),				\
+	     "%2" ((x1)),				\
+	     "g" ((y1)),				\
+	     "%3" ((x0)),				\
+	     "g" ((y0)))
 # define __FP_FRAC_ADD_3(r2,r1,r0,x2,x1,x0,y2,y1,y0)		\
   __asm__ ("add{l} {%8,%2|%2,%8}\n\t"				\
 	   "adc{l} {%6,%1|%1,%6}\n\t"				\
 	   "adc{l} {%4,%0|%0,%4}"				\
-	   : "=r" ((USItype) (r2)),				\
-	     "=&r" ((USItype) (r1)),				\
-	     "=&r" ((USItype) (r0))				\
-	   : "%0" ((USItype) (x2)),				\
-	     "g" ((USItype) (y2)),				\
-	     "%1" ((USItype) (x1)),				\
-	     "g" ((USItype) (y1)),				\
-	     "%2" ((USItype) (x0)),				\
-	     "g" ((USItype) (y0)))
+	   : "=r" ((r2)),				\
+	     "=&r" ((r1)),				\
+	     "=&r" ((r0))				\
+	   : "%0" ((x2)),				\
+	     "g" ((y2)),				\
+	     "%1" ((x1)),				\
+	     "g" ((y1)),				\
+	     "%2" ((x0)),				\
+	     "g" ((y0)))
 # define __FP_FRAC_SUB_4(r3,r2,r1,r0,x3,x2,x1,x0,y3,y2,y1,y0)	\
   __asm__ ("sub{l} {%11,%3|%3,%11}\n\t"				\
 	   "sbb{l} {%9,%2|%2,%9}\n\t"				\
 	   "sbb{l} {%7,%1|%1,%7}\n\t"				\
 	   "sbb{l} {%5,%0|%0,%5}"				\
-	   : "=r" ((USItype) (r3)),				\
-	     "=&r" ((USItype) (r2)),				\
-	     "=&r" ((USItype) (r1)),				\
-	     "=&r" ((USItype) (r0))				\
-	   : "0" ((USItype) (x3)),				\
-	     "g" ((USItype) (y3)),				\
-	     "1" ((USItype) (x2)),				\
-	     "g" ((USItype) (y2)),				\
-	     "2" ((USItype) (x1)),				\
-	     "g" ((USItype) (y1)),				\
-	     "3" ((USItype) (x0)),				\
-	     "g" ((USItype) (y0)))
+	   : "=r" ((r3)),				\
+	     "=&r" ((r2)),				\
+	     "=&r" ((r1)),				\
+	     "=&r" ((r0))				\
+	   : "0" ((x3)),				\
+	     "g" ((y3)),				\
+	     "1" ((x2)),				\
+	     "g" ((y2)),				\
+	     "2" ((x1)),				\
+	     "g" ((y1)),				\
+	     "3" ((x0)),				\
+	     "g" ((y0)))
 # define __FP_FRAC_SUB_3(r2,r1,r0,x2,x1,x0,y2,y1,y0)		\
   __asm__ ("sub{l} {%8,%2|%2,%8}\n\t"				\
 	   "sbb{l} {%6,%1|%1,%6}\n\t"				\
 	   "sbb{l} {%4,%0|%0,%4}"				\
-	   : "=r" ((USItype) (r2)),				\
-	     "=&r" ((USItype) (r1)),				\
-	     "=&r" ((USItype) (r0))				\
-	   : "0" ((USItype) (x2)),				\
-	     "g" ((USItype) (y2)),				\
-	     "1" ((USItype) (x1)),				\
-	     "g" ((USItype) (y1)),				\
-	     "2" ((USItype) (x0)),				\
-	     "g" ((USItype) (y0)))
+	   : "=r" ((r2)),				\
+	     "=&r" ((r1)),				\
+	     "=&r" ((r0))				\
+	   : "0" ((x2)),				\
+	     "g" ((y2)),				\
+	     "1" ((x1)),				\
+	     "g" ((y1)),				\
+	     "2" ((x0)),				\
+	     "g" ((y0)))
 # define __FP_FRAC_ADDI_4(x3,x2,x1,x0,i)			\
   __asm__ ("add{l} {%4,%3|%3,%4}\n\t"				\
 	   "adc{l} {$0,%2|%2,0}\n\t"				\
 	   "adc{l} {$0,%1|%1,0}\n\t"				\
 	   "adc{l} {$0,%0|%0,0}"				\
-	   : "+r" ((USItype) (x3)),				\
-	     "+&r" ((USItype) (x2)),				\
-	     "+&r" ((USItype) (x1)),				\
-	     "+&r" ((USItype) (x0))				\
-	   : "g" ((USItype) (i)))
+	   : "+r" ((x3)),				\
+	     "+&r" ((x2)),				\
+	     "+&r" ((x1)),				\
+	     "+&r" ((x0))				\
+	   : "g" ((i)))
 
 
 # define _FP_MUL_MEAT_S(R,X,Y)				\
