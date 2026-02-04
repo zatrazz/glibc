@@ -315,6 +315,40 @@ test-xfail-tst-tlsalign = yes"
 test-xfail-tst-tlsalign-static = yes"
 fi
 
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking which ABI compiler is using for profiling" >&5
+printf %s "checking which ABI compiler is using for profiling... " >&6; }
+if test ${libc_cv_arm_mabi+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e)
+cat > conftest.c <<\EOF
+void foo (void) {}
+EOF
+libc_cv_arm_meabi=
+if ${CC-cc} ${CFLAGS} -pg -c conftest.c -o conftest.o 1>&5 \
+   2>&5 ; then
+  if $READELF -s conftest.o | grep "__gnu_mcount_nc" >/dev/null; then
+    libc_cv_arm_meabi="gnu"
+  elif $READELF -s conftest.o | grep -E "mcount|_mcount" >/dev/null; then
+    libc_cv_arm_meabi="generic"
+  else
+    libc_cv_arm_meabi="unknown"
+  fi
+fi
+rm -f conftest* ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_arm_mabi" >&5
+printf "%s\n" "$libc_cv_arm_mabi" >&6; }
+
+case "$libc_cv_arm_meabi" in
+  "gnu")     libc_cv_arm_meabi="" ;;
+  "generic") libc_cv_arm_meabi="-meabi gnu" ;;
+  "unknown") AC_MGG_ERROR"Unknown -meabi used" ;;
+esac
+config_vars="$config_vars
+arm-meabi = $libc_cv_arm_meabi"
 
 libc_cv_gcc_unwind_find_fde=no
 

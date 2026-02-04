@@ -115,6 +115,30 @@ if test $libc_cv_arm_tpoff_addend = no; then
   LIBC_CONFIG_VAR([test-xfail-tst-tlsalign-static], [yes])
 fi
 
+AC_CACHE_CHECK([which ABI compiler is using for profiling],
+	       libc_cv_arm_mabi, [
+cat > conftest.c <<\EOF
+void foo (void) {}
+EOF
+libc_cv_arm_meabi=
+if ${CC-cc} ${CFLAGS} -pg -c conftest.c -o conftest.o 1>&AS_MESSAGE_LOG_FD \
+   2>&AS_MESSAGE_LOG_FD ; then
+  if $READELF -s conftest.o | grep "__gnu_mcount_nc" >/dev/null; then
+    libc_cv_arm_meabi="gnu"
+  elif $READELF -s conftest.o | grep -E "mcount|_mcount" >/dev/null; then
+    libc_cv_arm_meabi="generic"
+  else
+    libc_cv_arm_meabi="unknown"
+  fi
+fi
+rm -f conftest*])
+
+case "$libc_cv_arm_meabi" in
+  "gnu")     libc_cv_arm_meabi="" ;;
+  "generic") libc_cv_arm_meabi="-meabi gnu" ;;
+  "unknown") AC_MGG_ERROR["Unknown -meabi used"] ;;
+esac
+LIBC_CONFIG_VAR([arm-meabi], [$libc_cv_arm_meabi])
 
 libc_cv_gcc_unwind_find_fde=no
 
