@@ -1895,6 +1895,14 @@ char bss[0xb5dce8] __attribute__ ((aligned (65536)));
 ])
 LIBC_CONFIG_VAR([aligned-65536], [$libc_cv_aligned_65536])
 
+dnl Check whether CC support -frounding-math
+AC_CACHE_CHECK(for -frounding-math, libc_cv_clags_frounding_math, [dnl
+LIBC_TRY_CC_OPTION([$CFLAGS $CPPFLAGS -Werror -frounding-math],
+		   [libc_cv_clags_frounding_math=-frounding-math],
+		   [libc_cv_clags_frounding_math=])
+])
+LIBC_CONFIG_VAR([cc-option-frounding-math], [$libc_cv_clags_frounding_math])
+
 dnl C++ feature tests.
 AC_LANG_PUSH([C++])
 

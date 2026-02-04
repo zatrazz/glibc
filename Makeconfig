@@ -914,7 +914,7 @@ endif
 # We have to assume that glibc functions are called in any rounding
 # mode and also change the rounding mode in a few functions. So,
 # disable any optimization that assume default rounding mode.
-+math-flags = -frounding-math
++math-flags = $(cc-option-frounding-math)
 
 # We have to assume that glibc functions might generate user-visible traps.
 +math-flags += -ftrapping-math
