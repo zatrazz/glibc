@@ -917,7 +917,7 @@ endif
 +math-flags = $(cc-option-frounding-math)
 
 # We have to assume that glibc functions might generate user-visible traps.
-+math-flags += -ftrapping-math
++math-flags += $(cc-option-ftrapping-math)
 
 # Logically only "libnldbl", "nonlib" and "testsuite" should be using
 # -fno-math-errno. However due to GCC bug #88576, only "libm" and

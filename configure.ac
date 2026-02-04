@@ -1903,6 +1903,14 @@ LIBC_TRY_CC_OPTION([$CFLAGS $CPPFLAGS -Werror -frounding-math],
 ])
 LIBC_CONFIG_VAR([cc-option-frounding-math], [$libc_cv_clags_frounding_math])
 
+dnl Check whether CC support -ftrapping-math
+AC_CACHE_CHECK(for -ftrapping-math, libc_cv_clags_trapping_math, [dnl
+LIBC_TRY_CC_OPTION([$CFLAGS $CPPFLAGS -Werror -ftrapping-math],
+		   [libc_cv_clags_ftrapping_math=-ftrapping-math],
+		   [libc_cv_clags_ftrapping_math=])
+])
+LIBC_CONFIG_VAR([cc-option-ftrapping-math], [$libc_cv_clags_ftrapping_math])
+
 dnl C++ feature tests.
 AC_LANG_PUSH([C++])
 
