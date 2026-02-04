@@ -50,58 +50,107 @@ __feraiseexcept (int excepts)
 
       /* First: invalid exception.  */
       if (FE_INVALID & excepts)
-	__asm__ __volatile__ (
+      __asm__ __volatile__ (
+#ifdef HAVE_ARM_PCS_VFP
+          ".syntax unified\n\t"
+          ".fpu vfp\n\t"
+          "vldr.32 s0, %1\n\t"
+          "vdiv.f32 s0, s0, s0\n\t"
+          "vmrs %0, fpscr"
+#else
 	  "ldc p10, cr0, %1\n\t"                        /* flds s0, %1  */
 	  "cdp p10, 8, cr0, cr0, cr0, 0\n\t"            /* fdivs s0, s0, s0  */
-	  "mrc p10, 7, %0, cr1, cr0, 0" : "=r" (fpscr)  /* fmrx %0, fpscr  */
-			                : "m" (fp_zero)
-					: "s0");
+	  "mrc p10, 7, %0, cr1, cr0, 0"			/* fmrx %0, fpscr  */
+#endif
+          : "=r" (fpscr)
+          : "m" (fp_zero)
+          : "s0");
 
       /* Next: division by zero.  */
       if (FE_DIVBYZERO & excepts)
-	__asm__ __volatile__ (
+        __asm__ __volatile__ (
+#ifdef HAVE_ARM_PCS_VFP
+          ".syntax unified\n\t"
+          ".fpu vfp\n\t"
+          "vldr.32 s0, %1\n\t"
+          "vldr.32 s1, %2\n\t"
+          "vdiv.f32 s0, s0, s1\n\t"
+          "vmrs %0, fpscr"
+#else
 	  "ldc p10, cr0, %1\n\t"                        /* flds s0, %1  */
 	  "ldcl p10, cr0, %2\n\t"                       /* flds s1, %2  */
 	  "cdp p10, 8, cr0, cr0, cr0, 1\n\t"            /* fdivs s0, s0, s1  */
-	  "mrc p10, 7, %0, cr1, cr0, 0" : "=r" (fpscr)  /* fmrx %0, fpscr  */
-			                : "m" (fp_one), "m" (fp_zero)
-					: "s0", "s1");
+	  "mrc p10, 7, %0, cr1, cr0, 0"			/* fmrx %0, fpscr  */
+#endif
+          : "=r" (fpscr)
+          : "m" (fp_one), "m" (fp_zero)
+          : "s0", "s1");
 
       /* Next: overflow.  */
       if (FE_OVERFLOW & excepts)
 	/* There's no way to raise overflow without also raising inexact.  */
-	__asm__ __volatile__ (
+        __asm__ __volatile__ (
+#ifdef HAVE_ARM_PCS_VFP
+          ".syntax unified\n\t"
+          ".fpu vfp\n\t"
+          "vldr.32 s0, %1\n\t"
+          "vldr.32 s1, %2\n\t"
+          "vadd.f32 s0, s0, s1\n\t"
+          "vmrs %0, fpscr"
+#else
 	  "ldc p10, cr0, %1\n\t"                        /* flds s0, %1  */
 	  "ldcl p10, cr0, %2\n\t"                       /* flds s1, %2  */
 	  "cdp p10, 3, cr0, cr0, cr0, 1\n\t"            /* fadds s0, s0, s1  */
-	  "mrc p10, 7, %0, cr1, cr0, 0" : "=r" (fpscr)  /* fmrx %0, fpscr  */
-			                : "m" (fp_max), "m" (fp_1e32)
-					: "s0", "s1");
+	  "mrc p10, 7, %0, cr1, cr0, 0"			/* fmrx %0, fpscr  */
+#endif
+          : "=r" (fpscr)
+          : "m" (fp_max), "m" (fp_1e32)
+          : "s0", "s1");
 
       /* Next: underflow.  */
       if (FE_UNDERFLOW & excepts)
-	__asm__ __volatile__ (
+       __asm__ __volatile__ (
+#ifdef HAVE_ARM_PCS_VFP
+          ".syntax unified\n\t"
+          ".fpu vfp\n\t"
+          "vldr.32 s0, %1\n\t"
+          "vldr.32 s1, %2\n\t"
+          "vdiv.f32 s0, s0, s1\n\t"
+          "vmrs %0, fpscr"
+#else
 	  "ldc p10, cr0, %1\n\t"                        /* flds s0, %1  */
 	  "ldcl p10, cr0, %2\n\t"                       /* flds s1, %2  */
 	  "cdp p10, 8, cr0, cr0, cr0, 1\n\t"            /* fdivs s0, s0, s1  */
-	  "mrc p10, 7, %0, cr1, cr0, 0" : "=r" (fpscr)  /* fmrx %0, fpscr  */
-			                : "m" (fp_min), "m" (fp_three)
-					: "s0", "s1");
+	  "mrc p10, 7, %0, cr1, cr0, 0"			/* fmrx %0, fpscr  */
+#endif
+          : "=r" (fpscr)
+          : "m" (fp_min), "m" (fp_three)
+          : "s0", "s1");
 
       /* Last: inexact.  */
       if (FE_INEXACT & excepts)
-	__asm__ __volatile__ (
+        __asm__ __volatile__ (
+#ifdef HAVE_ARM_PCS_VFP
+          ".syntax unified\n\t"
+          ".fpu vfp\n\t"
+          "vldr.32 s0, %1\n\t"
+          "vldr.32 s1, %2\n\t"
+          "vdiv.f32 s0, s0, s1\n\t"
+          "vmrs %0, fpscr"
+#else
 	  "ldc p10, cr0, %1\n\t"                        /* flds s0, %1  */
 	  "ldcl p10, cr0, %2\n\t"                       /* flds s1, %2  */
 	  "cdp p10, 8, cr0, cr0, cr0, 1\n\t"            /* fdivs s0, s0, s1  */
-	  "mrc p10, 7, %0, cr1, cr0, 0" : "=r" (fpscr)  /* fmrx %0, fpscr  */
-			                : "m" (fp_two), "m" (fp_three)
-					: "s0", "s1");
+	  "mrc p10, 7, %0, cr1, cr0, 0"			/* fmrx %0, fpscr  */
+#endif
+          : "=r" (fpscr)
+          : "m" (fp_two), "m" (fp_three)
+          : "s0", "s1");
 
       /* Success.  */
       return 0;
     }
 }
 libm_hidden_def (__feraiseexcept)
-weak_alias (__feraiseexcept, feraiseexcept)
+static_weak_alias (__feraiseexcept, feraiseexcept)
 libm_hidden_weak (feraiseexcept)
