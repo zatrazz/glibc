@@ -1380,6 +1380,7 @@ CFLAGS-w_remainder_compat.c += -fno-builtin-remainderl
 CFLAGS-w_sinh_compat.c += -fno-builtin-sinhl
 CFLAGS-w_sqrt_compat.c += -fno-builtin-sqrtl
 CFLAGS-w_tgamma_compat.c += -fno-builtin-tgammal
+CFLAGS-e_remainder.c += -fno-builtin-remainderl
 CFLAGS-e_hypot.c += -fno-builtin-hypotl
 CFLAGS-e_fmod.c += -fno-builtin-fmodl
 CFLAGS-w_acos.c += -fno-builtin-acosl
