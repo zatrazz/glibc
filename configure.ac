@@ -2145,6 +2145,9 @@ AC_CACHE_CHECK([for the usable compiler runtime library], [libc_cv_runtime_libra
       ;;
     *) AC_MSG_FAILURE([non supported compiler runtime library]) ;;
   esac])
+if test $libc_cv_runtime_library = compiler-rt; then
+  AC_DEFINE([HAVE_COMPILER_RT_RUNTIME])
+fi
 LIBC_CONFIG_VAR([libgcc-name], [$libc_cv_libgcc])
 LIBC_CONFIG_VAR([libgcc_eh-name], [$libc_cv_libgcc_eh])
 
