@@ -231,6 +231,9 @@
 /* Define to 1 if compiler runtime provides __sfp_handle_exceptions */
 #undef HAVE_SFP_HANDLE_EXCEPTIONS
 
+/* Define to 1 if compiler uses compiler-rt instead of libgcc.  */
+#undef HAVE_COMPILER_RT_RUNTIME
+
 /*
  */
 

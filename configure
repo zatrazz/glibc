@@ -9398,6 +9398,10 @@ esac
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_runtime_library" >&5
 printf "%s\n" "$libc_cv_runtime_library" >&6; }
+if test $libc_cv_runtime_library = compiler-rt; then
+  printf "%s\n" "#define HAVE_COMPILER_RT_RUNTIME 1" >>confdefs.h
+
+fi
 config_vars="$config_vars
 libgcc-name = $libc_cv_libgcc"
 config_vars="$config_vars
