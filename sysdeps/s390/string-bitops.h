@@ -1,5 +1,5 @@
-/* Symbol rediretion for loader/static initialization code.
-   Copyright (C) 2022-2026 Free Software Foundation, Inc.
+/* Zero byte detection, define whether to use stdbit.h  s390 version.
+   Copyright (C) 2026 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,11 +16,12 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#ifndef _DL_IFUNC_GENERIC_H
-#define _DL_IFUNC_GENERIC_H
-
-asm ("memset = __memset_power8");
-asm ("__mempcpy = __mempcpy_power7");
-asm ("__strchrnul = __strchrnul_power8");
-
+/* s390x support static-pie and the libgcc implementation for
+   __builtin_clzl/__builtin_ctzl might access extern data that is not marked
+   as hidden, which creates additional GOT access that is used before
+   self-relocation.  */
+#if __ARCH__ > 6
+# define HAVE_BITOPTS_WORKING 1
+#else
+# define HAVE_BITOPTS_WORKING 0
 #endif

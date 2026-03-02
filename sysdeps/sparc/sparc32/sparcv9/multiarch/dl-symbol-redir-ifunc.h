@@ -19,6 +19,9 @@
 #ifndef _DL_IFUNC_GENERIC_H
 #define _DL_IFUNC_GENERIC_H
 
+#ifndef SHARED
 asm ("memset = __memset_ultra1");
+asm ("memcpy = __memcpy_ultra1");
+#endif
 
 #endif

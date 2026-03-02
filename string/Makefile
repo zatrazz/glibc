@@ -287,6 +287,7 @@ CFLAGS-wordcopy.c += $(no-stack-protector)
 CFLAGS-strncmp.c += $(no-stack-protector)
 CFLAGS-memset.c += $(no-stack-protector)
 CFLAGS-strlen.c += $(no-stack-protector)
+CFLAGS-strchrnul.c += $(no-stack-protector)
 
 ifeq ($(run-built-tests),yes)
 $(objpfx)tst-svc-cmp.out: tst-svc.expect $(objpfx)tst-svc.out

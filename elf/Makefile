@@ -279,6 +279,7 @@ tests-static-normal := \
   # tests-static-normal
 
 tests-static-internal := \
+  tst-assert-startup-static \
   tst-atrandom-scrub-static \
   tst-dl-printf-static \
   tst-dl_find_object-static \
@@ -296,6 +297,12 @@ tests-static-internal += \
   tst-ifunc-resolver-protector-static \
   tst-ifunc-resolver-protector-static-non-pie \
   # tests-static-internal
+endif
+
+ifeq (yes,$(run-built-tests))
+tests-special += \
+  $(objpfx)tst-assert-startup-static.out \
+  # tests-special
 endif
 
 CRT-tst-tls1-static-non-pie := $(csu-objpfx)crt1.o
@@ -3705,3 +3712,14 @@ $(objpfx)tst-dl-debug-exclude.out: tst-dl-debug-exclude.sh \
 		 $(objpfx)tst-recursive-tls > $@; \
 	$(evaluate-test)
 endif
+
+CFLAGS-tst-assert-startup-static.c += $(no-stack-protector)
+LDFLAGS-tst-assert-startup-static = -Wl,-z,muldefs
+
+$(objpfx)tst-assert-startup-static.out: $(objpfx)tst-assert-startup-static
+	$(test-program-cmd-before-env) \
+		$(run-program-env) \
+		$< > $@ 2>&1; echo "status: $$?" >> $@; \
+	grep -q 'Fatal glibc error: tst-assert-startup-static' $@ \
+	  && grep -q '^status: 134$$' $@; \
+	  $(evaluate-test)
