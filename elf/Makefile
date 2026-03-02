@@ -1241,7 +1241,11 @@ tests += \
   # tests
 tests-static += \
   tst-pie-address-static \
+  tst-pie-rpath-static \
   # tests-static
+modules-names += \
+  tst-pie-rpath-mod \
+  # modules-names
 ifeq (yes,$(aligned-65536))
 tests += tst-pie-bss-static
 tests-static += tst-pie-bss-static
@@ -3723,3 +3727,10 @@ $(objpfx)tst-assert-startup-static.out: $(objpfx)tst-assert-startup-static
 	grep -q 'Fatal glibc error: tst-assert-startup-static' $@ \
 	  && grep -q '^status: 134$$' $@; \
 	  $(evaluate-test)
+
+LDFLAGS-tst-pie-rpath-static += -Wl,-rpath,\$$ORIGIN/tst-pie-rpath-static-subdir
+CFLAGS-tst-pie-rpath-static.c += -DPFX=\"$(objpfx)\"
+ifeq (no,$(build-hardcoded-path-in-tests))
+LDFLAGS-tst-pie-rpath-mod.so += -Wl,-rpath,$(rpath-link)
+endif
+$(objpfx)tst-pie-rpath-static.out: $(objpfx)tst-pie-rpath-mod.so
