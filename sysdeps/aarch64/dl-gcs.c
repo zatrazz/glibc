@@ -18,18 +18,6 @@
 #include <unistd.h>
 #include <ldsodefs.h>
 
-/* GCS is disabled.  */
-#define GCS_POLICY_DISABLED 0
-
-/* Enable GCS, abort if unmarked binary is found.  */
-#define GCS_POLICY_ENFORCED 1
-
-/* Optionally enable GCS if all startup dependencies are marked.  */
-#define GCS_POLICY_OPTIONAL 2
-
-/* Override binary marking and always enabled GCS.  */
-#define GCS_POLICY_OVERRIDE 3
-
 static void
 fail (struct link_map *l, const char *program)
 {
@@ -96,7 +84,7 @@ check_gcs (struct link_map *l, const char *program, bool enforced,
   /* Binary is not marked but GSC is optional: disable GCS.  */
   else
     {
-      GL(dl_aarch64_gcs) = 0;
+      GL(dl_aarch64_gcs) = AARCH64_GCS_POLICY_DISABLED;
       return false;
     }
   __builtin_unreachable ();
@@ -124,16 +112,15 @@ check_gcs_depends (struct link_map *l, const char *program, bool enforced,
 void
 _dl_gcs_check (struct link_map *l, const char *program, int dlopen_mode)
 {
-  unsigned long policy = GL (dl_aarch64_gcs);
-  switch (policy)
+  switch (GL(dl_aarch64_gcs))
     {
-    case GCS_POLICY_DISABLED:
-    case GCS_POLICY_OVERRIDE:
+    case AARCH64_GCS_POLICY_DISABLED:
+    case AARCH64_GCS_POLICY_OVERRIDE:
       return;
-    case GCS_POLICY_ENFORCED:
+    case AARCH64_GCS_POLICY_ENFORCED:
       check_gcs_depends (l, program, true, dlopen_mode);
       return;
-    case GCS_POLICY_OPTIONAL:
+    case AARCH64_GCS_POLICY_OPTIONAL:
       check_gcs_depends (l, program, false, dlopen_mode);
       return;
     default:

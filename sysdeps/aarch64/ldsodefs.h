@@ -21,6 +21,7 @@
 
 #include <elf.h>
 #include <cpu-features.h>
+#include <dl-gcs.h>
 
 struct La_aarch64_regs;
 struct La_aarch64_retval;

@@ -1,6 +1,5 @@
-/* Data for processor runtime information.  AArch64 version.
-   Copyright (C) 2024-2026 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
+/* Internal AArch64 GCS definitions.
+   Copyright (C) 2026 Free Software Foundation, Inc.
 
    The GNU C Library is free software; you can redistribute it and/or
    modify it under the terms of the GNU Lesser General Public
@@ -16,22 +15,24 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#ifndef PROCINFO_CLASS
-# define PROCINFO_CLASS
-#endif
+#ifndef _DL_GCS_H
+#define _DL_GCS_H
 
-#if !IS_IN (ldconfig)
-# if !defined PROCINFO_DECL && defined SHARED
-  ._dl_aarch64_gcs
-# else
-PROCINFO_CLASS aarch64_gcs_mode _dl_aarch64_gcs
-# endif
-# ifndef PROCINFO_DECL
-= 0
-# endif
-# if !defined SHARED || defined PROCINFO_DECL
-;
-# else
-,
-# endif
+#include <verify.h>
+
+typedef enum
+{
+  /* GCS is disabled.  */
+  AARCH64_GCS_POLICY_DISABLED = 0,
+  /* Enable GCS, abort if unmarked binary is found.  */
+  AARCH64_GCS_POLICY_ENFORCED = 1,
+  /* Optionally enable GCS if all startup dependencies are marked.  */
+  AARCH64_GCS_POLICY_OPTIONAL = 2,
+  /* Override binary marking and always enabled GCS.  */
+  AARCH64_GCS_POLICY_OVERRIDE = 3
+} aarch64_gcs_mode;
+
+/* dl-start.S assumes aarch64_gcs_mode is representable as uint32_t.  */
+verify (sizeof (aarch64_gcs_mode) == 4);
+
 #endif

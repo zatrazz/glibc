@@ -54,7 +54,7 @@ aarch64_libc_setup_tls (void)
 
   _rtld_main_check (main_map, _dl_argv[0]);
 
-  uint64_t gcs = GL (dl_aarch64_gcs);
+  aarch64_gcs_mode gcs = GL(dl_aarch64_gcs);
   if (gcs != GCS_POLICY_DISABLED)
     {
       int ret;
