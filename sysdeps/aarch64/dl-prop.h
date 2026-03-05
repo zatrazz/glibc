@@ -19,6 +19,8 @@
 #ifndef _DL_PROP_H
 #define _DL_PROP_H
 
+#include <dl-gcs.h>
+
 extern void _dl_bti_protect (struct link_map *, int) attribute_hidden;
 
 extern void _dl_bti_check (struct link_map *, const char *)
@@ -56,16 +58,39 @@ _dl_process_gnu_property (struct link_map *l, int fd, uint32_t type,
       if (datasz != 4)
 	return 0;
 
-      unsigned int feature_1 = *(unsigned int *) data;
+      unsigned int feature_1;
+      memcpy (&feature_1, data, sizeof feature_1);
       if (feature_1 & GNU_PROPERTY_AARCH64_FEATURE_1_BTI)
 	if (GLRO(dl_aarch64_cpu_features).bti)
 	  _dl_bti_protect (l, fd);
 
       if (feature_1 & GNU_PROPERTY_AARCH64_FEATURE_1_GCS)
 	l->l_mach.gcs = 1;
+    }
+  else if (type == GNU_PROPERTY_AARCH64_GCS_MODE)
+    {
+      /* Stop if the property note is ill-formed.  */
+      if (datasz != 4)
+	return 0;
 
-      /* Stop if we processed the property note.  */
-      return 0;
+      /* The attribute is only considered for the main_map.  */
+      if (fd != -1)
+	return 1;
+
+      unsigned int gcs_mode;
+      memcpy (&gcs_mode, data, sizeof gcs_mode);
+      switch (gcs_mode)
+	{
+	case GNU_PROPERTY_AARCH64_GCS_MODE_OPTIONAL:
+	  GL(dl_aarch64_gcs) = AARCH64_GCS_POLICY_OPTIONAL;
+	  break;
+	case GNU_PROPERTY_AARCH64_GCS_MODE_ENFORCE:
+	  GL(dl_aarch64_gcs) = AARCH64_GCS_POLICY_ENFORCED;
+	  break;
+	default:
+	  /* Ignore invalid values.  */
+	  break;
+	}
     }
   /* Continue.  */
   return 1;

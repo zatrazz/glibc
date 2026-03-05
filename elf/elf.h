@@ -1396,6 +1396,11 @@ typedef struct
 #define GNU_PROPERTY_AARCH64_FEATURE_1_PAC	(1U << 1)
 #define GNU_PROPERTY_AARCH64_FEATURE_1_GCS	(1U << 2)
 
+#define GNU_PROPERTY_AARCH64_GCS_MODE		0xc0000001
+#define GNU_PROPERTY_AARCH64_GCS_MODE_NONE	(0)
+#define GNU_PROPERTY_AARCH64_GCS_MODE_OPTIONAL	(1U << 0)
+#define GNU_PROPERTY_AARCH64_GCS_MODE_ENFORCE	(1U << 1)
+
 /* The x86 instruction sets indicated by the corresponding bits are
    used in program.  Their support in the hardware is optional.  */
 #define GNU_PROPERTY_X86_ISA_1_USED		0xc0010002

@@ -102,6 +102,12 @@ if test $libc_cv_cc_gcs = yes && \
   test $libc_cv_gcs_supported = yes
 then
   LIBC_CONFIG_VAR([have-test-gcs], [yes])
+
+  LIBC_LINKER_FEATURE(
+    [-z gcs-mode=enforced], [-Wl,-z,gcs-mode=enforced],
+    [libc_cv_ld_gcs_mode=yes], [libc_cv_ld_gcs_mode=no]
+  )
+  LIBC_CONFIG_VAR([have-test-gcs-mode], [$libc_cv_ld_gcs_mode])
 else
   LIBC_CONFIG_VAR([have-test-gcs], [no])
 fi

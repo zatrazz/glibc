@@ -362,6 +362,72 @@ tst-gcs-audit-enforced-ARGS = -- $(host-test-program-cmd)
 tst-gcs-audit-optional-ARGS = -- $(host-test-program-cmd)
 tst-gcs-audit-override-ARGS = -- $(host-test-program-cmd)
 
+ifeq (yes,$(have-test-gcs-mode))
+gcs-mode-tests-static += \
+  tst-gcs-mode-static-enforced \
+  # gcs-mode-tests-static
+
+gcs-mode-tests-dynamic += \
+  tst-gcs-mode-dlopen-optional \
+  tst-gcs-mode-dlopen-enforced \
+  tst-gcs-mode-shared-enforced-abort \
+  tst-gcs-mode-shared-optional \
+  # gcs-mode-tests
+
+tests += \
+  $(gcs-mode-tests-static) \
+  $(gcs-mode-tests-dynamic) \
+  # tests
+
+tests-static += \
+  $(gcs-mode-tests-static) \
+  # tests-static
+
+tests-special += \
+  $(objpfx)tst-gcs-mode-dlopen-optional-tunable-off.out \
+  $(objpfx)tst-gcs-mode-enforced-tunable-off.out \
+  $(objpfx)tst-gcs-mode-static-enforced-tunable-off.out \
+  # tests-special
+
+LDFLAGS-tst-gcs-mode-dlopen-optional = -Wl,-z,gcs=always -Wl,-z,gcs-mode=optional
+LDFLAGS-tst-gcs-mode-dlopen-enforced += -Wl,-z,gcs=always -Wl,-z,gcs-mode=enforced
+LDFLAGS-tst-gcs-mode-shared-enforced-abort = -Wl,-z,gcs=always -Wl,-z,gcs-mode=enforced
+LDFLAGS-tst-gcs-mode-shared-optional = -Wl,-z,gcs=always -Wl,-z,gcs-mode=optional
+LDFLAGS-tst-gcs-mode-static-enforced = -Wl,-z,gcs=always -Wl,-z,gcs-mode=optional
+
+$(objpfx)tst-gcs-mode-shared-enforced-abort: $(objpfx)tst-gcs-mod1.so $(objpfx)tst-gcs-mod3.so
+$(objpfx)tst-gcs-mode-shared-optional: $(objpfx)tst-gcs-mod1.so $(objpfx)tst-gcs-mod3.so
+
+# Check if tunable does not disable GCS if GCS is enforced.
+$(objpfx)tst-gcs-mode-enforced-tunable-off.out: $(objpfx)tst-gcs-mode-dlopen-enforced
+	$(test-program-cmd-before-env) \
+		$(run-program-env) \
+		GLIBC_TUNABLES=glibc.cpu.aarch64_gcs=0 \
+		$(test-program-cmd-after-env) $< \
+		> $@ 2>&1; echo "status: $$?" >> $@; \
+	$(evaluate-test)
+
+# Check if tunable does not disable GCS and once GCS is enabled that
+# dlopen fails to load a modules with GCS marking.
+$(objpfx)tst-gcs-mode-dlopen-optional-tunable-off.out: $(objpfx)tst-gcs-mode-dlopen-optional
+	$(test-program-cmd-before-env) \
+		$(run-program-env) \
+		GLIBC_TUNABLES=glibc.cpu.aarch64_gcs=0 \
+		$(test-program-cmd-after-env) $< \
+		> $@ 2>&1; echo "status: $$?" >> $@; \
+	$(evaluate-test)
+
+# Check if tunable does not disable GCS for the static case
+$(objpfx)tst-gcs-mode-static-enforced-tunable-off.out: $(objpfx)tst-gcs-mode-static-enforced
+	$(test-program-cmd-before-env) \
+		$(run-program-env) \
+		GLIBC_TUNABLES=glibc.cpu.aarch64_gcs=0 \
+		$(test-program-cmd-after-env) $< \
+		> $@ 2>&1; echo "status: $$?" >> $@; \
+	$(evaluate-test)
+
+endif # ifeq ($(have-test-gcs-mode),yes)
+
 endif # ifeq ($(have-test-gcs),yes)
 
 endif # ifeq ($(subdir),misc)
