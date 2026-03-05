@@ -605,12 +605,12 @@ This tunable controls Guarded Control Stack (GCS) for the process.
 Accepted values are:
 
 @itemize @bullet
-@item @code{0} = disabled: do not enable GCS.
-@item @code{1} = enforced: check markings and abort if any binary is not
+@item @code{0} or @code{disabled}: do not enable GCS.
+@item @code{1} or @code{enforced}: check markings and abort if any binary is not
 marked, otherwise enable GCS and lock all GCS features.
-@item @code{2} = optional: check markings but keep GCS off if any binary
+@item @code{2} or @code{optional}: check markings but keep GCS off if any binary
 is unmarked, otherwise enable GCS but do not lock any GCS features.
-@item @code{3} = override: enable GCS and lock all GCS features, markings
+@item @code{3} or @code{override}: enable GCS and lock all GCS features, markings
 are ignored.
 @end itemize
 

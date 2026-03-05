@@ -28,10 +28,7 @@ glibc {
       default: 0
     }
     aarch64_gcs {
-      type: UINT_64
-      minval: 0
-      maxval: 3
-      default: 0
+      type: STRING
     }
   }
 }

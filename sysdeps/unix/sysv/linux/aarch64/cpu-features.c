@@ -105,6 +105,31 @@ prefer_sve_ifuncs (void)
 
 #endif
 
+static void
+TUNABLE_CALLBACK (aarch64_gcs) (tunable_val_t *valp)
+{
+  tunable_num_t val;
+  if (tunable_parse_num_tun (valp, &val))
+    {
+      if (tunable_val_lt (val, AARCH64_GCS_POLICY_DISABLED, true))
+	val = AARCH64_GCS_POLICY_DISABLED;
+      if (tunable_val_gt (val, AARCH64_GCS_POLICY_OVERRIDE, true))
+	val = AARCH64_GCS_POLICY_OVERRIDE;
+      GL(dl_aarch64_gcs) = val;
+    }
+  else if (tunable_strcmp_cte (valp, "disabled"))
+    GL(dl_aarch64_gcs) = AARCH64_GCS_POLICY_DISABLED;
+  else if (tunable_strcmp_cte (valp, "enforced"))
+    GL(dl_aarch64_gcs) = AARCH64_GCS_POLICY_ENFORCED;
+  else if (tunable_strcmp_cte (valp, "optional"))
+    GL(dl_aarch64_gcs) = AARCH64_GCS_POLICY_OPTIONAL;
+  else if (tunable_strcmp_cte (valp, "override"))
+    GL(dl_aarch64_gcs) = AARCH64_GCS_POLICY_OVERRIDE;
+  else
+    __tunable_print_error (valp->strval.str, valp->strval.len,
+			   "glibc.cpu.aarch64_gcs");
+}
+
 static inline void
 init_cpu_features (struct cpu_features *cpu_features)
 {
@@ -183,5 +208,6 @@ init_cpu_features (struct cpu_features *cpu_features)
 
   if (GLRO (dl_hwcap) & HWCAP_GCS)
     /* GCS status may be updated later by binary compatibility checks.  */
-    GL (dl_aarch64_gcs) = TUNABLE_GET (glibc, cpu, aarch64_gcs, uint64_t, 0);
+    TUNABLE_GET (glibc, cpu, aarch64_gcs, tunable_val_t *,
+		 TUNABLE_CALLBACK (aarch64_gcs));
 }

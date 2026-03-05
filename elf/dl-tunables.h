@@ -61,6 +61,9 @@ rtld_hidden_proto (__tunable_get_val)
 rtld_hidden_proto (__tunable_set_val)
 rtld_hidden_proto (__tunable_get_default)
 
+extern void __tunable_print_error (const char *, size_t, const char *)
+  attribute_hidden;
+
 /* Define TUNABLE_GET and TUNABLE_SET in short form if TOP_NAMESPACE and
    TUNABLE_NAMESPACE are defined.  This is useful shorthand to get and set
    tunables within a module.  */

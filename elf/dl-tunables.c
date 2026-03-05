@@ -36,6 +36,7 @@
 
 #define TUNABLES_INTERNAL 1
 #include "dl-tunables.h"
+#include <dl-tunables-parse.h>
 
 static char **
 get_next_env (char **envp, char **name, char **val, char ***prev_envp)
@@ -117,17 +118,6 @@ do_tunable_update_val (tunable_t *cur, const tunable_val_t *valp,
   cur->type.min = min;
   cur->type.max = max;
   cur->initialized = true;
-}
-
-static bool
-tunable_parse_num (const char *strval, size_t len, tunable_num_t *val)
-{
-  char *endptr = NULL;
-  uint64_t numval = _dl_strtoul (strval, &endptr);
-  if (endptr != strval + len)
-    return false;
-  *val = (tunable_num_t) numval;
-  return true;
 }
 
 /* Validate range of the input value and initialize the tunable CUR if it looks
@@ -239,14 +229,21 @@ parse_tunables_string (const char *valstring, struct tunable_toset_t *tunables)
   return ntunables;
 }
 
-static void
-parse_tunable_print_error (const struct tunable_toset_t *toset)
+
+void
+__tunable_print_error (const char *value, size_t len, const char *name)
 {
   _dl_error_printf ("WARNING: ld.so: invalid GLIBC_TUNABLES value `%.*s' "
 		    "for option `%s': ignored.\n",
-		    (int) toset->len,
-		    toset->value,
-		    toset->t->name);
+		    (int) len,
+		    value,
+		    name);
+}
+
+static inline void
+parse_tunable_print_error (const struct tunable_toset_t *toset)
+{
+  __tunable_print_error (toset->value, toset->len, toset->t->name);
 }
 
 static void

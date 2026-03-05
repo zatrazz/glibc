@@ -131,4 +131,17 @@ tunable_str_comma_strcmp (const struct tunable_str_comma_t *t, const char *str,
 #define tunable_str_comma_strcmp_cte(__t, __str) \
   tunable_str_comma_strcmp (__t, __str, sizeof (__str) - 1)
 
+static inline bool
+tunable_parse_num (const char *strval, size_t len, tunable_num_t *val)
+{
+  char *endptr = NULL;
+  uint64_t numval = _dl_strtoul (strval, &endptr);
+  if (endptr != strval + len)
+    return false;
+  *val = (tunable_num_t) numval;
+  return true;
+}
+#define tunable_parse_num_tun(__tunable, __ret) \
+  tunable_parse_num (__tunable->strval.str, __tunable->strval.len, __ret)
+
 #endif
