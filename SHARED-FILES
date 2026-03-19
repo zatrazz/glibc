@@ -306,6 +306,8 @@ core-math:
   sysdeps/ieee754/flt-32/s_log1pf.c
   # src/binary32/log2p1/log2p1f.c revision 3fbe16be
   sysdeps/ieee754/flt-32/s_log2p1f.c
+  # src/binary32/sin/sinf.c revision 8ea8ea35
+  sysdeps/ieee754/flt-32/s_sinf.c
   # src/binary32/sinpi/sinpif.c, revision bbfabd99d
   sysdeps/ieee754/flt-32/s_sinpif.c
   # src/binary32/tan/tanf.c, revision 59d21d7
