@@ -66,3 +66,5 @@ const uint32_t __inv_pio4[24] =
   0x34ddc0db, 0xddc0db62, 0xc0db6295, 0xdb629599,
   0x6295993c, 0x95993c43, 0x993c4390, 0x3c439041
 };
+
+#include <sysdeps/ieee754/flt-32/s_sincosf_data_generic.c>
