@@ -288,6 +288,8 @@ core-math:
   sysdeps/ieee754/flt-32/s_atanpif.c
   # src/binary32/cbrt/cbrtf.c, revision f7c7408d
   sysdeps/ieee754/flt-32/s_cbrtf.c
+  # src/binary32/cos/cosf.c revision 8ea8ea35
+  sysdeps/ieee754/flt-32/s_cosf.c
   # src/binary32/cospi/cospif.c, revision bbfabd99
   sysdeps/ieee754/flt-32/s_cospif.c
   # src/binary32/erfc/erfcf.c revision d0a2be20
