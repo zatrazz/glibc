@@ -1197,6 +1197,31 @@ sincos 0x1p+120
 = sincos tonearest ibm128 0x1p+120 : 0x6.0b8d19579bf2db5e5f1aa933f4p-4 -0xe.d06685b36c66c4cf35c11f6518p-4 : inexact-ok
 = sincos towardzero ibm128 0x1p+120 : 0x6.0b8d19579bf2db5e5f1aa933f2p-4 -0xe.d06685b36c66c4cf35c11f6518p-4 : inexact-ok
 = sincos upward ibm128 0x1p+120 : 0x6.0b8d19579bf2db5e5f1aa933f4p-4 -0xe.d06685b36c66c4cf35c11f6518p-4 : inexact-ok
+sincos 0x1p-126
+= sincos downward binary32 0x4p-128 : 0x3.fffff8p-128 0xf.fffffp-4 : inexact-ok underflow-ok errno-erange-ok
+= sincos tonearest binary32 0x4p-128 : 0x4p-128 0x1p+0 : inexact-ok underflow-ok errno-erange-ok
+= sincos towardzero binary32 0x4p-128 : 0x3.fffff8p-128 0xf.fffffp-4 : inexact-ok underflow-ok errno-erange-ok
+= sincos upward binary32 0x4p-128 : 0x4p-128 0x1p+0 : inexact-ok underflow-ok errno-erange-ok
+= sincos downward binary64 0x4p-128 : 0x3.ffffffffffffep-128 0xf.ffffffffffff8p-4 : inexact-ok
+= sincos tonearest binary64 0x4p-128 : 0x4p-128 0x1p+0 : inexact-ok
+= sincos towardzero binary64 0x4p-128 : 0x3.ffffffffffffep-128 0xf.ffffffffffff8p-4 : inexact-ok
+= sincos upward binary64 0x4p-128 : 0x4p-128 0x1p+0 : inexact-ok
+= sincos downward intel96 0x4p-128 : 0x3.fffffffffffffffcp-128 0xf.fffffffffffffffp-4 : inexact-ok
+= sincos tonearest intel96 0x4p-128 : 0x4p-128 0x1p+0 : inexact-ok
+= sincos towardzero intel96 0x4p-128 : 0x3.fffffffffffffffcp-128 0xf.fffffffffffffffp-4 : inexact-ok
+= sincos upward intel96 0x4p-128 : 0x4p-128 0x1p+0 : inexact-ok
+= sincos downward m68k96 0x4p-128 : 0x3.fffffffffffffffcp-128 0xf.fffffffffffffffp-4 : inexact-ok
+= sincos tonearest m68k96 0x4p-128 : 0x4p-128 0x1p+0 : inexact-ok
+= sincos towardzero m68k96 0x4p-128 : 0x3.fffffffffffffffcp-128 0xf.fffffffffffffffp-4 : inexact-ok
+= sincos upward m68k96 0x4p-128 : 0x4p-128 0x1p+0 : inexact-ok
+= sincos downward binary128 0x4p-128 : 0x3.fffffffffffffffffffffffffffep-128 0xf.fffffffffffffffffffffffffff8p-4 : inexact-ok
+= sincos tonearest binary128 0x4p-128 : 0x4p-128 0x1p+0 : inexact-ok
+= sincos towardzero binary128 0x4p-128 : 0x3.fffffffffffffffffffffffffffep-128 0xf.fffffffffffffffffffffffffff8p-4 : inexact-ok
+= sincos upward binary128 0x4p-128 : 0x4p-128 0x1p+0 : inexact-ok
+= sincos downward ibm128 0x4p-128 : 0x3.ffffffffffffffffffffffffffp-128 0xf.fffffffffffffffffffffffffcp-4 : inexact-ok
+= sincos tonearest ibm128 0x4p-128 : 0x4p-128 0x1p+0 : inexact-ok
+= sincos towardzero ibm128 0x4p-128 : 0x3.ffffffffffffffffffffffffffp-128 0xf.fffffffffffffffffffffffffcp-4 : inexact-ok
+= sincos upward ibm128 0x4p-128 : 0x4p-128 0x1p+0 : inexact-ok
 sincos 0x1p+127
 = sincos downward binary32 0x8p+124 : 0x9.f9631p-4 0xc.82b8ep-4 : inexact-ok
 = sincos tonearest binary32 0x8p+124 : 0x9.f9631p-4 0xc.82b8fp-4 : inexact-ok
