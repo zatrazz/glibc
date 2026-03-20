@@ -46,4 +46,17 @@ extern const sincosf_database_t __sinf_st[4] attribute_hidden;
 extern const sincosf_database_t __cosf_st[5] attribute_hidden;
 #define ST_COSF __cosf_st
 
+typedef struct
+{
+  union
+  {
+    float arg;
+    uint32_t uarg;
+  };
+  float sh, sl;
+  float ch, cl;
+} sincosf2_database_t;
+extern const sincosf2_database_t __sincosf_st[9] attribute_hidden;
+#define ST_SINCOSF __sincosf_st
+
 #endif
