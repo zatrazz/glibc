@@ -24,6 +24,8 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#include <s_sincosf_data.h>
+
 const uint64_t __sinf_ipi[] =
 {
   0xfe5163abdebbc562, 0xdb6295993c439041, 0xfc2757d1f534ddc0,
@@ -55,17 +57,34 @@ const double __sinf_tb[] =
   -0x1.87de2a6aea963p-2, -0x1.8f8b83c69a60bp-3
 };
 
-const struct
+const double __cosf_tb[] =
 {
-  union
-  {
-    float arg;
-    uint32_t uarg;
-  };
-  float rh, rl;
-} __sinf_st[] = {
+   0x1p+0,                0x1.f6297cff75cbp-1,   0x1.d906bcf328d46p-1,
+   0x1.a9b66290ea1a3p-1,  0x1.6a09e667f3bcdp-1,  0x1.1c73b39ae68c8p-1,
+   0x1.87de2a6aea963p-2,  0x1.8f8b83c69a60bp-3,  0x0p+0,
+  -0x1.8f8b83c69a60bp-3, -0x1.87de2a6aea963p-2, -0x1.1c73b39ae68c8p-1,
+  -0x1.6a09e667f3bcdp-1, -0x1.a9b66290ea1a3p-1, -0x1.d906bcf328d46p-1,
+  -0x1.f6297cff75cbp-1,  -0x1p+0,               -0x1.f6297cff75cbp-1,
+  -0x1.d906bcf328d46p-1, -0x1.a9b66290ea1a3p-1, -0x1.6a09e667f3bcdp-1,
+  -0x1.1c73b39ae68c8p-1, -0x1.87de2a6aea963p-2, -0x1.8f8b83c69a60bp-3,
+   0x0p+0,                0x1.8f8b83c69a60bp-3,  0x1.87de2a6aea963p-2,
+   0x1.1c73b39ae68c8p-1,  0x1.6a09e667f3bcdp-1,  0x1.a9b66290ea1a3p-1,
+   0x1.d906bcf328d46p-1,  0x1.f6297cff75cbp-1
+};
+
+const sincosf_database_t __sinf_st[] =
+{
   { { 0x1.33333p+13 }, -0x1.63f4bap-2, -0x1p-27 },
   { { 0x1.75b8a2p-1 }, 0x1.55688ap-1, -0x1p-26 },
   { { 0x1.4f0654p+0 }, 0x1.ee836cp-1, -0x1p-26 },
   { { 0x1.2d97c8p+3 }, -0x1.99bc5ap-26, -0x1p-51 },
+};
+
+const sincosf_database_t __cosf_st[] =
+{
+  { { 0x1.2d97c8p+2 }, 0x1.99bc5cp-27, -0x1p-52 },
+  { { 0x1.4555p+51 }, 0x1.115d7ep-1, -0x1p-26 },
+  { { 0x1.48a858p+54 }, 0x1.f48148p-2, 0x1p-27 },
+  { { 0x1.3170fp+63 }, 0x1.fe2976p-1, 0x1p-26 },
+  { { 0x1.2b9622p+67 }, 0x1.f0285ep-1, -0x1p-26 },
 };
