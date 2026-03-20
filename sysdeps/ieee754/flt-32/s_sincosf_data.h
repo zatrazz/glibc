@@ -29,7 +29,10 @@ extern const double __sinf_a[] attribute_hidden;
 extern const double __sinf_tb[] attribute_hidden;
 #define TB __sinf_tb
 
-extern const struct
+extern const double __cosf_tb[] attribute_hidden;
+#define TB_COSF __cosf_tb
+
+typedef struct
 {
   union
   {
@@ -37,7 +40,10 @@ extern const struct
     uint32_t uarg;
   };
   float rh, rl;
-} __sinf_st[4] attribute_hidden;
+} sincosf_database_t;
+extern const sincosf_database_t __sinf_st[4] attribute_hidden;
 #define ST __sinf_st
+extern const sincosf_database_t __cosf_st[5] attribute_hidden;
+#define ST_COSF __cosf_st
 
 #endif
