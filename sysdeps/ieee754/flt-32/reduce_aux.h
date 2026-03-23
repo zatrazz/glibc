@@ -21,7 +21,43 @@
 
 #include <math.h>
 #include <math_private.h>
-#include <s_sincosf.h>
+#include "math_config.h"
+
+/* 2PI * 2^-64.  */
+static const double pi63 = 0x1.921FB54442D18p-62;
+
+/* Table with 4/PI to 192 bit precision.  */
+extern const uint32_t __inv_pio4[] attribute_hidden;
+
+/* Reduce the range of XI to a multiple of PI/2 using fast integer arithmetic.
+   XI is a reinterpreted float and must be >= 2.0f (the sign bit is ignored).
+   Return the modulo between -PI/4 and PI/4 and store the quadrant in NP.
+   Reduction uses a table of 4/PI with 192 bits of precision.  A 32x96->128 bit
+   multiply computes the exact 2.62-bit fixed-point modulo.  Since the result
+   can have at most 29 leading zeros after the binary point, the double
+   precision result is accurate to 33 bits.  */
+static inline double
+reduce_large (uint32_t xi, int *np)
+{
+  const uint32_t *arr = &__inv_pio4[(xi >> 26) & 15];
+  int shift = (xi >> 23) & 7;
+  uint64_t n, res0, res1, res2;
+
+  xi = (xi & 0xffffff) | 0x800000;
+  xi <<= shift;
+
+  res0 = xi * arr[0];
+  res1 = (uint64_t)xi * arr[4];
+  res2 = (uint64_t)xi * arr[8];
+  res0 = (res2 >> 32) | (res0 << 32);
+  res0 += res1;
+
+  n = (res0 + (1ULL << 61)) >> 62;
+  res0 -= n << 62;
+  double x = (int64_t)res0;
+  *np = n;
+  return x * pi63;
+}
 
 /* Return h and update n such that:
    Now x - pi/4 - alpha = h + n*pi/2 mod (2*pi).  */
