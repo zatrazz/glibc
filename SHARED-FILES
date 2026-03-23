@@ -329,7 +329,7 @@ core-math:
   sysdeps/ieee754/flt-32/s_log2p1f.c
   # src/binary32/sin/sinf.c, revision ac1993d8
   sysdeps/ieee754/flt-32/s_sinf.c
-  sysdeps/ieee754/flt-32/s_sincosf_data_generic.c
+  sysdeps/ieee754/flt-32/s_sincosf_data.c
   # src/binary32/sincos/sincosf.c, revision ac1993d8
   sysdeps/ieee754/flt-32/s_sincosf.c
   # src/binary32/sinpi/sinpif.c, revision bbfabd99d
@@ -375,10 +375,6 @@ arm-optimized-routines:
   sysdeps/ieee754/flt-32/e_powf.c
   # math/powf_log2_data.c, revision 189dfef
   sysdeps/ieee754/flt-32/e_powf_log2_data.c
-  # math/sincosf.h, revision aed553c
-  sysdeps/ieee754/flt-32/s_sincosf.h
-  # math/sincosf_data.c, revision 189dfef
-  sysdeps/ieee754/flt-32/s_sincosf_data.c
   # math/exp.c, revision 712aa21
   sysdeps/ieee754/dbl-64/e_exp.c
   # math/exp10.c, revision 712aa21
