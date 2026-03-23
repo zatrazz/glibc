@@ -389,6 +389,7 @@ type-float-routines := \
   s_asincosf_data \
   s_asincoshf_data \
   s_asincospif_data \
+  s_sincosf_common \
   s_sincosf_data \
   s_sincospif_data \
   # type-float-routines
