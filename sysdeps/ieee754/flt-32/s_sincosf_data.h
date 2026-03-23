@@ -19,6 +19,8 @@
 #ifndef _S_SINCOSF_DATA_H
 #define _S_SINCOSF_DATA_H
 
+#include <stdint.h>
+
 extern const uint64_t __sinf_ipi[] attribute_hidden;
 #define IPI __sinf_ipi
 
