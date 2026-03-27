@@ -35,10 +35,24 @@
 /* Predicate is stored as one bit per byte of VL so requires VL / 64 bytes.  */
 #define SVE_NUM_PG_BYTES (SVE_VECTOR_BYTES / sizeof (uint64_t))
 
+#define SVE_FUNCTION __attribute__((target("+sve")))
+#ifdef __clang__
+# define OPTIONS_PUSH_SVE \
+  _Pragma("clang attribute push (__attribute__((target(\"+sve\"))), apply_to=function)")
+# define OPTIONS_POP         _Pragma("clang attribute pop")
+#else
+# define OPTIONS_PUSH_SVE    _Pragma ("GCC push_options"); \
+  			     _Pragma ("GCC target(\"+sve\")")
+# define OPTIONS_POP         _Pragma ("GCC pop_options")
+#endif
+
+
 #define SV_NAME_F1(fun) _ZGVsMxv_##fun##f
 #define SV_NAME_D1(fun) _ZGVsMxv_##fun
 #define SV_NAME_F2(fun) _ZGVsMxvv_##fun##f
 #define SV_NAME_D2(fun) _ZGVsMxvv_##fun
+
+OPTIONS_PUSH_SVE
 
 static inline void
 svstr_p (uint8_t *dst, svbool_t p)
@@ -165,4 +179,7 @@ sv_call2_f32 (float (*f) (float, float), svfloat32_t x1, svfloat32_t x2,
     }
   return svld1 (svptrue_b32 (), tmp1);
 }
+
+OPTIONS_POP
+
 #endif

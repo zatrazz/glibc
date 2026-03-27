@@ -34,7 +34,7 @@ static const struct data
    Maximum error 2.48 ULP:
    _ZGVsMxv_sinpif(0x1.d062b6p-2) got 0x1.fa8c06p-1
 				 want 0x1.fa8c02p-1.  */
-svfloat32_t SV_NAME_F1 (sinpi) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (sinpi) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

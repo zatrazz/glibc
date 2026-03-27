@@ -46,7 +46,7 @@ static const struct data
    Functionally identical to FEXPA exp(x), but an adjustment in
    the shift value which leads to a reduction in the exponent of scale by 1,
    thus halving the result at no cost.  */
-static inline svfloat64_t
+SVE_FUNCTION static inline svfloat64_t
 exp_over_two_inline (const svbool_t pg, svfloat64_t x, const struct data *d)
 {
   /* Calculate exp(x).  */
@@ -76,7 +76,7 @@ exp_over_two_inline (const svbool_t pg, svfloat64_t x, const struct data *d)
    cosh (A + B) = cosh(A)cosh(B) + sinh(A)sinh(B)
    By choosing sufficiently large values whereby after rounding cosh == sinh,
    this can be simplified into: cosh (A + B) = cosh(A) * e^B.  */
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t x, svbool_t pg, svbool_t special, svfloat64_t t,
 	      const struct data *d)
 {
@@ -108,7 +108,7 @@ special_case (svfloat64_t x, svbool_t pg, svbool_t special, svfloat64_t t,
    The greatest observed error is 2.10 + 0.5 ULP:
    _ZGVsMxv_cosh (-0x1.2acb2978bd15ep+4) got 0x1.ebbd8806ea342p+25
 					want 0x1.ebbd8806ea33fp+25.  */
-svfloat64_t SV_NAME_D1 (cosh) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (cosh) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

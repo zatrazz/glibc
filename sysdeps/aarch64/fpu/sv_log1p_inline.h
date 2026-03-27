@@ -63,7 +63,7 @@ static const struct sv_log1p_data
   .one_top = 0x3ff
 };
 
-static inline svfloat64_t
+SVE_FUNCTION static inline svfloat64_t
 sv_log1p_inline (svfloat64_t x, const svbool_t pg)
 {
   /* Helper for calculating log(x + 1). Adapted from v_log1p_inline.h, which

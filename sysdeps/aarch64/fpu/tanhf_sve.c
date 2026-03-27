@@ -44,7 +44,7 @@ static const struct data
 
 /* An expm1 inspired helper function that returns an accurate
    estimate for e^2x - 1.  */
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 e2xm1f_inline (svfloat32_t x, svbool_t pg, const struct data *d)
 {
   /* This vector is reliant on layout of data - it contains constants
@@ -82,7 +82,7 @@ e2xm1f_inline (svfloat32_t x, svbool_t pg, const struct data *d)
   return svmla_x (pg, svsub_x (pg, t, 1.0f), p, t);
 }
 
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t x, svbool_t pg, svbool_t special, svfloat32_t q)
 {
   /* Finish fastpass to compute values for non-special cases.  */
@@ -108,7 +108,7 @@ special_case (svfloat32_t x, svbool_t pg, svbool_t special, svfloat32_t q)
    Maximum error is 2.06 +0.5 ULP:
    _ZGVsMxv_tanhf (0x1.fc1832p-5) got 0x1.fb71a4p-5
 				 want 0x1.fb71aap-5.  */
-svfloat32_t SV_NAME_F1 (tanh) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (tanh) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

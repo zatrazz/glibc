@@ -48,7 +48,7 @@ static const struct data
   .zero_bound = ZeroBound,
 };
 
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 expf_inline (svfloat32_t x, const svbool_t pg, const struct data *d)
 {
   /* exp(x) = 2^n (1 + poly(r)), with 1 + poly(r) in [1/sqrt(2),sqrt(2)]
@@ -78,7 +78,7 @@ expf_inline (svfloat32_t x, const svbool_t pg, const struct data *d)
    The approximation needs to match that of the fast path.
    To achieve this we assemble the same polynomial, ie `r + 0.5 * r^2`,
    then we conditionally add an extra `c2 * r^3` term.  */
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 expf_slow_inline (svfloat32_t x, const svbool_t special, const struct data *d)
 {
   svfloat32_t lane_constants = svld1rq (svptrue_b32 (), &d->ln2_hi);
@@ -102,7 +102,7 @@ expf_slow_inline (svfloat32_t x, const svbool_t special, const struct data *d)
   return svmla_x (svptrue_b32 (), scale, scale, poly);
 }
 
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t x, svbool_t pg, svbool_t special,
 	      const struct data *d)
 {
@@ -127,7 +127,7 @@ special_case (svfloat32_t x, svbool_t pg, svbool_t special,
    Worst-case error is 2.70 +0.50 ULP:
    _ZGVsMxv_expf(0x1.5fec38p+6) got 0x1.e7831ep+126
 			       want 0x1.e78318p+126.  */
-svfloat32_t SV_NAME_F1 (exp) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (exp) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
   svbool_t special = svacgt (pg, x, d->special_bound);

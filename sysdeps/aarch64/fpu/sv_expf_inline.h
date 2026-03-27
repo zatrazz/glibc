@@ -35,7 +35,7 @@ struct sv_expf_data
     .ln2_lo = 0x1.7f7d1cp-20f, .shift = 0x1.803f8p17f,                        \
   }
 
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 expf_inline (svfloat32_t x, const svbool_t pg, const struct sv_expf_data *d)
 {
   /* exp(x) = 2^n (1 + poly(r)), with 1 + poly(r) in [1/sqrt(2),sqrt(2)]

@@ -41,13 +41,13 @@ const static struct data
 #define MantissaMask 0x007fffff
 #define HalfExp 0x3f000000
 
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t x, svfloat32_t y, svbool_t special)
 {
   return sv_call_f32 (cbrtf, x, y, special);
 }
 
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 shifted_lookup (const svbool_t pg, const float32_t *table, svint32_t i)
 {
   return svld1_gather_index (pg, table, svadd_x (pg, i, 2));
@@ -59,7 +59,7 @@ shifted_lookup (const svbool_t pg, const float32_t *table, svint32_t i)
    0x1.85a2aa and the exponent is a multiple of 3, for example:
    _ZGVsMxv_cbrtf (0x1.85a2aap+3) got 0x1.267936p+1
 				 want 0x1.267932p+1.  */
-svfloat32_t SV_NAME_F1 (cbrt) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (cbrt) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

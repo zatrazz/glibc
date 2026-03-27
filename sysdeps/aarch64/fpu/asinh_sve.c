@@ -64,7 +64,7 @@ static const struct data
   .inf = INFINITY
 };
 
-static inline svfloat64_t
+SVE_FUNCTION static inline svfloat64_t
 __sv_log_inline (svfloat64_t x, const struct data *d, const svbool_t pg)
 {
   /* Double-precision SVE log, copied from SVE log implementation with some
@@ -99,7 +99,7 @@ __sv_log_inline (svfloat64_t x, const struct data *d, const svbool_t pg)
   return y;
 }
 
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t ax, svfloat64_t y, svuint64_t sign, svbool_t special,
 	      svbool_t pg, const struct data *d)
 {
@@ -136,7 +136,7 @@ special_case (svfloat64_t ax, svfloat64_t y, svuint64_t sign, svbool_t special,
    |x| >= 1:
    _ZGVsMxv_asinh(0x1.170469d024505p+0) got 0x1.e3181c43b0f36p-1
 				       want 0x1.e3181c43b0f39p-1.  */
-svfloat64_t SV_NAME_D1 (asinh) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (asinh) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

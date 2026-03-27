@@ -49,7 +49,7 @@ static const struct data
    error is 2.08 ulps:
    _ZGVsMxv_atan (0x1.000a7c56975e8p+0) got 0x1.922a3163e15c2p-1
 				       want 0x1.922a3163e15c4p-1.  */
-svfloat64_t SV_NAME_D1 (atan) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (atan) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

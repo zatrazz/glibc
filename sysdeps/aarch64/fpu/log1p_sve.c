@@ -62,7 +62,7 @@ static const struct data
 #define AbsMask 0x7fffffffffffffff
 #define BottomMask 0xffffffff
 
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t x, svfloat64_t y, svbool_t special)
 {
   return sv_call_f64 (log1p, x, y, special);
@@ -72,7 +72,7 @@ special_case (svfloat64_t x, svfloat64_t y, svbool_t special)
    observed error is 2.46 ULP:
    _ZGVsMxv_log1p(0x1.654a1307242a4p+11) got 0x1.fd5565fb590f4p+2
 					want 0x1.fd5565fb590f6p+2.  */
-svfloat64_t SV_NAME_D1 (log1p) (svfloat64_t x, svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (log1p) (svfloat64_t x, svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
   svuint64_t ix = svreinterpret_u64 (x);

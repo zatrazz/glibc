@@ -41,7 +41,7 @@ static const struct data
   .range_val = 0x1p23,
 };
 
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t x, svfloat64_t p, svfloat64_t q, svbool_t pg,
 	      svbool_t special)
 {
@@ -61,7 +61,7 @@ special_case (svfloat64_t x, svfloat64_t p, svfloat64_t q, svbool_t pg,
    Maximum measured error is 3.48 ULP:
    _ZGVsMxv_tan(0x1.4457047ef78d8p+20) got -0x1.f6ccd8ecf7dedp+37
 				      want -0x1.f6ccd8ecf7deap+37.  */
-svfloat64_t SV_NAME_D1 (tan) (svfloat64_t x, svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (tan) (svfloat64_t x, svbool_t pg)
 {
   const struct data *dat = ptr_barrier (&data);
   svfloat64_t half_pi_c0 = svld1rq (svptrue_b64 (), &dat->c0);

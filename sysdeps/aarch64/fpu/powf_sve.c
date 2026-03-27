@@ -59,21 +59,21 @@ static const struct data
 #define C(i) sv_f64 (d->exp_poly[i])
 
 /* Check if x is an integer.  */
-static inline svbool_t
+SVE_FUNCTION static inline svbool_t
 svisint (svbool_t pg, svfloat32_t x)
 {
   return svcmpeq (pg, svrintz_z (pg, x), x);
 }
 
 /* Check if x is real not integer valued.  */
-static inline svbool_t
+SVE_FUNCTION static inline svbool_t
 svisnotint (svbool_t pg, svfloat32_t x)
 {
   return svcmpne (pg, svrintz_z (pg, x), x);
 }
 
 /* Check if x is an odd integer.  */
-static inline svbool_t
+SVE_FUNCTION static inline svbool_t
 svisodd (svbool_t pg, svfloat32_t x)
 {
   svfloat32_t y = svmul_x (pg, x, 0.5f);
@@ -81,7 +81,7 @@ svisodd (svbool_t pg, svfloat32_t x)
 }
 
 /* Check if zero, inf or nan.  */
-static inline svbool_t
+SVE_FUNCTION static inline svbool_t
 sv_zeroinfnan (svbool_t pg, svuint32_t i)
 {
   return svcmpge (pg, svsub_x (pg, svadd_x (pg, i, i), 1),
@@ -146,14 +146,14 @@ powf_specialcase (float x, float y)
 }
 
 /* Scalar fallback for special case routines with custom signature.  */
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 sv_call_powf_sc (svfloat32_t x1, svfloat32_t x2, svfloat32_t y, svbool_t cmp)
 {
   return sv_call2_f32 (powf_specialcase, x1, x2, y, cmp);
 }
 
 /* Compute core for half of the lanes in double precision.  */
-static inline svfloat64_t
+SVE_FUNCTION static inline svfloat64_t
 sv_powf_core_ext (const svbool_t pg, svuint64_t i, svfloat64_t z, svint64_t k,
 		  svfloat64_t y, svuint64_t sign_bias, svfloat64_t *pylogx,
 		  const struct data *d)
@@ -197,7 +197,7 @@ sv_powf_core_ext (const svbool_t pg, svuint64_t i, svfloat64_t z, svint64_t k,
 
 /* Widen vector to double precision and compute core on both halves of the
    vector. Lower cost of promotion by considering all lanes active.  */
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 sv_powf_core (const svbool_t pg, svuint32_t i, svuint32_t iz, svint32_t k,
 	      svfloat32_t y, svuint32_t sign_bias, svfloat32_t *pylogx,
 	      const struct data *d)
@@ -243,7 +243,8 @@ sv_powf_core (const svbool_t pg, svuint32_t i, svuint32_t iz, svint32_t k,
    Maximum measured error is 2.57 ULPs:
    SV_NAME_F2 (pow) (0x1.031706p+0, 0x1.ce2ec2p+12) got 0x1.fff868p+127
 						   want 0x1.fff862p+127.  */
-svfloat32_t SV_NAME_F2 (pow) (svfloat32_t x, svfloat32_t y, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F2 (pow) (svfloat32_t x, svfloat32_t y,
+					   const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

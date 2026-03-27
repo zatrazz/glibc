@@ -52,7 +52,7 @@ static const struct data
 
 #define MantissaMask 0x007fffff
 
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 v_log10f_inline (svuint32_t u_off, const svbool_t pg, const struct data *d)
 {
   /* x = 2^n * (1+r), where 2/3 < 1+r < 4/3.  */
@@ -90,7 +90,7 @@ v_log10f_inline (svuint32_t u_off, const svbool_t pg, const struct data *d)
    calculation of x * 2^23 (2^mantissa) to normalise the number at entry to
    the log function and then subtract log10(2) * 23 to re-subnormalise the
    output to the correct result.  */
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t x, svbool_t pg, svbool_t special,
 	      const struct data *d)
 {
@@ -125,7 +125,7 @@ special_case (svfloat32_t x, svbool_t pg, svbool_t special,
    Maximum error is 3.31ulps:
    SV_NAME_F1 (log10)(0x1.555c16p+0) got 0x1.ffe2fap-4
 				    want 0x1.ffe2f4p-4.  */
-svfloat32_t SV_NAME_F1 (log10) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (log10) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

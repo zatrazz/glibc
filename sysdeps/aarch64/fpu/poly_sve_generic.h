@@ -31,6 +31,8 @@
 # error Cannot use poly_generic without defining DUP
 #endif
 
+OPTIONS_PUSH_SVE
+
 static inline VTYPE VWRAP (pairwise_poly_3) (svbool_t pg, VTYPE x, VTYPE x2,
 					     const STYPE *poly)
 {
@@ -311,3 +313,5 @@ static inline VTYPE VWRAP (pw_horner_18) (svbool_t pg, VTYPE x, VTYPE x2,
   VTYPE p01 = svmla_x (pg, DUP (poly[0]), x, poly[1]);
   return svmla_x (pg, p01, x2, p2_18);
 }
+
+OPTIONS_POP

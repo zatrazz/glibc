@@ -57,7 +57,7 @@ static const struct data
    Algorithm is accurate to 1.68 + 0.5 ULP.
    _ZGVnN4v_exp10m1f(0x1.3aeffep-3) got 0x1.b3139p-2
 				   want 0x1.b3138cp-2.  */
-svfloat32_t SV_NAME_F1 (exp10m1) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (exp10m1) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

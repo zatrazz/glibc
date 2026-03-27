@@ -59,7 +59,7 @@ static const struct data
 /* A specialised FEXPA expm1 that is only valid for positive inputs and
    has no special cases. Based off the full FEXPA expm1 implementated for
    _ZGVsMxv_expm1, with a slightly modified file to keep sinh under 3.5ULP.  */
-static inline svfloat64_t
+SVE_FUNCTION static inline svfloat64_t
 expm1_inline (svbool_t pg, svfloat64_t x)
 {
   const struct data *d = ptr_barrier (&data);
@@ -114,7 +114,7 @@ expm1_inline (svbool_t pg, svfloat64_t x)
    sinh (A + B) = cosh(A)cosh(B) + sinh(A)sinh(B)
    By choosing sufficiently large values whereby after rounding sinh == cosh,
    this can be simplified into: sinh (A + B) = sinh(A) * e^B.  */
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svuint64_t sign, svbool_t pg, svbool_t special, svfloat64_t ax,
 	      svfloat64_t halfsign)
 {
@@ -151,7 +151,7 @@ special_case (svuint64_t sign, svbool_t pg, svbool_t special, svfloat64_t ax,
    The greatest observed error is 2.62 + 0.5 ULP:
    _ZGVsMxv_sinh (0x1.b5e0e13ba88aep-2) got 0x1.c3587faf97b0cp-2
 				       want 0x1.c3587faf97b09p-2.  */
-svfloat64_t SV_NAME_D1 (sinh) (svfloat64_t x, svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (sinh) (svfloat64_t x, svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

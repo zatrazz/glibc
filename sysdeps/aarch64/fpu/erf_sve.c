@@ -54,7 +54,7 @@ static const struct data
    Maximum measure error: 2.29 ULP
    _ZGVsMxv_erf(-0x1.00003c924e5d1p-8) got -0x1.20dd59132ebadp-8
 				      want -0x1.20dd59132ebafp-8.  */
-svfloat64_t SV_NAME_D1 (erf) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (erf) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *dat = ptr_barrier (&data);
 

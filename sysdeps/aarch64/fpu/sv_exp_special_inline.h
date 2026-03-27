@@ -31,7 +31,7 @@ static const struct sv_exp_special_data
   .special_bias2 = 0x3010000000000000, /* 0x1p-254.  */
 };
 
-static inline svfloat64_t
+SVE_FUNCTION static inline svfloat64_t
 special_case (svfloat64_t scale, svfloat64_t poly, svfloat64_t n,
 	      const struct sv_exp_special_data *ds)
 {

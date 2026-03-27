@@ -27,7 +27,7 @@ static const struct data
   double nan;
 } data = { .half = 0x3fe0000000000000, .inf = INFINITY, .nan = NAN };
 
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t ax, svfloat64_t y, svbool_t pg, svbool_t special,
 	      svfloat64_t halfsign, const struct data *d)
 {
@@ -40,7 +40,7 @@ special_case (svfloat64_t ax, svfloat64_t y, svbool_t pg, svbool_t special,
    The greatest observed error is 3.3 ULP:
    _ZGVsMxv_atanh(0x1.ffae6288b601p-6) got 0x1.ffd8ff31b5019p-6
 				      want 0x1.ffd8ff31b501cp-6.  */
-svfloat64_t SV_NAME_D1 (atanh) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (atanh) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

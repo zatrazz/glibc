@@ -59,7 +59,7 @@ static const struct data
    Maximum error: 1.63 ULP (~1.0 ULP for x < 0.0).
    _ZGVsMxv_erfcf(0x1.1dbf7ap+3) got 0x1.f51212p-120
 				want 0x1.f51216p-120.  */
-svfloat32_t SV_NAME_F1 (erfc) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (erfc) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *dat = ptr_barrier (&data);
 

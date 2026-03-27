@@ -22,7 +22,7 @@
 
 #define BigBound 0x5f800000 /* asuint(0x1p64).  */
 
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svuint32_t iax, svuint32_t sign, svfloat32_t y, svbool_t special)
 {
   svfloat32_t x = svreinterpret_f32 (sveor_x (svptrue_b32 (), iax, sign));
@@ -37,7 +37,7 @@ special_case (svuint32_t iax, svuint32_t sign, svfloat32_t y, svbool_t special)
    Maximum error is 1.92 ULPs:
    SV_NAME_F1 (asinh) (-0x1.0922ecp-1) got -0x1.fd0bccp-2
 				      want -0x1.fd0bc8p-2.  */
-svfloat32_t SV_NAME_F1 (asinh) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (asinh) (svfloat32_t x, const svbool_t pg)
 {
   svfloat32_t ax = svabs_x (pg, x);
   svuint32_t iax = svreinterpret_u32 (ax);

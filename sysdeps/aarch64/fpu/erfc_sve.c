@@ -86,7 +86,7 @@ static const struct data
    Maximum measured error: 1.71 ULP
    _ZGVsMxv_erfc(0x1.46cfe976733p+4) got 0x1.e15fcbea3e7afp-608
 				    want 0x1.e15fcbea3e7adp-608.  */
-svfloat64_t SV_NAME_D1 (erfc) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (erfc) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *dat = ptr_barrier (&data);
 

@@ -72,7 +72,7 @@ static const struct data
   },
 };
 
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_m1 (svbool_t special, svfloat64_t y, svfloat64_t z, svfloat64_t scale,
 	    svfloat64_t poly, svfloat64_t n,
 	    const struct sv_exp_special_data *ds)
@@ -94,7 +94,7 @@ special_m1 (svbool_t special, svfloat64_t y, svfloat64_t z, svfloat64_t scale,
    Maximum measured error is 2.87 + 0.5 ULP:
    _ZGVsMxv_exp10m1(0x1.64645f11e94c6p-4) got 0x1.c64d54eb7658dp-3
 					 want 0x1.c64d54eb7658ap-3.  */
-svfloat64_t SV_NAME_D1 (exp10m1) (svfloat64_t x, svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (exp10m1) (svfloat64_t x, svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

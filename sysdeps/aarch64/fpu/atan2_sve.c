@@ -39,7 +39,7 @@ static const struct data
   .c18 = -0x1.44a4b059b6f67p-13, .c19 = 0x1.c4a45029e5a91p-17,
 };
 /* Special cases i.e. 0, infinity, nan (fall back to scalar calls).  */
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t y, svfloat64_t x, svfloat64_t ret,
 	      const svbool_t cmp)
 {
@@ -48,7 +48,7 @@ special_case (svfloat64_t y, svfloat64_t x, svfloat64_t ret,
 
 /* Returns a predicate indicating true if the input is the bit representation
    of 0, infinity or nan.  */
-static inline svbool_t
+SVE_FUNCTION static inline svbool_t
 zeroinfnan (svuint64_t i, const svbool_t pg)
 {
   return svcmpge (pg, svsub_x (pg, svlsl_x (pg, i, 1), 1),
@@ -59,8 +59,8 @@ zeroinfnan (svuint64_t i, const svbool_t pg)
    x are reasonably close together. The greatest observed error is 1.94 ULP:
    _ZGVsMxvv_atan2 (0x1.8a4bf7167228ap+5, 0x1.84971226bb57bp+5)
    got 0x1.95db19dfef9ccp-1 want 0x1.95db19dfef9cep-1.  */
-svfloat64_t SV_NAME_D2 (atan2) (svfloat64_t y, svfloat64_t x,
-				const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D2 (atan2) (svfloat64_t y, svfloat64_t x,
+					     const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

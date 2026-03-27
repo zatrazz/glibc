@@ -27,7 +27,7 @@ static const struct data
   .thres = 0x7300000000000000,	    /* asuint (inf) - tiny_bound.  */
 };
 
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t sqsum, svfloat64_t x, svfloat64_t y, svbool_t pg,
 	      svbool_t special)
 {
@@ -39,7 +39,8 @@ special_case (svfloat64_t sqsum, svfloat64_t x, svfloat64_t y, svbool_t pg,
    _ZGVsMxvv_hypot (-0x1.6a22d0412cdd3p+352, 0x1.d3d89bd66fb1ap+330)
     got 0x1.6a22d0412cfp+352
    want 0x1.6a22d0412cf01p+352.  */
-svfloat64_t SV_NAME_D2 (hypot) (svfloat64_t x, svfloat64_t y, svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D2 (hypot) (svfloat64_t x, svfloat64_t y,
+					     svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

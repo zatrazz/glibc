@@ -47,7 +47,7 @@ static const struct data
    The largest observed error in this region is 3.46 ulps:
    _ZGVsMxv_asinpif (0x1.0df892p-1) got 0x1.6a114cp-3
 				   want 0x1.6a1146p-3.  */
-svfloat32_t SV_NAME_F1 (asinpi) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (asinpi) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
   svbool_t ptrue = svptrue_b32 ();

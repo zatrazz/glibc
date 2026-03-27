@@ -49,7 +49,7 @@ static const struct data
      _ZGVsMxv_erff(0x1.c373e6p-9) got 0x1.fd686cp-9 want 0x1.fd6868p-9
    - [0x1.cp-7, 4.0]: 1.26 ULP
      _ZGVsMxv_erff(0x1.1d002ep+0) got 0x1.c4eb9ap-1 want 0x1.c4eb98p-1.  */
-svfloat32_t SV_NAME_F1 (erf) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (erf) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *dat = ptr_barrier (&data);
 

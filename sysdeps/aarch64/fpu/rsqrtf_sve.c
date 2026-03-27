@@ -35,7 +35,7 @@ static const struct data
   .scale_down = 11,
 };
 
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 inline_rsqrt (svfloat32_t x)
 {
   /* Do estimate instruction.  */
@@ -54,7 +54,7 @@ inline_rsqrt (svfloat32_t x)
   return estimate;
 }
 
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t x, svbool_t special, const struct data *d)
 {
   x = svscale_f32_m (special, x, sv_s32 (d->scale_up));
@@ -66,7 +66,7 @@ special_case (svfloat32_t x, svbool_t special, const struct data *d)
   Maximum observed error: 1.47 + 0.5
   _ZGVsMxv_rsqrtf (0x1.f610dep+127) got 0x1.02852cp-64
 				   want 0x1.02853p-64.  */
-svfloat32_t SV_NAME_F1 (rsqrt) (svfloat32_t x, svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (rsqrt) (svfloat32_t x, svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

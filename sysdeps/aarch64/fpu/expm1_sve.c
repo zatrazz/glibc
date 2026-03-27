@@ -66,7 +66,7 @@ static const struct data
   .fexpa_bound = FexpaBound,
 };
 
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_m1 (svbool_t special, svfloat64_t y, svfloat64_t z, svfloat64_t scale,
 	    svfloat64_t poly, svfloat64_t n,
 	    const struct sv_exp_special_data *ds)
@@ -88,7 +88,7 @@ special_m1 (svbool_t special, svfloat64_t y, svfloat64_t z, svfloat64_t scale,
    Maximum measured error is 2.81 + 0.5 ULP:
    _ZGVsMxv_expm1 (0x1.974060e619bfp-3) got 0x1.c290e5858bb53p-3
 				       want 0x1.c290e5858bb5p-3.  */
-svfloat64_t SV_NAME_D1 (expm1) (svfloat64_t x, svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (expm1) (svfloat64_t x, svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

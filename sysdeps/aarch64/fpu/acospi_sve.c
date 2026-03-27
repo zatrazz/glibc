@@ -56,7 +56,7 @@ static const struct data
    The largest observed error in this region is 2.55 ulp:
    _ZGVsMxv_acospi(0x1.d90d50357410cp-1) got 0x1.ffd43d5dd3a9ep-4
 					want 0x1.ffd43d5dd3a9bp-4.  */
-svfloat64_t SV_NAME_D1 (acospi) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (acospi) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
   svbool_t ptrue = svptrue_b64 ();

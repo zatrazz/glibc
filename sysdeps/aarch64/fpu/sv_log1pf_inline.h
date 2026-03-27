@@ -42,7 +42,7 @@ static const struct sv_log1pf_data
   .three_quarters = 0x3f400000,
 };
 
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 sv_log1pf_inline (svfloat32_t x, svbool_t pg)
 {
   const struct sv_log1pf_data *d = ptr_barrier (&sv_log1pf_data);

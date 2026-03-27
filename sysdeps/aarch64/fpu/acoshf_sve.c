@@ -23,7 +23,7 @@
 #define One 0x3f800000
 #define Thres 0x20000000 /* asuint(0x1p64) - One.  */
 
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t xm1, svfloat32_t tmp, svbool_t special)
 {
   svfloat32_t x = svadd_x (svptrue_b32 (), xm1, 1.0f);
@@ -37,7 +37,7 @@ special_case (svfloat32_t xm1, svfloat32_t tmp, svbool_t special)
    Maximum error is 2.47 ULPs:
    SV_NAME_F1 (acosh) (0x1.01ca76p+0) got 0x1.e435a6p-4
 				     want 0x1.e435a2p-4.  */
-svfloat32_t SV_NAME_F1 (acosh) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (acosh) (svfloat32_t x, const svbool_t pg)
 {
   svuint32_t ix = svreinterpret_u32 (x);
   svbool_t special = svcmpge (pg, svsub_x (pg, ix, One), Thres);

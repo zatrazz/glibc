@@ -34,7 +34,7 @@ static const struct data
   .four = 0x40800000,	 .three_quarters = 0x3f400000
 };
 
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t x, svfloat32_t y, const svbool_t pg,
 	      svbool_t special)
 {
@@ -49,7 +49,7 @@ special_case (svfloat32_t x, svfloat32_t y, const svbool_t pg,
    Worst-case error is 1.90 ULP:
    _ZGVsMxv_log2p1f(0x1.8789fcp-2) got 0x1.de58d4p-2
 				  want 0x1.de58d8p-2.  */
-svfloat32_t SV_NAME_F1 (log2p1) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (log2p1) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

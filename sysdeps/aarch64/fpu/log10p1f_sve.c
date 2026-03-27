@@ -47,7 +47,7 @@ static const struct data
 
 #define SignedExpMask sv_s32 (0xff800000)
 
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t x, svfloat32_t y, const svbool_t pg,
 	      svbool_t special)
 {
@@ -62,7 +62,7 @@ special_case (svfloat32_t x, svfloat32_t y, const svbool_t pg,
    Worst-case error is 3.40 ULP:
    _ZGVsMxv_log10p1f(0x1.8bfff6p+6) got 0x1.000002p+1
 				   want 0x1.fffffep+0.  */
-svfloat32_t SV_NAME_F1 (log10p1) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (log10p1) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

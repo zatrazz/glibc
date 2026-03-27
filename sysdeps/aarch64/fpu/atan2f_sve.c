@@ -33,7 +33,7 @@ static const struct data
 };
 
 /* Special cases i.e. 0, infinity, nan (fall back to scalar calls).  */
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t y, svfloat32_t x, svfloat32_t ret,
 	      const svbool_t cmp)
 {
@@ -42,7 +42,7 @@ special_case (svfloat32_t y, svfloat32_t x, svfloat32_t ret,
 
 /* Returns a predicate indicating true if the input is the bit representation
    of 0, infinity or nan.  */
-static inline svbool_t
+SVE_FUNCTION static inline svbool_t
 zeroinfnan (svuint32_t i, const svbool_t pg)
 {
   return svcmpge (pg, svsub_x (pg, svlsl_x (pg, i, 1), 1),
@@ -54,8 +54,8 @@ zeroinfnan (svuint32_t i, const svbool_t pg)
    observed error is 2.21 ULP:
    _ZGVnN4vv_atan2f (0x1.a04aa8p+6, 0x1.9a274p+6) got 0x1.95ed3ap-1
 						 want 0x1.95ed36p-1.  */
-svfloat32_t SV_NAME_F2 (atan2) (svfloat32_t y, svfloat32_t x,
-				const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F2 (atan2) (svfloat32_t y, svfloat32_t x,
+					     const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
   svbool_t ptrue = svptrue_b32 ();

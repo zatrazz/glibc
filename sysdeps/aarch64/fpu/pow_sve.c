@@ -89,21 +89,21 @@ static const struct data
 };
 
 /* Check if x is an integer.  */
-static inline svbool_t
+SVE_FUNCTION static inline svbool_t
 sv_isint (svbool_t pg, svfloat64_t x)
 {
   return svcmpeq (pg, svrintz_z (pg, x), x);
 }
 
 /* Check if x is real not integer valued.  */
-static inline svbool_t
+SVE_FUNCTION static inline svbool_t
 sv_isnotint (svbool_t pg, svfloat64_t x)
 {
   return svcmpne (pg, svrintz_z (pg, x), x);
 }
 
 /* Check if x is an odd integer.  */
-static inline svbool_t
+SVE_FUNCTION static inline svbool_t
 sv_isodd (svbool_t pg, svfloat64_t x)
 {
   svfloat64_t y = svmul_x (svptrue_b64 (), x, 0.5);
@@ -128,7 +128,7 @@ checkint (uint64_t iy)
 }
 
 /* Top 12 bits (sign and exponent of each double float lane).  */
-static inline svuint64_t
+SVE_FUNCTION static inline svuint64_t
 sv_top12 (svfloat64_t x)
 {
   return svlsr_x (svptrue_b64 (), svreinterpret_u64 (x), 52);
@@ -142,7 +142,7 @@ zeroinfnan (uint64_t i)
 }
 
 /* Returns 1 if input is the bit representation of 0, infinity or nan.  */
-static inline svbool_t
+SVE_FUNCTION static inline svbool_t
 sv_zeroinfnan (svbool_t pg, svuint64_t i)
 {
   return svcmpge (pg, svsub_x (pg, svadd_x (pg, i, i), 1),
@@ -156,7 +156,7 @@ sv_zeroinfnan (svbool_t pg, svuint64_t i)
    a double.  (int32_t)KI is the k used in the argument reduction and exponent
    adjustment of scale, positive k here means the result may overflow and
    negative k means the result may underflow.  */
-static inline svfloat64_t
+SVE_FUNCTION static inline svfloat64_t
 specialcase (svfloat64_t tmp, svuint64_t sbits, svuint64_t ki, svbool_t cmp)
 {
   svbool_t p_pos = svcmpge_n_f64 (cmp, svreinterpret_f64_u64 (ki), 0.0);
@@ -177,7 +177,7 @@ specialcase (svfloat64_t tmp, svuint64_t sbits, svuint64_t ki, svbool_t cmp)
 /* Compute y+TAIL = log(x) where the rounded result is y and TAIL has about
    additional 15 bits precision.  IX is the bit representation of x, but
    normalized in the subnormal range using the sign bit for the exponent.  */
-static inline svfloat64_t
+SVE_FUNCTION static inline svfloat64_t
 sv_log_inline (svbool_t pg, svuint64_t ix, svfloat64_t *tail,
 	       const struct data *d)
 {
@@ -239,7 +239,7 @@ sv_log_inline (svbool_t pg, svuint64_t ix, svfloat64_t *tail,
   return y;
 }
 
-static inline svfloat64_t
+SVE_FUNCTION static inline svfloat64_t
 sv_exp_core (svbool_t pg, svfloat64_t x, svfloat64_t xtail,
 	     svuint64_t sign_bias, svfloat64_t *tmp, svuint64_t *sbits,
 	     svuint64_t *ki, const struct data *d)
@@ -280,7 +280,7 @@ sv_exp_core (svbool_t pg, svfloat64_t x, svfloat64_t xtail,
 
 /* Computes sign*exp(x+xtail) where |xtail| < 2^-8/N and |xtail| <= |x|.
    The sign_bias argument is SignBias or 0 and sets the sign to -1 or 1.  */
-static inline svfloat64_t
+SVE_FUNCTION static inline svfloat64_t
 sv_exp_inline (svbool_t pg, svfloat64_t x, svfloat64_t xtail,
 	       svuint64_t sign_bias, const struct data *d)
 {
@@ -363,14 +363,15 @@ pow_specialcase (double x, double y)
 }
 
 /* Scalar fallback for special case routines with custom signature.  */
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 sv_pow_specialcase (svfloat64_t x1, svfloat64_t x2, svfloat64_t y,
 		    svbool_t cmp)
 {
   return sv_call2_f64 (pow_specialcase, x1, x2, y, cmp);
 }
 
-svfloat64_t SV_NAME_D2 (pow) (svfloat64_t x, svfloat64_t y, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D2 (pow) (svfloat64_t x, svfloat64_t y,
+					   const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

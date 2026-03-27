@@ -49,7 +49,7 @@ static const struct data
 
 #define MantissaMask 0x007fffff
 
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 v_logf_inline (svuint32_t u_off, const svbool_t pg, const struct data *d)
 {
   svuint32_t u = svand_x (pg, u_off, MantissaMask);
@@ -81,7 +81,7 @@ v_logf_inline (svuint32_t u_off, const svbool_t pg, const struct data *d)
    calculation of x * 2^23 (2^mantissa) to normalise the number at entry to
    the log function and then subtract ln(2) * 23 to re-subnormalise the result
    output to the correct result.  */
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 special_case (svfloat32_t x, svbool_t pg, svbool_t special,
 	      const struct data *d)
 {
@@ -115,7 +115,7 @@ special_case (svfloat32_t x, svbool_t pg, svbool_t special,
    polynomial as the AdvSIMD routine. Maximum error is 3.34 ULPs:
    SV_NAME_F1 (log)(0x1.557298p+0) got 0x1.26edecp-2
 				  want 0x1.26ede6p-2.  */
-svfloat32_t SV_NAME_F1 (log) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (log) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

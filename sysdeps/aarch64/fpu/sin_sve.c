@@ -38,7 +38,7 @@ static const struct data
 
 #define C(i) sv_f64 (d->poly[i])
 
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t x, svfloat64_t y, svbool_t cmp)
 {
   return sv_call_f64 (sin, x, y, cmp);
@@ -53,7 +53,7 @@ special_case (svfloat64_t x, svfloat64_t y, svbool_t cmp)
    is 3.22 ULP:
    _ZGVsMxv_sin (0x1.5702447b6f17bp+22) got 0x1.ffdcd125c84fbp-3
 				       want 0x1.ffdcd125c84f8p-3.  */
-svfloat64_t SV_NAME_D1 (sin) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (sin) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

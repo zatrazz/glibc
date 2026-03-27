@@ -39,7 +39,7 @@ struct sv_expm1f_data
     .c4 = 0x1.6b55a2p-10, .ln2_lo = 0x1.7f7d1cp-20f, .ln2_hi = 0x1.62e4p-1f,  \
   }
 
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 expm1f_inline (svfloat32_t x, svbool_t pg, const struct sv_expm1f_data *d)
 {
   /* This vector is reliant on layout of data - it contains constants

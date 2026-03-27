@@ -50,7 +50,7 @@ static const struct data
    Maximum error is 1.02 +0.5ULP:
    _ZGVsMxv_expm1f(0x1.8f4ebcp-2) got 0x1.e859dp-2
 				 want 0x1.e859d4p-2.  */
-svfloat32_t SV_NAME_F1 (expm1) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (expm1) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

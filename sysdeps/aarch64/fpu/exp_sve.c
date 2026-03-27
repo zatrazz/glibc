@@ -46,7 +46,7 @@ static const struct data
   .special_bound = SpecialBound,
 };
 
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_exp (svfloat64_t poly, svfloat64_t scale, svfloat64_t n, svuint64_t u,
 	     const struct sv_exp_special_data *ds)
 {
@@ -64,7 +64,7 @@ special_exp (svfloat64_t poly, svfloat64_t scale, svfloat64_t n, svuint64_t u,
 /* SVE exp algorithm. Maximum measured error is 1.01ulps:
    SV_NAME_D1 (exp)(0x1.4619d7b04da41p+6) got 0x1.885d9acc41da7p+117
 					 want 0x1.885d9acc41da6p+117.  */
-svfloat64_t SV_NAME_D1 (exp) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (exp) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

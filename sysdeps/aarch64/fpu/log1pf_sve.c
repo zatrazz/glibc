@@ -20,7 +20,7 @@
 #include "sv_math.h"
 #include "sv_log1pf_inline.h"
 
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t x, svbool_t special)
 {
   return sv_call_f32 (log1pf, x, sv_log1pf_inline (x, svptrue_b32 ()),
@@ -31,7 +31,7 @@ special_case (svfloat32_t x, svbool_t special)
    error is 1.27 ULP very close to 0.5.
    _ZGVsMxv_log1pf(0x1.fffffep-2) got 0x1.9f324p-2
 				 want 0x1.9f323ep-2.  */
-svfloat32_t SV_NAME_F1 (log1p) (svfloat32_t x, svbool_t pg)
+SVE_FUNCTION SVE_FUNCTION svfloat32_t SV_NAME_F1 (log1p) (svfloat32_t x, svbool_t pg)
 {
   /* x < -1, Inf/Nan.  */
   svbool_t special = svcmpeq (pg, svreinterpret_u32 (x), 0x7f800000);

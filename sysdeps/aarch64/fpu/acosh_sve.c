@@ -35,7 +35,7 @@ const static struct data
 
    Right before returning we check if x is infinity or if x is lower than 1,
    in which case we return infinity or NaN.  */
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t x, svfloat64_t xm1, svfloat64_t y, svbool_t special,
 	      svbool_t pg, const struct data *d)
 {
@@ -54,7 +54,7 @@ special_case (svfloat64_t x, svfloat64_t xm1, svfloat64_t y, svbool_t special,
    argument to log1p falls in the k=0 interval, i.e. x close to 1:
    SV_NAME_D1 (acosh)(0x1.1e80ed12f0ad1p+0) got 0x1.ef0cee7c33ce1p-2
 					   want 0x1.ef0cee7c33ce4p-2.  */
-svfloat64_t SV_NAME_D1 (acosh) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (acosh) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

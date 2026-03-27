@@ -64,7 +64,7 @@ static const struct data
   },
 };
 
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_m1 (svbool_t special, svfloat64_t y, svfloat64_t z, svfloat64_t scale,
 	    svfloat64_t poly, svfloat64_t n,
 	    const struct sv_exp_special_data *ds)
@@ -86,7 +86,7 @@ special_m1 (svbool_t special, svfloat64_t y, svfloat64_t z, svfloat64_t scale,
    Maximum error is 2.58 + 0.5 ULP.
    _ZGVsMxv_exp2m1(0x1.0284a345c99bfp-8) got 0x1.66df630cd2965p-9
 					want 0x1.66df630cd2962p-9.  */
-svfloat64_t SV_NAME_D1 (exp2m1) (svfloat64_t x, svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (exp2m1) (svfloat64_t x, svbool_t pg)
 {
   /* exp2(x) = 2^n (1 + poly(r))
      x = n + r, with r in [-1/2N, 1/2N].

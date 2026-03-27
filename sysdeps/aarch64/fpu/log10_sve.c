@@ -45,7 +45,7 @@ static const struct data
   .thresh = 0x7fe0000000000000, /* infinity - min.  */
 };
 
-static inline svfloat64_t
+SVE_FUNCTION static inline svfloat64_t
 v_log10_inline (svuint64_t ix, const svbool_t pg, const struct data *d)
 {
   /* x = 2^k z; where z is in range [Off,2*Off) and exact.
@@ -89,7 +89,7 @@ v_log10_inline (svuint64_t ix, const svbool_t pg, const struct data *d)
    calculation of x * 2^52 (2^mantissa) to normalise the number at entry to
    the log function and then subtract log10(2) * 52 to re-subnormalise the
    output to the correct result.  */
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t x, svbool_t pg, svbool_t special)
 {
   const struct data *d = ptr_barrier (&data);
@@ -122,7 +122,7 @@ special_case (svfloat64_t x, svbool_t pg, svbool_t special)
    Maximum measured error is 2.46 ulps.
    SV_NAME_D1 (log10)(0x1.131956cd4b627p+0) got 0x1.fffbdf6eaa669p-6
 					   want 0x1.fffbdf6eaa667p-6.  */
-svfloat64_t SV_NAME_D1 (log10) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (log10) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

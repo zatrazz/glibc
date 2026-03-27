@@ -36,7 +36,7 @@ static const struct data
 
 #define RangeVal 0x4160000000000000 /* asuint64 (0x1p23).  */
 
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t x, svfloat64_t y, svbool_t oob)
 {
   return sv_call_f64 (cos, x, y, oob);
@@ -47,7 +47,7 @@ special_case (svfloat64_t x, svfloat64_t y, svbool_t oob)
    Maximum measured error: 2.108 ULPs.
    SV_NAME_D1 (cos)(0x1.9b0ba158c98f3p+7) got -0x1.fddd4c65c7f07p-3
 					 want -0x1.fddd4c65c7f05p-3.  */
-svfloat64_t SV_NAME_D1 (cos) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (cos) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

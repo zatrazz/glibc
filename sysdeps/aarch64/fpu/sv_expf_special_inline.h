@@ -32,7 +32,7 @@ static const struct sv_expf_special_data
 };
 
 /* Special case routine shared with other expBm1 routines.  */
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 special_exp (svfloat32_t poly, svfloat32_t n, svuint32_t e, svbool_t cmp1,
 	     svfloat32_t scale, const struct sv_expf_special_data *ds)
 {
@@ -53,7 +53,7 @@ special_exp (svfloat32_t poly, svfloat32_t n, svuint32_t e, svbool_t cmp1,
 }
 
 /* Special case routine for expBm1.  */
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t poly, svfloat32_t n, svfloat32_t scale,
 	      svbool_t cmp1, const struct sv_expf_special_data *ds)
 {

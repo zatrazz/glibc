@@ -22,7 +22,7 @@
 #define TinyBound 0x0c800000 /* asuint (0x1p-102).  */
 #define Thres 0x73000000     /* 0x70000000 - TinyBound.  */
 
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t sqsum, svfloat32_t x, svfloat32_t y, svbool_t pg,
 	      svbool_t special)
 {
@@ -33,8 +33,8 @@ special_case (svfloat32_t sqsum, svfloat32_t x, svfloat32_t y, svbool_t pg,
    Maximum error observed is 1.21 ULP:
    _ZGVsMxvv_hypotf (0x1.6a213cp-19, -0x1.32b982p-26) got 0x1.6a2346p-19
 						     want 0x1.6a2344p-19.  */
-svfloat32_t SV_NAME_F2 (hypot) (svfloat32_t x, svfloat32_t y,
-				const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F2 (hypot) (svfloat32_t x, svfloat32_t y,
+					     const svbool_t pg)
 {
   svfloat32_t sqsum = svmla_x (pg, svmul_x (pg, x, x), y, y);
 

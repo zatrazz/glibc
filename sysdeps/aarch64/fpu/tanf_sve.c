@@ -46,7 +46,7 @@ static const struct data
   .range_val = 0x1p15f,	      .shift = 0x1.8p+23f
 };
 
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t x, svfloat32_t y, svbool_t cmp)
 {
   return sv_call_f32 (tanf, x, y, cmp);
@@ -56,7 +56,7 @@ special_case (svfloat32_t x, svfloat32_t y, svbool_t cmp)
    Maximum error is 3.45 ULP:
    SV_NAME_F1 (tan)(-0x1.e5f0cap+13) got 0x1.ff9856p-1
 				    want 0x1.ff9850p-1.  */
-svfloat32_t SV_NAME_F1 (tan) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (tan) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

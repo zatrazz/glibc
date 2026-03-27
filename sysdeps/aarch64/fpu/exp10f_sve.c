@@ -46,7 +46,7 @@ static const struct data
   .zero_bound = ZeroBound,
 };
 
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 sv_exp10f_inline (svfloat32_t x, const svbool_t pg, const struct data *d)
 {
   /* exp10(x) = 2^(n/N) * 10^r = 2^n * (1 + poly (r)),
@@ -73,7 +73,7 @@ sv_exp10f_inline (svfloat32_t x, const svbool_t pg, const struct data *d)
   return svmla_x (pg, scale, scale, poly);
 }
 
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svfloat32_t x, svbool_t pg, svbool_t special,
 	      const struct data *d)
 {
@@ -98,7 +98,7 @@ special_case (svfloat32_t x, svbool_t pg, svbool_t special,
    Worst case error is 2.86 ULP +0.50 ULP.
    _ZGVsMxv_exp10f (0x1.31b778p+5) got 0x1.ed399p+126
 				  want 0x1.ed398ap+126.  */
-svfloat32_t SV_NAME_F1 (exp10) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (exp10) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
   svbool_t special = svacgt (pg, x, d->special_bound);

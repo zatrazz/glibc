@@ -20,12 +20,14 @@
 #include <arm_sve.h>
 
 #include "test-double-sve.h"
+#define attribute_hidden
+#include "sv_math.h"
 
 /* Wrapper from scalar to SVE function. Cannot just use VECTOR_WRAPPER due to
    predication.  */
 #define SVE_VECTOR_WRAPPER(scalar_func, vector_func)                          \
   extern VEC_TYPE vector_func (VEC_TYPE, svbool_t);                           \
-  FLOAT scalar_func (FLOAT x)                                                 \
+  SVE_FUNCTION FLOAT scalar_func (FLOAT x)                                    \
   {                                                                           \
     VEC_TYPE mx = svdup_n_f64 (x);                                            \
     VEC_TYPE mr = vector_func (mx, svptrue_b64 ());                           \
@@ -34,7 +36,7 @@
 
 #define SVE_VECTOR_WRAPPER_ff(scalar_func, vector_func)                       \
   extern VEC_TYPE vector_func (VEC_TYPE, VEC_TYPE, svbool_t);                 \
-  FLOAT scalar_func (FLOAT x, FLOAT y)                                        \
+  SVE_FUNCTION FLOAT scalar_func (FLOAT x, FLOAT y)                           \
   {                                                                           \
     VEC_TYPE mx = svdup_n_f64 (x);                                            \
     VEC_TYPE my = svdup_n_f64 (y);                                            \

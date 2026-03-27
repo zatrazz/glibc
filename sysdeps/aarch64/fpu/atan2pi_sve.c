@@ -44,7 +44,7 @@ static const struct data
 #define OneOverPi sv_f64 (0x1.45f306dc9c883p-2)
 
 /* Special cases i.e. 0, infinity, nan (fall back to scalar calls).  */
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t y, svfloat64_t x, svfloat64_t ret,
 	      const svbool_t cmp)
 {
@@ -54,7 +54,7 @@ special_case (svfloat64_t y, svfloat64_t x, svfloat64_t ret,
 
 /* Returns a predicate indicating true if the input is the bit representation
    of 0, infinity or nan.  */
-static inline svbool_t
+SVE_FUNCTION static inline svbool_t
 zeroinfnan (svuint64_t i, const svbool_t pg)
 {
   return svcmpge (pg, svsub_x (pg, svlsl_x (pg, i, 1), 1),
@@ -65,8 +65,8 @@ zeroinfnan (svuint64_t i, const svbool_t pg)
    Maximum observed error is 3.11 ulps:
    _ZGVsMxvv_atan2pi (0x1.ef284a877f6b5p+6, 0x1.03fdde8242b17p+7)
    got 0x1.f00f800163079p-3 want 0x1.f00f800163076p-3.  */
-svfloat64_t SV_NAME_D2 (atan2pi) (svfloat64_t y, svfloat64_t x,
-				  const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D2 (atan2pi) (svfloat64_t y, svfloat64_t x,
+					       const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
   svbool_t ptrue = svptrue_b64 ();

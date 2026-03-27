@@ -53,7 +53,7 @@ static const struct data
   .inv_ln2 = 0x1.71547652b82fep+0,
 };
 
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t x, svfloat64_t y, svbool_t special, svbool_t pg)
 {
 
@@ -68,7 +68,7 @@ special_case (svfloat64_t x, svfloat64_t y, svbool_t special, svbool_t pg)
    Worst-case error is 3.0 ULP:
    _ZGVsMxv_log2p1(0x1.62e029c6f784fp-18) got 0x1.fff9d9148a06fp-18
 					 want 0x1.fff9d9148a072p-18 .  */
-svfloat64_t SV_NAME_D1 (log2p1) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (log2p1) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

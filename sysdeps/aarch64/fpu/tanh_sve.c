@@ -55,7 +55,7 @@ static const struct data
 /* An expm1 inspired, FEXPA based helper function that returns an
    accurate estimate for e^2x - 1. With no special case or support for
    negative inputs of x.  */
-static inline svfloat64_t
+SVE_FUNCTION static inline svfloat64_t
 e2xm1_inline (const svbool_t pg, svfloat64_t x, const struct data *d)
 {
   svfloat64_t z = svmla_x (pg, sv_f64 (d->shift), x, d->two_over_ln2);
@@ -108,7 +108,7 @@ e2xm1_inline (const svbool_t pg, svfloat64_t x, const struct data *d)
    The greatest observed error is 2.79 + 0.5 ULP:
    _ZGVsMxv_tanh (0x1.fff868eb3c223p-9) got 0x1.fff7be486cae6p-9
 				       want 0x1.fff7be486cae9p-9.  */
-svfloat64_t SV_NAME_D1 (tanh) (svfloat64_t x, svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (tanh) (svfloat64_t x, svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

@@ -48,7 +48,7 @@ static const struct data
    Largest observed error is 2.12 ULP:
    _ZGVsMxv_atanf (0x1.03d4cep+0) got 0x1.95ed3ap-1
 				 want 0x1.95ed36p-1.  */
-svfloat32_t SV_NAME_F1 (atan) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (atan) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
   svbool_t ptrue = svptrue_b32 ();

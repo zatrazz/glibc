@@ -40,7 +40,7 @@ static const struct data
    sinh (A + B) = cosh(A)cosh(B) + sinh(A)sinh(B)
    By choosing sufficiently large values whereby after rounding sinh == cosh,
    this can be simplified into: sinh (A + B) = sinh(A) * e^B.  */
-static inline svfloat32_t
+SVE_FUNCTION static inline svfloat32_t
 special_case (const svbool_t pg, svbool_t special, svfloat32_t ax,
 	      svfloat32_t x, svfloat32_t t, const struct data *d)
 {
@@ -80,7 +80,7 @@ special_case (const svbool_t pg, svbool_t special, svfloat32_t ax,
    Maximum error is 2.76 +0.5 ULP:
    _ZGVsMxv_sinhf (0x1.6587e8p+6) got 0x1.ef3f98p+127
 				 want 0x1.ef3f92p+127.  */
-svfloat32_t SV_NAME_F1 (sinh) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (sinh) (svfloat32_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

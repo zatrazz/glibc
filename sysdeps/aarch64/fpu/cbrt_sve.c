@@ -45,13 +45,13 @@ const static struct data
 #define MantissaMask 0x000fffffffffffff
 #define HalfExp 0x3fe0000000000000
 
-static svfloat64_t NOINLINE
+SVE_FUNCTION static svfloat64_t NOINLINE
 special_case (svfloat64_t x, svfloat64_t y, svbool_t special)
 {
   return sv_call_f64 (cbrt, x, y, special);
 }
 
-static inline svfloat64_t
+SVE_FUNCTION static inline svfloat64_t
 shifted_lookup (const svbool_t pg, const float64_t *table, svint64_t i)
 {
   return svld1_gather_index (pg, table, svadd_x (pg, i, 2));
@@ -64,7 +64,7 @@ shifted_lookup (const svbool_t pg, const float64_t *table, svint64_t i)
    is an integer.
    _ZGVsMxv_cbrt (0x0.3fffb8d4413f3p-1022) got 0x1.965f53b0e5d97p-342
 					  want 0x1.965f53b0e5d95p-342.  */
-svfloat64_t SV_NAME_D1 (cbrt) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (cbrt) (svfloat64_t x, const svbool_t pg)
 {
   const struct data *d = ptr_barrier (&data);
 

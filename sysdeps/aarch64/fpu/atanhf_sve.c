@@ -23,7 +23,7 @@
 #define One (0x3f800000)
 #define Half (0x3f000000)
 
-static svfloat32_t NOINLINE
+SVE_FUNCTION static svfloat32_t NOINLINE
 special_case (svuint32_t iax, svuint32_t sign, svfloat32_t halfsign,
 	      svfloat32_t y, svbool_t special)
 {
@@ -36,7 +36,7 @@ special_case (svuint32_t iax, svuint32_t sign, svfloat32_t halfsign,
    The maximum error is 1.99 ULP:
    _ZGVsMxv_atanhf(0x1.f1583p-5) got 0x1.f1f4fap-5
 				want 0x1.f1f4f6p-5.  */
-svfloat32_t SV_NAME_F1 (atanh) (svfloat32_t x, const svbool_t pg)
+SVE_FUNCTION svfloat32_t SV_NAME_F1 (atanh) (svfloat32_t x, const svbool_t pg)
 {
   svfloat32_t ax = svabs_x (pg, x);
   svuint32_t iax = svreinterpret_u32 (ax);

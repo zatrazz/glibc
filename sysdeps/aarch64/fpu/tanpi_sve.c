@@ -42,7 +42,7 @@ const static struct v_tanpi_data
    The maximum error is 3.06 ULP:
    _ZGVsMxv_tanpi(0x1.0a4a07dfcca3ep-1) got -0x1.fa30112702c98p+3
 				       want -0x1.fa30112702c95p+3.  */
-svfloat64_t SV_NAME_D1 (tanpi) (svfloat64_t x, const svbool_t pg)
+SVE_FUNCTION svfloat64_t SV_NAME_D1 (tanpi) (svfloat64_t x, const svbool_t pg)
 {
   const struct v_tanpi_data *d = ptr_barrier (&tanpi_data);
 
