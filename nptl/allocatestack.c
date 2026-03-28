@@ -36,6 +36,8 @@
 #include <intprops.h>
 #include <setvmaname.h>
 
+#pragma GCC optimize ("O0")
+
 /* Default alignment of stack.  */
 #ifndef STACK_ALIGN
 # define STACK_ALIGN __alignof__ (long double)
@@ -172,16 +174,32 @@ allocate_thread_stack (size_t size, size_t guardsize)
 
 
 /* Return the guard page position on allocated stack.  */
-static inline char *
-__attribute ((always_inline))
+static __always_inline char *
 guard_position (void *mem, size_t size, size_t guardsize, const struct pthread *pd,
-		size_t pagesize_m1)
+		size_t pagesize)
 {
 #if _STACK_GROWS_DOWN
   return mem;
 #elif _STACK_GROWS_UP
+  const size_t pagesize_m1 = pagesize - 1;
   return (char *) (((uintptr_t) pd - guardsize) & ~pagesize_m1);
 #endif
+}
+
+static __always_inline char *
+stacktop_position (const struct pthread *pd, size_t guardsize,
+		   size_t pagesize,
+		   size_t tls_static_size_for_stack)
+{
+  void *stacktop;
+#if TLS_TCB_AT_TP
+  /* The stack begins before the TCB and the static TLS block.  */
+  stacktop = PTR_ALIGN_DOWN ((char *) (pd + 1) - tls_static_size_for_stack,
+			     pagesize) - guardsize;
+#elif TLS_DTV_AT_TP
+  stacktop = (char *) (pd - 1);
+#endif
+  return stacktop;
 }
 
 /* Setup the MEM thread stack of SIZE bytes with the required protection flags
@@ -190,36 +208,43 @@ guard_position (void *mem, size_t size, size_t guardsize, const struct pthread *
    extra PROT_NONE mapping.  Update PD with the type of guard area setup.  */
 static inline bool
 setup_stack_prot (char *mem, size_t size, struct pthread *pd,
-		  size_t guardsize, size_t pagesize_m1)
+		  size_t guardsize, size_t pagesize,
+		  size_t tls_static_size_for_stack)
 {
   if (__glibc_unlikely (guardsize == 0))
     return true;
 
-  char *guard = guard_position (mem, size, guardsize, pd, pagesize_m1);
+  char *guard_stack = guard_position (mem, size, guardsize, pd, pagesize);
   if (atomic_load_relaxed (&allocate_stack_mode) == ALLOCATE_GUARD_MADV_GUARD)
     {
-      if (__madvise (guard, guardsize, MADV_GUARD_INSTALL) == 0)
-	{
-	  pd->stack_mode = ALLOCATE_GUARD_MADV_GUARD;
-	  return true;
-	}
+      char *guard_tls = stacktop_position (pd, guardsize, pagesize,
+					   tls_static_size_for_stack);
+
+      if (__madvise (guard_stack, guardsize, MADV_GUARD_INSTALL) == 0
+	  && __madvise (guard_tls, guardsize, MADV_GUARD_INSTALL) == 0)
+	return true;
 
       /* If madvise fails it means the kernel does not support the guard
 	 advise (we assume that the syscall is available, guard is page-aligned
 	 and length is non negative).  The stack has already the expected
 	 protection flags, so it just need to PROT_NONE the guard area.  */
       atomic_store_relaxed (&allocate_stack_mode, ALLOCATE_GUARD_PROT_NONE);
-      if (__mprotect (guard, guardsize, PROT_NONE) != 0)
+      if (__mprotect (guard_stack, guardsize, PROT_NONE) != 0
+	  || __mprotect (guard_tls, guardsize, PROT_NONE) != 0)
 	return false;
     }
   else
     {
       const int prot = GL(dl_stack_prot_flags);
-      char *guardend = guard + guardsize;
+      char *guard_stack_end = guard_stack + guardsize;
 #if _STACK_GROWS_DOWN
       /* As defined at guard_position, for architectures with downward stack
 	 the guard page is always at start of the allocated area.  */
-      if (__mprotect (guardend, size - guardsize, prot) != 0)
+      if (__mprotect (guard_stack_end, size - guardsize, prot) != 0)
+	return false;
+      char *guard_tls_end = stacktop_position (pd, guardsize, pagesize,
+					       tls_static_size_for_stack);
+      if (__mprotect (guard_tls_end, (mem + size) - guard_tls_end, prot) != 0)
 	return false;
 #else
       size_t mprots1 = (uintptr_t) guard - (uintptr_t) mem;
@@ -272,7 +297,9 @@ adjust_stack_prot (char *mem, size_t size, struct pthread *pd,
 	}
 
       pd->stack_mode = ALLOCATE_GUARD_PROT_NONE;
-      return __mprotect (guard, guardsize, PROT_NONE) == 0;
+      if (__mprotect (guard, guardsize, PROT_NONE) != 0)
+	return false;
+      pd->guardsize = guardsize;
     }
   /* The current guard area is larger than the required one.  For
      _STACK_GROWS_DOWN is means change the guard as:
@@ -300,7 +327,8 @@ adjust_stack_prot (char *mem, size_t size, struct pthread *pd,
 #else
 	    guard_position (mem, size, pd->guardsize, pd, pagesize_m1);
 #endif
-	  return __madvise (slack, slacksize, MADV_GUARD_REMOVE) == 0;
+	  if (__madvise (slack, slacksize, MADV_GUARD_REMOVE) == 0)
+	    return false;
 	}
       else if (pd->stack_mode == ALLOCATE_GUARD_PROT_NONE)
 	{
@@ -319,6 +347,7 @@ adjust_stack_prot (char *mem, size_t size, struct pthread *pd,
 	    return false;
 #endif
 	}
+      pd->guardsize = guardsize;
     }
   return true;
 }
@@ -359,9 +388,11 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 {
   struct pthread *pd;
   size_t size;
-  size_t pagesize_m1 = __getpagesize () - 1;
+  size_t pagesize =  __getpagesize ();
+  size_t pagesize_m1 = pagesize - 1;
   size_t tls_static_size_for_stack = __nptl_tls_static_size_for_stack ();
   size_t tls_static_align_m1 = GLRO (dl_tls_static_align) - 1;
+  size_t guardsize = 0;
 
   assert (powerof2 (pagesize_m1 + 1));
   assert (TCB_ALIGNMENT >= STACK_ALIGN);
@@ -470,7 +501,7 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
   else
     {
       /* Allocate some anonymous memory.  If possible use the cache.  */
-      size_t guardsize;
+      size_t total_guardsize;
       size_t reported_guardsize;
       void *mem;
 
@@ -490,14 +521,15 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
       reported_guardsize = guardsize;
       if (guardsize > 0 && guardsize < ARCH_MIN_GUARD_SIZE)
 	guardsize = ARCH_MIN_GUARD_SIZE;
-      if (guardsize < attr->guardsize || size + guardsize < guardsize)
+      total_guardsize = 2 * guardsize;
+      if (guardsize < attr->guardsize
+	  || !INT_ADD_OK (size, total_guardsize, &size))
 	/* Arithmetic overflow.  */
 	return EINVAL;
-      size += guardsize;
-      if (__builtin_expect (size < ((guardsize + tls_static_size_for_stack
-				     + MINIMAL_REST_STACK + pagesize_m1)
-				    & ~pagesize_m1),
-			    0))
+      if (__glibc_unlikely (size < roundup (total_guardsize
+					    + tls_static_size_for_stack
+					    + MINIMAL_REST_STACK,
+					    pagesize)))
 	/* The stack is too small (or the guard too large).  */
 	return EINVAL;
 
@@ -532,7 +564,8 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 #endif
 
 	  /* Now mprotect the required region excluding the guard area.  */
-	  if (!setup_stack_prot (mem, size, pd, guardsize, pagesize_m1))
+	  if (!setup_stack_prot (mem, size, pd, guardsize, pagesize,
+				 tls_static_size_for_stack))
 	    {
 	      __munmap (mem, size);
 	      return errno;
@@ -617,7 +650,6 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 	  return errno;
 	}
 
-      pd->guardsize = guardsize;
       /* The pthread_getattr_np() calls need to get passed the size
 	 requested in the attribute, regardless of how large the
 	 actually used guardsize is.  */
@@ -643,15 +675,8 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
   /* We place the thread descriptor at the end of the stack.  */
   *pdp = pd;
 
-  void *stacktop;
-
-#if TLS_TCB_AT_TP
-  /* The stack begins before the TCB and the static TLS block.  */
-  stacktop = ((char *) (pd + 1) - tls_static_size_for_stack);
-#elif TLS_DTV_AT_TP
-  stacktop = (char *) (pd - 1);
-#endif
-
+  void *stacktop = stacktop_position (pd, guardsize, pagesize,
+				      tls_static_size_for_stack);
   *stacksize = stacktop - pd->stackblock;
   *stack = pd->stackblock;
 
