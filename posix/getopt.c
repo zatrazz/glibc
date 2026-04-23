@@ -199,7 +199,7 @@ match_translated_option_name (char *(*translate) (const char *, const char *,
   const char *translated = opt_name;
   char *translation_buffer = NULL;
   bool matches = false;
-  if (translate != NULL)
+  if (translate != NULL && !__libc_enable_secure)
     translated = translate (opt_textdomain, translation_context,
 			    opt_name, &translation_buffer);
 
