@@ -1215,6 +1215,9 @@ translate_option_name (const char *name, char **allocated)
      one is used.  */
   /* FIXME: use pgettext_expr.  */
   *allocated = NULL;
+  if (__libc_enable_secure)
+    /* Translations are disabled.  */
+    return name;
   if (__asprintf (allocated, "command-line option\004%s", name) == -1)
     {
       /* *allocated is NULL */
