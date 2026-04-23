@@ -182,6 +182,50 @@ exchange (char **argv, struct _getopt_data *d)
   d->__last_nonopt = d->optind;
 }
 
+/* Return TRUE if other is equal to reference.  */
+static bool
+complete_match (const char *reference,
+		size_t reference_length,
+		const char *other)
+{
+  return (strncmp (reference, other, reference_length) == 0
+	  /* So, reference is a prefix of other */
+	  && other[reference_length] == '\0');
+}
+
+/* Match a string against a space-separated string list.  We save an
+   allocated copy of the exact match for the collision checker.  */
+static bool
+match_any_translation (const char *reference,
+		       size_t reference_length,
+		       const char *translation,
+		       char **match)
+{
+  const char *start = translation;
+  const char *end;
+
+  if (match)
+    *match = NULL;
+  while (start != NULL)
+    {
+      end = strchr (start, ' ');
+      if ((end == NULL && complete_match (reference, reference_length, start))
+	  || (end != NULL
+	      && end - start == reference_length
+	      && strncmp (reference, start, reference_length) == 0))
+	{
+	  if (match)
+	    *match = __strndup (reference, reference_length);
+	  return true;
+	}
+      start = end;
+      if (start != NULL)
+	/* Skip the space character.  */
+	start++;
+    }
+  return false;
+}
+
 /* Return true iff translation_context is not NULL, a translation for
    opt_name has been found and it matches the substring from argument,
    length argument_length.
@@ -202,14 +246,40 @@ match_translated_option_name (char *(*translate) (const char *, const char *,
   if (translate != NULL && !__libc_enable_secure)
     translated = translate (opt_textdomain, translation_context,
 			    opt_name, &translation_buffer);
-
-  if (strncmp (translated, argument, argument_length) != 0)
-    matches = false;
-  else
-    /* We know that argument is a prefix of translated.  */
-    matches = translated[argument_length] == '\0';
+  matches = match_any_translation (argument, argument_length, translated, NULL);
   free (translation_buffer);
   return matches;
+}
+
+/* Translate opt_name, but only keep the first item of the list.  This
+   is used for error messages.  */
+static const char *
+first_translation (char *(*translate) (const char *, const char *,
+				       const char *, char **),
+		   const char *translation_context,
+		   const char *opt_textdomain,
+		   const char *opt_name,
+		   char **allocated)
+{
+  char *translation_buffer = NULL;
+  const char *all_translations =
+    translate (opt_textdomain, translation_context, opt_name,
+	       &translation_buffer);
+  const char *end = strchr (all_translations, ' ');
+  if (end == NULL)
+    {
+      /* There is only 1 translation for opt_name.  No extra
+	 processing is needed.  */
+      *allocated = translation_buffer;
+      return all_translations;
+    }
+  *allocated = __strndup (all_translations, end - all_translations);
+  free (translation_buffer);
+  if (*allocated == NULL)
+    /* Memory allocation failed; return opt_name.  No extra memory
+       needs to be kept around.  */
+    return opt_name;
+  return *allocated;
 }
 
 /* Process the argument starting with d->__nextchar as a long option.
@@ -393,9 +463,9 @@ process_long_option (int argc, char **argv, const char *optstring,
 	{
 	  if (print_errors)
 	    {
-	      translated_option_name = translate (d->opttextdomain, d->optctxt,
-						  pfound->name,
-						  &translation_buffer);
+	      translated_option_name =
+		first_translation (translate, d->optctxt, d->opttextdomain,
+				   pfound->name, &translation_buffer);
 	      if (strcmp (translated_option_name, pfound->name) != 0)
 		/* Print both names of the option.  */
 		fprintf (stderr,
@@ -423,9 +493,9 @@ process_long_option (int argc, char **argv, const char *optstring,
 	    {
 	      /* Same dichotomy as when the option does not allow an
 		 argument.  */
-	      translated_option_name = translate (d->opttextdomain, d->optctxt,
-						  pfound->name,
-						  &translation_buffer);
+	      translated_option_name =
+		first_translation (translate, d->optctxt, d->opttextdomain,
+				   pfound->name, &translation_buffer);
 	      if (strcmp (translated_option_name, pfound->name) != 0)
 		fprintf (stderr,
 			 _("%s: option '%s%s' / '%s%s' requires an argument\n"),
@@ -488,6 +558,32 @@ _getopt_initialize (_GL_UNUSED int argc,
 }
 
 
+/* Match any item of a string list against any item of another.  This
+   is used by the collision checker.  */
+static bool
+match_any_translation_pair (const char *list_a,
+			    const char *list_b,
+			    char **match)
+{
+  const char *start = list_a;
+  const char *end;
+
+  while (start != NULL)
+    {
+      end = strchr (start, ' ');
+      if ((end == NULL
+	   && match_any_translation (start, strlen (start), list_b, match))
+	  || (end != NULL
+	      && match_any_translation (start, end - start, list_b, match)))
+	return true;
+      start = end;
+      if (start != NULL)
+	/* Skip the space character.  */
+	start++;
+    }
+  return false;
+}
+
 static bool
 has_translation_collisions (const char *domain,
 			    const char *context,
@@ -508,6 +604,7 @@ has_translation_collisions (const char *domain,
   char *b_buffer = NULL;
   const char *b_name = NULL;
   const struct option *option_b;
+  char *collision = NULL;
   bool has_collision = false;
 
   if (do_translate == NULL || context == NULL)
@@ -532,7 +629,9 @@ has_translation_collisions (const char *domain,
 	  {
 	    option_b = &(long_options[option_index_b]);
 	    b_name = do_translate (domain, context, option_b->name, &b_buffer);
-	    if (strcmp (option_a->name, b_name) == 0)
+	    collision = NULL;
+	    if (match_any_translation (option_a->name, strlen (option_a->name), b_name,
+				       &collision))
 	      {
 		if (print_errors)
 		  /* Since we do not consider a particular use of an
@@ -546,13 +645,15 @@ has_translation_collisions (const char *domain,
 			   argv0,
 			   domain, context,
 			   option_a->name,
-			   option_b->name, b_name);
+			   option_b->name, collision);
 		has_collision = true;
 	      }
-	    if (strcmp (a_name, b_name) == 0
+	    free (collision);
+	    collision = NULL;
+	    if (option_index_a < option_index_b
 		&& strcmp (option_a->name, a_name) != 0
 		&& strcmp (option_b->name, b_name) != 0
-		&& option_index_a < option_index_b)
+		&& match_any_translation_pair (a_name, b_name, &collision))
 	      {
 		if (print_errors)
 		  fprintf (stderr,
@@ -560,9 +661,10 @@ has_translation_collisions (const char *domain,
 			     "domain '%s', context '%s': "
 			     "both '%s' and '%s' translate to '%s'\n"),
 			   argv0, domain, context,
-			   option_a->name, option_b->name, a_name);
+			   option_a->name, option_b->name, collision);
 		has_collision = true;
 	      }
+	    free (collision);
 	    free (b_buffer);
 	  }
       free (a_buffer);

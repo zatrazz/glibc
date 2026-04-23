@@ -7,7 +7,7 @@ msgstr ""
 "Project-Id-Version: tstgetoptl 0.0.0\n"
 "Report-Msgid-Bugs-To: \n"
 "POT-Creation-Date: 2025-05-27 19:29+0200\n"
-"PO-Revision-Date: 2025-05-27 19:30+0200\n"
+"PO-Revision-Date: 2025-06-06 21:22+0200\n"
 "Language-Team: English (British) <(nothing)>\n"
 "Language: en_GB\n"
 "MIME-Version: 1.0\n"
@@ -18,7 +18,7 @@ msgstr ""
 #: xxx.c:yy
 msgctxt "command-line option"
 msgid "color"
-msgstr "colour"
+msgstr "colour coolur"
 
 #: xxx.c:yy
 msgctxt "command-line option"

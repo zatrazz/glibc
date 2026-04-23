@@ -42,6 +42,8 @@
    In the third, we don’t translate anything:
    foo -> foo
    bar -> bar
+
+   For added fun, we add some noise to the translations.
   */
 
 static const struct option options[] =
@@ -62,13 +64,13 @@ setup_catalog (void)
   TEST_VERIFY_EXIT (textdomain ("tst-getopt_long_collision") != NULL);
   /* Check that the catalog is OK: */
   TEST_COMPARE_STRING (dgettext ("tst-getopt_long_collision", "kind 1\004foo"),
-		       "bar");
+		       "bar noise1");
   TEST_COMPARE_STRING (dgettext ("tst-getopt_long_collision", "kind 1\004bar"),
-		       "baz");
+		       "noise2 baz noise3");
   TEST_COMPARE_STRING (dgettext ("tst-getopt_long_collision", "kind 2\004foo"),
-		       "same");
+		       "same noise4");
   TEST_COMPARE_STRING (dgettext ("tst-getopt_long_collision", "kind 2\004bar"),
-		       "same");
+		       "noise5 same");
   TEST_COMPARE_STRING (dgettext ("tst-getopt_long_collision", "kind 3\004foo"),
 		       "kind 3\004foo");
   TEST_COMPARE_STRING (dgettext ("tst-getopt_long_collision", "kind 3\004bar"),

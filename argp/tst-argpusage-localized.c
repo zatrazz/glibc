@@ -64,7 +64,8 @@ do_test (void)
 				    OBJPFX "domaindir") != NULL);
   TEST_VERIFY_EXIT (textdomain ("tst-argphelp-localized") != NULL);
   /* Check that the catalog is OK: */
-  TEST_COMPARE_STRING (gettext ("command-line option\004color"), "colour");
+  TEST_COMPARE_STRING (gettext ("command-line option\004color"),
+		       "colour coolur");
   TEST_COMPARE_STRING (gettext ("COOKIE"), "BISCUIT");
   /* This is the last chance to fail.  */
   if (support_record_failure_is_failed ())

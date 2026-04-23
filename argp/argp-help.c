@@ -1205,36 +1205,81 @@ comma (unsigned col, struct pentry_state *pest)
   indent_to (pest->stream, col);
 }
 
-/* Help and usage output show the translated option name.  *allocated
-   holds a pointer that should be freed by the caller, or a NULL
-   pointer.  */
-static const char *
-translate_option_name (const char *name, char **allocated)
+/* Help and usage output show the translated option name.  Since an
+   option name may have multiple translations, we return all of them.
+   The result is to be freed by the caller, each element of the array
+   first, and then the array itself.  */
+static char **
+translate_option_name (const char *name)
 {
   /* Argp does not have a configuration for the context, so a default
      one is used.  */
+  char *msgid = NULL;
+  const char *full_translation = NULL;
+  size_t n_translations;
+  char **results = NULL;
   /* FIXME: use pgettext_expr.  */
-  *allocated = NULL;
   if (__libc_enable_secure)
     /* Translations are disabled.  */
-    return name;
-  if (__asprintf (allocated, "command-line option\004%s", name) == -1)
     {
-      /* *allocated is NULL */
-      return name;
+      results = calloc (2, sizeof (char *));
+      if (results != NULL)
+	{
+	  results[0] = __strdup (name);
+	  if (results[0] == NULL)
+	    {
+	      free (results);
+	      results = NULL;
+	    }
+	}
+      return results;
     }
-  const char *translated = gettext (*allocated);
-  if (strcmp (translated, *allocated) == 0)
+  if (__asprintf (&msgid, "command-line option\004%s", name) == -1)
+    /* Do not bother trying to strdup name.  */
+    return NULL;
+  full_translation = gettext (msgid);
+  if (strcmp (full_translation, msgid) == 0)
+    full_translation = name;
+  /* Split full_translation into results.  Do it in 2 passes: first
+     count, then copy.  */
+  for (int pass = 0; pass < 2; pass++)
     {
-      /* No translation performed.  */
-      free (*allocated);
-      *allocated = NULL;
-      return name;
+      n_translations = 0;
+      const char *start = full_translation;
+      const char *end = NULL;
+      while (start != NULL)
+	{
+	  end = strchr (start, ' ');
+	  if (pass == 1)
+	    {
+	      if (end == NULL)
+		results[n_translations] = __strdup (start);
+	      else
+		results[n_translations] = __strndup (start, end - start);
+	      if (results[n_translations] == NULL)
+		{
+		  /* Abort.  */
+		  for (size_t i = 0; i < n_translations; i++)
+		    free (results[i]);
+		  free (results);
+		  return NULL;
+		}
+	    }
+	  start = end;
+	  if (start != NULL)
+	    /* Skip ' ' */
+	    start++;
+	  n_translations++;
+	}
+      if (pass == 0)
+	results = calloc (n_translations + 1, sizeof (char *));
+      if (results == NULL)
+	return NULL;
     }
-  /* FIXME: is it safe to discard *allocated early here?  Won’t the
-     return value alias it? */
-  /* *allocated is to be freed by the caller.  */
-  return translated;
+  /* We did not touch that index, and allocated the array with
+     calloc.  */
+  assert (results[n_translations] == NULL);
+  return results;
 }
 
 /* Print help for ENTRY to STREAM.  */
@@ -1245,7 +1290,7 @@ hol_entry_help (struct hol_entry *entry, const struct argp_state *state,
   unsigned num;
   const struct argp_option *real = entry->opt, *opt;
   char *so = entry->short_options;
-  const char *translated_option_name;
+  char **translated_option_names;
   int have_long_opt = 0;	/* We have any long options.  */
   /* Saved margins.  */
   int old_lm = __argp_fmtstream_set_lmargin (stream, 0);
@@ -1304,19 +1349,35 @@ hol_entry_help (struct hol_entry *entry, const struct argp_state *state,
   else
     /* A real long option.  */
     {
+      bool needs_untranslated = true;
       __argp_fmtstream_set_wmargin (stream, uparams.long_opt_col);
       for (opt = real, num = entry->num; num > 0; opt++, num--)
 	if (opt->name && ovisible (opt))
 	  {
 	    comma (uparams.long_opt_col, &pest);
-	    char *name_allocated = NULL;
-	    translated_option_name = translate_option_name (opt->name, &name_allocated);
-	    __argp_fmtstream_printf (stream, "--%s", translated_option_name);
-	    arg (real, "=%s", "[=%s]",
-		 state == NULL ? NULL : state->root_argp->argp_domain, stream);
-	    if (strcmp (translated_option_name, opt->name))
+	    translated_option_names = translate_option_name (opt->name);
+	    for (size_t i = 0;
+		 (translated_option_names != NULL
+		  && translated_option_names[i] != NULL);
+		 i++)
+	      {
+		if (i != 0)
+		  __argp_fmtstream_printf (stream, ", ");
+		__argp_fmtstream_printf (stream, "--%s", translated_option_names[i]);
+		/* Only display the argument for the first translation.  */
+		if (i == 0)
+		  arg (real, "=%s", "[=%s]",
+		       state == NULL ? NULL : state->root_argp->argp_domain, stream);
+		/* If we see the untranslated name, we won’t repeat it.  */
+		if (strcmp (translated_option_names[i], opt->name) == 0)
+		  needs_untranslated = false;
+		free (translated_option_names[i]);
+	      }
+	    free (translated_option_names);
+	    if (needs_untranslated)
 	      __argp_fmtstream_printf (stream, " (--%s)", opt->name);
-	    free (name_allocated);
+	    /* If memory allocation failed, the --help output will
+	       just display the untranslated name in parenthesis.  */
 	  }
     }
 
@@ -1458,39 +1519,46 @@ usage_long_opt (const struct argp_option *opt,
 {
   argp_fmtstream_t stream = cookie;
   const char *arg = opt->arg;
-  const char *translated_option_name = opt->name;
+  char **translated_option_names = NULL;
   int flags = opt->flags | real->flags;
+  bool needs_untranslated = true;
 
   if (! arg)
     arg = real->arg;
 
   if (! (flags & OPTION_NO_USAGE))
     {
-      char *name_allocated = NULL;
-      translated_option_name =
-	translate_option_name (opt->name, &name_allocated);
-      int translation_differs =
-	(strcmp (translated_option_name, opt->name) != 0);
+      translated_option_names =
+	translate_option_name (opt->name);
+      __argp_fmtstream_printf (stream, " [");
       if (arg)
+	arg = dgettext (domain, arg);
+      for (size_t i = 0;
+	   (translated_option_names != NULL
+	    && translated_option_names[i] != NULL);
+	   i++)
 	{
-	  arg = dgettext (domain, arg);
-	  if ((flags & OPTION_ARG_OPTIONAL) && translation_differs)
-	    __argp_fmtstream_printf (stream, " [--%s[=%s] (--%s)]",
-				     translated_option_name, arg, opt->name);
-	  else if (flags & OPTION_ARG_OPTIONAL)
-	    __argp_fmtstream_printf (stream, " [--%s[=%s]]", opt->name, arg);
-	  else if (translation_differs)
-	    __argp_fmtstream_printf (stream, " [--%s=%s (--%s)]",
-				     translated_option_name, arg, opt->name);
-	  else
-	    __argp_fmtstream_printf (stream, " [--%s=%s]", opt->name, arg);
+	  if (i != 0)
+	    __argp_fmtstream_printf (stream, " / ");
+	  __argp_fmtstream_printf (stream, "--%s", translated_option_names[i]);
+	  if (arg && i == 0)
+	    {
+	      if (flags & OPTION_ARG_OPTIONAL)
+		__argp_fmtstream_printf (stream, "[=%s]", arg);
+	      else
+		__argp_fmtstream_printf (stream, "=%s", arg);
+	    }
+	  if (strcmp (translated_option_names[i], opt->name) == 0)
+	    needs_untranslated = false;
+	  free (translated_option_names[i]);
 	}
-      else if (translation_differs)
-	__argp_fmtstream_printf (stream, " [--%s (--%s)]",
-				 translated_option_name, opt->name);
-      else
-	__argp_fmtstream_printf (stream, " [--%s]", opt->name);
-      free (name_allocated);
+      free (translated_option_names);
+      if (needs_untranslated)
+	__argp_fmtstream_printf (stream, " (--%s)", opt->name);
+      __argp_fmtstream_printf (stream, "]");
+      /* If memory allocation failed, the output will be like
+	 [ (--option)]
+      */
     }
 
   return 0;

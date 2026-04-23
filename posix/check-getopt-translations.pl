@@ -146,7 +146,8 @@ while (my $line = <$pofile>) {
     } elsif ($parser_state == 3 && $line eq "") {
         $parser_state = 1;
     } elsif ($parser_state == 3 && $line =~ /^msgstr\s*"([^"]*)"$/) {
-        $translations{$entry_msgid} = $1;
+        my @translations_for_this = split(/\s+/, $1);
+        $translations{$entry_msgid} = \@translations_for_this;
         $parser_state = 1;
     }
 }
@@ -156,13 +157,14 @@ my $number_of_errors = 0;
 # Verify that every option name is unique.
 my %untranslated_name;
 for my $option_name (sort(keys %translations)) {
-    my $translation = $translations{$option_name};
-    my @existing;
-    if (exists $untranslated_name{$translation}) {
-	@existing = @{$untranslated_name{$translation}};
+    for my $translation (@{$translations{$option_name}}) {
+        my @existing;
+        if (exists $untranslated_name{$translation}) {
+            @existing = @{$untranslated_name{$translation}};
+        }
+        push(@existing, $option_name);
+        $untranslated_name{$translation} = \@existing;
     }
-    push(@existing, $option_name);
-    $untranslated_name{$translation} = \@existing;
 }
 for my $translation (sort(keys %untranslated_name)) {
     my $names = $untranslated_name{$translation};
@@ -180,10 +182,12 @@ for my $translation (sort(keys %untranslated_name)) {
 for my $option_name (sort(keys %translations)) {
     for my $other_option_name (sort(keys %translations)) {
         if ($option_name ne $other_option_name) {
-	    if ($translations{$option_name} eq $other_option_name) {
-		print STDERR "${translations{$option_name}} is a translation of ${option_name}, but it is also a different option.\n";
-		++$number_of_errors;
-	    }
+            for my $translation (@{$translations{$option_name}}) {
+                if ($translation eq $other_option_name) {
+                    print STDERR "${translation} is a translation of ${option_name}, but it is also a different option.\n";
+                    ++$number_of_errors;
+                }
+            }
         }
     }
 }

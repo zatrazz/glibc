@@ -257,6 +257,11 @@ invocation of your program, the program users should be encouraged to
 use untranslated option names or publish the locale used for this
 invocation.
 
+If the translation of an option name contains a space character, then
+it means multiple translations recognize the same option name.  This
+is useful to upgrade a translation without disrupting the user's
+workflow.
+
 Since option names may be short words instead of long sentences, they
 may have different translations in different contexts within the same
 program.  @xref{Contexts, , Using contexts for solving ambiguities,

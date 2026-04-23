@@ -27,17 +27,17 @@ msgstr "bar"
 # This is the --foo option.
 msgctxt "command-line option"
 msgid "foo"
-msgstr "toto"
+msgstr "tata toto"
 
 # This is the --bar option.  Oops, I translated with toto here too.
 msgctxt "command-line option"
 msgid "bar"
-msgstr "toto"
+msgstr "titi toto"
 
 # Let’s go to the --pub!
 msgctxt "command-line option"
 msgid "pub"
-msgstr "bar"
+msgstr "bar club"
 
 # Wait, it’s OK if baz is translated to baz though.
 msgctxt "command-line option"

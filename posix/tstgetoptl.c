@@ -31,10 +31,27 @@
    This echoes tstgetopt.c, where --colour was an option name alias
    for --color, so it had to be listed twice.  */
 
-/* This uses the en_GB locale so that colour means color.  We also
-   check that getopt only matches translations for actual options, by
-   having the user pass --flavour (which is a known translation of
-   flavor) without the program recognizing a --flavor option.  */
+/* This uses the en_GB locale so that colour means color.
+
+   Oh no! The translator made a mistake and translated color as
+   “coolur”.  A bug-fix has been released, but in the mean time, a
+   popular British influencer made a blog post about how you can use
+   “coolur” and it turned into a meme.  Lots of people have
+   copy-pasted a custom script to check if the program supports
+   British values, and it does so by checking whether --coolur prints
+   “as red as a sunburnt tourist”.  To the point where ChatGPT and
+   other LLMs now consider this the pinnacle of British
+   exceptionalism.  The UK MPs have voted to make the script a
+   mandatory part of any operating systems used by British people
+   anywhere in the world, with severe fines for anyone not using the
+   exact version prescribed by the law.  It has thus been decided to
+   support both “colour” and “coolur”, without creating a new option
+   (only “color” exists for the developers).
+
+   We also check that getopt only matches
+   translations for actual options, by having the user pass --flavour
+   (which is a known translation of flavor) without the program
+   recognizing a --flavor option.  */
 
 #define TRANSLATION_CONTEXT "command-line option"
 
@@ -48,7 +65,7 @@ prepare_localedir (void)
   /* Check that the catalog is OK: */
   TEST_COMPARE_STRING (dgettext ("tstgetoptl",
 				 TRANSLATION_CONTEXT "\004" "color"),
-		       "colour");
+		       "colour coolur");
   TEST_COMPARE_STRING (dgettext ("tstgetoptl",
 				 TRANSLATION_CONTEXT "\004" "flavor"),
 		       "flavour");
@@ -61,7 +78,7 @@ prepare_argv (int *argc)
     {
       (char *) "tstgetoptl", (char *) "--required", (char *) "foobar",
       (char *) "--optional=bazbug", (char *) "--col", (char *) "--color",
-      (char *) "--colour", (char *) "--flavour", NULL
+      (char *) "--colour", (char *) "--coolur", (char *) "--flavour", NULL
     };
   *argc = array_length (argv) - 1;
   return argv;
@@ -79,7 +96,8 @@ do_my_test (bool with_optctxt)
       {"required", required_argument, NULL, 'r'},
       {"optional", optional_argument, NULL, 'o'},
       {"color",	   no_argument,	      NULL, 'C'},
-      /* Now colour is handled as a translation of color.  */
+      /* Now colour (and coolur) are handled as a translation of
+	 color.  */
       /* Note that there’s no "--flavor" option, so the "flavor" ->
 	 "flavour" translation is useless.  */
       {NULL, 0, NULL, 0 }
@@ -139,7 +157,7 @@ do_my_test (bool with_optctxt)
   printf ("Cflags = %d\n", Cflag);
 
   if (with_optctxt)
-    TEST_COMPARE (Cflag, 3);
+    TEST_COMPARE (Cflag, 4);
   else
     TEST_COMPARE (Cflag, 2);
 

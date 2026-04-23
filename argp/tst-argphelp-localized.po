@@ -15,7 +15,7 @@ msgstr ""
 #: tst-argphelp-localized.c:73
 msgctxt "command-line option"
 msgid "color"
-msgstr "colour"
+msgstr "colour coolur"
 
 msgctxt "command-line option"
 msgid "flavor"
@@ -23,3 +23,4 @@ msgstr "flavour"
 
 msgid "COOKIE"
 msgstr "BISCUIT"
+

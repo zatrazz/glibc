@@ -17,16 +17,16 @@ msgstr ""
 
 msgctxt "kind 1"
 msgid "foo"
-msgstr "bar"
+msgstr "bar noise1"
 
 msgctxt "kind 1"
 msgid "bar"
-msgstr "baz"
+msgstr "noise2 baz noise3"
 
 msgctxt "kind 2"
 msgid "foo"
-msgstr "same"
+msgstr "same noise4"
 
 msgctxt "kind 2"
 msgid "bar"
-msgstr "same"
+msgstr "noise5 same"

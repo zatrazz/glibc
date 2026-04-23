@@ -44,6 +44,8 @@ const struct argp_option options[] =
 };
 
 static bool color_set = false;
+static bool flavor_set = false;
+static bool texture_set = false;
 
 static error_t
 parse_opt (int key, char *arg, struct argp_state *state)
@@ -53,6 +55,14 @@ parse_opt (int key, char *arg, struct argp_state *state)
     FAIL ("color already set.\n");
   else if (key == 'c')
     color_set = true;
+  else if (key == 'f' && flavor_set)
+    FAIL ("flavor already set.\n");
+  else if (key == 'f')
+    flavor_set = true;
+  else if (key == 't' && texture_set)
+    FAIL ("texture already set.\n");
+  else if (key == 't')
+    texture_set = true;
   return 0;
 }
 
@@ -64,6 +74,16 @@ do_test (void)
   char *test1_argv[3] =
     { (char *) "/bin/tst-argphelp-localized", (char *) "--colour=yellow", NULL };
   char *test2_argv[3] =
+    { (char *) "/bin/tst-argphelp-localized", (char *) "--color=yellow", NULL };
+  char *test3_argv[3] =
+    { (char *) "/bin/tst-argphelp-localized", (char *) "--coolur=yellow", NULL };
+  char *test4_argv[3] =
+    { (char *) "/bin/tst-argphelp-localized", (char *) "--flavour", NULL };
+  char *test5_argv[3] =
+    { (char *) "/bin/tst-argphelp-localized", (char *) "--flavor", NULL };
+  char *test6_argv[3] =
+    { (char *) "/bin/tst-argphelp-localized", (char *) "--texture", NULL };
+  char *test7_argv[3] =
     { (char *) "/bin/tst-argphelp-localized", (char *) "--help", NULL };
 
   unsetenv ("LANGUAGE");
@@ -72,18 +92,47 @@ do_test (void)
 				    OBJPFX "domaindir") != NULL);
   TEST_VERIFY_EXIT (textdomain ("tst-argphelp-localized") != NULL);
   /* Check that the catalog is OK: */
-  TEST_COMPARE_STRING (gettext ("command-line option\004color"), "colour");
+  TEST_COMPARE_STRING (gettext ("command-line option\004color"),
+		       "colour coolur");
   TEST_COMPARE_STRING (gettext ("COOKIE"), "BISCUIT");
   argp_parse (&argp, 2, test1_argv, 0, 0, NULL);
   TEST_VERIFY (color_set);
+  TEST_VERIFY (!flavor_set);
+  TEST_VERIFY (!texture_set);
   color_set = false;
+  argp_parse (&argp, 2, test2_argv, 0, 0, NULL);
+  TEST_VERIFY (color_set);
+  TEST_VERIFY (!flavor_set);
+  TEST_VERIFY (!texture_set);
+  color_set = false;
+  argp_parse (&argp, 2, test3_argv, 0, 0, NULL);
+  TEST_VERIFY (color_set);
+  TEST_VERIFY (!flavor_set);
+  TEST_VERIFY (!texture_set);
+  color_set = false;
+  argp_parse (&argp, 2, test4_argv, 0, 0, NULL);
+  TEST_VERIFY (!color_set);
+  TEST_VERIFY (flavor_set);
+  TEST_VERIFY (!texture_set);
+  flavor_set = false;
+  argp_parse (&argp, 2, test5_argv, 0, 0, NULL);
+  TEST_VERIFY (!color_set);
+  TEST_VERIFY (flavor_set);
+  TEST_VERIFY (!texture_set);
+  flavor_set = false;
+  argp_parse (&argp, 2, test6_argv, 0, 0, NULL);
+  TEST_VERIFY (!color_set);
+  TEST_VERIFY (!flavor_set);
+  TEST_VERIFY (texture_set);
+  texture_set = false;
 
   /* This is the last chance to fail.  */
   if (support_record_failure_is_failed ())
-    FAIL_EXIT1 ("There were test failures before the final invocation of --help");
+    FAIL_EXIT1 (
+	"There were test failures before the final invocation of --help");
   /* This last test will exit the program with code 0 and ignore
      previous failures.  */
-  argp_parse (&argp, 2, test2_argv, 0, 0, NULL);
+  argp_parse (&argp, 2, test7_argv, 0, 0, NULL);
   FAIL_EXIT1 ("--help did not exit the program");
   return 0;
 }
