@@ -1,0 +1,32 @@
+# French translations for tst-getopt_long_collision.c
+# Copyright (C) 2026 THE GNU C Library'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the GNU C Library.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU C Library (see version.h)\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-06 22:37+0200\n"
+"PO-Revision-Date: 2025-06-06 22:38+0200\n"
+"Language-Team: English (British) <(nothing)>\n"
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+msgctxt "kind 1"
+msgid "foo"
+msgstr "bar"
+
+msgctxt "kind 1"
+msgid "bar"
+msgstr "baz"
+
+msgctxt "kind 2"
+msgid "foo"
+msgstr "same"
+
+msgctxt "kind 2"
+msgid "bar"
+msgstr "same"

@@ -41,6 +41,11 @@ char *optctxt = NULL;
 
 char *opttextdomain = NULL;
 
+/* This is reset each time we call getopt_long_enable_translations,
+   and set to true as soon as getopt_long is called.  */
+
+bool translation_collisions_checked = false;
+
 /* FIXME: use pgettext_expr.  */
 static char *
 do_translate (const char *domain, const char *context, const char *msgid,
@@ -77,9 +82,13 @@ int
 getopt_long (int argc, char *__getopt_argv_const *argv, const char *options,
 	     const struct option *long_options, int *opt_index)
 {
-  return _getopt_internal (argc, (char **) argv, options, long_options,
-			   opt_index, 0, 0, do_translate,
-			   optctxt, opttextdomain);
+  int c = _getopt_internal (argc, (char **) argv, options, long_options,
+			    opt_index, 0, 0, do_translate,
+			    optctxt, opttextdomain,
+			    translation_collisions_checked);
+  /* Translations are checked at most once. */
+  translation_collisions_checked = true;
+  return c;
 }
 
 int
@@ -101,9 +110,12 @@ getopt_long_only (int argc, char *__getopt_argv_const *argv,
 		  const char *options,
 		  const struct option *long_options, int *opt_index)
 {
-  return _getopt_internal (argc, (char **) argv, options, long_options,
-			   opt_index, 1, 0, do_translate,
-			   optctxt, opttextdomain);
+  int c = _getopt_internal (argc, (char **) argv, options, long_options,
+			    opt_index, 1, 0, do_translate,
+			    optctxt, opttextdomain,
+			    translation_collisions_checked);
+  translation_collisions_checked = true;
+  return c;
 }
 
 int
@@ -122,6 +134,8 @@ disable_translations (void)
   free (opttextdomain);
   optctxt = NULL;
   opttextdomain = NULL;
+  /* No translations so no possibilities for collisions.  */
+  translation_collisions_checked = true;
 }
 
 int
@@ -140,6 +154,8 @@ getopt_long_enable_translations (const char *msgctxt, const char *textdomain)
 	  disable_translations ();
 	  return -1;
 	}
+      /* Next call to getopt_long will check for collisions.  */
+      translation_collisions_checked = false;
     }
   return 0;
 }

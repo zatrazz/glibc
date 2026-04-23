@@ -290,6 +290,7 @@ tests := \
   tst-fork \
   tst-gai_strerror \
   tst-getopt_long1 \
+  tst-getopt_long_collision \
   tst-glob-bz30635 \
   tst-glob-tilde \
   tst-glob_symlinks \
@@ -537,6 +538,7 @@ LOCALES := \
   en_US.UTF-8 \
   es_US.ISO-8859-1 \
   es_US.UTF-8 \
+  fr_FR.UTF-8 \
   ja_JP.EUC-JP \
   tr_TR.UTF-8 \
   # LOCALES
@@ -818,3 +820,12 @@ $(tstgetoptl_mo): tstgetoptl.po
 
 $(objpfx)tstgetoptl.out: $(tstgetoptl_mo) $(gen-locales)
 CFLAGS-tstgetoptl.c += -DOBJPFX=\"$(objpfx)\"
+
+tst_getopt_long_collision_mo = $(objpfx)domaindir/fr_FR/LC_MESSAGES/tst-getopt_long_collision.mo
+$(tst_getopt_long_collision_mo): tst-getopt_long_collision.po
+	$(make-target-directory)
+	msgfmt -o $@T $<
+	mv -f $@T $@
+
+$(objpfx)tst-getopt_long_collision.out: $(tst_getopt_long_collision_mo) $(gen-locales)
+CFLAGS-tst-getopt_long_collision.c += -DOBJPFX=\"$(objpfx)\"

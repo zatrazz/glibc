@@ -23,7 +23,9 @@ use this facility, your program must include the header file
 @deftypevar int opterr
 @standards{POSIX.2, unistd.h}
 If the value of this variable is nonzero, then @code{getopt} prints an
-error message to the standard error stream if it encounters an unknown
+error message to the standard error stream if it detects a collision
+between an untranslated long option name and a translation of a
+different option, or it encounters an unknown
 option character or an option with a missing required argument.  This is
 the default behavior.  If you set this variable to zero, @code{getopt}
 does not print any messages, but it still returns the character @code{?}
@@ -267,6 +269,13 @@ Option names may be translated in a textdomain that is not currently
 the default (@pxref{Interface to gettext, , The Interface, gettext,
 the GNU Gettext manual}).  If this is @code{NULL} (the default), the
 translation will be searched in the current text domain.
+
+Once translations have been enabled, the next call to
+@code{getopt_long} or @code{getopt_long_only}, and only this next
+call, will check for collisions between long option name translations.
+If a collision is found, a message is printed to @code{stderr}, this
+next call will fail, returning @code{'?'}, while @code{optind} will be
+set to 1.
 
 @code{getopt_long_enable_translations} returns 0 on success, or -1 and
 sets errno.

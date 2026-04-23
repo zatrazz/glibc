@@ -483,11 +483,93 @@ _getopt_initialize (_GL_UNUSED int argc,
     d->__ordering = REQUIRE_ORDER;
   else
     d->__ordering = PERMUTE;
-
   d->__initialized = 1;
   return optstring;
 }
 
+
+static bool
+has_translation_collisions (const char *domain,
+			    const char *context,
+			    const struct option *long_options,
+			    char *(*do_translate) (const char *__domain,
+						   const char *__context,
+						   const char *__name,
+						   char **__allocated),
+			    bool print_errors,
+			    const char *argv0)
+{
+  /* Otherwise, this is a double loop. */
+  size_t n_options = 0;
+  size_t option_index_a, option_index_b;
+  char *a_buffer = NULL;
+  const char *a_name = NULL;
+  const struct option *option_a;
+  char *b_buffer = NULL;
+  const char *b_name = NULL;
+  const struct option *option_b;
+  bool has_collision = false;
+
+  if (do_translate == NULL || context == NULL)
+    /* Translations are disabled, we can skip.  */
+    return false;
+  /* Count the number of options.  */
+  for (n_options = 0; long_options[n_options].name; n_options++)
+    ;
+  /* Detect collisions between the non-translated name of an option
+     and the translation of a *different* option, or the translations
+     of two different options.  */
+  for (option_index_a = 0;
+       option_index_a < n_options;
+       option_index_a++)
+    {
+      option_a = &(long_options[option_index_a]);
+      a_name = do_translate (domain, context, option_a->name, &a_buffer);
+      for (option_index_b = 0;
+	   option_index_b < n_options;
+	   option_index_b++)
+	if (option_index_b != option_index_a)
+	  {
+	    option_b = &(long_options[option_index_b]);
+	    b_name = do_translate (domain, context, option_b->name, &b_buffer);
+	    if (strcmp (option_a->name, b_name) == 0)
+	      {
+		if (print_errors)
+		  /* Since we do not consider a particular use of an
+		     option, but its general name, we do not know what
+		     prefix it has ("--", "-", or "-W ").  */
+		  fprintf (stderr,
+			   _("%s: you found a translation bug!  "
+			     "domain '%s', context '%s': "
+			     "option *'%s'* exists "
+			     "and option '%s' translates to *'%s'*\n"),
+			   argv0,
+			   domain, context,
+			   option_a->name,
+			   option_b->name, b_name);
+		has_collision = true;
+	      }
+	    if (strcmp (a_name, b_name) == 0
+		&& strcmp (option_a->name, a_name) != 0
+		&& strcmp (option_b->name, b_name) != 0
+		&& option_index_a < option_index_b)
+	      {
+		if (print_errors)
+		  fprintf (stderr,
+			   _("%s: you found a translation bug!  "
+			     "domain '%s', context '%s': "
+			     "both '%s' and '%s' translate to '%s'\n"),
+			   argv0, domain, context,
+			   option_a->name, option_b->name, a_name);
+		has_collision = true;
+	      }
+	    free (b_buffer);
+	  }
+      free (a_buffer);
+    }
+  return has_collision;
+}
+
 /* Scan elements of ARGV (whose length is ARGC) for option characters
    given in OPTSTRING.
 
@@ -562,6 +644,19 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
     optstring = _getopt_initialize (argc, argv, optstring, d, posixly_correct);
   else if (optstring[0] == '-' || optstring[0] == '+')
     optstring++;
+
+  /* Only ever check translations for the first time we call
+     getopt_long, since it is costly.  We cannot check them in
+     _getopt_initialize, because gettext may not be set up yet when it
+     is called.  */
+  if (!d->__translation_collisions_checked)
+    {
+      d->__translation_collisions_checked = true;
+      if (has_translation_collisions (d->opttextdomain, d->optctxt,
+				      longopts, translate, print_errors,
+				      argv[0]))
+	return '?';
+    }
 
   if (optstring[0] == ':')
     print_errors = 0;
@@ -788,7 +883,8 @@ _getopt_internal (int argc, char **argv, const char *optstring,
 		  char *(*translate) (const char *, const char *,
 				      const char *, char **),
 		  const char *ctxt,
-		  const char *domain)
+		  const char *domain,
+		  bool translation_collisions_checked)
 {
   int result;
 
@@ -796,6 +892,8 @@ _getopt_internal (int argc, char **argv, const char *optstring,
   getopt_data.opterr = opterr;
   getopt_data.optctxt = ctxt;
   getopt_data.opttextdomain = domain;
+  getopt_data.__translation_collisions_checked =
+    translation_collisions_checked;
 
   result = _getopt_internal_r (argc, argv, optstring, longopts,
 			       longind, long_only, &getopt_data,
@@ -818,7 +916,7 @@ _getopt_internal (int argc, char **argv, const char *optstring,
   {								\
     return _getopt_internal (argc, (char **)argv, optstring,	\
 			     NULL, NULL, 0, POSIXLY_CORRECT,	\
-			     NULL, NULL, NULL);			\
+			     NULL, NULL, NULL, true);		\
   }
 
 #ifdef _LIBC

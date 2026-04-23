@@ -21,6 +21,7 @@
 #define _GETOPT_INT_H	1
 
 #include <getopt.h>
+#include <stdbool.h>
 
 /* The translate argument here is optional (can be NULL), it is used
    to avoid depending on the gettext functions in the posix getopt
@@ -31,7 +32,8 @@ extern int _getopt_internal (int ___argc, char **___argv,
 			     int __long_only, int __posixly_correct,
 			     char *(*translate) (const char *, const char *,
 						 const char *, char **),
-			     const char *__optctxt, const char *__optdomain);
+			     const char *__optctxt, const char *__optdomain,
+			     bool __translation_collisions_checked);
 
 
 /* Reentrant versions which can handle parsing multiple argument
@@ -100,6 +102,12 @@ struct _getopt_data
 
   int __first_nonopt;
   int __last_nonopt;
+
+  /* Checking for collision in translations of long options.  */
+
+  /* Checking for collisions is costly; it must compare O(n²) strings,
+     when there are n options.  So, it is only done once.  */
+  bool __translation_collisions_checked;
 };
 
 /* The initializer is necessary to set OPTIND and OPTERR to their

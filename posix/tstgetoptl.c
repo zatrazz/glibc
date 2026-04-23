@@ -31,13 +31,10 @@
    This echoes tstgetopt.c, where --colour was an option name alias
    for --color, so it had to be listed twice.  */
 
-/* This uses the en_GB locale so that colour means color.  As a
-   special case, we also check that non-translated options have
-   precedence over translated options, by translating "optional" as
-   "required".  We also check that getopt only matches translations
-   for actual options, by having the user pass --flavour (which is a
-   known translation of flavor) without the program recognizing a
-   --flavor option.  */
+/* This uses the en_GB locale so that colour means color.  We also
+   check that getopt only matches translations for actual options, by
+   having the user pass --flavour (which is a known translation of
+   flavor) without the program recognizing a --flavor option.  */
 
 #define TRANSLATION_CONTEXT "command-line option"
 

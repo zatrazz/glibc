@@ -24,9 +24,3 @@ msgstr "colour"
 msgctxt "command-line option"
 msgid "flavor"
 msgstr "flavour"
-
-# This is to make sure the translator cannot redirect options.
-#: xxx.c:yy
-msgctxt "command-line option"
-msgid "optional"
-msgstr "required"
