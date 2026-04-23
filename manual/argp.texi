@@ -208,8 +208,11 @@ messages.  @xref{Argp Help Filtering}.
 If non-zero, the strings used in the argp library are translated using
 the domain described by this string.  If zero, the current default
 domain is used.  The long option names are always translated with the
-current default domain, and with the @samp{"command-line option"}
-disambiguation string.
+current default domain (not this one), and with the
+@samp{"command-line option"} disambiguation string.  This is because
+all the option names, including those defined in sub-parsers, must be
+in the same textdomain for @command{getopt} to process the options
+correctly.
 
 @end table
 @end deftp

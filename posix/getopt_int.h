@@ -24,14 +24,14 @@
 
 /* The translate argument here is optional (can be NULL), it is used
    to avoid depending on the gettext functions in the posix getopt
-   function.  */
+   function.  It is like dpgettext.  */
 extern int _getopt_internal (int ___argc, char **___argv,
 			     const char *__shortopts,
 			     const struct option *__longopts, int *__longind,
 			     int __long_only, int __posixly_correct,
 			     char *(*translate) (const char *, const char *,
-						 char **),
-			     const char *__optctxt);
+						 const char *, char **),
+			     const char *__optctxt, const char *__optdomain);
 
 
 /* Reentrant versions which can handle parsing multiple argument
@@ -74,6 +74,7 @@ struct _getopt_data
   int optopt;
   char *optarg;
   const char *optctxt;
+  const char *opttextdomain;
 
   /* Internal members.  */
 
@@ -111,7 +112,7 @@ extern int _getopt_internal_r (int ___argc, char **___argv,
 			       int __long_only, struct _getopt_data *__data,
 			       int __posixly_correct,
 			       char *(*translate) (const char *, const char *,
-						   char **));
+						   const char *, char **));
 
 extern int _getopt_long_r (int ___argc, char **___argv,
 			   const char *__shortopts,

@@ -238,7 +238,7 @@ was seen.
 @end table
 @end deftp
 
-@deftypefun int getopt_long_enable_translations (const char *@var{msgctxt})
+@deftypefun int getopt_long_enable_translations (const char *@var{msgctxt}, const char *@var{textdomain})
 @deftypefunx void getopt_long_disable_translations (void)
 @standards{GNU, getopt.h}
 @c FIXME: I copied that from getopt_long, but I don't understand
@@ -262,6 +262,11 @@ gettext, the GNU Gettext manual}, for more information.  @var{msgctxt}
 should be a non-NULL string to disambiguate option name translations.
 Passing NULL, or calling @code{getopt_long_disable_translations()},
 will disable option name translation.
+
+Option names may be translated in a textdomain that is not currently
+the default (@pxref{Interface to gettext, , The Interface, gettext,
+the GNU Gettext manual}).  If this is @code{NULL} (the default), the
+translation will be searched in the current text domain.
 
 @code{getopt_long_enable_translations} returns 0 on success, or -1 and
 sets errno.

@@ -49,8 +49,12 @@ prepare_localedir (void)
   TEST_VERIFY_EXIT (bindtextdomain ("tstgetoptl", OBJPFX "domaindir") != NULL);
   TEST_VERIFY_EXIT (textdomain ("tstgetoptl") != NULL);
   /* Check that the catalog is OK: */
-  TEST_COMPARE_STRING (gettext (TRANSLATION_CONTEXT "\004" "color"), "colour");
-  TEST_COMPARE_STRING (gettext (TRANSLATION_CONTEXT "\004" "flavor"), "flavour");
+  TEST_COMPARE_STRING (dgettext ("tstgetoptl",
+				 TRANSLATION_CONTEXT "\004" "color"),
+		       "colour");
+  TEST_COMPARE_STRING (dgettext ("tstgetoptl",
+				 TRANSLATION_CONTEXT "\004" "flavor"),
+		       "flavour");
 }
 
 static char **
@@ -70,6 +74,7 @@ static void
 do_my_test (bool with_optctxt)
 {
   static const char *translation_context = TRANSLATION_CONTEXT;
+  static const char *translation_textdomain = "tstgetoptl";
   int argc;
   char **argv = prepare_argv (&argc);
   static const struct option options[] =
@@ -91,7 +96,9 @@ do_my_test (bool with_optctxt)
   bool found_flavor = false;
 
   if (with_optctxt)
-    TEST_VERIFY_EXIT (getopt_long_enable_translations (translation_context) == 0);
+    TEST_VERIFY_EXIT (getopt_long_enable_translations (translation_context,
+						       translation_textdomain)
+		      == 0);
   else
     getopt_long_disable_translations ();
   optind = 0;

@@ -36,9 +36,15 @@
 
 char *optctxt = NULL;
 
+/* Callers store the textdomain in which the option names are to be
+   looked up.  */
+
+char *opttextdomain = NULL;
+
 /* FIXME: use pgettext_expr.  */
 static char *
-do_translate (const char *context, const char *msgid, char **allocated)
+do_translate (const char *domain, const char *context, const char *msgid,
+	      char **allocated)
 {
   char *full_msgid;
   const char *translated = msgid;
@@ -51,7 +57,7 @@ do_translate (const char *context, const char *msgid, char **allocated)
       *allocated = full_msgid;
       if (output_length >= 0)
 	{
-	  translated = __dcgettext (NULL, full_msgid, LC_MESSAGES);
+	  translated = __dcgettext (domain, full_msgid, LC_MESSAGES);
 	  if (strcmp (translated, full_msgid) == 0)
 	    {
 	      /* No translation for this context and message, so drop
@@ -72,7 +78,8 @@ getopt_long (int argc, char *__getopt_argv_const *argv, const char *options,
 	     const struct option *long_options, int *opt_index)
 {
   return _getopt_internal (argc, (char **) argv, options, long_options,
-			   opt_index, 0, 0, do_translate, optctxt);
+			   opt_index, 0, 0, do_translate,
+			   optctxt, opttextdomain);
 }
 
 int
@@ -95,7 +102,8 @@ getopt_long_only (int argc, char *__getopt_argv_const *argv,
 		  const struct option *long_options, int *opt_index)
 {
   return _getopt_internal (argc, (char **) argv, options, long_options,
-			   opt_index, 1, 0, do_translate, optctxt);
+			   opt_index, 1, 0, do_translate,
+			   optctxt, opttextdomain);
 }
 
 int
@@ -111,18 +119,27 @@ static void
 disable_translations (void)
 {
   free (optctxt);
+  free (opttextdomain);
   optctxt = NULL;
+  opttextdomain = NULL;
 }
 
 int
-getopt_long_enable_translations (const char *msgctxt)
+getopt_long_enable_translations (const char *msgctxt, const char *textdomain)
 {
   disable_translations ();
   if (msgctxt != NULL)
     {
       optctxt = __strdup (msgctxt);
-      if (optctxt == NULL)
-	return -1;
+      if (textdomain)
+	opttextdomain = __strdup (textdomain);
+      if (optctxt == NULL
+	  || (textdomain != NULL && opttextdomain == NULL))
+	{
+	  /* strdup failure */
+	  disable_translations ();
+	  return -1;
+	}
     }
   return 0;
 }
