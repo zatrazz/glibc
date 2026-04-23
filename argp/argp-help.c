@@ -1205,6 +1205,35 @@ comma (unsigned col, struct pentry_state *pest)
   indent_to (pest->stream, col);
 }
 
+/* Help and usage output show the translated option name.  *allocated
+   holds a pointer that should be freed by the caller, or a NULL
+   pointer.  */
+static const char *
+translate_option_name (const char *name, char **allocated)
+{
+  /* Argp does not have a configuration for the context, so a default
+     one is used.  */
+  /* FIXME: use pgettext_expr.  */
+  *allocated = NULL;
+  if (__asprintf (allocated, "command-line option\004%s", name) == -1)
+    {
+      /* *allocated is NULL */
+      return name;
+    }
+  const char *translated = gettext (*allocated);
+  if (strcmp (translated, *allocated) == 0)
+    {
+      /* No translation performed.  */
+      free (*allocated);
+      *allocated = NULL;
+      return name;
+    }
+  /* FIXME: is it safe to discard *allocated early here?  Won’t the
+     return value alias it? */
+  /* *allocated is to be freed by the caller.  */
+  return translated;
+}
+
 /* Print help for ENTRY to STREAM.  */
 static void
 hol_entry_help (struct hol_entry *entry, const struct argp_state *state,
@@ -1213,6 +1242,7 @@ hol_entry_help (struct hol_entry *entry, const struct argp_state *state,
   unsigned num;
   const struct argp_option *real = entry->opt, *opt;
   char *so = entry->short_options;
+  const char *translated_option_name;
   int have_long_opt = 0;	/* We have any long options.  */
   /* Saved margins.  */
   int old_lm = __argp_fmtstream_set_lmargin (stream, 0);
@@ -1276,9 +1306,14 @@ hol_entry_help (struct hol_entry *entry, const struct argp_state *state,
 	if (opt->name && ovisible (opt))
 	  {
 	    comma (uparams.long_opt_col, &pest);
-	    __argp_fmtstream_printf (stream, "--%s", opt->name);
+	    char *name_allocated = NULL;
+	    translated_option_name = translate_option_name (opt->name, &name_allocated);
+	    __argp_fmtstream_printf (stream, "--%s", translated_option_name);
 	    arg (real, "=%s", "[=%s]",
 		 state == NULL ? NULL : state->root_argp->argp_domain, stream);
+	    if (strcmp (translated_option_name, opt->name))
+	      __argp_fmtstream_printf (stream, " (--%s)", opt->name);
+	    free (name_allocated);
 	  }
     }
 
@@ -1420,6 +1455,7 @@ usage_long_opt (const struct argp_option *opt,
 {
   argp_fmtstream_t stream = cookie;
   const char *arg = opt->arg;
+  const char *translated_option_name = opt->name;
   int flags = opt->flags | real->flags;
 
   if (! arg)
@@ -1427,16 +1463,31 @@ usage_long_opt (const struct argp_option *opt,
 
   if (! (flags & OPTION_NO_USAGE))
     {
+      char *name_allocated = NULL;
+      translated_option_name =
+	translate_option_name (opt->name, &name_allocated);
+      int translation_differs =
+	(strcmp (translated_option_name, opt->name) != 0);
       if (arg)
 	{
 	  arg = dgettext (domain, arg);
-	  if (flags & OPTION_ARG_OPTIONAL)
+	  if ((flags & OPTION_ARG_OPTIONAL) && translation_differs)
+	    __argp_fmtstream_printf (stream, " [--%s[=%s] (--%s)]",
+				     translated_option_name, arg, opt->name);
+	  else if (flags & OPTION_ARG_OPTIONAL)
 	    __argp_fmtstream_printf (stream, " [--%s[=%s]]", opt->name, arg);
+	  else if (translation_differs)
+	    __argp_fmtstream_printf (stream, " [--%s=%s (--%s)]",
+				     translated_option_name, arg, opt->name);
 	  else
 	    __argp_fmtstream_printf (stream, " [--%s=%s]", opt->name, arg);
 	}
+      else if (translation_differs)
+	__argp_fmtstream_printf (stream, " [--%s (--%s)]",
+				 translated_option_name, opt->name);
       else
 	__argp_fmtstream_printf (stream, " [--%s]", opt->name);
+      free (name_allocated);
     }
 
   return 0;

@@ -472,6 +472,7 @@ parser_init (struct parser *parser, const struct argp *argp,
   struct parser_sizes szs;
   struct _getopt_data opt_data = _GETOPT_DATA_INITIALIZER;
 
+  opt_data.optctxt = "command-line option";
   szs.short_len = (flags & ARGP_NO_ARGS) ? 0 : 1;
   szs.long_len = 0;
   szs.num_groups = 0;

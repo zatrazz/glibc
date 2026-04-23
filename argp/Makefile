@@ -44,12 +44,31 @@ tests = \
   bug-argp2 \
   tst-argp1 \
   tst-argp2 \
+  tst-argphelp-localized \
+  tst-argpusage-localized \
   tst-ldbl-argp \
   # tests
 
 CFLAGS-argp-help.c += $(uses-callbacks) -fexceptions
 CFLAGS-argp-parse.c += $(uses-callbacks)
 CFLAGS-argp-fmtstream.c += -fexceptions
+
+tst_argphelp_localized_mo = $(objpfx)domaindir/en_GB/LC_MESSAGES/tst-argphelp-localized.mo
+
+$(tst_argphelp_localized_mo): tst-argphelp-localized.po
+	$(make-target-directory)
+	msgfmt -o $@T $<
+	mv -f $@T $@
+
+LOCALES := \
+  en_GB.UTF-8 \
+  # LOCALES
+include ../gen-locales.mk
+
+$(objpfx)tst-argphelp-localized.out: $(tst_argphelp_localized_mo) $(gen-locales)
+$(objpfx)tst-argpusage-localized.out: $(tst_argphelp_localized_mo) $(gen-locales)
+CFLAGS-tst-argphelp-localized.c += -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-argpusage-localized.c += -DOBJPFX=\"$(objpfx)\"
 
 bug-argp1-ARGS = -- --help
 bug-argp2-ARGS = -- -d 111 --dstaddr 222 -p 333 --peer 444

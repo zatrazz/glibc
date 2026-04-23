@@ -1,0 +1,25 @@
+# English translations for a GNU C Library test.
+# This file is distributed under the same license as the GNU C Library.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: tst-argphelp-localized\n"
+"Report-Msgid-Bugs-To: \n"
+"Language-Team: English (British) <(nothing)>\n"
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: tst-argphelp-localized.c:73
+msgctxt "command-line option"
+msgid "color"
+msgstr "colour"
+
+msgctxt "command-line option"
+msgid "flavor"
+msgstr "flavour"
+
+msgid "COOKIE"
+msgstr "BISCUIT"

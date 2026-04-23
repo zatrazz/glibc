@@ -206,8 +206,10 @@ messages.  @xref{Argp Help Filtering}.
 
 @item const char *argp_domain
 If non-zero, the strings used in the argp library are translated using
-the domain described by this string.  If zero, the current default domain
-is used.
+the domain described by this string.  If zero, the current default
+domain is used.  The long option names are always translated with the
+current default domain, and with the @samp{"command-line option"}
+disambiguation string.
 
 @end table
 @end deftp
@@ -233,7 +235,9 @@ beginning, the unused fields left unspecified.
 The @code{options} field in a @code{struct argp} points to a vector of
 @code{struct argp_option} structures, each of which specifies an option
 that the argp parser supports.  Multiple entries may be used for a single
-option provided it has multiple names.  This should be terminated by an
+option provided it has multiple names.  In any case, option names are
+translated, so either the translated or untranslated form is
+recognized for each option.  This should be terminated by an
 entry with zero in all fields.  Note that when using an initialized C
 array for options, writing @code{@{ 0 @}} is enough to achieve this.
 
@@ -247,9 +251,12 @@ the following fields:
 @item const char *name
 The long name for this option, corresponding to the long option
 @samp{--@var{name}}; this field may be zero if this option @emph{only}
-has a short name.  To specify multiple names for an option, additional
-entries may follow this one, with the @code{OPTION_ALIAS} flag
-set.  @xref{Argp Option Flags}.
+has a short name.  You should mark this string for translation with
+the fixed @samp{"command-line option"} context.  To specify multiple
+names for an option, additional entries may follow this one, with the
+@code{OPTION_ALIAS} flag set.  @xref{Argp Option Flags}.  Translations
+are added automatically, it is not necessary to use an alias for
+translations.
 
 @item int key
 The integer key provided by the current option to the option parser.  If
@@ -323,7 +330,8 @@ This option isn't displayed in any help messages.
 This option is an alias for the closest previous non-alias option.  This
 means that it will be displayed in the same help entry, and will inherit
 fields other than @code{name} and @code{key} from the option being
-aliased.
+aliased.  It is not necessary to list the translation of an option
+name as an alias.
 
 
 @item OPTION_DOC
