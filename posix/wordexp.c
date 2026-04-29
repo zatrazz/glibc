@@ -804,10 +804,11 @@ parse_arith (char **word, size_t *word_length, size_t *max_length,
 #include <malloc/dynarray-skeleton.c>
 
 /* Function called by child process in exec_comm() */
-static pid_t
-exec_comm_child (char *comm, int *fildes, bool showerr, bool noexec)
+static bool
+exec_comm_child (process_create_id_t *procid, char *comm, int *fildes,
+		 bool showerr, bool noexec)
 {
-  pid_t pid = -1;
+  bool r = false;
 
   /* Execute the command, or just check syntax?  */
   const char *args[] = { _PATH_BSHELL, noexec ? "-nc" : "-c", comm, NULL };
@@ -855,17 +856,17 @@ exec_comm_child (char *comm, int *fildes, bool showerr, bool noexec)
 	goto out;
     }
 
-  /* pid is not set if posix_spawn fails, so it keep the original value
-     of -1.  */
-  __posix_spawn (&pid, _PATH_BSHELL, &fa, NULL, (char *const *) args,
-		 recreate_env ? strlist_begin (&newenv) : __environ);
+  r = __spawn_process_create (procid, _PATH_BSHELL, &fa, NULL,
+			      (char *const *) args,
+			      recreate_env
+			      ? strlist_begin (&newenv) : __environ) == 0;
 
   strlist_free (&newenv);
 
 out:
   __posix_spawn_file_actions_destroy (&fa);
 
-  return pid;
+  return r;
 }
 
 /* Function to execute a command and retrieve the results */
@@ -882,7 +883,7 @@ exec_comm (char *comm, char **word, size_t *word_length, size_t *max_length,
   int status = 0;
   size_t maxnewlines = 0;
   char buffer[bufsize];
-  pid_t pid;
+  process_create_id_t pid;
   bool noexec = false;
 
   /* Do nothing if command substitution should not succeed.  */
@@ -897,9 +898,8 @@ exec_comm (char *comm, char **word, size_t *word_length, size_t *max_length,
     return WRDE_NOSPACE;
 
  again:
-  pid = exec_comm_child (comm, fildes, noexec ? false : flags & WRDE_SHOWERR,
-			 noexec);
-  if (pid < 0)
+  if (!exec_comm_child (&pid, comm, fildes,
+			noexec ? false : flags & WRDE_SHOWERR, noexec))
     {
       __close (fildes[0]);
       __close (fildes[1]);
@@ -908,7 +908,7 @@ exec_comm (char *comm, char **word, size_t *word_length, size_t *max_length,
 
   /* If we are just testing the syntax, only wait.  */
   if (noexec)
-    return (TEMP_FAILURE_RETRY (__waitpid (pid, &status, 0)) == pid
+    return (TEMP_FAILURE_RETRY (__spawn_process_wait (pid, &status, 0)) == pid
 	    && status != 0) ? WRDE_SYNTAX : 0;
 
   __close (fildes[1]);
@@ -925,8 +925,10 @@ exec_comm (char *comm, char **word, size_t *word_length, size_t *max_length,
 	      /* If read returned 0 then the process has closed its
 		 stdout.  Don't use WNOHANG in that case to avoid busy
 		 looping until the process eventually exits.  */
-	      if (TEMP_FAILURE_RETRY (__waitpid (pid, &status,
-						 buflen == 0 ? 0 : WNOHANG))
+	      if (TEMP_FAILURE_RETRY (__spawn_process_wait (pid,
+							    &status,
+							    buflen == 0
+							    ? 0 : WNOHANG))
 		  == 0)
 		continue;
 	      if ((buflen = TEMP_FAILURE_RETRY (__read (fildes[0], buffer,
@@ -960,8 +962,9 @@ exec_comm (char *comm, char **word, size_t *word_length, size_t *max_length,
 	      /* If read returned 0 then the process has closed its
 		 stdout.  Don't use WNOHANG in that case to avoid busy
 		 looping until the process eventually exits.  */
-	      if (TEMP_FAILURE_RETRY (__waitpid (pid, &status,
-						 buflen == 0 ? 0 : WNOHANG))
+	      if (TEMP_FAILURE_RETRY (__spawn_process_wait (pid, &status,
+							    buflen == 0
+							    ? 0 : WNOHANG))
 		  == 0)
 		continue;
 	      if ((buflen = TEMP_FAILURE_RETRY (__read (fildes[0], buffer,
@@ -1094,7 +1097,7 @@ exec_comm (char *comm, char **word, size_t *word_length, size_t *max_length,
 
 no_space:
   __kill (pid, SIGKILL);
-  TEMP_FAILURE_RETRY (__waitpid (pid, NULL, 0));
+  TEMP_FAILURE_RETRY (__spawn_process_wait (pid, NULL, 0));
   __close (fildes[0]);
   return WRDE_NOSPACE;
 }

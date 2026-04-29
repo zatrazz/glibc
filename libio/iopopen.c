@@ -40,7 +40,7 @@ struct _IO_proc_file
 {
   struct _IO_FILE_plus file;
   /* Following fields must match those in class procbuf (procbuf.h) */
-  pid_t pid;
+  process_create_id_t procid;
   struct _IO_proc_file *next;
 };
 typedef struct _IO_proc_file _IO_proc_file;
@@ -106,9 +106,16 @@ spawn_process (posix_spawn_file_actions_t *fa, FILE *fp, const char *command,
 	}
     }
 
-  err = __posix_spawn (&((_IO_proc_file *) fp)->pid, _PATH_BSHELL, fa, NULL,
-		       (char *const[]){ (char*) "sh", (char*) "-c", (char*) "--",
-		       (char *) command, NULL }, __environ);
+  err = __spawn_process_create (&((_IO_proc_file *) fp)->procid,
+				_PATH_BSHELL,
+				fa,
+				NULL,
+				(char *const[]){ (char*) "sh",
+						 (char*) "-c",
+						 (char*) "--",
+						 (char *) command,
+						 NULL },
+				__environ);
   if (err != 0)
     return err;
 
@@ -274,7 +281,6 @@ _IO_new_proc_close (FILE *fp)
   /* This is not name-space clean. FIXME! */
   int wstatus;
   _IO_proc_file **ptr = &proc_file_chain;
-  pid_t wait_pid;
   int status = -1;
 
   /* Unlink from proc_file_chain. */
@@ -306,11 +312,12 @@ _IO_new_proc_close (FILE *fp)
     {
       int state;
       __pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
-      wait_pid = __waitpid (((_IO_proc_file *) fp)->pid, &wstatus, 0);
+      status =__spawn_process_wait (((_IO_proc_file *) fp)->procid,
+				    &wstatus, 0);
       __pthread_setcancelstate (state, NULL);
     }
-  while (wait_pid == -1 && errno == EINTR);
-  if (wait_pid == -1)
+  while (status == -1 && errno == EINTR);
+  if (status == -1)
     return -1;
   return wstatus;
 }

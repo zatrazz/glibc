@@ -1,5 +1,5 @@
-/* Syscall wrapper that do not set errno.  Linux version.
-   Copyright (C) 2017-2026 Free Software Foundation, Inc.
+/* Internal implementation of __spawn_process*.  Generic implementation.
+   Copyright (C) 2026 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,26 +16,28 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <sysdep.h>
-#include <fcntl.h>
+#include <spawn.h>
+#include <not-errno.h>
 
-static inline int
-__kill_noerrno (pid_t pid, int sig)
+int
+__spawn_process_create (process_create_id_t *procid,
+			const char *path,
+			const posix_spawn_file_actions_t *facts,
+			const posix_spawnattr_t *attr,
+			char *const argv[],
+			char *const envp[])
 {
-  int res;
-  res = INTERNAL_SYSCALL_CALL (kill, pid, sig);
-  if (INTERNAL_SYSCALL_ERROR_P (res))
-    return INTERNAL_SYSCALL_ERRNO (res);
-  return 0;
+  return __posix_spawn (procid, path, facts, attr, argv, envp);
 }
 
-static inline int
-__pidfd_send_signal_noerrno (int pidfd, int sig, siginfo_t *info,
-			     unsigned int flags)
+int
+__spawn_process_kill (process_create_id_t procid, int signo)
 {
-  int res;
-  res = INTERNAL_SYSCALL_CALL (pidfd_send_signal, pidfd, sig, info, flags);
-  if (INTERNAL_SYSCALL_ERROR_P (res))
-    return INTERNAL_SYSCALL_ERRNO (res);
-  return 0;
+  return __kill (procid, signo);
+}
+
+process_create_id_t
+__spawn_process_wait (process_create_id_t procid, int *wstatus, int options)
+{
+  return __waitpid (procid, wstatus, options | WEXITED);
 }

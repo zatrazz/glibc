@@ -1,6 +1,7 @@
 #ifndef _CLONE_INTERNAL_H
 #define _CLONE_INTERNAL_H
 
+#include <stdbool.h>
 #include <clone3.h>
 
 /* The clone3 syscall provides a superset of the functionality of the clone

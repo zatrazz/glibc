@@ -45,7 +45,7 @@
    last thread will restore them.
 
    Cancellation handling is done with thread cancellation clean-up handlers
-   on waitpid call.  */
+   on __spawn_process_wait call.  */
 
 #ifdef _LIBC_REENTRANT
 static struct sigaction intr, quit;
@@ -71,7 +71,7 @@ struct cancel_handler_args
 {
   struct sigaction *quit;
   struct sigaction *intr;
-  pid_t pid;
+  process_create_id_t pid;
 };
 
 static void
@@ -79,11 +79,11 @@ cancel_handler (void *arg)
 {
   struct cancel_handler_args *args = (struct cancel_handler_args *) (arg);
 
-  __kill_noerrno (args->pid, SIGKILL);
+  __spawn_process_kill (args->pid, SIGKILL);
 
   int state;
   __pthread_setcancelstate (PTHREAD_CANCEL_DISABLE, &state);
-  TEMP_FAILURE_RETRY (__waitpid (args->pid, NULL, 0));
+  TEMP_FAILURE_RETRY (__spawn_process_wait (args->pid, NULL, 0));
   __pthread_setcancelstate (state, NULL);
 
   DO_LOCK ();
@@ -102,7 +102,7 @@ do_system (const char *line)
 {
   int status = -1;
   int ret;
-  pid_t pid;
+  process_create_id_t pid;
   struct sigaction sa;
 #ifndef _LIBC_REENTRANT
   struct sigaction intr, quit;
@@ -144,12 +144,13 @@ do_system (const char *line)
   __posix_spawnattr_setflags (&spawn_attr,
 			      POSIX_SPAWN_SETSIGDEF | POSIX_SPAWN_SETSIGMASK);
 
-  ret = __posix_spawn (&pid, SHELL_PATH, NULL, &spawn_attr,
-		       (char *const[]){ (char *) SHELL_NAME,
-					(char *) "-c",
-					(char *) "--",
-					(char *) line, NULL },
-		       __environ);
+  ret = __spawn_process_create (&pid, SHELL_PATH, NULL, &spawn_attr,
+				(char *const[]){ (char *) SHELL_NAME,
+						 (char *) "-c",
+						 (char *) "--",
+						 (char *) line,
+						 NULL },
+				__environ);
   __posix_spawnattr_destroy (&spawn_attr);
 
   if (ret == 0)
@@ -169,7 +170,7 @@ do_system (const char *line)
       /* Note the system() is a cancellation point.  But since we call
 	 waitpid() which itself is a cancellation point we do not
 	 have to do anything here.  */
-      if (TEMP_FAILURE_RETRY (__waitpid (pid, &status, 0)) != pid)
+      if (TEMP_FAILURE_RETRY (__spawn_process_wait (pid, &status, 0)) != pid)
 	status = -1;
 #if defined(_LIBC_REENTRANT) && defined(SIGCANCEL)
       __libc_cleanup_region_end (0);

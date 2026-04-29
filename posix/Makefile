@@ -155,6 +155,7 @@ routines := \
   spawn_faction_addtcsetpgrp_np \
   spawn_faction_destroy \
   spawn_faction_init \
+  spawn_process \
   spawn_valid_fd \
   spawnattr_destroy \
   spawnattr_getdefault \
@@ -350,7 +351,12 @@ tests += \
   # tests
 endif
 
+tests-static-internal := \
+  tst-spawn_process-fd-exhaustion \
+  # tests-static-internal
+
 tests-internal := \
+  $(tests-static-internal)\
   bug-regex5 \
   bug-regex20 \
   bug-regex33 \
@@ -397,6 +403,7 @@ tests += \
 endif
 
 tests-static = \
+  $(tests-static-internal) \
   tst-exec-static \
   tst-libc-message \
   tst-spawn-static \
@@ -803,3 +810,5 @@ tst-wordexp-reuse-ENV += MALLOC_TRACE=$(objpfx)tst-wordexp-reuse.mtrace \
 $(objpfx)tst-wordexp-reuse-mem.out: $(objpfx)tst-wordexp-reuse.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-wordexp-reuse.mtrace > $@; \
 	$(evaluate-test)
+
+CFLAGS-tst-spawn_process-fd-exhaustion.c += -DOBJPFX=\"$(objpfx)\"
