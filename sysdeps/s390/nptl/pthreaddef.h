@@ -21,6 +21,9 @@
 /* Minimum guard size.  */
 #define ARCH_MIN_GUARD_SIZE 0
 
+/* TLS guard page between thread stack and static TLS.  */
+#define ARCH_HAS_TLS_GUARD 0
+
 /* Required stack pointer alignment at beginning.  SSE requires 16
    bytes.  */
 #define STACK_ALIGN		16

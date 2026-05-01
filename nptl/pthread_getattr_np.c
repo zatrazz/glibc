@@ -61,15 +61,33 @@ __pthread_getattr_np (pthread_t thread_id, pthread_attr_t *attr)
   /* The sizes are subject to alignment.  */
   if (__glibc_likely (thread->stackblock != NULL))
     {
-      /* The stack size reported to the user should not include the
-	 guard size.  */
-      iattr->stacksize = thread->stackblock_size - thread->guardsize;
+      /* The reported stack size excludes all guard pages.  The TLS guard
+	 (when ARCH_HAS_TLS_GUARD and guardsize > 0) is allocated on top of
+	 the user-requested size, just like the regular stack guard, so it is
+	 also excluded.  stackaddr is kept at the top of the user-requested
+	 region (excluding the TLS guard overhead).  */
+#if ARCH_HAS_TLS_GUARD
+      if (thread->guardsize > 0)
+	{
+	  iattr->stacksize = thread->stackblock_size - 2 * thread->guardsize;
+# if _STACK_GROWS_DOWN
+	  iattr->stackaddr = (char *) thread->stackblock
+			     + thread->stackblock_size - thread->guardsize;
+# else
+#  error "TLS guard page does not support _STACK_GROWS_UP"
+# endif
+	}
+      else
+#endif /* ARCH_HAS_TLS_GUARD */
+	{
+	  iattr->stacksize = thread->stackblock_size - thread->guardsize;
 #if _STACK_GROWS_DOWN
-      iattr->stackaddr = (char *) thread->stackblock
-			 + thread->stackblock_size;
+	  iattr->stackaddr = (char *) thread->stackblock
+			     + thread->stackblock_size;
 #else
-      iattr->stackaddr = (char *) thread->stackblock;
+	  iattr->stackaddr = (char *) thread->stackblock;
 #endif
+	}
     }
   else
     {

@@ -150,6 +150,125 @@ get_cached_stack (size_t *sizep, void **memp)
   return result;
 }
 
+/*
+  The thread stack layout depends on whether the ABI places the static TLS
+  (TLS_TCB_AT_TP or TLS_TCB_DTV_TP), if the kernel supports lightweight guard
+  pages (MADV_GUARD_INSTALL), and if the ABI adds an extra TLS guard page
+  (ARCH_HAS_TLS_GUARD).
+
+  For TLS_TCB_AT_TP with !ARCH_HAS_TLS_GUARD:
+
+  * !MADV_GUARD_INSTALL (2 VMAs):
+
+  |------------|-------------------------------------------------------------|
+  | R--        | RW-                                                         |
+  |------------|-----------------------|--------------------|----------------|
+  |            |                       |                    | struct pthread |
+  | GUARD PAGE |        STACK          |                    |                |
+  |            |                       | initial-exec +     |----------------|
+  |            |                       | local-exec TLS     | tcbhead_t      |
+  |------------|-----------------------|--------------------|----------------|
+  low                                                       ^
+                                                            thread pointer
+  * MADV_GUARD_INSTALL (1 VMA):
+  |--------------------------------------------------------------------------|
+  | RW                                                                       |
+  |------------------------------------|--------------------|----------------|
+  |                                    |                    | struct pthread |
+  | (GUARD PAGE)        STACK          |                    |                |
+  |                                    | initial-exec +     |----------------|
+  |                                    | local-exec TLS     | tcbhead_t      |
+  |------------------------------------|--------------------|----------------|
+  low                                                       ^
+                                                            thread pointer
+
+  And with ARCH_HAS_TLS_GUARD:
+
+  * !MADV_GUARD_INSTALL (4 VMAs)
+
+  |------------|-----------------------|-----------|-------------------------|
+  | R--        | RW-                   | R--       | RW-                     |
+  |------------|-----------------------|-----------|---|-----------|---------|
+  |            |                       |           |   |           | struct  |
+  | GUARD PAGE |        STACK          | TLS GUARD |pad| init-exec | pthread |
+  |            |                       |           |   | + loc-exec|---------|
+  |            |                       |           |   | TLS       |tcbhead_t|
+  |------------|-----------------------|-----------|---|-----------|---------|
+  low                                  ^                           ^
+                                       page-aligned                TP
+
+  * MADV_GUARD_INSTALL (1 VMA):
+  |--------------------------------------------------------------------------|
+  | RW                                                                       |
+  |------------------------------------------------|---------------|---------|
+  |                                                |   |           | struct  |
+  | (GUARD PAGE)        STACK          (TLS GUARD) |pad|           | pthread |
+  |                                                |   | init-exec |---------|
+  |                                                |   | + loc-exec|tcbhead_t|
+  |------------------------------------------------|---------------|---------|
+  low                                              ^               ^
+                                                   page-aligned    TP
+
+
+  For TLS_DTV_AT_TP, the thread pointer (TP) points to the start of the static
+  TLS block, and struct pthread sits just before TP.  With !ARCH_HAS_TLS_GUARD:
+
+
+  * !MADV_GUARD_INSTALL (2 VMAs):
+
+  |------------|-------------------------------------------------------------|
+  | R--        | RW-                                                         |
+  |------------|----------------------|----------------|---------------------|
+  |            |                      | struct pthread | initial-exec        |
+  | GUARD PAGE |        STACK         |                | + local-exec TLS    |
+  |            |                      |                |                     |
+  |------------|-------------------------------------------------------------|
+  low                                                  ^                  high
+                                                       thread pointer
+
+  * MADV_GUARD_INSTALL (1 VMA):
+
+  |--------------------------------------------------------------------------|
+  | RW                                                                       |
+  |--------------------------------------------------------------------------|
+  |                                   |struct pthread | initial-exec         |
+  | (GUARD PAGE)        STACK         |               | + local-exec TLS     |
+  |                                   |               |                      |
+  |--------------------------------------------------------------------------|
+  low                                                 ^ thread pointer    high
+
+
+  And with ARCH_HAS_TLS_GUARD:
+
+  * !MADV_GUARD_INSTALL (4 VMAs):
+
+  |------------|-------------------------------------------------------------|
+  | R--        | RW-                  | R--       | RW-                      |
+  |------------|----------------------|-----------|--------------------------|
+  |            |                      |           | struct  | initial-exec   |
+  | GUARD PAGE |        STACK         | TLS GUARD | pthread | + local-exec   |
+  |            |                      |           |         |                |
+  |------------|-------------------------------------------------------------|
+  low                                             ^ thread pointer        high
+
+  * MADV_GUARD_INSTALL (1 VMA):
+
+  |--------------------------------------------------------------------------|
+  | RW                                                                       |
+  |--------------------------------------------------------------------------|
+  |                                               | struct  | initial-exec   |
+  | (GUARD PAGE)        STACK         (TLS GUARD) | pthread | + local-exec   |
+  |                                               |         |                |
+  |--------------------------------------------------------------------------|
+  low                                                 ^ thread pointer    high
+
+
+  - The TLS guard is placed between the usable stack and the static TLS block
+    and takes space from the thread stack.
+  - Its high end is page-aligned at or below the start of static TLS and it
+    is omitted when guardsize == 0.
+  - TLS_TCB_AT_TP only supports _STACK_GROWS_DOWN.  */
+
 /* Assume support for MADV_ADVISE_GUARD, setup_stack_prot will disable it
    and fallback to ALLOCATE_GUARD_PROT_NONE if the madvise call fails.  */
 static int allocate_stack_mode = ALLOCATE_GUARD_MADV_GUARD;
@@ -184,43 +303,129 @@ guard_position (void *mem, size_t size, size_t guardsize, const struct pthread *
 #endif
 }
 
+#if ARCH_HAS_TLS_GUARD
+/* For TLS_TCB_AT_TP the TLS guard sits between the stack and the static TLS
+   area.  Its end is page-aligned at or below the start of static TLS; the
+   caller supplies TGUARDSIZE (already a page multiple).
+
+   For TLS_DTV_AT_TP with a downward-growing stack the TLS guard sits between
+   the usable stack and struct pthread.  Its end is page-aligned at or below
+   the start of struct pthread.
+
+   Returns a pointer to the first byte of the TLS guard, or NULL when
+   TGUARDSIZE is zero.  */
+static __always_inline char *
+tls_guard_end_position (const struct pthread *pd,
+			size_t tls_static_size_for_stack,
+			size_t pagesize_m1)
+{
+# if TLS_TCB_AT_TP
+  char *tls_start = (char *) (pd + 1) - tls_static_size_for_stack;
+  return (char *) ((uintptr_t) tls_start & ~pagesize_m1);
+# elif TLS_DTV_AT_TP
+#  if _STACK_GROWS_DOWN
+  return (char *) ((uintptr_t) pd & ~pagesize_m1);
+#  else
+#   error "TLS guard page does not support _STACK_GROWS_UP"
+#  endif
+# endif
+}
+
+static __always_inline char *
+tls_guard_position (const struct pthread *pd,
+		    size_t tls_static_size_for_stack,
+		    size_t guardsize,
+		    size_t pagesize_m1)
+{
+  return tls_guard_end_position (pd, tls_static_size_for_stack, pagesize_m1)
+    - guardsize;
+}
+#endif
+
 /* Setup the MEM thread stack of SIZE bytes with the required protection flags
-   along with a guard area of GUARDSIZE size.  It first tries with
-   MADV_GUARD_INSTALL, and then fallback to setup the guard area using the
-   extra PROT_NONE mapping.  Update PD with the type of guard area setup.  */
+   along with a guard area of GUARDSIZE size and, when ARCH_HAS_TLS_GUARD is
+   set, a TLS guard area of the same GUARDSIZE between the stack and the
+   static TLS block.
+
+   It first tries with MADV_GUARD_INSTALL, and then falls back to setting up
+   the guard areas using extra PROT_NONE mappings.  Updates PD with the type
+   of guard area setup.  */
 static inline bool
 setup_stack_prot (char *mem, size_t size, struct pthread *pd,
-		  size_t guardsize, size_t pagesize_m1)
+		  size_t guardsize, size_t tls_static_size_for_stack,
+		  size_t pagesize_m1)
 {
   if (__glibc_unlikely (guardsize == 0))
     return true;
 
   char *guard = guard_position (mem, size, guardsize, pd, pagesize_m1);
+
+#if ARCH_HAS_TLS_GUARD
+  /* guardsize > 0 is guaranteed by the early return above.  */
+  char *tls_guard = tls_guard_position (pd, tls_static_size_for_stack,
+					guardsize, pagesize_m1);
+#endif
+
   if (atomic_load_relaxed (&allocate_stack_mode) == ALLOCATE_GUARD_MADV_GUARD)
     {
-      if (__madvise (guard, guardsize, MADV_GUARD_INSTALL) == 0)
+      bool stack_guard_ok = __madvise (guard, guardsize,
+				       MADV_GUARD_INSTALL) == 0;
+      bool tls_guard_ok =
+#if ARCH_HAS_TLS_GUARD
+	__madvise (tls_guard, guardsize, MADV_GUARD_INSTALL) == 0;
+#else
+        true;
+#endif
+
+      if (stack_guard_ok && tls_guard_ok)
 	{
 	  pd->stack_mode = ALLOCATE_GUARD_MADV_GUARD;
 	  return true;
 	}
 
+      /* At least one madvise failed; undo any successful madvise and fall
+	 back to PROT_NONE for both this allocation and future ones.  The
+	 stack memory is already RW (MADV_GUARD mode initial allocation), so
+	 we only need to PROT_NONE the guard regions.  */
+      if (stack_guard_ok)
+	__madvise (guard, guardsize, MADV_GUARD_REMOVE);
+#if ARCH_HAS_TLS_GUARD
+      if (tls_guard_ok)
+	__madvise (tls_guard, guardsize, MADV_GUARD_REMOVE);
+#endif
+
       /* If madvise fails it means the kernel does not support the guard
 	 advise (we assume that the syscall is available, guard is page-aligned
 	 and length is non negative).  The stack has already the expected
-	 protection flags, so it just need to PROT_NONE the guard area.  */
+	 protection flags, so it just need to PROT_NONE the guard areas.  */
       atomic_store_relaxed (&allocate_stack_mode, ALLOCATE_GUARD_PROT_NONE);
+
       if (__mprotect (guard, guardsize, PROT_NONE) != 0)
 	return false;
+#if ARCH_HAS_TLS_GUARD
+      if (__mprotect (tls_guard, guardsize, PROT_NONE) != 0)
+	return false;
+#endif
     }
   else
     {
       const int prot = GL(dl_stack_prot_flags);
       char *guardend = guard + guardsize;
 #if _STACK_GROWS_DOWN
-      /* As defined at guard_position, for architectures with downward stack
-	 the guard page is always at start of the allocated area.  */
+      /* For architectures with downward stack the guard page is always at the
+	 start of the allocated area.  */
+# if ARCH_HAS_TLS_GUARD
+      /* Make the stack area RW (between stack guard and TLS guard).  */
+      if (__mprotect (guardend, tls_guard - guardend, prot) != 0)
+	return false;
+      /* Make the pad + TLS + TCB area RW (after TLS guard).  */
+      char *tls_guardend = tls_guard + guardsize;
+      if (__mprotect (tls_guardend, (mem + size) - tls_guardend, prot) != 0)
+	return false;
+# else
       if (__mprotect (guardend, size - guardsize, prot) != 0)
 	return false;
+# endif /* ARCH_HAS_TLS_GUARD */
 #else
       size_t mprots1 = (uintptr_t) guard - (uintptr_t) mem;
       if (__mprotect (mem, mprots1, prot) != 0)
@@ -235,11 +440,14 @@ setup_stack_prot (char *mem, size_t size, struct pthread *pd,
   return true;
 }
 
-/* Update the guard area of the thread stack MEM of size SIZE with the new
-   GUARDISZE.  It uses the method defined by PD stack_mode.  */
+/* Update the guard areas of the thread stack MEM of size SIZE with the new
+   GUARDSIZE.  Uses the method defined by PD stack_mode.  When
+   ARCH_HAS_TLS_GUARD is set the TLS guard sits between the stack and struct
+   pthread and always has the same size as the stack guard.  */
 static inline bool
 adjust_stack_prot (char *mem, size_t size, struct pthread *pd,
-		   size_t guardsize, size_t pagesize_m1)
+		   size_t guardsize,
+		   size_t tls_static_size_for_stack, size_t pagesize_m1)
 {
   /* The required guard area is larger than the current one.  For
      _STACK_GROWS_DOWN it means the guard should increase as:
@@ -252,27 +460,56 @@ adjust_stack_prot (char *mem, size_t size, struct pthread *pd,
      |stack---------------------------|guard|-----|
      |stack--------------------|new guard---|-----|
 
-     Both madvise and mprotect allows overlap the required region,
+     With ARCH_HAS_TLS_GUARD the TLS guard also need to be increased
+     (TLS guard only supports _STACK_GROWS_DOWN):
+
+     |guard|----------------------|tls_guard|stack|
+     |new guard--|--------------|new guard--|stack|
+
+     Both madvise and mprotect allow overlapping the required region,
      so use the new guard placement with the new size.  */
   if (guardsize > pd->guardsize)
     {
       /* There was no need to previously setup a guard page, so we need
 	 to check whether the kernel supports guard advise.  */
       char *guard = guard_position (mem, size, guardsize, pd, pagesize_m1);
+
+#if ARCH_HAS_TLS_GUARD
+      /* guardsize > 0 is guaranteed by the outer condition.  */
+      char *tls_guard = tls_guard_position (pd, tls_static_size_for_stack,
+					    guardsize, pagesize_m1);
+#endif
+
       if (atomic_load_relaxed (&allocate_stack_mode)
 	  == ALLOCATE_GUARD_MADV_GUARD)
 	{
-	  if (__madvise (guard, guardsize, MADV_GUARD_INSTALL) == 0)
+	  bool stack_ok = __madvise (guard, guardsize,
+				     MADV_GUARD_INSTALL) == 0;
+	  bool tls_ok =
+#if ARCH_HAS_TLS_GUARD
+	    __madvise (tls_guard, guardsize, MADV_GUARD_INSTALL) == 0;
+#else
+	    true;
+#endif
+	  if (stack_ok && tls_ok)
 	    {
 	      pd->stack_mode = ALLOCATE_GUARD_MADV_GUARD;
 	      return true;
 	    }
+	  if (stack_ok)
+	    __madvise (guard, guardsize, MADV_GUARD_REMOVE);
 	  atomic_store_relaxed (&allocate_stack_mode,
 				ALLOCATE_GUARD_PROT_NONE);
 	}
 
       pd->stack_mode = ALLOCATE_GUARD_PROT_NONE;
-      return __mprotect (guard, guardsize, PROT_NONE) == 0;
+      if (__mprotect (guard, guardsize, PROT_NONE) != 0)
+	return false;
+#if ARCH_HAS_TLS_GUARD
+      if (__mprotect (tls_guard, guardsize, PROT_NONE) != 0)
+	return false;
+#endif
+      return true;
     }
   /* The current guard area is larger than the required one.  For
      _STACK_GROWS_DOWN is means change the guard as:
@@ -285,28 +522,48 @@ adjust_stack_prot (char *mem, size_t size, struct pthread *pd,
      |stack---------------------|guard-------|---|
      |stack------------------------|new guard|---|
 
+     With ARCH_HAS_TLS_GUARD the TLS guard also need to be decreased
+     (TLS guard only supports _STACK_GROWS_DOWN):
+
+     |guard-------|----------|tls_guard-----|stack|
+     |new guard|------------------|new guard|stack|
+
      For ALLOCATE_GUARD_MADV_GUARD it means remove the slack area
      (disjointed region of guard and new guard), while for
      ALLOCATE_GUARD_PROT_NONE it requires to mprotect it with the stack
-     protection flags.  */
+     protection flags.  Same logic applies to the TLS guard.  */
   else if (pd->guardsize > guardsize)
     {
-      size_t slacksize = pd->guardsize - guardsize;
       if (pd->stack_mode == ALLOCATE_GUARD_MADV_GUARD)
 	{
+	  size_t slacksize = pd->guardsize - guardsize;
 	  void *slack =
 #if _STACK_GROWS_DOWN
 	    mem + guardsize;
 #else
 	    guard_position (mem, size, pd->guardsize, pd, pagesize_m1);
 #endif
-	  return __madvise (slack, slacksize, MADV_GUARD_REMOVE) == 0;
+	  bool stack_ok = __madvise (slack, slacksize, MADV_GUARD_REMOVE) == 0;
+
+#if ARCH_HAS_TLS_GUARD
+	  char *tls_guard_end =
+	    tls_guard_end_position (pd, tls_static_size_for_stack,
+				    pagesize_m1);
+	  char *old_tls_guard_start = tls_guard_end - pd->guardsize;
+	  bool tls_ok = __madvise (old_tls_guard_start, slacksize,
+				   MADV_GUARD_REMOVE) == 0;
+	  return stack_ok && tls_ok;
+#else
+	  return stack_ok;
+#endif
 	}
       else if (pd->stack_mode == ALLOCATE_GUARD_PROT_NONE)
 	{
 	  const int prot = GL(dl_stack_prot_flags);
+	  bool stack_ok = true;
 #if _STACK_GROWS_DOWN
-	  return __mprotect (mem + guardsize, slacksize, prot) == 0;
+	  size_t slacksize = pd->guardsize - guardsize;
+	  stack_ok = __mprotect (mem + guardsize, slacksize, prot) == 0;
 #else
 	  char *new_guard = (char *)(((uintptr_t) pd - guardsize)
 				     & ~pagesize_m1);
@@ -316,7 +573,20 @@ adjust_stack_prot (char *mem, size_t size, struct pthread *pd,
 	     to the nearest page the size difference might be zero.  */
 	  if (new_guard > old_guard
 	      && __mprotect (old_guard, new_guard - old_guard, prot) != 0)
-	    return false;
+	    stack_ok = false;
+#endif
+
+#if ARCH_HAS_TLS_GUARD
+	  size_t tls_slacksize = pd->guardsize - guardsize;
+	  char *tls_guard_end =
+	    tls_guard_end_position (pd, tls_static_size_for_stack,
+				    pagesize_m1);
+	  char *old_tls_guard_start = tls_guard_end - pd->guardsize;
+	  bool tls_ok = __mprotect (old_tls_guard_start, tls_slacksize,
+				    prot) == 0;
+	  return stack_ok && tls_ok;
+#else
+	  return stack_ok;
 #endif
 	}
     }
@@ -490,14 +760,29 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
       reported_guardsize = guardsize;
       if (guardsize > 0 && guardsize < ARCH_MIN_GUARD_SIZE)
 	guardsize = ARCH_MIN_GUARD_SIZE;
-      if (guardsize < attr->guardsize || size + guardsize < guardsize)
+      if (guardsize < attr->guardsize
+	  || INT_ADD_WRAPV (size, guardsize, &size))
 	/* Arithmetic overflow.  */
 	return EINVAL;
-      size += guardsize;
-      if (__builtin_expect (size < ((guardsize + tls_static_size_for_stack
-				     + MINIMAL_REST_STACK + pagesize_m1)
-				    & ~pagesize_m1),
-			    0))
+
+#if ARCH_HAS_TLS_GUARD
+      /* A TLS guard of the same size as the stack guard is placed between the
+	 stack and the static TLS (or struct pthread for TLS_DTV_AT_TP) to
+	 harden against stack buffer overflows that overwrite TLS data.  */
+      if (INT_ADD_WRAPV (size, guardsize, &size))
+	return EINVAL;
+#endif
+
+      size_t min_size;
+      if (INT_ADD_WRAPV (guardsize, tls_static_size_for_stack, &min_size)
+#if ARCH_HAS_TLS_GUARD
+	  || INT_ADD_WRAPV (min_size, guardsize, &min_size)
+#endif
+	  || INT_ADD_WRAPV (min_size, (size_t) MINIMAL_REST_STACK, &min_size)
+	  || INT_ADD_WRAPV (min_size, pagesize_m1, &min_size))
+	return EINVAL;
+      min_size &= ~pagesize_m1;
+      if (__glibc_unlikely (size < min_size))
 	/* The stack is too small (or the guard too large).  */
 	return EINVAL;
 
@@ -531,8 +816,9 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 				   - TLS_PRE_TCB_SIZE);
 #endif
 
-	  /* Now mprotect the required region excluding the guard area.  */
-	  if (!setup_stack_prot (mem, size, pd, guardsize, pagesize_m1))
+	  /* Now mprotect the required region excluding the guard areas.  */
+	  if (!setup_stack_prot (mem, size, pd, guardsize,
+				 tls_static_size_for_stack, pagesize_m1))
 	    {
 	      __munmap (mem, size);
 	      return errno;
@@ -593,9 +879,10 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 	     which will be read next.  */
 	}
 
-      /* Create or resize the guard area if necessary on an already
+      /* Create or resize the guard areas if necessary on an already
 	 allocated stack.  */
-      if (!adjust_stack_prot (mem, size, pd, guardsize, pagesize_m1))
+      if (!adjust_stack_prot (mem, size, pd, guardsize,
+			      tls_static_size_for_stack, pagesize_m1))
 	{
 	  lll_lock (GL (dl_stack_cache_lock), LLL_PRIVATE);
 
@@ -645,11 +932,23 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 
   void *stacktop;
 
+  /* The stack begins before the TLS guard (if any), static TLS, and TCB.
+     When a TLS guard is in use, its start (page-aligned below the static TLS)
+     is the top of the usable stack.
+
+     With TLS_DTV_AT_TP and a downward-growing stack, struct pthread sits just
+     above the usable stack.  When a TLS guard is in use it occupies the pages
+     between the usable stack top and struct pthread.  */
+#if ARCH_HAS_TLS_GUARD
+  if (pd->guardsize > 0)
+    stacktop = tls_guard_position (pd, tls_static_size_for_stack,
+				   pd->guardsize, pagesize_m1);
+  else
+#endif
 #if TLS_TCB_AT_TP
-  /* The stack begins before the TCB and the static TLS block.  */
-  stacktop = ((char *) (pd + 1) - tls_static_size_for_stack);
+    stacktop = (char *) (pd + 1) - tls_static_size_for_stack;
 #elif TLS_DTV_AT_TP
-  stacktop = (char *) (pd - 1);
+    stacktop = (char *) (pd - 1);
 #endif
 
   *stacksize = stacktop - pd->stackblock;
@@ -673,14 +972,32 @@ allocate_stack (const struct pthread_attr *attr, struct pthread **pdp,
 static void
 name_stack_maps (struct pthread *pd, bool set)
 {
-  size_t adjust = pd->stack_mode == ALLOCATE_GUARD_PROT_NONE ?
-    pd->guardsize : 0;
+  enum allocate_stack_mode_t mode = pd->stack_mode;
+  size_t adjust = mode == ALLOCATE_GUARD_PROT_NONE ? pd->guardsize : 0;
 #if _STACK_GROWS_DOWN
   void *stack = pd->stackblock + adjust;
 #else
   void *stack = pd->stackblock;
 #endif
   size_t stacksize = pd->stackblock_size - adjust;
+
+#if ARCH_HAS_TLS_GUARD
+  /* With PROT_NONE guards and ARCH_HAS_TLS_GUARD, the TLS guard and TLS
+     data are separate VMAs (mprotect splits the mapping).  Naming the full
+     [stack, stack+stacksize) region would apply the name to all three VMAs
+     (usable stack, TLS guard, TLS data), making the test count 3x too many
+     "pthread stack:" entries.  Limit the name to the usable stack only.
+     With MADV_GUARD_INSTALL the whole block remains one VMA, so no
+     adjustment is needed there.  */
+  if (mode == ALLOCATE_GUARD_PROT_NONE && pd->guardsize > 0)
+    {
+      size_t tls_static_size_for_stack = __nptl_tls_static_size_for_stack ();
+      size_t pagesize_m1 = __getpagesize () - 1;
+      char *tls_guard = tls_guard_position (pd, tls_static_size_for_stack,
+                                           pd->guardsize, pagesize_m1);
+      stacksize = (char *) tls_guard - (char *) stack;
+    }
+#endif
 
   if (!set)
     __set_vma_name (stack, stacksize, " glibc: unused stack");
