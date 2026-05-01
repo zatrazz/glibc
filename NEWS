@@ -21,6 +21,15 @@ Major new features:
 * Static PIE is now supported for arm-*-linux-gnueabi.  It requires toolchain
   support to correctly set the expected linker options.
 
+* A guard page is now placed between a thread's usable stack and its static
+  TLS block (and struct pthread) on architectures that support it, hardening
+  against stack buffer overflows that would otherwise silently corrupt
+  thread-local storage, struct pthread, or the stack-smashing canary stored
+  in the TCB.  The TLS guard has the same size as the regular stack guard and
+  is suppressed when the guard size is set to zero.  As a result, for a given
+  requested stack size a thread may have up to one page less usable stack than
+  before, since the TLS guard is page-aligned below the static TLS block.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * Although malloc and related functions currently return pointers

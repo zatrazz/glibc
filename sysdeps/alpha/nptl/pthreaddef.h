@@ -21,6 +21,9 @@
 /* Minimum guard size.  */
 #define ARCH_MIN_GUARD_SIZE 0
 
+/* TLS guard page between thread stack and static TLS.  */
+#define ARCH_HAS_TLS_GUARD 1
+
 /* Required stack pointer alignment at beginning.  The ABI requires 16.  */
 #define STACK_ALIGN		16
 

@@ -133,7 +133,7 @@ dlopen_via_cache (volatile char *pressure)
 
 /* Reduce the stack budget available to the dlopen call chain by
    STACK_PRESSURE bytes.  */
-enum { STACK_PRESSURE = 5 * 1024 };
+enum { STACK_PRESSURE = 3 * 1024 };
 
 static void
 __attribute_noinline__

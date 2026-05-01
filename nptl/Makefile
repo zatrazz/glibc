@@ -387,6 +387,7 @@ tests-internal := \
   tst-sem13 \
   tst-setgetname \
   tst-signal7 \
+  tst-tls-guard \
   # tests-internal
 
 xtests = \

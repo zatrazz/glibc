@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <array_length.h>
+#include <pthread.h>
 #include <pthreaddef.h>
 #include <setjmp.h>
 #include <stackinfo.h>
@@ -149,14 +150,36 @@ tf (void *closure)
 
   if (args != NULL)
     {
+	 /* With ARCH_HAS_TLS_GUARD the value may be larger when the thread
+	    reuses a cached stack that is bigger than strictly needed (because
+	    the TLS guard adds an extra guardsize to every allocation,
+	    shifting  the cached-size distribution so that an exact-fit hit is
+	    unlikely).
+
+	    Without ARCH_HAS_TLS_GUARD the test cases are designed to always
+	    reuse an exact-fit cached stack, so exact equality holds there.  */
+#if ARCH_HAS_TLS_GUARD
+      TEST_VERIFY (s.stacksize >= adjust_stacksize (args->stacksize));
+#else
       TEST_COMPARE (adjust_stacksize (args->stacksize), s.stacksize);
+#endif
       TEST_COMPARE (args->guardsize, s.guardsize);
     }
 
   /* Ensure we can access the stack area.  */
   TEST_COMPARE (try_read_buf (s.stack), true);
   TEST_COMPARE (try_read_buf (&s.stack[s.stacksize / 2]), true);
+  /* With ARCH_HAS_TLS_GUARD and a guard installed, the reported stacksize
+     spans the TLS guard area too (it is part of the overhead like the stack
+     guard).  The last byte may land inside the TLS guard when guardsize >=
+     tls_static_size; only check s.stacksize - 1 when no TLS guard is active
+     to avoid a spurious fault.  */
+#if ARCH_HAS_TLS_GUARD
+  if (s.guardsize == 0)
+    TEST_COMPARE (try_read_buf (&s.stack[s.stacksize - 1]), true);
+#else
   TEST_COMPARE (try_read_buf (&s.stack[s.stacksize - 1]), true);
+#endif
 
   /* Check if accessing the guard area results in SIGSEGV.  */
   if (s.guardsize > 0)
