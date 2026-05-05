@@ -36,6 +36,9 @@ void delayed__exit (int seconds);
 /* Returns true if Priority Inheritance support CLOCK_MONOTONIC.  */
 bool support_mutex_pi_monotonic (void);
 
+/* Returns true if process-shared robust mutexes are supported.  */
+bool support_process_shared_robust_mutex (void);
+
 /* Terminate the process (with exit status 1) if VALUE is not zero.
    In that case, print a failure message to standard output mentioning
    FUNCTION.  The process is terminated with the exit function, so
