@@ -24,6 +24,16 @@
 #include <support/check.h>
 #include <support/xthread.h>
 
+/* Lock the mutex and exit without unlocking it, so that the owner-died
+   notification has to be delivered to the next locker.  */
+static void *
+owner_thread (void *arg)
+{
+  pthread_mutex_t *mutex = arg;
+  TEST_COMPARE (pthread_mutex_lock (mutex), 0);
+  return NULL;
+}
+
 static int
 do_test (void)
 {
@@ -56,6 +66,24 @@ do_test (void)
 
         xpthread_mutexattr_destroy (&attr);
       }
+
+  /* Have a thread lock a robust mutex and exit without unlocking it.  This
+     exercises the deferred robust_list_setup path in pthread_mutex_lock.  */
+  {
+    pthread_mutexattr_t attr;
+    xpthread_mutexattr_init (&attr);
+    xpthread_mutexattr_setrobust (&attr, PTHREAD_MUTEX_ROBUST);
+    pthread_mutex_t mutex;
+    TEST_COMPARE (pthread_mutex_init (&mutex, &attr), 0);
+    xpthread_mutexattr_destroy (&attr);
+
+    xpthread_join (xpthread_create (NULL, owner_thread, &mutex));
+
+    TEST_COMPARE (pthread_mutex_lock (&mutex), EOWNERDEAD);
+    TEST_COMPARE (pthread_mutex_consistent (&mutex), 0);
+    TEST_COMPARE (pthread_mutex_unlock (&mutex), 0);
+    TEST_COMPARE (pthread_mutex_destroy (&mutex), 0);
+  }
 
   return 0;
 }
