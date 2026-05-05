@@ -21,7 +21,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-
 static pthread_barrier_t b;
 static pthread_cond_t c = PTHREAD_COND_INITIALIZER;
 static pthread_mutex_t m;
