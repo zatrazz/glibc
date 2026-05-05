@@ -333,6 +333,21 @@ static int create_thread (struct pthread *pd, const struct pthread_attr *attr,
   return 0;
 }
 
+/* Bit 0 of a robust list entry marks a priority-inheritance mutex, so it has
+   to be masked off before ENTRY is dereferenced.  */
+static inline void *
+robust_list_entry (void *entry)
+{
+  return (void *) ((uintptr_t) entry & ~1ul);
+}
+
+/* Return true if ENTRY refers to a mutex on the robust list within HEAD.  */
+static inline bool
+robust_list_has_entry (void *entry, void *head)
+{
+  return robust_list_entry (entry) != head;
+}
+
 /* Local function to start thread and handle cleanup.  */
 static int _Noreturn
 start_thread (void *arg)
@@ -386,9 +401,7 @@ start_thread (void *arg)
       __libc_fatal ("Fatal glibc error: rseq registration failed\n");
   }
 
-#ifndef __ASSUME_SET_ROBUST_LIST
   if (__nptl_set_robust_list_avail)
-#endif
     {
       /* This call should never fail because the initial call in init.c
 	 succeeded.  */
@@ -536,38 +549,42 @@ start_thread (void *arg)
   pd->exiting = true;
   __libc_lock_unlock (pd->exit_lock);
 
-#ifndef __ASSUME_SET_ROBUST_LIST
   /* If this thread has any robust mutexes locked, handle them now.  */
-# if __PTHREAD_MUTEX_HAVE_PREV
+#if __PTHREAD_MUTEX_HAVE_PREV
   void *robust = pd->robust_head.list;
-# else
+#else
   __pthread_slist_t *robust = pd->robust_list.__next;
-# endif
-  /* We let the kernel do the notification if it is able to do so.
-     If we have to do it here there for sure are no PI mutexes involved
-     since the kernel support for them is even more recent.  */
+#endif
+  /* We let the kernel do the notification if it is able to do so.  */
   if (!__nptl_set_robust_list_avail
-      && __builtin_expect (robust != (void *) &pd->robust_head, 0))
+      && __glibc_unlikely (robust_list_has_entry (robust, &pd->robust_head)))
     {
       do
 	{
+	  void *entry = robust_list_entry (robust);
+	  bool is_pi = ((uintptr_t) robust & 1) != 0;
 	  struct __pthread_mutex_s *this = (struct __pthread_mutex_s *)
-	    ((char *) robust - offsetof (struct __pthread_mutex_s,
-					 __list.__next));
-	  robust = *((void **) robust);
+	    ((char *) entry - offsetof (struct __pthread_mutex_s,
+					__list.__next));
+	  robust = *((void **) entry);
 
-# if __PTHREAD_MUTEX_HAVE_PREV
+#if __PTHREAD_MUTEX_HAVE_PREV
 	  this->__list.__prev = NULL;
-# endif
+#endif
 	  this->__list.__next = NULL;
 
-	  atomic_fetch_or_acquire (&this->__lock, FUTEX_OWNER_DIED);
-	  futex_wake ((unsigned int *) &this->__lock, 1,
-		      /* XYZ */ FUTEX_SHARED);
+	  /* PI mutexes are handled by the kernel even without the robust
+	     list, FUTEX_LOCK_PI reports EOWNERDEAD once the recorded owner
+	     is gone, and a plain FUTEX_WAKE on a PI futex is invalid.  */
+	  if (!is_pi)
+	    {
+	      atomic_fetch_or_acquire (&this->__lock, FUTEX_OWNER_DIED);
+	      futex_wake ((unsigned int *) &this->__lock, 1,
+			  /* XYZ */ FUTEX_SHARED);
+	    }
 	}
-      while (robust != (void *) &pd->robust_head);
+      while (robust_list_has_entry (robust, &pd->robust_head));
     }
-#endif
 
   /* Release the vDSO getrandom per-thread buffer with all signal blocked,
      to avoid creating a new free-state block during thread release.  */

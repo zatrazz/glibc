@@ -58,7 +58,12 @@ do_test (void)
 	  xpthread_mutexattr_setrobust (&attr, robust[r]);
 
 	  pthread_mutex_t mtx;
-	  xpthread_mutex_init (&mtx, &attr);
+	  /* ENOTSUP is returned if the kernel does not support priority
+	     inheritance futexes, in which case there is nothing to check.  */
+	  int ret = pthread_mutex_init (&mtx, &attr);
+	  if (ret == ENOTSUP)
+	    continue;
+	  TEST_COMPARE (ret, 0);
 
 	  /* Uncontended case does not trigger any futex call.  */
 	  struct timespec tmo = timespec_add (xclock_now (clocks[c].clk),
