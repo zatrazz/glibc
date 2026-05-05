@@ -50,6 +50,7 @@ routines = \
   nptl_deallocate_tsd \
   nptl_free_tcb \
   nptl_nthreads \
+  nptl_robust_setup \
   nptl_setxid \
   nptlfreeres \
   old_pthread_cond_broadcast \
@@ -326,6 +327,7 @@ tests = \
   tst-pthread_exit-nothreads-static \
   tst-pthread_gettid_np \
   tst-robust-fork \
+  tst-robust-pshared \
   tst-robustpi1 \
   tst-robustpi2 \
   tst-robustpi3 \

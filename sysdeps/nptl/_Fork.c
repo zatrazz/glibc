@@ -35,22 +35,22 @@ _Fork (void)
     {
       struct pthread *self = THREAD_SELF;
 
-      /* Initialize the robust mutex list setting in the kernel which has
-	 been reset during the fork.  We do not check for errors because if
-	 it fails here, it must have failed at process startup as well and
-	 nobody could have used robust mutexes.
-	 Before we do that, we have to clear the list of robust mutexes
-	 because we do not inherit ownership of mutexes from the parent.
-	 We do not have to set self->robust_head.futex_offset since we do
-	 inherit the correct value from the parent.  We do not need to clear
-	 the pending operation because it must have been zero when fork was
-	 called.  */
+      /* Clear the list of robust mutexes because we do not inherit ownership
+	 of mutexes from the parent.  We do not need to clear the pending
+	 operation because it must have been zero when fork was called.
+	 futex_offset is inherited from the parent unchanged.  */
 #if __PTHREAD_MUTEX_HAVE_PREV
       self->robust_prev = &self->robust_head;
 #endif
       self->robust_head.list = &self->robust_head;
-      INTERNAL_SYSCALL_CALL (set_robust_list, &self->robust_head,
-			     sizeof (struct robust_list_head));
+      /* Re-register the robust list with the kernel only if the parent had
+	 already initialized it.  futex_offset is the sentinel: zero means
+	 lazy initialization has not happened yet, so there is nothing to
+	 re-register and the first robust mutex lock in the child will call
+	 set_robust_list itself.  */
+      if (self->robust_head.futex_offset != 0)
+	INTERNAL_SYSCALL_CALL (set_robust_list, &self->robust_head,
+			       sizeof (struct robust_list_head));
       call_function_static_weak (__getrandom_fork_subprocess);
     }
 
