@@ -62,6 +62,7 @@ dl-routines = \
   dl-exception \
   dl-execstack \
   dl-execstack-tunable \
+  dl-fastload \
   dl-find_object \
   dl-fini \
   dl-init \

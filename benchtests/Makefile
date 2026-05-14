@@ -188,6 +188,41 @@ bench-resolv := \
   inet_ntop_ipv6 \
   # bench-resolv
 
+# Symbol lookup stress: time dlsym() in a process with many DSOs in the
+# main scope.  Hits the BZ#16709 path and the fastload position-skip
+# table.  See bench-dl-lookup.c for details.
+bench-dl := \
+  dl-lookup \
+  # bench-dl
+
+# Generate NUM_DL_LOOKUP_MODULES module .so's, all unique names so they
+# expand the loader's global hash table.  Keep this small enough to
+# fit in CI budgets; the per-module relocation work scales with this.
+NUM_DL_LOOKUP_MODULES := 100
+dl-lookup-module-nums := $(shell seq 0 $$(( $(NUM_DL_LOOKUP_MODULES) - 1 )))
+dl-lookup-modules := $(addprefix bench-dl-lookup-mod, $(dl-lookup-module-nums))
+
+# Register the modules with the glibc module-build machinery so they get
+# linked properly (against libc, with abi-note.o, etc.) by $(build-module).
+modules-names += $(dl-lookup-modules)
+modules-names-tests += $(dl-lookup-modules)
+
+# Compile each per-module object from the single source, with MODNUM
+# set to the module index.
+$(patsubst %,$(objpfx)%.os,$(dl-lookup-modules)): \
+    $(objpfx)bench-dl-lookup-mod%.os: bench-dl-lookup-mod.c
+	$(compile-command.c) -DMODNUM=$*
+
+# The benchmark binary loads modules at runtime via dlopen, so it
+# needs -ldl plus an rpath pointing at the build's bench dir.
+# --export-dynamic puts the binary's symbols in the dynamic symbol
+# table so the "lookup_present_main" test path can dlsym one of them.
+LDLIBS-bench-dl-lookup += -ldl
+LDFLAGS-bench-dl-lookup += -Wl,-rpath,$(objpfx) -Wl,--export-dynamic
+
+# Ensure the modules are built before the benchmark binary is run.
+$(objpfx)bench-dl-lookup: $(patsubst %,$(objpfx)%.so,$(dl-lookup-modules))
+
 LDLIBS-bench-pthread-mutex-lock += -lm
 LDLIBS-bench-pthread-mutex-trylock += -lm
 LDLIBS-bench-pthread-mutex-trylock-recursive-throughput += -lm
@@ -458,6 +493,7 @@ bench-math += $(bench-libmvec)
 
 ifeq (${BENCHSET},)
 bench := \
+  $(bench-dl) \
   $(bench-math) \
   $(bench-pthread) \
   $(bench-resolv) \

@@ -524,6 +524,7 @@ struct rtld_global_ro
 #define DL_DEBUG_HELP       (1 << 10)
 #define DL_DEBUG_TLS        (1 << 11)
 #define DL_DEBUG_SECURITY   (1 << 12)
+#define DL_DEBUG_FASTLOAD   (1 << 13)
 
   /* Platform name.  */
   EXTERN const char *_dl_platform;
@@ -559,6 +560,13 @@ struct rtld_global_ro
   /* Nonzero if references should be treated as weak during runtime
      linking.  */
   EXTERN int _dl_dynamic_weak;
+
+  /* Minimum number of DSOs in the main search list before fastload's
+     symbol position-skip table is built.  -1 disables fastload
+     entirely (the original linear scan is used).  Configured via
+     glibc.rtld.lookup_hash_cutoff.  */
+  EXTERN int _dl_lookup_hash_cutoff;
+#define DL_LOOKUP_HASH_CUTOFF_DEFAULT 32
 
   /* Default floating-point control word.  */
   EXTERN fpu_control_t _dl_fpu_control;
@@ -937,6 +945,22 @@ extern void _dl_map_object_deps (struct link_map *map,
 
 /* Cache the locations of MAP's hash table.  */
 extern void _dl_setup_hash (struct link_map *map) attribute_hidden;
+
+
+/* Build the fastload position-skip hash table from the initial main
+   search list.  Called once from rtld after _dl_map_object_deps.  A
+   no-op (returns without allocating) when the search list is smaller
+   than glibc.rtld.lookup_hash_cutoff or when allocation fails.  */
+extern void _dl_fill_position_hash (struct link_map *main_map)
+     attribute_hidden;
+
+/* Lookup an undefined symbol in the position-skip table.  Returns the
+   index in the main searchlist at which the earliest defining DSO
+   sits.  Returns position_hash_lookup_default (the size of the
+   initial searchlist) for symbols not in the table.  Returns 0 when
+   the table is unbuilt (fastload disabled / pre-cutoff / OOM).  */
+extern int _dl_position_hash_lookup (uint32_t new_hash, const char *name)
+     attribute_hidden;
 
 
 /* Collect the directories in the search path for LOADER's dependencies.

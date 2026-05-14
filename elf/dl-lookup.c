@@ -350,6 +350,41 @@ do_lookup_x (const char *undef_name, unsigned int new_hash,
   size_t n = atomic_load_acquire (&scope->r_nlist);
   struct link_map **list = scope->r_list;
 
+  /* Fast-path: when starting a fresh walk of the main namespace's
+     primary search list, consult the position-skip hash table.  When
+     it is populated (i.e. process has many DSOs) we can either advance
+     past every DSO that does not define this symbol, or short-circuit
+     to "not found" if the symbol is not in any of the initial DSOs.
+
+     The table is a no-op (returns 0, no change) when fastload is
+     disabled or the search list is small enough to scan linearly.
+     A return of >= n means the symbol is in none of the indexed
+     objects; for the initial set we are done, but if dlopen has
+     added objects beyond the indexed range we still need to scan
+     them.  See _dl_fill_position_hash.  */
+  if (i == 0
+      && scope == GL(dl_ns)[LM_ID_BASE]._ns_main_searchlist)
+    {
+      int skip_to = _dl_position_hash_lookup (new_hash, undef_name);
+      if (__glibc_unlikely ((size_t) skip_to >= n))
+        {
+          /* The symbol is not in any object indexed at fill time and
+             no dlopen has added a candidate either.  */
+          if (__glibc_unlikely (GLRO(dl_debug_mask) & DL_DEBUG_FASTLOAD))
+            _dl_debug_printf ("fastload: %s not found "
+                              "(skip=%u >= nlist=%zu)\n",
+                              undef_name, (unsigned) skip_to, n);
+          return 0;
+        }
+      if (skip_to > 0)
+        {
+          if (__glibc_unlikely (GLRO(dl_debug_mask) & DL_DEBUG_FASTLOAD))
+            _dl_debug_printf ("fastload: %s start at %u (nlist=%zu)\n",
+                              undef_name, (unsigned) skip_to, n);
+          i = skip_to;
+        }
+    }
+
   do
     {
       const struct link_map *map = list[i]->l_real;

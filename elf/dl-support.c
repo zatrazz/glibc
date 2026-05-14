@@ -56,6 +56,7 @@ size_t _dl_platformlen;
 int _dl_debug_mask;
 int _dl_lazy;
 int _dl_dynamic_weak;
+int _dl_lookup_hash_cutoff = DL_LOOKUP_HASH_CUTOFF_DEFAULT;
 
 /* If nonzero print warnings about problematic situations.  */
 int _dl_verbose;

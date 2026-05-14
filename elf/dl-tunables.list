@@ -113,6 +113,12 @@ glibc {
       maxval: 2
       default: 1
     }
+    lookup_hash_cutoff {
+      type: INT_32
+      minval: -1
+      maxval: 1000000
+      default: 32
+    }
   }
 
   mem {

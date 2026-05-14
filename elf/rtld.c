@@ -356,6 +356,7 @@ struct rtld_global_ro _rtld_global_ro attribute_relro =
 #endif
     ._dl_debug_fd = STDERR_FILENO,
     ._dl_lazy = 1,
+    ._dl_lookup_hash_cutoff = DL_LOOKUP_HASH_CUTOFF_DEFAULT,
     ._dl_fpu_control = _FPU_DEFAULT,
     ._dl_pagesize = EXEC_PAGESIZE,
     ._dl_inhibit_cache = 0,
@@ -1950,6 +1951,12 @@ dl_main (const ElfW(Phdr) *phdr,
     rtld_timer_accum (&load_time, start);
   }
 
+  /* Build the fastload position-skip table from the final initial
+     search list.  A no-op when the number of DSOs is below the
+     glibc.rtld.lookup_hash_cutoff threshold, or when allocation
+     fails.  See elf/dl-fastload.c.  */
+  _dl_fill_position_hash (main_map);
+
   /* Mark all objects as being in the global scope.  */
   for (i = main_map->l_searchlist.r_nlist; i > 0; )
     main_map->l_searchlist.r_list[--i]->l_global = 1;
@@ -2432,10 +2439,14 @@ process_dl_debug (struct dl_main_state *state, const char *dl_debug)
 	DL_DEBUG_TLS },
       { LEN_AND_STR ("security"), "show security warnings for input files",
 	DL_DEBUG_SECURITY },
+      { LEN_AND_STR ("fastload"),
+	"show fastload position-skip table info",
+	DL_DEBUG_FASTLOAD },
       { LEN_AND_STR ("all"), "all previous options combined",
 	DL_DEBUG_LIBS | DL_DEBUG_RELOC | DL_DEBUG_FILES | DL_DEBUG_SYMBOLS
 	| DL_DEBUG_BINDINGS | DL_DEBUG_VERSIONS | DL_DEBUG_IMPCALLS
-	| DL_DEBUG_SCOPES | DL_DEBUG_TLS | DL_DEBUG_SECURITY },
+	| DL_DEBUG_SCOPES | DL_DEBUG_TLS | DL_DEBUG_SECURITY
+	| DL_DEBUG_FASTLOAD },
       { LEN_AND_STR ("statistics"), "display relocation statistics",
 	DL_DEBUG_STATISTICS },
       { LEN_AND_STR ("unused"), "determined unused DSOs",
