@@ -73,3 +73,10 @@ output(glibc.rtld.dynamic_sort=2): {+a[d>c>b>a>];+e[e>];+f[f>];+g[g>];+d[];%d(b(
 tst-bz28937: {+a;+b;-b;+c;%c};a->a1;a->a2;a2->a;b->b1;c->a1;c=>a1
 output(glibc.rtld.dynamic_sort=1): {+a[a2>a1>a>];+b[b1>b>];-b[<b<b1];+c[c>];%c(a1());}<a<a2<c<a1
 output(glibc.rtld.dynamic_sort=2): {+a[a2>a1>a>];+b[b1>b>];-b[<b<b1];+c[c>];%c(a1());}<a2<a<c<a1
+
+# Linear chain of 33 DSOs: exercises the dl_scratch_buffer spill path in
+# _dl_sort_maps_dfs (the rpo[] buffer exceeds the 256-byte inline area after
+# 32 entries on 64-bit systems) and the seen[] buffer in _dl_sort_maps_original
+# (spills after 128 entries).
+tst-dso-ordering11: n01->n02->n03->n04->n05->n06->n07->n08->n09->n10->n11->n12->n13->n14->n15->n16->n17->n18->n19->n20->n21->n22->n23->n24->n25->n26->n27->n28->n29->n30->n31->n32->n33
+output: n33>n32>n31>n30>n29>n28>n27>n26>n25>n24>n23>n22>n21>n20>n19>n18>n17>n16>n15>n14>n13>n12>n11>n10>n09>n08>n07>n06>n05>n04>n03>n02>n01>{}<n01<n02<n03<n04<n05<n06<n07<n08<n09<n10<n11<n12<n13<n14<n15<n16<n17<n18<n19<n20<n21<n22<n23<n24<n25<n26<n27<n28<n29<n30<n31<n32<n33

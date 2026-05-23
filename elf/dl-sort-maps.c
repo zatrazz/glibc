@@ -19,6 +19,7 @@
 #include <assert.h>
 #include <ldsodefs.h>
 #include <elf/dl-tunables.h>
+#include "dl-scratch-buffer.h"
 
 /* Note: this is the older, "original" sorting algorithm, being used as
    default up to 2.35.
@@ -39,7 +40,9 @@ _dl_sort_maps_original (struct link_map **maps, unsigned int nmaps,
     return;
 
   unsigned int i = 0;
-  uint16_t seen[nmaps];
+  struct dl_scratch_buffer seen_buf = dl_scratch_buffer_init ();
+  dl_scratch_buffer_allocate (&seen_buf, nmaps * sizeof (uint16_t), 0);
+  uint16_t *seen = seen_buf.data;
   memset (seen, 0, nmaps * sizeof (seen[0]));
   while (1)
     {
@@ -119,13 +122,11 @@ _dl_sort_maps_original (struct link_map **maps, unsigned int nmaps,
 
     next:;
     }
+  dl_scratch_buffer_free (&seen_buf);
 }
 
 /* We use a recursive function due to its better clarity and ease of
-   implementation, as well as faster execution speed. We already use
-   alloca() for list allocation during the breadth-first search of
-   dependencies in _dl_map_object_deps(), and this should be on the
-   same order of worst-case stack usage.
+   implementation, as well as faster execution speed.
 
    Note: the '*rpo' parameter is supposed to point to one past the
    last element of the array where we save the sort results, and is
@@ -208,12 +209,14 @@ _dl_sort_maps_dfs (struct link_map **maps, unsigned int nmaps,
      to front makes things much more straightforward.  */
 
   /* Array to hold RPO sorting results, before we copy back to maps[].  */
-  struct link_map *rpo[nmaps];
+  struct dl_scratch_buffer rpo_buf = dl_scratch_buffer_init ();
+  dl_scratch_buffer_allocate (&rpo_buf, nmaps * sizeof (struct link_map *), 0);
+  struct link_map **rpo = rpo_buf.data;
 
   /* The 'head' position during each DFS iteration. Note that we start at
      one past the last element due to first-decrement-then-store (see the
      bottom of above dfs_traversal() routine).  */
-  struct link_map **rpo_head = &rpo[nmaps];
+  struct link_map **rpo_head = rpo + nmaps;
 
   bool do_reldeps = false;
   bool *do_reldeps_ref = (for_fini ? &do_reldeps : NULL);
@@ -282,6 +285,7 @@ _dl_sort_maps_dfs (struct link_map **maps, unsigned int nmaps,
       memmove (&maps[1], maps, i * sizeof (maps[0]));
       maps[0] = first_map;
     }
+  dl_scratch_buffer_free (&rpo_buf);
 }
 
 void
