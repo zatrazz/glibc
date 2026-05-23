@@ -20,6 +20,7 @@
 #include <string.h>
 #include <ldsodefs.h>
 #include <elf-initfini.h>
+#include "dl-scratch-buffer.h"
 
 void
 _dl_fini (void)
@@ -65,7 +66,10 @@ _dl_fini (void)
 
 	  /* Now we can allocate an array to hold all the pointers and
 	     copy the pointers in.  */
-	  struct link_map *maps[nloaded];
+	  struct dl_scratch_buffer maps_buf = dl_scratch_buffer_init ();
+	  dl_scratch_buffer_allocate (&maps_buf,
+				      nloaded * sizeof (struct link_map *), 0);
+	  struct link_map **maps = maps_buf.data;
 
 	  unsigned int i;
 	  struct link_map *l;
@@ -134,6 +138,7 @@ _dl_fini (void)
 #ifdef SHARED
 	  _dl_audit_activity_nsid (ns, LA_ACT_CONSISTENT);
 #endif
+	  dl_scratch_buffer_free (&maps_buf);
 	}
     }
 

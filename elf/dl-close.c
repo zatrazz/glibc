@@ -35,6 +35,7 @@
 #include <dl-find_object.h>
 
 #include <dl-unmap-segments.h>
+#include "dl-scratch-buffer.h"
 
 /* Special l_idx value used to indicate which objects remain loaded.  */
 #define IDX_STILL_USED -1
@@ -138,12 +139,16 @@ _dl_close_worker (struct link_map *map, bool force)
   Lmid_t nsid = map->l_ns;
   struct link_namespaces *ns = &GL(dl_ns)[nsid];
 
+  struct dl_scratch_buffer maps_buf = dl_scratch_buffer_init ();
  retry:
   dl_close_state = pending;
 
   bool any_tls = false;
   const unsigned int nloaded = ns->_ns_nloaded;
-  struct link_map *maps[nloaded];
+  dl_scratch_buffer_free (&maps_buf);
+  dl_scratch_buffer_allocate (&maps_buf,
+			      nloaded * sizeof (struct link_map *), 0);
+  struct link_map **maps = maps_buf.data;
 
   /* Run over the list and assign indexes to the link maps and enter
      them into the MAPS array.  */
@@ -364,8 +369,11 @@ _dl_close_worker (struct link_map *map, bool force)
 		  newp = (struct r_scope_elem **)
 		    malloc (new_size * sizeof (struct r_scope_elem *));
 		  if (newp == NULL)
-		    _dl_signal_error (ENOMEM, "dlclose", NULL,
-				      N_("cannot create scope list"));
+		    {
+		      dl_scratch_buffer_free (&maps_buf);
+		      _dl_signal_error (ENOMEM, "dlclose", NULL,
+					N_("cannot create scope list"));
+		    }
 		}
 
 	      /* Copy over the remaining scope elements.  */
@@ -747,6 +755,7 @@ _dl_close_worker (struct link_map *map, bool force)
 
   /* Recheck if we need to retry, release the lock.  */
  out:
+  dl_scratch_buffer_free (&maps_buf);
   if (dl_close_state == rerun)
     {
       /* The map may have been deallocated.  */
