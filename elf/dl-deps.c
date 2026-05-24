@@ -25,9 +25,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
+#include <sys/mman.h>
 #include <sys/param.h>
 #include <ldsodefs.h>
-#include <scratch_buffer.h>
+#include <libc-pointer-arith.h>
 
 #include <dl-dst.h>
 #include <dl-scratch-buffer.h>
@@ -41,6 +42,108 @@
 #define FILTERTAG (DT_NUM + DT_THISPROCNUM + DT_VERSIONTAGNUM \
 		   + DT_EXTRATAGIDX (DT_FILTER))
 
+
+/* Loader-internal bump-pointer arena allocator.  Allocations come from
+   an inline stack buffer first; overflow pages are obtained from mmap
+   (early startup, before real malloc is active) or malloc (later).
+   All pages are freed in one shot by dl_arena_free.  */
+
+#define DL_ARENA_INLINE_SIZE 256
+#define DL_ARENA_PAGE_MIN    4096
+
+struct dl_arena_page
+{
+  struct dl_arena_page *next;
+  size_t size;
+  bool use_malloc;
+};
+
+struct dl_arena
+{
+  char *bump;
+  char *limit;
+  struct dl_arena_page *pages;
+  char inline_data[DL_ARENA_INLINE_SIZE]
+    __attribute__ ((aligned (__alignof__ (max_align_t))));
+};
+
+static void
+dl_arena_init (struct dl_arena *a)
+{
+  a->bump = a->inline_data;
+  a->limit = a->inline_data + sizeof a->inline_data;
+  a->pages = NULL;
+}
+
+static void * __attribute_noinline__
+dl_arena_alloc_slow (struct dl_arena *a, size_t size)
+{
+  size_t need = sizeof (struct dl_arena_page) + __alignof__ (max_align_t) + size;
+  size_t page_size = MAX (need, (size_t) DL_ARENA_PAGE_MIN);
+  struct dl_arena_page *page;
+  bool use_malloc = false;
+#ifdef SHARED
+  use_malloc = __rtld_malloc_is_complete ();
+#endif
+
+  if (use_malloc)
+    {
+      page = malloc (page_size);
+      if (__glibc_unlikely (page == NULL))
+	_dl_signal_error (ENOMEM, NULL, NULL,
+			  N_("cannot allocate dependency list node"));
+    }
+  else
+    {
+      page_size = ALIGN_UP (page_size, GLRO (dl_pagesize));
+      page = __mmap (NULL, page_size, PROT_READ | PROT_WRITE,
+		     MAP_ANON | MAP_PRIVATE, -1, 0);
+      if (__glibc_unlikely (page == MAP_FAILED))
+	_dl_signal_error (ENOMEM, NULL, NULL,
+			  N_("cannot allocate dependency list node"));
+    }
+
+  page->next = a->pages;
+  page->size = page_size;
+  page->use_malloc = use_malloc;
+  a->pages = page;
+
+  char *data = (char *) ALIGN_UP ((uintptr_t) (page + 1),
+				   __alignof__ (max_align_t));
+  a->bump = data + size;
+  a->limit = (char *) page + page_size;
+  return data;
+}
+
+static __always_inline void *
+dl_arena_alloc (struct dl_arena *a, size_t size)
+{
+  uintptr_t ptr = ALIGN_UP ((uintptr_t) a->bump, __alignof__ (max_align_t));
+  if (__glibc_likely (ptr + size <= (uintptr_t) a->limit))
+    {
+      a->bump = (char *) (ptr + size);
+      return (void *) ptr;
+    }
+  return dl_arena_alloc_slow (a, size);
+}
+
+static void
+dl_arena_free (struct dl_arena *a)
+{
+  struct dl_arena_page *page = a->pages;
+  while (page != NULL)
+    {
+      struct dl_arena_page *next = page->next;
+      if (page->use_malloc)
+	free (page);
+      else
+	__munmap (page, page->size);
+      page = next;
+    }
+  a->pages = NULL;
+  a->bump = a->inline_data;
+  a->limit = a->inline_data + sizeof a->inline_data;
+}
 
 /* When loading auxiliary objects we must ignore errors.  It's ok if
    an object is missing.  */
@@ -111,6 +214,18 @@ DST not allowed in SUID/SGID programs"));
   return result;
 }
 
+/* Arguments for map_object_deps_work, passed through _dl_catch_exception
+   so the arena is always freed even when a loader error longjmps out.  */
+struct map_object_deps_args
+{
+  struct link_map *map;
+  struct link_map **preloads;
+  unsigned int npreloads;
+  int trace_mode;
+  int open_mode;
+  struct dl_arena arena;
+};
+
 static void
 preload (struct list *known, unsigned int *nlist, struct link_map *map)
 {
@@ -125,12 +240,19 @@ preload (struct list *known, unsigned int *nlist, struct link_map *map)
   map->l_reserved = 1;
 }
 
-void
-_dl_map_object_deps (struct link_map *map,
-		     struct link_map **preloads, unsigned int npreloads,
-		     int trace_mode, int open_mode)
+static void
+map_object_deps_work (void *args_)
 {
-  struct list *known = __alloca (sizeof *known * (1 + npreloads + 1));
+  struct map_object_deps_args *args = args_;
+  struct link_map *map = args->map;
+  struct link_map **preloads = args->preloads;
+  unsigned int npreloads = args->npreloads;
+  int trace_mode = args->trace_mode;
+  int open_mode = args->open_mode;
+  struct dl_arena *arena = &args->arena;
+
+  struct list *known = dl_arena_alloc (arena,
+				       sizeof *known * (1 + npreloads + 1));
   struct list *runp, *tail;
   unsigned int nlist, i;
   /* Object name.  */
@@ -155,19 +277,12 @@ _dl_map_object_deps (struct link_map *map,
   /* Pointer to last unique object.  */
   tail = &known[nlist - 1];
 
-  struct scratch_buffer needed_space;
-  scratch_buffer_init (&needed_space);
-
   /* Process each element of the search list, loading each of its
      auxiliary objects and immediate dependencies.  Auxiliary objects
      will be added in the list before the object itself and
      dependencies will be appended to the list as we step through it.
      This produces a flat, ordered list that represents a
-     breadth-first search of the dependency tree.
-
-     The whole process is complicated by the fact that we better
-     should use alloca for the temporary list elements.  But using
-     alloca means we cannot use recursive function calls.  */
+     breadth-first search of the dependency tree.  */
   errno_saved = errno;
   errno_reason = 0;
   errno = 0;
@@ -182,29 +297,24 @@ _dl_map_object_deps (struct link_map *map,
       runp->done = 1;
 
       /* Allocate a temporary record to contain the references to the
-	 dependencies of this object.  */
+	 dependencies of this object.  l->l_ldnum includes space for
+	 the terminating NULL.  */
       if (l->l_searchlist.r_list == NULL && l->l_initfini == NULL
 	  && l != map && l->l_ldnum > 0)
-	{
-	  /* l->l_ldnum includes space for the terminating NULL.  */
-	  if (!scratch_buffer_set_array_size
-	      (&needed_space, l->l_ldnum, sizeof (struct link_map *)))
-	    _dl_signal_error (ENOMEM, map->l_name, NULL,
-			      N_("cannot allocate dependency buffer"));
-	  needed = needed_space.data;
-	}
+	needed = dl_arena_alloc (arena,
+				 l->l_ldnum * sizeof (struct link_map *));
 
       if (l->l_info[DT_NEEDED] || l->l_info[AUXTAG] || l->l_info[FILTERTAG])
 	{
 	  const char *strtab = (const void *) D_PTR (l, l_info[DT_STRTAB]);
-	  struct openaux_args args;
+	  struct openaux_args oargs;
 	  struct list *orig;
 	  const ElfW(Dyn) *d;
 
-	  args.strtab = strtab;
-	  args.map = l;
-	  args.trace_mode = trace_mode;
-	  args.open_mode = open_mode;
+	  oargs.strtab = strtab;
+	  oargs.map = l;
+	  oargs.trace_mode = trace_mode;
+	  oargs.open_mode = open_mode;
 	  orig = runp;
 
 	  for (d = l->l_ld; d->d_tag != DT_NULL; ++d)
@@ -229,9 +339,9 @@ cannot load auxiliary `%s' because of empty dynamic string token "
 		    continue;
 		  }
 		/* Store the tag in the argument structure.  */
-		args.name = name;
+		oargs.name = name;
 
-		int err = _dl_catch_exception (&exception, openaux, &args);
+		int err = _dl_catch_exception (&exception, openaux, &oargs);
 		dl_scratch_buffer_free (&scratch);
 		if (__glibc_unlikely (exception.errstring != NULL))
 		  {
@@ -242,14 +352,12 @@ cannot load auxiliary `%s' because of empty dynamic string token "
 		    goto out;
 		  }
 		else
-		  dep = args.aux;
+		  dep = oargs.aux;
 
 		if (! dep->l_reserved)
 		  {
 		    /* Allocate new entry.  */
-		    struct list *newp;
-
-		    newp = alloca (sizeof (struct list));
+		    struct list *newp = dl_arena_alloc (arena, sizeof *newp);
 
 		    /* Append DEP to the list.  */
 		    newp->map = dep;
@@ -290,7 +398,7 @@ cannot load auxiliary `%s' because of empty dynamic string token "
 		    continue;
 		  }
 		/* Store the tag in the argument structure.  */
-		args.name = name;
+		oargs.name = name;
 
 		/* Say that we are about to load an auxiliary library.  */
 		if (__builtin_expect (GLRO(dl_debug_mask) & DL_DEBUG_LIBS,
@@ -303,7 +411,7 @@ cannot load auxiliary `%s' because of empty dynamic string token "
 		/* We must be prepared that the addressed shared
 		   object is not available.  For filter objects the dependency
 		   must be available.  */
-		int err = _dl_catch_exception (&exception, openaux, &args);
+		int err = _dl_catch_exception (&exception, openaux, &oargs);
 		/* NAME is consumed by openaux above; release the DST
 		   scratch buffer regardless of outcome.  */
 		dl_scratch_buffer_free (&scratch);
@@ -330,7 +438,7 @@ cannot load auxiliary `%s' because of empty dynamic string token "
 		   Incorporate the map in all the lists.  */
 
 		/* Allocate new entry.  This always has to be done.  */
-		newp = alloca (sizeof (struct list));
+		newp = dl_arena_alloc (arena, sizeof *newp);
 
 		/* We want to insert the new map before the current one,
 		   but we have no back links.  So we copy the contents of
@@ -340,11 +448,11 @@ cannot load auxiliary `%s' because of empty dynamic string token "
 
 		/* Initialize new entry.  */
 		orig->done = 0;
-		orig->map = args.aux;
+		orig->map = oargs.aux;
 
 		/* Remember this dependency.  */
 		if (needed != NULL)
-		  needed[nneeded++] = args.aux;
+		  needed[nneeded++] = oargs.aux;
 
 		/* We must handle two situations here: the map is new,
 		   so we must add it in all three lists.  If the map
@@ -356,7 +464,7 @@ cannot load auxiliary `%s' because of empty dynamic string token "
 		   move it just before the current map to make sure
 		   the symbols are found early enough
 		*/
-		if (args.aux->l_reserved)
+		if (oargs.aux->l_reserved)
 		  {
 		    /* The object is already somewhere in the list.
 		       Locate it first.  */
@@ -366,7 +474,7 @@ cannot load auxiliary `%s' because of empty dynamic string token "
 		       are building.  Don't add a duplicate pointer.
 		       Just added by _dl_map_object.  */
 		    for (late = newp; late->next != NULL; late = late->next)
-		      if (late->next->map == args.aux)
+		      if (late->next->map == oargs.aux)
 			break;
 
 		    if (late->next != NULL)
@@ -383,16 +491,16 @@ cannot load auxiliary `%s' because of empty dynamic string token "
 			late->next = late->next->next;
 
 			/* We must move the object earlier in the chain.  */
-			if (args.aux->l_prev != NULL)
-			  args.aux->l_prev->l_next = args.aux->l_next;
-			if (args.aux->l_next != NULL)
-			  args.aux->l_next->l_prev = args.aux->l_prev;
+			if (oargs.aux->l_prev != NULL)
+			  oargs.aux->l_prev->l_next = oargs.aux->l_next;
+			if (oargs.aux->l_next != NULL)
+			  oargs.aux->l_next->l_prev = oargs.aux->l_prev;
 
-			args.aux->l_prev = newp->map->l_prev;
-			newp->map->l_prev = args.aux;
-			if (args.aux->l_prev != NULL)
-			  args.aux->l_prev->l_next = args.aux;
-			args.aux->l_next = newp->map;
+			oargs.aux->l_prev = newp->map->l_prev;
+			newp->map->l_prev = oargs.aux;
+			if (oargs.aux->l_prev != NULL)
+			  oargs.aux->l_prev->l_next = oargs.aux;
+			oargs.aux->l_next = newp->map;
 		      }
 		    else
 		      {
@@ -409,21 +517,21 @@ cannot load auxiliary `%s' because of empty dynamic string token "
 		    orig->next = newp;
 		    ++nlist;
 		    /* Set the mark bit that says it's already in the list.  */
-		    args.aux->l_reserved = 1;
+		    oargs.aux->l_reserved = 1;
 
 		    /* The only problem is that in the double linked
 		       list of all objects we don't have this new
 		       object at the correct place.  Correct this here.  */
-		    if (args.aux->l_prev)
-		      args.aux->l_prev->l_next = args.aux->l_next;
-		    if (args.aux->l_next)
-		      args.aux->l_next->l_prev = args.aux->l_prev;
+		    if (oargs.aux->l_prev)
+		      oargs.aux->l_prev->l_next = oargs.aux->l_next;
+		    if (oargs.aux->l_next)
+		      oargs.aux->l_next->l_prev = oargs.aux->l_prev;
 
-		    args.aux->l_prev = newp->map->l_prev;
-		    newp->map->l_prev = args.aux;
-		    if (args.aux->l_prev != NULL)
-		      args.aux->l_prev->l_next = args.aux;
-		    args.aux->l_next = newp->map;
+		    oargs.aux->l_prev = newp->map->l_prev;
+		    newp->map->l_prev = oargs.aux;
+		    if (oargs.aux->l_prev != NULL)
+		      oargs.aux->l_prev->l_next = oargs.aux;
+		    oargs.aux->l_next = newp->map;
 		  }
 
 		/* Move the tail pointer if necessary.  */
@@ -443,11 +551,8 @@ cannot load auxiliary `%s' because of empty dynamic string token "
 	  struct link_map **l_initfini = (struct link_map **)
 	    malloc ((2 * nneeded + 1) * sizeof needed[0]);
 	  if (l_initfini == NULL)
-	    {
-	      scratch_buffer_free (&needed_space);
-	      _dl_signal_error (ENOMEM, map->l_name, NULL,
-				N_("cannot allocate dependency list"));
-	    }
+	    _dl_signal_error (ENOMEM, map->l_name, NULL,
+			      N_("cannot allocate dependency list"));
 	  l_initfini[0] = l;
 	  memcpy (&l_initfini[1], needed, nneeded * sizeof needed[0]);
 	  memcpy (&l_initfini[nneeded + 1], l_initfini,
@@ -465,8 +570,6 @@ cannot load auxiliary `%s' because of empty dynamic string token "
     }
 
  out:
-  scratch_buffer_free (&needed_space);
-
   if (errno == 0 && errno_saved != 0)
     __set_errno (errno_saved);
 
@@ -593,4 +696,26 @@ cannot load auxiliary `%s' because of empty dynamic string token "
   if (errno_reason)
     _dl_signal_exception (errno_reason == -1 ? 0 : errno_reason,
 			  &exception, NULL);
+}
+
+void
+_dl_map_object_deps (struct link_map *map,
+		     struct link_map **preloads, unsigned int npreloads,
+		     int trace_mode, int open_mode)
+{
+  struct map_object_deps_args args =
+    {
+      .map = map,
+      .preloads = preloads,
+      .npreloads = npreloads,
+      .trace_mode = trace_mode,
+      .open_mode = open_mode,
+    };
+  dl_arena_init (&args.arena);
+
+  struct dl_exception exception;
+  int err = _dl_catch_exception (&exception, map_object_deps_work, &args);
+  dl_arena_free (&args.arena);
+  if (err != 0 || exception.errstring != NULL)
+    _dl_signal_exception (err, &exception, NULL);
 }
