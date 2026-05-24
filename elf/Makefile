@@ -51,6 +51,7 @@ routines = \
 # The core dynamic linking functions are in libc for the static and
 # profiled libraries.
 dl-routines = \
+  dl-arena \
   dl-call-libc-early-init \
   dl-call_fini \
   dl-catch \

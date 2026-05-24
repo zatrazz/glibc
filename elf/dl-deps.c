@@ -25,11 +25,10 @@
 #include <stdlib.h>
 #include <string.h>
 #include <unistd.h>
-#include <sys/mman.h>
 #include <sys/param.h>
 #include <ldsodefs.h>
-#include <libc-pointer-arith.h>
 
+#include <dl-arena.h>
 #include <dl-dst.h>
 #include <dl-scratch-buffer.h>
 
@@ -41,109 +40,6 @@
    is signaled by the AUXTAG entry in l_info.  */
 #define FILTERTAG (DT_NUM + DT_THISPROCNUM + DT_VERSIONTAGNUM \
 		   + DT_EXTRATAGIDX (DT_FILTER))
-
-
-/* Loader-internal bump-pointer arena allocator.  Allocations come from
-   an inline stack buffer first; overflow pages are obtained from mmap
-   (early startup, before real malloc is active) or malloc (later).
-   All pages are freed in one shot by dl_arena_free.  */
-
-#define DL_ARENA_INLINE_SIZE 256
-#define DL_ARENA_PAGE_MIN    4096
-
-struct dl_arena_page
-{
-  struct dl_arena_page *next;
-  size_t size;
-  bool use_malloc;
-};
-
-struct dl_arena
-{
-  char *bump;
-  char *limit;
-  struct dl_arena_page *pages;
-  char inline_data[DL_ARENA_INLINE_SIZE]
-    __attribute__ ((aligned (__alignof__ (max_align_t))));
-};
-
-static void
-dl_arena_init (struct dl_arena *a)
-{
-  a->bump = a->inline_data;
-  a->limit = a->inline_data + sizeof a->inline_data;
-  a->pages = NULL;
-}
-
-static void * __attribute_noinline__
-dl_arena_alloc_slow (struct dl_arena *a, size_t size)
-{
-  size_t need = sizeof (struct dl_arena_page) + __alignof__ (max_align_t) + size;
-  size_t page_size = MAX (need, (size_t) DL_ARENA_PAGE_MIN);
-  struct dl_arena_page *page;
-  bool use_malloc = false;
-#ifdef SHARED
-  use_malloc = __rtld_malloc_is_complete ();
-#endif
-
-  if (use_malloc)
-    {
-      page = malloc (page_size);
-      if (__glibc_unlikely (page == NULL))
-	_dl_signal_error (ENOMEM, NULL, NULL,
-			  N_("cannot allocate dependency list node"));
-    }
-  else
-    {
-      page_size = ALIGN_UP (page_size, GLRO (dl_pagesize));
-      page = __mmap (NULL, page_size, PROT_READ | PROT_WRITE,
-		     MAP_ANON | MAP_PRIVATE, -1, 0);
-      if (__glibc_unlikely (page == MAP_FAILED))
-	_dl_signal_error (ENOMEM, NULL, NULL,
-			  N_("cannot allocate dependency list node"));
-    }
-
-  page->next = a->pages;
-  page->size = page_size;
-  page->use_malloc = use_malloc;
-  a->pages = page;
-
-  char *data = (char *) ALIGN_UP ((uintptr_t) (page + 1),
-				   __alignof__ (max_align_t));
-  a->bump = data + size;
-  a->limit = (char *) page + page_size;
-  return data;
-}
-
-static __always_inline void *
-dl_arena_alloc (struct dl_arena *a, size_t size)
-{
-  uintptr_t ptr = ALIGN_UP ((uintptr_t) a->bump, __alignof__ (max_align_t));
-  if (__glibc_likely (ptr + size <= (uintptr_t) a->limit))
-    {
-      a->bump = (char *) (ptr + size);
-      return (void *) ptr;
-    }
-  return dl_arena_alloc_slow (a, size);
-}
-
-static void
-dl_arena_free (struct dl_arena *a)
-{
-  struct dl_arena_page *page = a->pages;
-  while (page != NULL)
-    {
-      struct dl_arena_page *next = page->next;
-      if (page->use_malloc)
-	free (page);
-      else
-	__munmap (page, page->size);
-      page = next;
-    }
-  a->pages = NULL;
-  a->bump = a->inline_data;
-  a->limit = a->inline_data + sizeof a->inline_data;
-}
 
 /* When loading auxiliary objects we must ignore errors.  It's ok if
    an object is missing.  */
