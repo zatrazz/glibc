@@ -332,10 +332,15 @@ stdio-common-benchset := sprintf
 
 math-benchset := math-inlines
 
+posix-benchset := \
+  fnmatch \
+  # posix-benchset
+
 ifeq (${BENCHSET},)
 benchset := \
   $(hash-benchset) \
   $(math-benchset) \
+  $(posix-benchset) \
   $(stdio-benchset) \
   $(stdio-common-benchset) \
   $(stdlib-benchset) \
@@ -509,6 +514,7 @@ VALIDBENCHSETNAMES := \
   malloc-tcache \
   malloc-thread \
   math-benchset \
+  posix-benchset \
   stdio-benchset \
   stdio-common-benchset \
   stdlib-benchset \
