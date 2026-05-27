@@ -552,23 +552,28 @@ internal_fnmatch (const char *pattern, const char *string,
                       }
                     str[c1] = '\0';
 
+		    /* If the class name is not recognized in this locale
+		       (wt == 0) treat it as an empty class that matches
+		       nothing and keep scanning the rest of the bracket
+		       for consistency with the case where the same class
+		       appears after other entries.  */
                     wt = __wctype (str);
-                    if (wt == 0)
-                      return FNM_NOMATCH;
-
-                    if (mb_cur_max == 1 && nc.wc < 0x100)
+                    if (wt != 0)
                       {
 #ifdef _LIBC
-                        if (_ISCTYPE ((unsigned char) nc.wc, wt))
+                        if (mb_cur_max == 1 && nc.wc < 0x100)
+                          {
+                            if (_ISCTYPE ((unsigned char) nc.wc, wt))
+                              goto matched;
+                          }
+                        else if (nc.wc < FNM_BAD_BYTE_BASE
+                                 && __iswctype (nc.wc, wt))
                           goto matched;
 #else
                         if (iswctype (btowc ((unsigned char) nc.wc), wt))
                           goto matched;
 #endif
                       }
-                    else if (nc.wc < FNM_BAD_BYTE_BASE
-                             && __iswctype (nc.wc, wt))
-                      goto matched;
 
                     pc2 = *p++;
                   }

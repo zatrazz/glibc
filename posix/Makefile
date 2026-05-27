@@ -289,6 +289,7 @@ tests := \
   tst-fnmatch7 \
   tst-fnmatch8 \
   tst-fnmatch9 \
+  tst-fnmatch10 \
   tst-fork \
   tst-gai_strerror \
   tst-getopt_long1 \
@@ -536,6 +537,7 @@ LOCALES := \
   es_US.ISO-8859-1 \
   es_US.UTF-8 \
   ja_JP.EUC-JP \
+  ko_KR.UTF-8 \
   tr_TR.UTF-8 \
   # LOCALES
 include ../gen-locales.mk
@@ -563,6 +565,7 @@ $(objpfx)tst-fnmatch5.out: $(gen-locales)
 $(objpfx)tst-fnmatch6.out: $(gen-locales)
 $(objpfx)tst-fnmatch8.out: $(gen-locales)
 $(objpfx)tst-fnmatch9.out: $(gen-locales)
+$(objpfx)tst-fnmatch10.out: $(gen-locales)
 $(objpfx)tst-regex.out: $(gen-locales)
 $(objpfx)tst-regex2.out: $(gen-locales)
 $(objpfx)tst-regexloc.out: $(gen-locales)
