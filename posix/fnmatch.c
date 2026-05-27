@@ -1412,17 +1412,9 @@ __fnmatch (const char *pattern, const char *string, int flags)
 #else
   int mb_cur_max = MB_CUR_MAX;
 #endif
-  const char *string_end = string + strlen (string);
 
-  int r = internal_fnmatch (pattern, string, string_end,
-                            flags & FNM_PERIOD, flags, NULL, mb_cur_max);
-  /* If the multibyte-aware match failed, retry treating both inputs as bytes.
-     It reaches this path only on encoding errors, or through FNM_NOMATCH,
-     making "?" match a multibyte character.  */
-  if (r == FNM_NOMATCH && mb_cur_max != 1)
-    r = internal_fnmatch (pattern, string, string_end,
-                          flags & FNM_PERIOD, flags, NULL, 1);
-  return r;
+  return internal_fnmatch (pattern, string, string + strlen (string),
+                           flags & FNM_PERIOD, flags, NULL, mb_cur_max);
 }
 
 #ifdef _LIBC

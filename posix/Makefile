@@ -288,6 +288,7 @@ tests := \
   tst-fnmatch6 \
   tst-fnmatch7 \
   tst-fnmatch8 \
+  tst-fnmatch9 \
   tst-fork \
   tst-gai_strerror \
   tst-getopt_long1 \
@@ -561,6 +562,7 @@ $(objpfx)tst-fnmatch4.out: $(gen-locales)
 $(objpfx)tst-fnmatch5.out: $(gen-locales)
 $(objpfx)tst-fnmatch6.out: $(gen-locales)
 $(objpfx)tst-fnmatch8.out: $(gen-locales)
+$(objpfx)tst-fnmatch9.out: $(gen-locales)
 $(objpfx)tst-regex.out: $(gen-locales)
 $(objpfx)tst-regex2.out: $(gen-locales)
 $(objpfx)tst-regexloc.out: $(gen-locales)
