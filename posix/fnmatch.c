@@ -15,6 +15,15 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#ifndef _LIBC
+# include <libc-config.h>
+#endif
+
+/* Enable GNU extensions in fnmatch.h.  */
+#ifndef _GNU_SOURCE
+# define _GNU_SOURCE    1
+#endif
+
 #include <fnmatch.h>
 
 #include <assert.h>
@@ -27,16 +36,28 @@
 #include <wchar.h>
 #include <wctype.h>
 
-#include <shlib-compat.h>
-
-#include <locale/coll-lookup.h>
-#include <locale/localeinfo.h>
-#include <locale/weight.h>
+/* The collation-sequence data used by collating elements, equivalence
+   classes and ranges is only reachable inside glibc.  Outside glibc these
+   bracket features degrade to plain character comparisons, matching the
+   historical gnulib behaviour.  */
+#ifdef _LIBC
+# include <shlib-compat.h>
+# include <locale/coll-lookup.h>
+# include <locale/localeinfo.h>
+# include <locale/weight.h>
 /* Rename the wide-char findidx so it doesn't clash with the byte version
    pulled in above.  */
-#define findidx findidxwc
-#include <locale/weightwc.h>
-#undef findidx
+# define findidx findidxwc
+# include <locale/weightwc.h>
+# undef findidx
+#else
+# define __mbrtowc   mbrtowc
+# define __towlower  towlower
+# define __iswctype  iswctype
+# define __wctype    wctype
+# define __mempcpy   mempcpy
+# define __fnmatch   fnmatch
+#endif
 
 /* We often have to test for FNM_FILE_NAME and FNM_PERIOD being both set.  */
 #define NO_LEADING_PERIOD(flags) \
@@ -184,10 +205,12 @@ internal_fnmatch (const char *pattern, const char *string,
   memset (&pps, '\0', sizeof (pps));
   memset (&nps, '\0', sizeof (nps));
 
+#ifdef _LIBC
   const unsigned char *collseqmb = (const unsigned char *)
     _NL_CURRENT (LC_COLLATE, _NL_COLLATE_COLLSEQMB);
   const char *collseqwc = (const char *)
     _NL_CURRENT (LC_COLLATE, _NL_COLLATE_COLLSEQWC);
+#endif
 
   while (*p != '\0')
     {
@@ -447,7 +470,9 @@ internal_fnmatch (const char *pattern, const char *string,
             wint_t fn;
             struct fnm_char nc;
             mbstate_t saved_nps;
+#ifdef _LIBC
             bool is_seqval = false;
+#endif
 
             ++p;
 
@@ -533,8 +558,13 @@ internal_fnmatch (const char *pattern, const char *string,
 
                     if (mb_cur_max == 1 && nc.wc < 0x100)
                       {
+#ifdef _LIBC
                         if (_ISCTYPE ((unsigned char) nc.wc, wt))
                           goto matched;
+#else
+                        if (iswctype (btowc ((unsigned char) nc.wc), wt))
+                          goto matched;
+#endif
                       }
                     else if (nc.wc < FNM_BAD_BYTE_BASE
                              && __iswctype (nc.wc, wt))
@@ -542,6 +572,7 @@ internal_fnmatch (const char *pattern, const char *string,
 
                     pc2 = *p++;
                   }
+#ifdef _LIBC
                 else if (pc2 == '[' && *p == '=')
                   {
                     /* Equivalence class.  */
@@ -653,6 +684,7 @@ internal_fnmatch (const char *pattern, const char *string,
 
                     pc2 = (unsigned char) *p++;
                   }
+#endif
                 else if (pc2 == '\0')
                   {
                     /* [ unterminated, treat as normal character.  */
@@ -671,6 +703,7 @@ internal_fnmatch (const char *pattern, const char *string,
                   }
                 else
                   {
+#ifdef _LIBC
                     is_seqval = false;
                     if (pc2 == '[' && *p == '.')
                       {
@@ -769,6 +802,7 @@ internal_fnmatch (const char *pattern, const char *string,
                           }
                       }
                     else
+#endif
                       {
                         /* The character class / equivalence class / collation
                            fallbacks jump here with pc2 == '[', so the ASCII
@@ -793,7 +827,9 @@ internal_fnmatch (const char *pattern, const char *string,
                         if (!is_range && bracket_c == fn)
                           goto matched;
 
+#ifdef _LIBC
                         is_seqval = false;
+#endif
                         cold = bracket_c;
                         pc2 = (unsigned char) *p++;
                       }
@@ -802,6 +838,7 @@ internal_fnmatch (const char *pattern, const char *string,
                       {
                       handle_range:
                         ;
+#ifdef _LIBC
                         uint32_t fcollseq;
                         uint32_t lcollseq;
                         wint_t cend;
@@ -956,6 +993,36 @@ internal_fnmatch (const char *pattern, const char *string,
                           }
                       range_not_matched:
                         ;
+#else
+                        /* Outside glibc there is no collation-sequence data,
+                           so fall back to a plain comparison of the (folded)
+                           character values, like the historical gnulib code.  */
+                        wint_t cend;
+                        if (!(flags & FNM_NOESCAPE)
+                            && (unsigned char) *p == '\\')
+                          {
+                            ++p;
+                            if (*p == '\0')
+                              return FNM_NOMATCH;
+                          }
+                        if (*p == '\0')
+                          return FNM_NOMATCH;
+                        if ((unsigned char) *p < 0x80)
+                          cend = (unsigned char) *p++;
+                        else
+                          {
+                            const char *lit_p = p;
+                            mbstate_t ts;
+                            memset (&ts, '\0', sizeof (ts));
+                            struct fnm_char pat = pat_next (&lit_p, &ts,
+                                                            mb_cur_max);
+                            cend = pat.wc;
+                            p = lit_p;
+                          }
+                        cend = FOLD (cend);
+                        if (cold <= fn && fn <= cend)
+                          goto matched;
+#endif
                         pc2 = (unsigned char) *p++;
                       }
                   }
@@ -1340,7 +1407,11 @@ ext_match (int opt, const char *pattern, const char *string,
 int
 __fnmatch (const char *pattern, const char *string, int flags)
 {
+#ifdef _LIBC
   int mb_cur_max = _NL_CURRENT_WORD (LC_CTYPE, _NL_CTYPE_MB_CUR_MAX);
+#else
+  int mb_cur_max = MB_CUR_MAX;
+#endif
   const char *string_end = string + strlen (string);
 
   int r = internal_fnmatch (pattern, string, string_end,
@@ -1354,9 +1425,11 @@ __fnmatch (const char *pattern, const char *string, int flags)
   return r;
 }
 
+#ifdef _LIBC
 versioned_symbol (libc, __fnmatch, fnmatch, GLIBC_2_2_3);
-#if SHLIB_COMPAT(libc, GLIBC_2_0, GLIBC_2_2_3)
+# if SHLIB_COMPAT(libc, GLIBC_2_0, GLIBC_2_2_3)
 strong_alias (__fnmatch, __fnmatch_old)
 compat_symbol (libc, __fnmatch_old, fnmatch, GLIBC_2_0);
-#endif
+# endif
 libc_hidden_ver (__fnmatch, fnmatch)
+#endif
