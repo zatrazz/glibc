@@ -19,54 +19,9 @@
 #ifndef POINTER_GUARD_H
 #define POINTER_GUARD_H
 
-/* In ld.so and in statically linked programs the guard is the module-local
-   relro variable __pointer_chk_guard_local; in other shared objects it is
-   the global __pointer_chk_guard provided by the dynamic loader.  */
-#ifdef __ASSEMBLER__
-# if IS_IN (rtld) || !defined SHARED
-#  define PTR_GUARD_SYM	__pointer_chk_guard_local
-# else
-#  define PTR_GUARD_SYM	__pointer_chk_guard
-# endif
-# ifdef PIC
-/* Load the guard through the GOT.  The GOT pointer is computed with the
-   usual mova/mov.l sequence which clobbers r0; in __longjmp r0 holds the
-   return value, so it is saved in r3 (dead at every mangling site) and
-   restored.  A literal pool is emitted inline and branched over.  */
-#  define PTR_GUARD_LOAD(tmp)						\
-	mov	r0, r3;							\
-	mova	.Lptrg_got, r0;						\
-	mov.l	.Lptrg_got, tmp;					\
-	add	r0, tmp;						\
-	mov.l	.Lptrg_sym, r0;						\
-	mov.l	@(r0, tmp), tmp;					\
-	mov	r3, r0;							\
-	mov.l	@tmp, tmp;						\
-	bra	.Lptrg_end;						\
-	 nop;								\
-	.align	2;							\
-.Lptrg_got:								\
-	.long	_GLOBAL_OFFSET_TABLE_;					\
-.Lptrg_sym:								\
-	.long	PTR_GUARD_SYM@GOT;					\
-.Lptrg_end:
-# else
-#  define PTR_GUARD_LOAD(tmp)						\
-	mov.l	.Lptrg_sym, tmp;					\
-	mov.l	@tmp, tmp;						\
-	bra	.Lptrg_end;						\
-	 nop;								\
-	.align	2;							\
-.Lptrg_sym:								\
-	.long	PTR_GUARD_SYM;						\
-.Lptrg_end:
-# endif
-# define PTR_MANGLE(reg, tmp) \
-     PTR_GUARD_LOAD (tmp); xor tmp,reg
-# define PTR_MANGLE2(reg, tmp) xor tmp,reg
-# define PTR_DEMANGLE(reg, tmp)        PTR_MANGLE (reg, tmp)
-# define PTR_DEMANGLE2(reg, tmp)       PTR_MANGLE2 (reg, tmp)
-#else
+#include <pointer_guard-asm.h>
+
+#ifndef __ASSEMBLER__
 # include <stdint.h>
 # if IS_IN (rtld) || !defined SHARED
 extern uintptr_t __pointer_chk_guard_local attribute_relro attribute_hidden;
