@@ -44,6 +44,8 @@ extern void __libc_init_first (int argc, char **argv, char **envp);
 #include <tls.h>
 #ifndef SHARED
 # include <dl-osinfo.h>
+# include <dl-reseed-random.h>
+# include <dl-symbol-redir-ifunc.h>
 # ifndef THREAD_SET_STACK_GUARD
 /* Only exported for architectures that don't store the stack guard canary
    in thread local area.  */
@@ -299,6 +301,8 @@ LIBC_START_MAIN (int (*main) (int, char **, char ** MAIN_AUXVEC_DECL),
 # else
   __pointer_chk_guard_local = pointer_chk_guard;
 # endif
+
+  _dl_reseed_random (&_dl_random);
 
   /* Now that the TCB, canary, and pointer guard are in place, run the
      deferred IFUNC relocations.  For non-PIE static binaries this is

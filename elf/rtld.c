@@ -35,6 +35,7 @@
 #include <unsecvars.h>
 #include <dl-cache.h>
 #include <dl-osinfo.h>
+#include <dl-reseed-random.h>
 #include <dl-prop.h>
 #include <dl-vdso.h>
 #include <dl-vdso-setup.h>
@@ -832,10 +833,7 @@ security_init (void)
 #endif
   __pointer_chk_guard_local = pointer_chk_guard;
 
-  /* We do not need the _dl_random value anymore.  The less
-     information we leave behind, the better, so clear the
-     variable.  */
-  _dl_random = NULL;
+  _dl_reseed_random (&_dl_random);
 }
 
 #include <setup-vdso.h>
