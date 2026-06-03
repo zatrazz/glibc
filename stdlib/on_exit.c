@@ -43,6 +43,7 @@ __on_exit (void (*func) (int status, void *arg), void *arg)
   new->func.on.fn = func;
   new->func.on.arg = arg;
   new->flavor = ef_on;
+  __exit_funcs_protect (new);
   __libc_lock_unlock (__exit_funcs_lock);
   return 0;
 }

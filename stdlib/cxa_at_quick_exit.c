@@ -19,8 +19,11 @@
 #include "exit.h"
 
 
-static struct exit_function_list initial_quick;
-struct exit_function_list *__quick_exit_funcs = &initial_quick;
+/* The quick_exit initial block is the .quick member of the combined RELRO
+   object defined in stdlib/cxa_atexit.c, so it shares a single RELRO page
+   with the atexit block (see stdlib/exit.h).  */
+struct exit_function_list *__quick_exit_funcs
+  = (struct exit_function_list *) (void *) &__exit_funcs_initial.quick_exit_block;
 
 /* Register a function to be called by quick_exit.  */
 int

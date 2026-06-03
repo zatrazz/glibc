@@ -88,7 +88,11 @@ __cxa_finalize (void *d)
 	       run in effective LIFO order.  This should probably be fixed in a
 	       future implementation to ensure the functions do not run in
 	       parallel.  */
-	    f->flavor = ef_free;
+	    if (__exit_funcs_unprotect (f) == 0)
+	      {
+		f->flavor = ef_free;
+		__exit_funcs_protect (f);
+	      }
 
 	    PTR_DEMANGLE (cxafn);
 
@@ -104,14 +108,18 @@ __cxa_finalize (void *d)
 	  }
     }
 
-  /* Also remove the quick_exit handlers, but do not call them.  */
+  /* Also remove the quick_exit handlers, but do not call them.  Unfreeze
+     the whole block once rather than per entry.  */
   for (funcs = __quick_exit_funcs; funcs; funcs = funcs->next)
     {
       struct exit_function *f;
 
+      if (funcs->idx == 0 || __exit_funcs_unprotect (&funcs->fns[0]) != 0)
+	continue;
       for (f = &funcs->fns[funcs->idx - 1]; f >= &funcs->fns[0]; --f)
 	if (d == NULL || d == f->func.cxa.dso_handle)
 	  f->flavor = ef_free;
+      __exit_funcs_protect (&funcs->fns[0]);
     }
 
   /* Remove the registered fork handlers.  We do not have to

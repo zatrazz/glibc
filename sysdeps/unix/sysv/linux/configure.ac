@@ -120,5 +120,60 @@ ${ac_prefix}/include directory out of the way.])
   fi
 fi
 
+# The atexit/quick_exit handler list is stored in the RELRO segment and its
+# protection is toggled one runtime page at a time (stdlib/cxa_atexit.c).
+# Rounding a block's extent up to a page must not reach past the RELRO
+# segment into the writable data segment; that holds only if the linker pads
+# the RELRO segment so that its end is aligned to the largest page the binary
+# may run under.  EXEC_PAGESIZE from <asm/param.h> is that maximum for the
+# target (e.g. 65536 on aarch64); the RELRO end alignment reflects the linker
+# common-page-size.  A common-page-size smaller than EXEC_PAGESIZE also leaves
+# RELRO under-protected by the dynamic loader on a kernel using the larger
+# page, so reject such a toolchain here.
+AC_CACHE_CHECK([whether $CC links a RELRO segment ending on a max-page boundary],
+	       libc_cv_relro_page_aligned, [dnl
+libc_cv_relro_page_aligned=unknown
+cat > conftest.c <<EOF
+#include <asm/param.h>
+char page_probe@<:@EXEC_PAGESIZE@:>@;
+EOF
+libc_relro_max_page=
+if ${CC-cc} $CFLAGS $CPPFLAGS -c conftest.c -o conftest.o \
+     1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD; then
+  libc_relro_max_page=`LC_ALL=C $READELF -sW conftest.o 2>/dev/null \
+    | awk '$NF == "page_probe" { print $3; exit }'`
+fi
+cat > conftest.c <<EOF
+extern int __libc_relro_probe_ext;
+int *const __libc_relro_probe = &__libc_relro_probe_ext;
+EOF
+libc_relro_end=
+if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -shared -fPIC \
+     -Wl,-z,relro -o conftest.so conftest.c \
+     1>&AS_MESSAGE_LOG_FD 2>&AS_MESSAGE_LOG_FD; then
+  set -- `LC_ALL=C $READELF -lW conftest.so 2>/dev/null \
+    | awk '$1 == "GNU_RELRO" { print $3, $6; exit }'`
+  if test $# -eq 2; then
+    libc_relro_end=$(( $1 + $2 ))
+  fi
+fi
+if test -n "$libc_relro_max_page" && test -n "$libc_relro_end"; then
+  if test $(( libc_relro_end % libc_relro_max_page )) -eq 0; then
+    libc_cv_relro_page_aligned=yes
+  else
+    libc_cv_relro_page_aligned=no
+  fi
+fi
+rm -f conftest*])
+case $libc_cv_relro_page_aligned in
+  no)
+    AC_MSG_ERROR([the linker pads the RELRO segment to a smaller page than the
+maximum runtime page size (EXEC_PAGESIZE) of this target, so RELRO would be
+under-protected at run time.  Use binutils 2.39 or newer, or link with
+-Wl,-z,common-page-size=<EXEC_PAGESIZE>.]) ;;
+  unknown)
+    AC_MSG_WARN([could not determine the RELRO segment page alignment; assuming it matches the maximum runtime page size]) ;;
+esac
+
 # We have inlined syscalls.
 AC_DEFINE(HAVE_INLINED_SYSCALLS)

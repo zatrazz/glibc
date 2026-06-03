@@ -18,8 +18,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <unistd.h>
+#include <sys/mman.h>
 #include <pointer_guard.h>
 #include <libc-lock.h>
+#include <ldsodefs.h>
 #include <set-freeres.h>
 #include "exit.h"
 
@@ -73,31 +75,44 @@ __run_exit_handlers (int status, struct exit_function_list **listp,
 
       while (cur->idx > 0)
 	{
-	  struct exit_function *const f = &cur->fns[--cur->idx];
 	  const uint64_t new_exitfn_called = __new_exitfn_called;
 
-	  switch (f->flavor)
+	  /* Consuming an entry requires writing into the frozen block: the
+	     idx decrement below and, for ef_cxa, the ef_free mark.  Do both
+	     under a brief unprotect, take a local copy of the entry, then
+	     re-freeze the block before running the (foreign) handler so the
+	     remaining mangled pointers stay read-only across the call.  If
+	     the block cannot be unfrozen we cannot safely make progress.  */
+	  if (__exit_funcs_unprotect (&cur->fns[0]) != 0)
+	    break;
+	  struct exit_function *const f = &cur->fns[--cur->idx];
+	  const struct exit_function ef = *f;
+	  if (f->flavor == ef_cxa)
+	    /* To avoid dlclose/exit race calling cxafct twice (BZ 22180),
+	       we must mark this function as ef_free.  */
+	    f->flavor = ef_free;
+	  __exit_funcs_protect (&cur->fns[0]);
+
+	  switch (ef.flavor)
 	    {
 	      void (*atfct) (void);
 	      void (*onfct) (int status, void *arg);
 	      void (*cxafct) (void *arg, int status);
-	      void *arg;
 
 	    case ef_free:
 	    case ef_us:
 	      break;
 	    case ef_on:
-	      onfct = f->func.on.fn;
-	      arg = f->func.on.arg;
+	      onfct = ef.func.on.fn;
 	      PTR_DEMANGLE (onfct);
 
 	      /* Unlock the list while we call a foreign function.  */
 	      __libc_lock_unlock (__exit_funcs_lock);
-	      onfct (status, arg);
+	      onfct (status, ef.func.on.arg);
 	      __libc_lock_lock (__exit_funcs_lock);
 	      break;
 	    case ef_at:
-	      atfct = f->func.at;
+	      atfct = ef.func.at;
 	      PTR_DEMANGLE (atfct);
 
 	      /* Unlock the list while we call a foreign function.  */
@@ -106,16 +121,12 @@ __run_exit_handlers (int status, struct exit_function_list **listp,
 	      __libc_lock_lock (__exit_funcs_lock);
 	      break;
 	    case ef_cxa:
-	      /* To avoid dlclose/exit race calling cxafct twice (BZ 22180),
-		 we must mark this function as ef_free.  */
-	      f->flavor = ef_free;
-	      cxafct = f->func.cxa.fn;
-	      arg = f->func.cxa.arg;
+	      cxafct = ef.func.cxa.fn;
 	      PTR_DEMANGLE (cxafct);
 
 	      /* Unlock the list while we call a foreign function.  */
 	      __libc_lock_unlock (__exit_funcs_lock);
-	      cxafct (arg, status);
+	      cxafct (ef.func.cxa.arg, status);
 	      __libc_lock_lock (__exit_funcs_lock);
 	      break;
 	    }
@@ -128,9 +139,13 @@ __run_exit_handlers (int status, struct exit_function_list **listp,
 
       *listp = cur->next;
       if (*listp != NULL)
-	/* Don't free the last element in the chain, this is the statically
-	   allocate element.  */
-	free (cur);
+	/* CUR is an mmap'd overflow block; return it to the system.  The
+	   static fallback block is the permanent tail (next == NULL) and
+	   is never unmapped.  A recursive exit() triggered by a handler
+	   resumes by reloading *listp at the restart label above, and CUR
+	   is only unmapped once fully drained and unlinked, so it is never
+	   revisited.  */
+	__munmap (cur, GLRO (dl_pagesize));
     }
 
   __libc_lock_unlock (__exit_funcs_lock);

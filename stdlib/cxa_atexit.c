@@ -18,8 +18,12 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <stddef.h>
+#include <sys/mman.h>
 
 #include <libc-lock.h>
+#include <ldsodefs.h>
+#include <libc-pointer-arith.h>
 #include "exit.h"
 #include <pointer_guard.h>
 
@@ -27,6 +31,78 @@
 
 /* See concurrency notes in stdlib/exit.h where this lock is declared.  */
 __libc_lock_define_initialized (, __exit_funcs_lock)
+
+/* Set the protection of the page(s) backing F's block to PROT.
+
+   The statically allocated initial blocks live together in the
+   __exit_funcs_initial RELRO object, which is placed at its natural
+   alignment and may therefore span a page boundary; cover the whole
+   object so a single mprotect reaches the block header and every entry
+   even when it straddles pages.  Overflow blocks are page-aligned single
+   mmap'd pages, so the page containing F is exactly that block.
+
+   The range is rounded out to page boundaries (mprotect requires it).
+   Must be called with __exit_funcs_lock held; returns 0 on success.  */
+static int
+exit_funcs_setperm (void *f, int prot)
+{
+  size_t pagesize = GLRO (dl_pagesize);
+  void *start, *end;
+
+  if ((uintptr_t) f >= (uintptr_t) &__exit_funcs_initial
+      && (uintptr_t) f < (uintptr_t) (&__exit_funcs_initial + 1))
+    {
+      start = &__exit_funcs_initial;
+      end = &__exit_funcs_initial + 1;
+    }
+  else
+    {
+      start = PTR_ALIGN_DOWN (f, pagesize);
+      end = (char *) start + pagesize;
+    }
+
+  start = PTR_ALIGN_DOWN (start, pagesize);
+  end = PTR_ALIGN_UP (end, pagesize);
+  return __mprotect (start, (char *) end - (char *) start, prot);
+}
+
+int
+__exit_funcs_unprotect (struct exit_function *f)
+{
+  return exit_funcs_setperm (f, PROT_READ | PROT_WRITE);
+}
+
+int
+__exit_funcs_protect (struct exit_function *f)
+{
+  return exit_funcs_setperm (f, PROT_READ);
+}
+
+/* Number of fns entries that fit in a one-page block.  */
+static inline size_t
+exit_funcs_block_max (void)
+{
+  return (GLRO (dl_pagesize) - offsetof (struct exit_function_list, fns))
+	 / sizeof (struct exit_function);
+}
+
+/* Allocate a fresh overflow block of one page.  It is returned writable
+   (PROT_READ | PROT_WRITE); the caller freezes it once the entry is
+   written.  Returns NULL on failure.  */
+static struct exit_function_list *
+new_exit_funcs_block (void)
+{
+  void *p = __mmap (NULL, GLRO (dl_pagesize), PROT_READ | PROT_WRITE,
+		    MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
+  if (p == MAP_FAILED)
+    return NULL;
+
+  struct exit_function_list *l = p;
+  l->next = NULL;
+  l->idx = 0;
+  l->max = exit_funcs_block_max ();
+  return l;
+}
 
 
 int
@@ -54,6 +130,7 @@ __internal_atexit (void (*func) (void *), void *arg, void *d,
   new->func.cxa.arg = arg;
   new->func.cxa.dso_handle = d;
   new->flavor = ef_cxa;
+  __exit_funcs_protect (new);
   __libc_lock_unlock (__exit_funcs_lock);
   return 0;
 }
@@ -70,11 +147,33 @@ __cxa_atexit (void (*func) (void *), void *arg, void *d)
 libc_hidden_def (__cxa_atexit)
 
 
-static struct exit_function_list initial;
-struct exit_function_list *__exit_funcs = &initial;
+/* The atexit and quick_exit initial blocks, kept together in one RELRO
+   object (see stdlib/exit.h).  Each block is the permanent tail of its
+   chain (next == NULL) and is never unmapped; cxa_at_quick_exit.c points
+   __quick_exit_funcs at the .quick_exit_block member.  Placed at its
+   natural alignment in the default RELRO segment, so it may straddle a
+   page boundary; exit_funcs_setperm toggles every page it occupies.  */
+struct exit_functions_initial __exit_funcs_initial attribute_relro =
+  {
+    .atexit_block     = { .next = NULL, .idx = 0,
+			  .max = EXIT_FUNCS_INITIAL_NFNS },
+    .quick_exit_block = { .next = NULL, .idx = 0,
+			  .max = EXIT_FUNCS_INITIAL_NFNS },
+  };
+struct exit_function_list *__exit_funcs
+  = (struct exit_function_list *) (void *) &__exit_funcs_initial.atexit_block;
 uint64_t __new_exitfn_called;
 
-/* Must be called with __exit_funcs_lock held.  */
+/* The initial blocks are used as exit_function_list values via a cast, so
+   their layout must match.  */
+_Static_assert (offsetof (struct exit_function_initial, fns)
+		== offsetof (struct exit_function_list, fns),
+		"initial block layout must match struct exit_function_list");
+
+/* Must be called with __exit_funcs_lock held.  On success the returned
+   slot lives in a block left writable (PROT_READ | PROT_WRITE); the
+   caller must re-freeze it with __exit_funcs_protect once the entry has
+   been fully written.  */
 struct exit_function *
 __new_exitfn (struct exit_function_list **listp)
 {
@@ -88,6 +187,8 @@ __new_exitfn (struct exit_function_list **listp)
        therefore we fail this registration.  */
     return NULL;
 
+  /* Advance past entirely-free blocks; stop at the first block holding a
+     live entry.  Its topmost free slot is the LIFO insertion point.  */
   for (l = *listp; l != NULL; p = l, l = l->next)
     {
       for (i = l->idx; i > 0; --i)
@@ -96,46 +197,46 @@ __new_exitfn (struct exit_function_list **listp)
 
       if (i > 0)
 	break;
-
-      /* This block is completely unused.  */
-      l->idx = 0;
     }
 
-  if (l == NULL || i == sizeof (l->fns) / sizeof (l->fns[0]))
+  if (l == NULL || i == l->max)
     {
-      /* The last entry in a block is used.  Use the first entry in
-	 the previous block if it exists.  Otherwise create a new one.  */
       if (p == NULL)
 	{
-	  assert (l != NULL);
-	  p = (struct exit_function_list *)
-	    calloc (1, sizeof (struct exit_function_list));
-	  if (p != NULL)
-	    {
-	      p->next = *listp;
-	      *listp = p;
-	    }
+	  /* Either the list is empty, or the head block is full.  Push a
+	     new page on the front so the new entry is the topmost (i.e.
+	     newest) block.  */
+	  p = new_exit_funcs_block ();
+	  if (p == NULL)
+	    return NULL;
+	  p->next = *listp;
+	  *listp = p;
+	}
+      else
+	{
+	  /* An older block was emptied (all ef_free) and sits above the
+	     chosen point; recycle its first slot in place.  It is still at
+	     the front of the live region, so LIFO order is preserved.  */
+	  if (__exit_funcs_unprotect (&p->fns[0]) != 0)
+	    return NULL;
 	}
 
-      if (p != NULL)
-	{
-	  r = &p->fns[0];
-	  p->idx = 1;
-	}
+      r = &p->fns[0];
+      p->idx = 1;
     }
   else
     {
-      /* There is more room in the block.  */
+      /* Back-fill the topmost free slot of the head/live block.  */
+      if (__exit_funcs_unprotect (&l->fns[i]) != 0)
+	return NULL;
       r = &l->fns[i];
       l->idx = i + 1;
     }
 
-  /* Mark entry as used, but we don't know the flavor now.  */
-  if (r != NULL)
-    {
-      r->flavor = ef_us;
-      ++__new_exitfn_called;
-    }
+  /* Mark entry as used, but we don't know the flavor now.  The block
+     containing R is left writable for the caller.  */
+  r->flavor = ef_us;
+  ++__new_exitfn_called;
 
   return r;
 }

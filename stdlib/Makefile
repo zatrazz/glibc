@@ -273,6 +273,9 @@ tests := \
   tst-arc4random-thread \
   tst-at_quick_exit \
   tst-atexit \
+  tst-atexit-frozen \
+  tst-atexit-many \
+  tst-atexit-recycle \
   tst-atof1 \
   tst-atof2 \
   tst-bsearch \
@@ -399,6 +402,7 @@ tests-internal := \
   # tests-internal
 
 tests-static := \
+  tst-atexit-frozen \
   tst-getenv-static \
   tst-secure-getenv \
   # tests-static
