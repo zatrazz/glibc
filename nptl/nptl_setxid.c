@@ -150,31 +150,86 @@ setxid_unmark_thread (struct xid_command *cmdp, struct pthread *t)
 }
 
 
-static int
+enum setxid_signal_state
+{
+  setxid_signal_done,  /* Thread  has not finished starting or has already
+			  exited; ignore it.  */
+  setxid_signal_sent,  /* The signal was delivered and the thread signal
+			  handler will run (the xid_command::crnt was already
+			  incremented.  */
+  setxid_signal_retry, /* tgkill returned EAGAIN (the signal queue
+			  RLIMIT_SIGPENDING is full), the thread is still
+			  running and must be signaled.  The caller has to
+			  retry.  */
+};
+
+static enum setxid_signal_state
 setxid_signal_thread (struct xid_command *cmdp, struct pthread *t)
 {
   if ((t->cancelhandling & SETXID_BITMASK) == 0)
-    return 0;
+    return setxid_signal_done;
 
   int val;
   pid_t pid = __getpid ();
   val = INTERNAL_SYSCALL_CALL (tgkill, pid, t->tid, SIGSETXID);
 
-  /* If this failed, it must have had not started yet or else exited.  */
   if (!INTERNAL_SYSCALL_ERROR_P (val))
     {
       atomic_fetch_add_relaxed (&cmdp->cntr, 1);
-      return 1;
+      return setxid_signal_sent;
     }
-  else
-    return 0;
+
+  /* The kernel might return EAGAIN for realtime signals if the signal queue
+     reaches its limits (RLIMIT_SIGPENDING) because tgkill does not use the
+     guaranteed-delivery override path as the kill syscall.  The thread is
+     still running and *must* process the credential change, so instruct the
+     caller to retry.  Any other error means the thread has not started yet
+     or has already exited (and can be ignored).  */
+  if (INTERNAL_SYSCALL_ERRNO (val) == EAGAIN)
+    return setxid_signal_retry;
+
+  return setxid_signal_done;
+}
+
+enum
+{
+  setxid_backoff_min_ns = 1000L,     /* 1 us first retry.  */
+  setxid_backoff_max_ns = 65536000L  /* ~65 ms ceiling.  */
+};
+/* Make sure the maximum backoff sleep is within a resonable maximum value
+   of 100 ms.  It should always fit a 32-bit timespec.  */
+verify (setxid_backoff_min_ns > 0
+	&& setxid_backoff_min_ns < setxid_backoff_max_ns
+	&& setxid_backoff_max_ns < 100000000L);
+
+/* Sleep for *NS nanoseconds, then grow the delay towards the ceiling.  */
+static void
+setxid_signal_backoff (long int *ns)
+{
+  /* We can not use __clock_nanosleep because it is a cancellable entrypoint,
+     and we want to not touch errno.   CLOCK_MONOTONIC with flags == 0
+     requests a *relative* sleep against a clock that never steps backwards,
+     which is what a retry delay wants.  */
+#ifdef __ASSUME_TIME64_SYSCALLS
+# ifndef __NR_clock_nanosleep_time64
+#  define __NR_clock_nanosleep_time64 __NR_clock_nanosleep
+# endif
+  struct __timespec64 ts = { .tv_sec = 0, .tv_nsec = *ns };
+  INTERNAL_SYSCALL_CALL (clock_nanosleep_time64, CLOCK_MONOTONIC, 0, &ts,
+			 NULL);
+#else
+  /* The backoff timer should always fit in 32 bit timespec.  */
+  struct timespec ts = { .tv_sec = 0, .tv_nsec = *ns };
+  INTERNAL_SYSCALL_CALL (clock_nanosleep, CLOCK_MONOTONIC, 0, &ts, NULL);
+#endif
+
+  *ns = *ns >= setxid_backoff_max_ns / 2 ? setxid_backoff_max_ns : *ns * 2;
 }
 
 int
-attribute_hidden
 __nptl_setxid (struct xid_command *cmdp)
 {
-  int signalled;
+  bool signalled;
   int result;
   lll_lock (GL (dl_stack_cache_lock), LLL_PRIVATE);
 
@@ -208,9 +263,11 @@ __nptl_setxid (struct xid_command *cmdp)
   /* Iterate until we don't succeed in signalling anyone.  That means
      we have gotten all running threads, and their children will be
      automatically correct once started.  */
+  long int backoff_ns = setxid_backoff_min_ns;
   do
     {
-      signalled = 0;
+      signalled = false;
+      bool retry = false;
 
       list_for_each (runp, &GL (dl_stack_used))
         {
@@ -218,7 +275,12 @@ __nptl_setxid (struct xid_command *cmdp)
           if (t == self)
             continue;
 
-          signalled += setxid_signal_thread (cmdp, t);
+          switch (setxid_signal_thread (cmdp, t))
+            {
+            case setxid_signal_sent:  signalled = true; break;
+            case setxid_signal_retry: retry = true;     break;
+            case setxid_signal_done:  break;
+            }
         }
 
       list_for_each (runp, &GL (dl_stack_user))
@@ -227,7 +289,12 @@ __nptl_setxid (struct xid_command *cmdp)
           if (t == self)
             continue;
 
-          signalled += setxid_signal_thread (cmdp, t);
+          switch (setxid_signal_thread (cmdp, t))
+            {
+            case setxid_signal_sent:  signalled = true; break;
+            case setxid_signal_retry: retry = true;     break;
+            case setxid_signal_done:  break;
+            }
         }
 
       int cur = cmdp->cntr;
@@ -237,8 +304,17 @@ __nptl_setxid (struct xid_command *cmdp)
                              FUTEX_PRIVATE);
           cur = cmdp->cntr;
         }
+
+      if (retry)
+        {
+	  /* Blocking here until delivery eventually succeeds is intentional
+	     and safer than returning while a thread still holds the old
+	     credentials.  */
+          setxid_signal_backoff (&backoff_ns);
+          signalled = true;
+        }
     }
-  while (signalled != 0);
+  while (signalled);
 
   /* Clean up flags, so that no thread blocks during exit waiting
      for a signal which will never come.  */
