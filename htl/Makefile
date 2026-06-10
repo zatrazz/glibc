@@ -257,3 +257,10 @@ $(addprefix $(objpfx),$(tests-static) $(xtests-static)): $(srcdir)/libpthread_sy
 else
 $(addprefix $(objpfx),$(tests) $(test-srcs)): $(srcdir)/libpthread_syms.a $(objpfx)libpthread.a
 endif
+
+# The tests here better do not run in parallel.
+ifeq ($(run-built-tests),yes)
+ifneq ($(filter %tests,$(MAKECMDGOALS)),)
+.NOTPARALLEL:
+endif
+endif
