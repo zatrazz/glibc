@@ -2355,6 +2355,12 @@ dl_main (const ElfW(Phdr) *phdr,
       _dl_debug_post_relocate (main_map);
     }
 
+  /* All early-startup string tunable consumers (init_cpu_features and
+     friends) have run by now.  Drop the string tunable references into the
+     environment block before user code can observe or clobber them, and
+     before RELRO freezes the tunable list.  */
+  __tunable_seal_strings ();
+
   /* All ld.so initialization is complete.  Apply RELRO.  */
   _dl_protect_relro (&_dl_rtld_map);
 

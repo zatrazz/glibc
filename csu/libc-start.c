@@ -322,6 +322,13 @@ LIBC_START_MAIN (int (*main) (int, char **, char ** MAIN_AUXVEC_DECL),
      is called from the dynamic loader as early as possible.  */
   __libc_early_init (true);
 
+  /* All early-startup string tunable consumers (cpu features) have run by
+     now.  Drop the string tunable references into the environment block
+     before user code runs and before __libc_init_first applies RELRO to
+     the tunable list.  In the shared case the dynamic loader has already
+     sealed the tunables.  */
+  __tunable_seal_strings ();
+
   /* Call the initializer of the libc.  This is only needed here if we
      are compiling for the static library in which case we haven't
      run the constructors in `_dl_start_user'.  */

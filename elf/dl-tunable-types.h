@@ -68,6 +68,11 @@ struct _tunable
   /* Compatibility elements.  */
   const char env_alias[TUNABLE_ALIAS_MAX]; /* The compatibility environment
 					   variable name.  */
+  /* Set once a string tunable has been sealed, after which it must no longer
+     be read.  Kept last so the generated tunable_list initializer (which
+     does not set it) leaves it zero-initialized.  Only meaningful for string
+     tunables.  */
+  bool sealed;
 };
 
 typedef struct _tunable tunable_t;

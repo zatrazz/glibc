@@ -29,6 +29,19 @@ tests += \
   tst-get-cpu-features-static \
   tst-hwcap-tunables \
 # tests
+
+# tst-tunables-seal includes the internal <dl-tunables.h>, so the tests must
+# be built as internal (without _ISOMAC).  The static variant is wired into
+# tests-static directly because tests-static is already expanded by the time
+# this sysdeps fragment is read.
+tests-internal += \
+  tst-tunables-seal \
+  tst-tunables-seal-static \
+# tests-internal
+
+tests-static += \
+  tst-tunables-seal-static \
+# tests-static
 ifneq (no,$(have-test-mtls-descriptor))
 tests += \
   tst-gnu2-tls2-x86-noxsave \
@@ -99,6 +112,9 @@ endif
 tst-ifunc-isa-2-ENV = GLIBC_TUNABLES=glibc.cpu.hwcaps=-SSE4_2,-AVX,-AVX2,-AVX512F
 tst-ifunc-isa-2-static-ENV = $(tst-ifunc-isa-2-ENV)
 tst-hwcap-tunables-ARGS = -- $(host-test-program-cmd)
+
+tst-tunables-seal-ENV = GLIBC_TUNABLES=glibc.cpu.hwcaps=-AVX2
+tst-tunables-seal-static-ENV = $(tst-tunables-seal-ENV)
 
 CFLAGS-tst-gnu2-tls2.c += -msse2
 CFLAGS-tst-gnu2-tls2mod0.c += -msse2 -mtune=haswell
