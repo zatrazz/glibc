@@ -258,8 +258,9 @@ else
 $(addprefix $(objpfx),$(tests) $(test-srcs)): $(srcdir)/libpthread_syms.a $(objpfx)libpthread.a
 endif
 
-# The tests here better do not run in parallel.
-ifeq ($(run-built-tests),yes)
+# The tests here better do not run in parallel, unless serialize-tests is
+# cleared (make check-parallel).
+ifeq (yes-yes,$(run-built-tests)-$(serialize-tests))
 ifneq ($(filter %tests,$(MAKECMDGOALS)),)
 .NOTPARALLEL:
 endif
