@@ -271,6 +271,10 @@ LIBC_START_MAIN (int (*main) (int, char **, char ** MAIN_AUXVEC_DECL),
 
   ARCH_INIT_CPU_FEATURES ();
 
+  /* Seal the string tunables now, before any user code runs, after this their
+     values can no longer alias the application-owned environment block.  */
+  __tunable_seal_strings ();
+
   /* Do static-pie self relocation for the non-IRELATIVE part after tunables
      and cpu features are set up.  IFUNC entries are deferred until after the
      TCB and the stack-protector canary are usable, so that an instrumented

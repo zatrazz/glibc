@@ -50,6 +50,9 @@ tests-internal += \
   tst-ifunc-arg-4 \
   # tests-internal
 
+CFLAGS-tst-tunables-seal.c += -DTST_SEAL_TUNABLE_NAME=name
+tst-tunables-seal-ENV = GLIBC_TUNABLES=glibc.cpu.name=generic
+
 tests += \
   tst-vpcs \
   # tests

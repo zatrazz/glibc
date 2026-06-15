@@ -566,6 +566,7 @@ tests-internal += \
   tst-tls6 \
   tst-tls7 \
   tst-tls8 \
+  tst-tunables-seal \
   unload \
   unload2 \
   # tests-internal

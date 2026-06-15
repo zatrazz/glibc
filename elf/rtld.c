@@ -2251,6 +2251,10 @@ dl_main (const ElfW(Phdr) *phdr,
   /* If we are profiling we also must do lazy relocation.  */
   GLRO(dl_lazy) |= consider_profiling;
 
+  /* Seal the string tunables now, before any user code runs, after this their
+     values can no longer alias the application-owned environment block.  */
+  __tunable_seal_strings ();
+
   /* If libc.so has been loaded, relocate it early, after the dynamic
      loader itself.  The initial self-relocation of ld.so should be
      sufficient for IFUNC resolvers in libc.so.  */

@@ -23,6 +23,7 @@
 # pragma GCC visibility push(hidden)
 #endif
 #include <startup.h>
+#include <assert.h>
 #include <stdint.h>
 #include <stdbool.h>
 #include <unistd.h>
@@ -460,6 +461,12 @@ __tunable_get_val (tunable_id_t id, void *valp, tunable_callback_t callback)
 	}
     case TUNABLE_TYPE_STRING:
 	{
+	  /* String tunables reference the environment block and are only
+	     valid during early startup; once sealed they must not be read. */
+	  if (__glibc_unlikely (cur->sealed))
+	    _dl_fatal_printf ("Inconsistency detected: trying to read the %s "
+			      "string tunable after process initialization\n",
+			      cur->name);
 	  *((const struct tunable_str_t **) valp) = &cur->val.strval;
 	  break;
 	}
@@ -472,3 +479,25 @@ __tunable_get_val (tunable_id_t id, void *valp, tunable_callback_t callback)
 }
 
 rtld_hidden_def (__tunable_get_val)
+
+/* String tunable values reference the GLIBC_TUNABLES (or alias) environment
+   string, which lives in the environment block the kernel places on the
+   initial stack.  That memory is owned by the application, which may
+   overwrite it (e.g. setproctitle), so the references are only safe while
+   no application code has run.
+   Drop the references so a later __tunable_get_val triggers a fatal error.  */
+void
+__tunable_seal_strings (void)
+{
+  for (int i = 0; i < tunables_list_size; i++)
+    {
+      tunable_t *cur = &tunable_list[i];
+
+      if (cur->type.type_code != TUNABLE_TYPE_STRING)
+	continue;
+
+      cur->val.strval = (struct tunable_str_t) { NULL, 0 };
+      cur->sealed = true;
+    }
+}
+rtld_hidden_def (__tunable_seal_strings)
