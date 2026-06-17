@@ -15,6 +15,7 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <errno.h>
 #include <futex-internal.h>
 #include <ldsodefs.h>
 #include <list.h>
@@ -150,31 +151,49 @@ setxid_unmark_thread (struct xid_command *cmdp, struct pthread *t)
 }
 
 
-static int
+/* Deliver SIGSETXID to a single thread and wait for its handler to run,
+   mirroring musl's __synccall, which signals one thread at a time.  Because
+   at most one SIGSETXID is ever pending we never exhaust RLIMIT_SIGPENDING
+   ourselves, so an EAGAIN from tgkill can only reflect *external* signal
+   queue pressure (SIGSETXID is a realtime signal, and tgkill does not use the
+   guaranteed-delivery override that process-directed kill does).  Retry until
+   it clears; once the queue drains the kill succeeds.  Blocking here
+   indefinitely is intentional and safer than returning while a thread still
+   holds the old credentials (bug 21108).  */
+static void
 setxid_signal_thread (struct xid_command *cmdp, struct pthread *t)
 {
   if ((t->cancelhandling & SETXID_BITMASK) == 0)
-    return 0;
+    return;
 
-  int val;
+  /* Expect exactly one handler invocation for this thread.  */
+  atomic_store_relaxed (&cmdp->cntr, 1);
+
   pid_t pid = __getpid ();
-  val = INTERNAL_SYSCALL_CALL (tgkill, pid, t->tid, SIGSETXID);
+  int val;
+  do
+    val = INTERNAL_SYSCALL_CALL (tgkill, pid, t->tid, SIGSETXID);
+  while (INTERNAL_SYSCALL_ERROR_P (val)
+	 && INTERNAL_SYSCALL_ERRNO (val) == EAGAIN);
 
-  /* If this failed, it must have had not started yet or else exited.  */
-  if (!INTERNAL_SYSCALL_ERROR_P (val))
+  if (INTERNAL_SYSCALL_ERROR_P (val))
     {
-      atomic_fetch_add_relaxed (&cmdp->cntr, 1);
-      return 1;
+      /* The thread has not started yet or has already exited; there is
+	 nothing to wait for.  */
+      atomic_store_relaxed (&cmdp->cntr, 0);
+      return;
     }
-  else
-    return 0;
+
+  /* Wait, yielding the CPU, for the handler to run and decrement cntr.  */
+  int cur;
+  while ((cur = atomic_load_relaxed (&cmdp->cntr)) != 0)
+    futex_wait_simple ((unsigned int *) &cmdp->cntr, cur, FUTEX_PRIVATE);
 }
 
 int
 attribute_hidden
 __nptl_setxid (struct xid_command *cmdp)
 {
-  int signalled;
   int result;
   lll_lock (GL (dl_stack_cache_lock), LLL_PRIVATE);
 
@@ -205,40 +224,26 @@ __nptl_setxid (struct xid_command *cmdp)
       setxid_mark_thread (cmdp, t);
     }
 
-  /* Iterate until we don't succeed in signalling anyone.  That means
-     we have gotten all running threads, and their children will be
-     automatically correct once started.  */
-  do
+  /* Signal each marked thread, one at a time, waiting for the handler to run
+     before moving on.  Threads created after this point inherit the new
+     credentials from their parent, so they need no signal.  */
+  list_for_each (runp, &GL (dl_stack_used))
     {
-      signalled = 0;
+      struct pthread *t = list_entry (runp, struct pthread, list);
+      if (t == self)
+        continue;
 
-      list_for_each (runp, &GL (dl_stack_used))
-        {
-          struct pthread *t = list_entry (runp, struct pthread, list);
-          if (t == self)
-            continue;
-
-          signalled += setxid_signal_thread (cmdp, t);
-        }
-
-      list_for_each (runp, &GL (dl_stack_user))
-        {
-          struct pthread *t = list_entry (runp, struct pthread, list);
-          if (t == self)
-            continue;
-
-          signalled += setxid_signal_thread (cmdp, t);
-        }
-
-      int cur = cmdp->cntr;
-      while (cur != 0)
-        {
-          futex_wait_simple ((unsigned int *) &cmdp->cntr, cur,
-                             FUTEX_PRIVATE);
-          cur = cmdp->cntr;
-        }
+      setxid_signal_thread (cmdp, t);
     }
-  while (signalled != 0);
+
+  list_for_each (runp, &GL (dl_stack_user))
+    {
+      struct pthread *t = list_entry (runp, struct pthread, list);
+      if (t == self)
+        continue;
+
+      setxid_signal_thread (cmdp, t);
+    }
 
   /* Clean up flags, so that no thread blocks during exit waiting
      for a signal which will never come.  */
