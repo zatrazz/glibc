@@ -51,6 +51,9 @@ void support_check_stat_path (const char *name, const char *path, int result);
   (support_check_stat_fd ("fstat64", (fd), fstat64 ((fd), (st))))
 #define xlstat64(path, st) \
   (support_check_stat_path ("lstat64", (path), lstat64 ((path), (st))))
+#define xfstatat64(dirfd, path, st, flags) \
+  (support_check_stat_path ("fstatat64", (path), \
+			    fstatat64 ((dirfd), (path), (st), (flags))))
 void xstatx (int, const char *, int, unsigned int, struct statx *);
 void xmkdir (const char *path, mode_t);
 void xchroot (const char *path);
