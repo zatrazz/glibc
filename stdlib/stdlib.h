@@ -935,6 +935,26 @@ extern int __REDIRECT (mkostemps, (char *__template, int __suffixlen,
 extern int mkostemps64 (char *__template, int __suffixlen, int __flags)
      __nonnull ((1)) __wur;
 # endif
+
+/* Create and open a unique temporary file relative to the directory
+   referenced by DIRFD (the current directory if DIRFD is AT_FDCWD).  The
+   file name has the form <PREFIX><RANDOM><SUFFIX>, a single path component
+   created in that directory, where RANDOM is N_RANDOM random characters
+   (six if N_RANDOM is zero; a nonzero value below three fails with EINVAL).
+   PREFIX and SUFFIX default to the empty string when NULL and must not
+   contain a `/'.
+   The file is created atomically with mode MODE and opened for reading and
+   writing; OFLAGS is or'ed into the open call, which always sets O_CREAT,
+   O_EXCL, O_CLOEXEC and large-file mode.  O_TMPFILE in OFLAGS is rejected
+   with EINVAL, as it is incompatible with creating a named file.
+   When NAMEBUF is not NULL, *NAMEBUF is set on success to a newly allocated
+   string holding the generated name, which the caller must deallocate with
+   free.  Returns the new file descriptor, or -1 with errno set on error.
+
+   This function is a possible cancellation point.  */
+extern int mkostempat (int __dirfd, const char *__prefix,
+		       const char *__suffix, unsigned int __n_random,
+		       int __oflags, mode_t __mode, char **__namebuf) __wur;
 #endif
 
 

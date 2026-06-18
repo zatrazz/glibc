@@ -28,6 +28,13 @@ Major new features:
   status via prctl syscall.  This prevents disabling or corrupting GCS
   shadow stack during runtime.
 
+* The mkostempat function has been added as a GNU extension.  It is a more
+  flexible alternative to mkstemp and its variants, where it creates the
+  temporary file relative to a directory descriptor, optionally returns the
+  generated name in a newly allocated buffer instead of modifying a template
+  in place, takes the amount of randomness and the creation mode as
+  parameters, and sets O_CLOEXEC by default.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * Although malloc and related functions currently return pointers

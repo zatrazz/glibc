@@ -162,8 +162,17 @@ extern FILE *__old_tmpfile (void);
 
 #  include <bits/types/wint_t.h>
 
+/* Default number of random characters used by the mk[s]temp family, and
+   the smallest number that __gen_tempname's retry loop is designed for
+   (see ATTEMPTS_MIN in tempname.c).  */
+#  define GEN_TEMPNAME_DEF_SUFFIX_LEN 6
+#  define GEN_TEMPNAME_MIN_SUFFIX_LEN 3
+
 extern int __gen_tempname (char *__tmpl, int __suffixlen, int __flags,
 			   int __kind) attribute_hidden;
+extern int __gen_tempname_at (int __dirfd, char *__tmpl, int __suffixlen,
+			      int __flags, __mode_t __mode,
+			      size_t __x_suffix_len) attribute_hidden;
 /* The __kind argument to __gen_tempname may be one of: */
 #  define __GT_FILE	0	/* create a file */
 #  define __GT_DIR	1	/* create a directory */

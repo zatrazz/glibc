@@ -3988,6 +3988,72 @@ creation always works like @code{open} with @code{O_EXCL}.
 
 The @code{mkdtemp} function comes from OpenBSD.
 
+@deftypefun int mkostempat (int @var{dirfd}, const char *@var{prefix}, const char *@var{suffix}, unsigned int @var{n_random}, int @var{oflags}, mode_t @var{mode}, char **@var{namebuf})
+@standards{GNU, stdlib.h}
+@safety{@prelim{}@mtsafe{}@asunsafe{@ascuheap{}}@acunsafe{@acsmem{} @acsfd{}}}
+@c __gen_tempname_at (caller tmpl, __GT_FILE) ok
+@c The name is assembled with malloc or, when namebuf is null, with
+@c scratch_buffer which may call malloc; the descriptor leaks on cancellation.
+The @code{mkostempat} function creates and opens a unique temporary file.
+It is a more flexible alternative to @code{mkstemp} and its variants that
+avoids several of their pitfalls: it does not modify a caller-supplied
+template in place, the amount of randomness is a parameter rather than a
+fixed part of the template, the creation mode is a parameter, and the file
+is created relative to a directory descriptor.
+
+The file is created relative to the directory referenced by the descriptor
+@var{dirfd}, in the same way as @code{openat} (@pxref{Descriptor-Relative
+Access}).  If @var{dirfd} is the special value @code{AT_FDCWD} then the
+current working directory is used.
+
+The name of the created file has the form
+@w{@code{@var{prefix}@var{random}@var{suffix}}}, where @var{random} is a
+sequence of @var{n_random} random characters.  If @var{n_random} is zero a
+default of six characters is used; a nonzero @var{n_random} smaller than
+three is rejected with @code{EINVAL} (since too little randomness defeats
+the purpose of a unique name).  @var{prefix} and @var{suffix} default to the
+empty string when they are null pointers.  The name is always a single path
+component created directly in @var{dirfd}: neither @var{prefix} nor
+@var{suffix} may contain a @samp{/} character, and the call fails with
+@code{EINVAL} if either does.  This restriction is deliberate; unlike a
+path passed to @code{openat}, it keeps @code{mkostempat} from walking any
+intermediate directory and so avoids the file-name-based race conditions
+that a directory-descriptor interface exists to prevent.
+
+The file is created atomically using @code{open} with the @code{O_CREAT}
+and @code{O_EXCL} flags, so it cannot clash with an existing file.  It is
+always created in large-file mode and with the @code{O_CLOEXEC} flag set,
+and always opened for reading and writing.  Any additional flags in
+@var{oflags} (for example @code{O_APPEND}) are included in the @code{open}
+call; @var{oflags} is not otherwise restricted, so unlike @code{mkostemp}
+there is no fixed set of permitted flags, but the access-mode bits
+(@code{O_RDONLY}, @code{O_WRONLY}, @code{O_RDWR}) in @var{oflags} are
+ignored, and a flag the kernel rejects causes the call to fail accordingly.
+The one exception is @code{O_TMPFILE}, which requests an @emph{unnamed}
+file and is therefore incompatible with generating and creating a named
+one; it is rejected with @code{EINVAL}.  An unnamed file could not be
+atomically installed under a name in any case---Linux has no @code{flink}
+and @code{linkat} cannot replace an existing name---so a caller that wants
+to atomically replace a file should instead use the name returned here
+together with @code{renameat}.
+The file is created with permissions @var{mode} (for example @code{0600}),
+as modified by the process umask.
+
+If @var{namebuf} is not a null pointer, then on success @code{*@var{namebuf}}
+is set to a newly allocated string containing the generated file name; the
+caller is responsible for releasing it with @code{free}.  If @var{namebuf}
+is a null pointer, only the descriptor is produced; this is convenient when
+the name is not needed.
+
+On success @code{mkostempat} returns a file descriptor open for reading and
+writing.  On failure it returns @code{-1} and sets @code{errno}; in
+addition to @code{EINVAL} described above it may report @code{ENAMETOOLONG}
+if the requested name is too large to represent, @code{ENOMEM} if the name
+cannot be allocated, as well as any error reported by @code{openat}.
+
+@code{mkostempat} is a GNU extension.
+@end deftypefun
+
 @c FIXME these are undocumented:
 @c fchmodat
 @c fchownat

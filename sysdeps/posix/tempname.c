@@ -126,8 +126,39 @@ random_bits (random_value *r, random_value s)
 #if _LIBC
 static int try_tempname_len (char *, int, void *, int (*) (char *, void *),
                              size_t);
-#endif
 
+struct tempname_args
+{
+  int flags;     /* Extra flags OR'ed into the open call.  */
+  int dirfd;     /* Directory descriptor, or AT_FDCWD.  */
+  mode_t mode;   /* Creation mode for the new file.  */
+};
+
+static int
+try_file (char *tmpl, void *args)
+{
+  struct tempname_args *a = args;
+  return __openat (a->dirfd, tmpl,
+                   (a->flags & ~O_ACCMODE) | O_RDWR | O_CREAT | O_EXCL,
+                   a->mode);
+}
+
+static int
+try_dir (char *tmpl, _GL_UNUSED void *args)
+{
+  return __mkdir (tmpl, S_IRUSR | S_IWUSR | S_IXUSR);
+}
+
+static int
+try_nocreate (char *tmpl, _GL_UNUSED void *args)
+{
+  struct_stat64 st;
+
+  if (__lstat64_time64 (tmpl, &st) == 0 || errno == EOVERFLOW)
+    __set_errno (EEXIST);
+  return errno == ENOENT ? 0 : -1;
+}
+#else
 static int
 try_file (char *tmpl, void *flags)
 {
@@ -152,6 +183,7 @@ try_nocreate (char *tmpl, _GL_UNUSED void *flags)
     __set_errno (EEXIST);
   return errno == ENOENT ? 0 : -1;
 }
+#endif
 
 /* These are the characters used in temporary file names.  */
 static const char letters[] =
@@ -184,8 +216,19 @@ gen_tempname_len (char *tmpl, int suffixlen, int flags, int kind,
       [__GT_DIR] = try_dir,
       [__GT_NOCREATE] = try_nocreate
     };
+#if _LIBC
+  struct tempname_args args =
+    {
+      .flags = flags,
+      .dirfd = AT_FDCWD,
+      .mode = S_IRUSR | S_IWUSR
+    };
+  return try_tempname_len (tmpl, suffixlen, &args, tryfunc[kind],
+                           x_suffix_len);
+#else
   return try_tempname_len (tmpl, suffixlen, &flags, tryfunc[kind],
                            x_suffix_len);
+#endif
 }
 
 #ifdef _LIBC
@@ -203,11 +246,14 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
 
   /* A lower bound on the number of temporary files to attempt to
      generate.  The maximum total number of temporary file names that
-     can exist for a given template is 62**6.  It should never be
-     necessary to try all of these combinations.  Instead if a reasonable
-     number of names is tried (we define reasonable as 62**3) fail to
-     give the system administrator the chance to remove the problems.
-     This value requires that X_SUFFIX_LEN be at least 3.  */
+     can exist for a given template is 62**X_SUFFIX_LEN.  It should never
+     be necessary to try all of these combinations.  Instead if a
+     reasonable number of names is tried (we define reasonable as 62**3)
+     fail to give the system administrator the chance to remove the
+     problems.  This value requires that X_SUFFIX_LEN be at least
+     GEN_TEMPNAME_MIN_SUFFIX_LEN (3), which every caller ensures: the
+     mk[s]temp family uses GEN_TEMPNAME_DEF_SUFFIX_LEN, and mkostempat
+     rejects a smaller request.  */
 #define ATTEMPTS_MIN (62 * 62 * 62)
 
   /* The number of times to attempt to generate a temporary file.  To
@@ -279,8 +325,31 @@ try_tempname_len (char *tmpl, int suffixlen, void *args,
 int
 __gen_tempname (char *tmpl, int suffixlen, int flags, int kind)
 {
-  return gen_tempname_len (tmpl, suffixlen, flags, kind, 6);
+  return gen_tempname_len (tmpl, suffixlen, flags, kind,
+			   GEN_TEMPNAME_DEF_SUFFIX_LEN);
 }
+
+#if _LIBC
+/* Generate a temporary file relative to DIRFD (which may be AT_FDCWD). TMPL
+   holds the leaf name with X_SUFFIX_LEN 'X' placeholders before a
+   SUFFIXLEN-byte suffix; the placeholders are overwritten in place with
+   random characters.  The file is created with open (O_CREAT | O_EXCL), the
+   extra FLAGS are OR'ed into the open call, and the file is created with the
+   given MODE.  Returns the new read-write file descriptor, or -1 with errno
+   set.  */
+int
+__gen_tempname_at (int dirfd, char *tmpl, int suffixlen, int flags,
+                   mode_t mode, size_t x_suffix_len)
+{
+  struct tempname_args args =
+    {
+      .flags = flags,
+      .dirfd = dirfd,
+      .mode = mode
+    };
+  return try_tempname_len (tmpl, suffixlen, &args, try_file, x_suffix_len);
+}
+#endif
 
 #if !_LIBC
 int
