@@ -164,6 +164,9 @@ extern FILE *__old_tmpfile (void);
 
 extern int __gen_tempname (char *__tmpl, int __suffixlen, int __flags,
 			   int __kind) attribute_hidden;
+extern int __try_tempname_len (char *__tmpl, int __suffixlen, void *__args,
+			       int (*__tryfunc) (char *, void *),
+			       size_t __x_suffix_len) attribute_hidden;
 /* The __kind argument to __gen_tempname may be one of: */
 #  define __GT_FILE	0	/* create a file */
 #  define __GT_DIR	1	/* create a directory */

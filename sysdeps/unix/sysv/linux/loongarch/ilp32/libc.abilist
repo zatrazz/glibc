@@ -1314,6 +1314,7 @@ GLIBC_2.44 mknod F
 GLIBC_2.44 mknodat F
 GLIBC_2.44 mkostemp F
 GLIBC_2.44 mkostemp64 F
+GLIBC_2.44 mkostempfn F
 GLIBC_2.44 mkostemps F
 GLIBC_2.44 mkostemps64 F
 GLIBC_2.44 mkstemp F

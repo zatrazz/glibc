@@ -3988,6 +3988,95 @@ creation always works like @code{open} with @code{O_EXCL}.
 
 The @code{mkdtemp} function comes from OpenBSD.
 
+@deftypefun int mkostempfn (const char *@var{prefix}, unsigned int @var{n_random}, const char *@var{suffix}, int (*@var{tryfunc}) (char *, void *), void *@var{args}, char **@var{nameout})
+@standards{GNU, stdlib.h}
+@safety{@prelim{}@mtsafe{}@asunsafe{@ascuheap{}}@acunsafe{@acsmem{}}}
+@c mkostempfn @ascuheap @acsmem
+@c  malloc/free for the name buffer; the rest is up to tryfunc.
+The @code{mkostempfn} function generates a unique temporary name and lets
+the caller create the file.  It is the most general member of the
+@code{mkstemp} family: rather than choosing how the file is created, it
+calls a caller-supplied function for each candidate name, so the file can
+be made with @code{open}, @code{openat}, @code{openat2}, @code{mkdirat},
+@code{symlinkat}, or any other mechanism.
+
+The generated name has the form
+@w{@code{@var{prefix}@var{random}@var{suffix}}}, where @var{random} is a
+sequence of @var{n_random} random characters; if @var{n_random} is zero a
+default of six is used.  @var{prefix} and @var{suffix} are each treated as
+the empty string when they are null pointers.
+
+For each candidate name, @code{mkostempfn} calls
+@w{@code{@var{tryfunc} (@var{name}, @var{args})}}.  The @var{tryfunc}
+function should attempt to create the file and return the resulting file
+descriptor, or any other non-negative value, on success.  If it returns
+@code{-1} with @code{errno} set to @code{EEXIST}, a new name is generated
+and @var{tryfunc} is called again; if it fails with any other value of
+@code{errno}, @code{mkostempfn} stops and returns @code{-1}.  The
+@var{args} pointer is passed to @var{tryfunc} unchanged and is otherwise
+opaque to @code{mkostempfn}, so the callback type carries no
+size-dependent argument and raises no symbol-versioning concerns.
+
+Because @code{mkostempfn} relies on @var{tryfunc} to detect a name that is
+already in use, a @var{tryfunc} that creates the file with @code{open} or
+@code{openat} @strong{must} combine @code{O_CREAT} with @code{O_EXCL}.  This
+makes the creation atomic and makes the attempt fail with @code{EEXIST}
+when the name is already taken, which is exactly what drives the retry; a
+@var{tryfunc} that instead opened an existing file would silently reuse it
+and defeat the uniqueness guarantee.  The descriptor should also be created
+with @code{O_CLOEXEC} so that it is not leaked across @code{exec}.  Unlike
+@code{mkostemp}, @code{mkostempfn} does not add these flags itself---it does
+not perform the creation---so supplying them is the responsibility of
+@var{tryfunc}.
+
+If @var{nameout} is not a null pointer, then on success
+@code{*@var{nameout}} is set to a newly allocated string containing the
+chosen name, which the caller must free with @code{free}.
+
+On success @code{mkostempfn} returns the value returned by @var{tryfunc}.
+On failure it returns @code{-1} and sets @code{errno}: @code{ENAMETOOLONG}
+if the requested name is too large to represent, @code{ENOMEM} if it cannot
+be allocated, or whatever error @var{tryfunc} reported.
+
+The following example uses @code{mkostempfn} to create a temporary file
+relative to a directory descriptor, which avoids the time-of-check to
+time-of-use races of a path-based interface.  The directory descriptor (and
+the desired mode) are passed to the callback through @var{args}, and the
+callback supplies @code{O_EXCL} and @code{O_CLOEXEC} as required.
+
+@smallexample
+@group
+struct create_args
+@{
+  int dirfd;
+  mode_t mode;
+@};
+
+static int
+create_at (char *name, void *closure)
+@{
+  struct create_args *a = closure;
+  return openat (a->dirfd, name,
+                 O_RDWR | O_CREAT | O_EXCL | O_CLOEXEC, a->mode);
+@}
+
+/* @r{Create a unique "tmp-XXXXXX" file in the directory @var{dirfd} and}
+   @r{return its descriptor, storing the chosen name in *@var{nameout}.}  */
+int
+open_temp_at (int dirfd, char **nameout)
+@{
+  struct create_args a = @{ dirfd, 0600 @};
+  return mkostempfn ("tmp-", 0, NULL, create_at, &a, nameout);
+@}
+@end group
+@end smallexample
+
+@code{mkostempfn} is a GNU extension.  It is modeled on the
+@code{try_tempname} function from Gnulib, with the name supplied as a
+prefix, random length, and suffix and returned through an allocated buffer
+rather than by overwriting a template in place.
+@end deftypefun
+
 @c FIXME these are undocumented:
 @c fchmodat
 @c fchownat
