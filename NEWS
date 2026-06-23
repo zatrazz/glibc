@@ -9,6 +9,12 @@ Version 2.44
 
 Major new features:
 
+* The mkostempfn function has been added as a GNU extension.  It generates a
+  unique temporary name of the form <prefix><random><suffix> and creates the
+  file through a caller-supplied callback, so the file can be created with
+  open, openat, openat2, or any other mechanism; the generated name is
+  returned in a newly allocated buffer rather than by mutating a template.
+
 * Additional optimized and correctly rounded mathematical functions have
   been imported from the CORE-MATH project, in particular cosh, sinh, and
   tanh.

@@ -2496,6 +2496,7 @@ GLIBC_2.44 gai_suspend F
 GLIBC_2.44 getaddrinfo_a F
 GLIBC_2.44 lio_listio F
 GLIBC_2.44 lio_listio64 F
+GLIBC_2.44 mkostempfn F
 GLIBC_2.44 mq_close F
 GLIBC_2.44 mq_getattr F
 GLIBC_2.44 mq_notify F

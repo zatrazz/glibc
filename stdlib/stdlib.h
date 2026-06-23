@@ -935,6 +935,24 @@ extern int __REDIRECT (mkostemps, (char *__template, int __suffixlen,
 extern int mkostemps64 (char *__template, int __suffixlen, int __flags)
      __nonnull ((1)) __wur;
 # endif
+
+/* Generate a unique temporary name of the form <PREFIX><RANDOM><SUFFIX>,
+   where RANDOM is N_RANDOM random characters (six if N_RANDOM is zero), and
+   create the file by calling TRYFUNC.  PREFIX and SUFFIX default to the
+   empty string when NULL.  TRYFUNC (name, ARGS) creates the file by any
+   means it chooses (open, openat, openat2, ...) and returns the resulting
+   descriptor; returning -1 with errno == EEXIST asks for another name,
+   while any other failure aborts.  ARGS is passed to TRYFUNC unchanged.
+   When NAMEOUT is not NULL, *NAMEOUT is set on success to a newly allocated
+   string with the chosen name, which the caller must free with free.
+   Returns TRYFUNC's value on success, or -1 with errno set on error.
+
+   This function is a possible cancellation point and therefore not marked
+   with __THROW.  */
+extern int mkostempfn (const char *__prefix, unsigned int __n_random,
+		       const char *__suffix,
+		       int (*__tryfunc) (char *, void *), void *__args,
+		       char **__nameout) __nonnull ((4)) __wur;
 #endif
 
 

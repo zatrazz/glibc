@@ -282,6 +282,18 @@ __gen_tempname (char *tmpl, int suffixlen, int flags, int kind)
   return gen_tempname_len (tmpl, suffixlen, flags, kind, 6);
 }
 
+#if _LIBC
+/* Internal entry point exposing the name-generation and retry loop to
+   mkostempfn (misc/mkostempfn.c) with a caller-provided creation
+   callback.  */
+int
+__try_tempname_len (char *tmpl, int suffixlen, void *args,
+                    int (*tryfunc) (char *, void *), size_t x_suffix_len)
+{
+  return try_tempname_len (tmpl, suffixlen, args, tryfunc, x_suffix_len);
+}
+#endif
+
 #if !_LIBC
 int
 try_tempname (char *tmpl, int suffixlen, void *args,

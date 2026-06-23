@@ -140,6 +140,7 @@ routines := \
   mkdtemp \
   mkostemp \
   mkostemp64 \
+  mkostempfn \
   mkostemps \
   mkostemps64 \
   mkstemp \
@@ -255,6 +256,7 @@ tests := \
   tst-ldbl-errorfptr \
   tst-ldbl-warn \
   tst-makedev \
+  tst-mkostempfn \
   tst-mntent \
   tst-mntent-autofs \
   tst-mntent-blank-corrupt \
@@ -338,6 +340,7 @@ CFLAGS-error.c += -fexceptions
 CFLAGS-getpass.c += -fexceptions
 CFLAGS-mkstemp.c += -fexceptions
 CFLAGS-mkstemp64.c += -fexceptions
+CFLAGS-mkostempfn.c += -fexceptions
 CFLAGS-getsysstats.c += -fexceptions
 CFLAGS-getusershell.c += -fexceptions
 CFLAGS-err.c += -fexceptions
