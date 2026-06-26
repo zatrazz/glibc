@@ -19,7 +19,9 @@
 #ifndef _REGISTER_ATFORK_H
 #define _REGISTER_ATFORK_H
 
-/* Elements of the fork handler lists.  */
+#include <list_t.h>
+
+/* Elements of the fork handler list.  */
 struct fork_handler
 {
   void (*prepare_handler) (void);
@@ -27,6 +29,7 @@ struct fork_handler
   void (*child_handler) (void);
   void *dso_handle;
   uint64_t id;
+  list_t list;
 };
 
 /* Function to call to unregister fork handlers.  */
