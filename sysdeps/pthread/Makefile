@@ -348,6 +348,7 @@ tests += \
   tst-atfork2 \
   tst-atfork3 \
   tst-atfork4 \
+  tst-atfork5 \
   tst-create1 \
   tst-fini1 \
   tst-pt-tls4 \
@@ -364,6 +365,7 @@ modules-names += \
   tst-atfork2mod \
   tst-atfork3mod \
   tst-atfork4mod \
+  tst-atfork5mod \
   tst-create1mod \
   tst-fini1mod \
   tst-stack2-mod \
@@ -459,10 +461,15 @@ $(objpfx)tst-atfork4: $(shared-thread-library)
 LDFLAGS-tst-atfork4 = -rdynamic
 $(objpfx)tst-atfork4mod.so: $(shared-thread-library)
 
+$(objpfx)tst-atfork5: $(shared-thread-library)
+tst-atfork5-ENV = LD_PRELOAD=$(objpfx)tst-atfork5mod.so
+$(objpfx)tst-atfork5mod.so: $(shared-thread-library)
+
 ifeq ($(build-shared),yes)
 $(objpfx)tst-atfork2.out: $(objpfx)tst-atfork2mod.so
 $(objpfx)tst-atfork3.out: $(objpfx)tst-atfork3mod.so
 $(objpfx)tst-atfork4.out: $(objpfx)tst-atfork4mod.so
+$(objpfx)tst-atfork5.out: $(objpfx)tst-atfork5mod.so
 endif
 
 ifeq ($(build-shared),yes)
