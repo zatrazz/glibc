@@ -58,6 +58,7 @@ routines += \
 tests += \
   tst-abstime \
   tst-atfork1 \
+  tst-atfork5 \
   tst-attr1 \
   tst-bad-schedattr \
   tst-barrier1 \
@@ -458,6 +459,8 @@ $(objpfx)tst-atfork3mod.so: $(shared-thread-library)
 $(objpfx)tst-atfork4: $(shared-thread-library)
 LDFLAGS-tst-atfork4 = -rdynamic
 $(objpfx)tst-atfork4mod.so: $(shared-thread-library)
+
+$(objpfx)tst-atfork5: $(shared-thread-library)
 
 ifeq ($(build-shared),yes)
 $(objpfx)tst-atfork2.out: $(objpfx)tst-atfork2mod.so
