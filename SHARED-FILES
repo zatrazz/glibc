@@ -266,6 +266,8 @@ core-math:
   sysdeps/ieee754/dbl-64/e_acos.c
   # src/binary64/acosh/acosh.c, revision 887cab6f
   sysdeps/ieee754/dbl-64/e_acosh.c
+  # src/binary64/asin/asin.c, revision 646e6ce4
+  sysdeps/ieee754/dbl-64/e_asin.c
   # src/binary64/atanh/atanh.c, revision 532e37dc
   sysdeps/ieee754/dbl-64/e_atanh.c
   # src/binary64/cosh/cosh.c, revision 5d0c89d5
