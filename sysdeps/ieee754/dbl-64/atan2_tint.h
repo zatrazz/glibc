@@ -24,6 +24,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 */
 
+#ifndef _ATAN2_TINT_H
+#define _ATAN2_TINT_H
+
 #include <stdint.h>
 #include <math_uint128.h>
 #include "math_config.h"
@@ -568,3 +571,5 @@ div_tint_d (tint_t *r, double b, double a)
   tint_fromd (B, b);
   div_tint (r, B, A);
 }
+
+#endif

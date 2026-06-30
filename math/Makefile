@@ -361,6 +361,7 @@ type-double-routines := \
   branred \
   e_acos_data \
   e_asin_data \
+  e_atan2_data \
   e_cosh_data \
   e_coshsinh_data \
   e_exp_data \
