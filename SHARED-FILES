@@ -270,6 +270,10 @@ core-math:
   sysdeps/ieee754/dbl-64/e_asin.c
   # src/binary64/atan/atan.c, revision 8ea8ea35
   sysdeps/ieee754/dbl-64/s_atan.c
+  # src/binary64/atan2/atan2.c, revision 8ea8ea35
+  sysdeps/ieee754/dbl-64/e_atan2.c
+  # src/binary64/atan2/tint.h, revision 8ea8ea35
+  sysdeps/ieee754/dbl-64/atan2_tint.h
   # src/binary64/atanh/atanh.c, revision 532e37dc
   sysdeps/ieee754/dbl-64/e_atanh.c
   # src/binary64/cosh/cosh.c, revision 5d0c89d5

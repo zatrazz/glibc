@@ -36,7 +36,7 @@ __feupdateenv (const fenv_t *envp)
   /* Raise the saved exception.  Incidentally for us the implementation
      defined format of the values in objects of type fexcept_t is the
      same as the ones specified using the FE_* constants.  */
-  feraiseexcept (temp);
+  __feraiseexcept (temp);
 
   /* Success.  */
   return 0;
