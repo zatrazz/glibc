@@ -320,6 +320,7 @@ hash-benchset := \
 stdlib-benchset := \
   arc4random \
   bsearch \
+  mpn \
   random-lock \
   strtod \
   # stdlib-benchset
