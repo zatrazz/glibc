@@ -1,4 +1,3 @@
-#define __cos __cos_fma4
 #define __sin __sin_fma4
 #define __docos __docos_fma4
 #define __dubsin __dubsin_fma4

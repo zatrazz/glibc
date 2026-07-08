@@ -1,4 +1,3 @@
-#define __cos __cos_avx
 #define __sin __sin_avx
 #define SECTION __attribute__ ((section (".text.avx")))
 
