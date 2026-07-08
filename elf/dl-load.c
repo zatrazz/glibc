@@ -91,67 +91,82 @@ static const size_t system_dirs_len[] =
 };
 #define nsystem_dirs_len array_length (system_dirs_len)
 
-static bool
-is_trusted_path_normalize (const char *path, size_t len)
+/* Lexically normalize the NUL-terminated PATH in place, collapsing "//",
+   "/./" and "/../" segments (a leading "/../" collapses to "/").  The
+   normalized string is a rearrangement of a prefix of PATH: the write
+   cursor never runs ahead of the read cursor and no trailing character is
+   appended, so this only ever touches bytes within the original
+   strlen (PATH) + 1 storage and can never access memory out of bounds.
+   Returns the length of the normalized path (excluding the terminating
+   NUL).  */
+static size_t
+dst_normalize_path (char *path)
 {
-  if (len == 0)
-    return false;
-
-  struct dl_scratch_buffer scratch = dl_scratch_buffer_init ();
-  dl_scratch_buffer_allocate (&scratch, len + 2, 0);
-  char *npath = scratch.data;
-  char *wnp = npath;
-  while (*path != '\0')
+  char *wnp = path;
+  const char *rnp = path;
+  while (*rnp != '\0')
     {
-      if (path[0] == '/')
+      if (rnp[0] == '/')
 	{
-	  if (path[1] == '.')
+	  /* Collapse a run of '/' to a single one before interpreting "/."
+	     or "/..", so that the "." or ".." is applied to the real
+	     preceding component rather than to an empty "//" segment: skip
+	     this '/' whenever it is immediately followed by another one.  */
+	  if (rnp[1] == '/')
 	    {
-	      if (path[2] == '.' && (path[3] == '/' || path[3] == '\0'))
-		{
-		  while (wnp > npath && *--wnp != '/')
-		    ;
-		  path += 3;
-		  continue;
-		}
-	      else if (path[2] == '/' || path[2] == '\0')
-		{
-		  path += 2;
-		  continue;
-		}
+	      ++rnp;
+	      continue;
 	    }
 
-	  if (wnp > npath && wnp[-1] == '/')
+	  if (rnp[1] == '.')
 	    {
-	      ++path;
-	      continue;
+	      if (rnp[2] == '.' && (rnp[3] == '/' || rnp[3] == '\0'))
+		{
+		  while (wnp > path && *--wnp != '/')
+		    ;
+		  rnp += 3;
+		  continue;
+		}
+	      else if (rnp[2] == '/' || rnp[2] == '\0')
+		{
+		  rnp += 2;
+		  continue;
+		}
 	    }
 	}
 
-      *wnp++ = *path++;
+      *wnp++ = *rnp++;
     }
 
-  if (wnp == npath || wnp[-1] != '/')
-    *wnp++ = '/';
+  *wnp = '\0';
+  return wnp - path;
+}
 
-  bool result = false;
+/* Return true if the normalized path NPATH of length NLEN is rooted in one
+   of the trusted system directories.  The system_dirs entries carry a
+   trailing '/'; NPATH matches an entry when it shares the entry's leading
+   component sequence and then either ends or continues with '/', so that
+   e.g. "/lib64" and "/lib64/x" match "/lib64/" but "/lib64x" does not.  */
+static bool
+path_is_trusted (const char *npath, size_t nlen)
+{
   const char *trun = system_dirs;
 
   for (size_t idx = 0; idx < nsystem_dirs_len; ++idx)
     {
-      if (wnp - npath >= system_dirs_len[idx]
-	  && memcmp (trun, npath, system_dirs_len[idx]) == 0)
-	{
-	  /* Found it.  */
-	  result = true;
-	  break;
-	}
+      /* Compare against the entry without its trailing '/'.  */
+      size_t dirlen = system_dirs_len[idx] - 1;
+
+      if (nlen >= dirlen
+	  && memcmp (trun, npath, dirlen) == 0
+	  && (npath[dirlen] == '/' || npath[dirlen] == '\0'))
+	/* Found it.  */
+	return true;
 
       trun += system_dirs_len[idx] + 1;
     }
 
-  dl_scratch_buffer_free (&scratch);
-  return result;
+  return false;
 }
 
 /* Given a substring starting at INPUT, just after the DST '$' start
@@ -327,23 +342,34 @@ _dl_dst_substitute (struct link_map *l, const char *input, char *result)
     }
   while (*input != '\0');
 
-  /* In SUID/SGID programs, after $ORIGIN expansion the normalized
-     path must be rooted in one of the trusted directories.  The $LIB
-     and $PLATFORM DST cannot in any way be manipulated by the caller
-     because they are fixed values that are set by the dynamic loader
-     and therefore any paths using just $LIB or $PLATFORM need not be
-     checked for trust, the authors of the binaries themselves are
-     trusted to have designed this correctly.  Only $ORIGIN is tested in
-     this way because it may be manipulated in some ways with hard
-     links.  */
-  if (__glibc_unlikely (check_for_trusted)
-      && !is_trusted_path_normalize (result, wp - result))
-    {
-      *result = '\0';
-      return result;
-    }
-
   *wp = '\0';
+
+  /* In SUID/SGID programs, after $ORIGIN expansion the normalized path
+     must be rooted in one of the trusted directories.  The $LIB and
+     $PLATFORM DST cannot in any way be manipulated by the caller because
+     they are fixed values that are set by the dynamic loader and
+     therefore any paths using just $LIB or $PLATFORM need not be checked
+     for trust, the authors of the binaries themselves are trusted to
+     have designed this correctly.  Only $ORIGIN is tested in this way
+     because it may be manipulated in some ways with hard links.
+
+     We do not merely validate the normalized path and then keep using
+     the original expansion: the expansion still contains the "../"
+     components that traverse through $ORIGIN, and "a/b/../c" only names
+     the same file as "a/c" when "b" is not a symbolic link.  An attacker
+     who controls a component of $ORIGIN (for example by hard-linking the
+     program into an attacker-owned directory and winning a rename race
+     that turns that component into a symlink after the check but before
+     the open) could otherwise redirect the lookup outside the trusted
+     directory even though the check passed.  We therefore replace the
+     expansion with its normalized, "../"-free form so that the path that
+     is opened is exactly the path that was validated.  */
+  if (__glibc_unlikely (check_for_trusted))
+    {
+      size_t nlen = dst_normalize_path (result);
+      if (!path_is_trusted (result, nlen))
+	*result = '\0';
+    }
 
   return result;
 }

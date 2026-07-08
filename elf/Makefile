@@ -489,6 +489,7 @@ tests += \
   tst-non-directory-path \
   tst-null-argv \
   tst-origin \
+  tst-origin-secure-victim \
   tst-p_align1 \
   tst-p_align2 \
   tst-p_align3 \
@@ -591,6 +592,7 @@ tests-container += \
   tst-dlopen-self-container \
   tst-dlopen-tlsmodid-container \
   tst-ldconfig-cache \
+  tst-origin-secure \
   tst-pldd \
   tst-preload-pthread-libc \
   tst-ptrguard-static-dlopen \
@@ -838,6 +840,7 @@ modules-names += \
   libtracemod3-1 \
   libtracemod4-1 \
   libtracemod5-1 \
+  libtst-origin-secure-mod \
   ltglobmod1 \
   ltglobmod2 \
   neededobj1 \
@@ -1033,6 +1036,7 @@ modules-names += \
   tst-nodeps2-mod \
   tst-non-directory-mod \
   tst-null-argv-lib \
+  tst-origin-secure-evilmod \
   tst-p_alignmod-base \
   tst-p_alignmod3 \
   tst-ptrguard-static-dlopen-mod \
@@ -3705,6 +3709,24 @@ $(objpfx)tst-origin.out: tst-origin.sh $(objpfx)tst-origin
 	$(evaluate-test)
 
 $(objpfx)tst-dlopen-sgid.out: $(objpfx)tst-dlopen-sgid-mod.so
+
+# tst-origin-secure: the victim is linked with an rpath that lexically
+# normalizes to the trusted $(slibdir)/tst-origin-secure but, taken
+# literally, resolves the "sub" symlink first.  The trusted subdirectory is
+# rooted under $(slibdir) (so it passes the trusted-path check) yet is not a
+# default loader search directory, so finding the module there proves the
+# normalized rpath entry was actually honored.  Both the trusted and the
+# attacker module share the soname libtst-origin-secure-mod.so.
+LDFLAGS-libtst-origin-secure-mod.so += -Wl,-soname,libtst-origin-secure-mod.so
+LDFLAGS-tst-origin-secure-evilmod.so += -Wl,-soname,libtst-origin-secure-mod.so
+$(objpfx)tst-origin-secure-victim: $(objpfx)libtst-origin-secure-mod.so
+LDFLAGS-tst-origin-secure-victim += \
+  -Wl,--no-as-needed \
+  -Wl,-rpath,\$$ORIGIN/sub/../../../../..$(slibdir)/tst-origin-secure \
+  -Wl,--disable-new-dtags
+$(objpfx)tst-origin-secure.out: $(objpfx)tst-origin-secure-victim \
+			       $(objpfx)libtst-origin-secure-mod.so \
+			       $(objpfx)tst-origin-secure-evilmod.so
 
 
 ifeq ($(run-built-tests),yes)
