@@ -83,6 +83,12 @@ double: 0
 Function: "erfc_upward":
 double: 0
 
+Function: "j1_downward":
+double: 12
+
+Function: "j1_towardzero":
+double: 10
+
 Function: "lgamma":
 double: 0
 
@@ -130,3 +136,6 @@ double: 0
 
 Function: "tanh_upward":
 double: 0
+
+Function: "y1_upward":
+double: 10

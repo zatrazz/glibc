@@ -276,6 +276,8 @@ core-math:
   sysdeps/ieee754/dbl-64/atan2_tint.h
   # src/binary64/atanh/atanh.c, revision 532e37dc
   sysdeps/ieee754/dbl-64/e_atanh.c
+  # src/binary64/cos/cos.c, revision 8ea8ea35
+  sysdeps/ieee754/dbl-64/s_cos.c
   # src/binary64/cosh/cosh.c, revision 5d0c89d5
   sysdeps/ieee754/dbl-64/e_cosh.c
   # src/binary64/tgamma/tgamma.c, revision 0f185e23
