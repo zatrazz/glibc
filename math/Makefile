@@ -359,6 +359,7 @@ type-ldouble-yes := ldouble
 type-double-suffix :=
 type-double-routines := \
   branred \
+  dint64_data \
   e_acos_data \
   e_asin_data \
   e_atan2_data \
