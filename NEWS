@@ -59,6 +59,17 @@ Deprecated and removed features, and other changes affecting compatibility:
   remaining behavior was to suppress the link-time warnings on the NSS
   interface functions in libc.a, which are now emitted unconditionally.
 
+* The default malloc mmap and trim thresholds are now 4 MiB and 8 MiB on
+  64-bit targets, instead of the 128 KiB used since 2001.  Allocations up to
+  the mmap threshold are served from an arena rather than by mmap, which
+  avoids an mmap/munmap pair and the kernel zeroing the memory each time such
+  a block is allocated and freed.  Programs that make large transient
+  allocations may show a higher RSS as a result; the previous behavior can be
+  restored by setting the glibc.malloc.mmap_threshold and
+  glibc.malloc.trim_threshold tunables, or the MALLOC_MMAP_THRESHOLD_ and
+  MALLOC_TRIM_THRESHOLD_ environment variables, to 131072.  The defaults on
+  32-bit targets are unchanged.
+
 Changes to build and runtime requirements:
 
   [Add changes to build and runtime requirements here]

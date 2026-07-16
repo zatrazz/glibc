@@ -190,9 +190,9 @@
 
     Tuning options that are also dynamically changeable via mallopt:
 
-    DEFAULT_TRIM_THRESHOLD     128 * 1024
+    DEFAULT_TRIM_THRESHOLD     8 * 1024 * 1024 (128 * 1024 on 32-bit)
     DEFAULT_TOP_PAD            0
-    DEFAULT_MMAP_THRESHOLD     128 * 1024
+    DEFAULT_MMAP_THRESHOLD     4 * 1024 * 1024 (128 * 1024 on 32-bit)
     DEFAULT_MMAP_MAX           65536
 
     There are several other #defined constants and macros that you
@@ -741,12 +741,22 @@ libc_hidden_proto (__libc_mallopt)
   then freeing it at program startup, in an attempt to reserve system
   memory, doesn't have the intended effect under automatic trimming,
   since that memory will immediately be returned to the system.
+
+  The default is twice M_MMAP_THRESHOLD, the ratio the dynamic threshold
+  adjustment used to maintain.  Anything the mmap threshold keeps in the
+  arena is by definition a size the program allocates in one piece, so
+  trimming below that would hand the top block back to the system just
+  before the next allocation of that size asks for it again.
 */
 
 #define M_TRIM_THRESHOLD       -1
 
 #ifndef DEFAULT_TRIM_THRESHOLD
-#define DEFAULT_TRIM_THRESHOLD (128 * 1024)
+# if __WORDSIZE == 32
+#  define DEFAULT_TRIM_THRESHOLD (128 * 1024)
+# else
+#  define DEFAULT_TRIM_THRESHOLD (8 * 1024 * 1024)
+# endif
 #endif
 
 /*
@@ -783,19 +793,15 @@ libc_hidden_proto (__libc_mallopt)
 #endif
 
 /*
-  MMAP_THRESHOLD_MAX and _MIN are the bounds on the dynamically
-  adjusted MMAP_THRESHOLD.
+  MMAP_THRESHOLD_MAX no longer bounds MMAP_THRESHOLD: the threshold is
+  static since the dynamic adjustment was removed.  It survives only as
+  the value HEAP_MAX_SIZE is derived from in arena.c.
 */
 
-#ifndef DEFAULT_MMAP_THRESHOLD_MIN
-#define DEFAULT_MMAP_THRESHOLD_MIN (128 * 1024)
-#endif
-
 #ifndef DEFAULT_MMAP_THRESHOLD_MAX
-  /* For 32-bit platforms we cannot increase the maximum mmap
-     threshold much because it is also the minimum value for the
-     maximum heap size and its alignment.  Going above 512k (i.e., 1M
-     for new heaps) wastes too much address space.  */
+  /* For 32-bit platforms we cannot increase the heap size much because
+     it is also the alignment of every non-main arena heap.  Going above
+     512k (i.e., 1M for new heaps) wastes too much address space.  */
 # if __WORDSIZE == 32
 #  define DEFAULT_MMAP_THRESHOLD_MAX (512 * 1024)
 # else
@@ -867,38 +873,47 @@ libc_hidden_proto (__libc_mallopt)
   kernels, the VA space layout is different and brk() and mmap
   both can span the entire heap at will.
 
-  Rather than using a static threshold for the brk/mmap tradeoff,
-  we are now using a simple dynamic one. The goal is still to avoid
-  fragmentation. The old goals we kept are
-  1) try to get the long lived large allocations to use mmap()
-  2) really large allocations should always use mmap()
-  and we're adding now:
-  3) transient allocations should use brk() to avoid forcing the kernel
-     having to zero memory over and over again
+  The goals are to avoid fragmentation while
+  1) getting the long lived large allocations to use mmap(),
+  2) always using mmap() for really large allocations, and
+  3) letting transient allocations use brk() to avoid forcing the kernel
+     to zero memory over and over again.
 
-  The implementation works with a sliding threshold, which is by default
-  limited to go between 128Kb and 32Mb (64Mb for 64 bit machines) and starts
-  out at 128Kb as per the 2001 default.
+  Update in 2026:
+  Between 2006 and 2026 the threshold was dynamic: it started at the 128Kb
+  of the 2001 default and was raised, up to 32Mb (512Kb on 32-bit), every
+  time the application freed a larger mmapped chunk, on the assumption that
+  a size the application frees is a size it will allocate again.  It only
+  ever grew, so a single large transient allocation could push it as high
+  as an arena and permanently stop the top block from being trimmed.  It
+  was therefore removed.
 
-  This allows us to satisfy requirement 1) under the assumption that long
-  lived allocations are made early in the process' lifespan, before it has
-  started doing dynamic allocations of the same size (which will
-  increase the threshold).
+  The threshold is static again, but 128Kb is far below the size of the
+  transient allocations a 64-bit application makes today, and serving those
+  through mmap() costs an mmap()/munmap() pair plus kernel zeroing on every
+  cycle.  The default is 4Mb on 64-bit targets, which keeps them in the
+  arena where they can be reused.  That is well under the 32Mb the dynamic
+  threshold could reach, so the memory retained instead of being returned
+  to the system is bounded lower than it was before 2026.
 
-  The upperbound on the threshold satisfies requirement 2)
+  M_TRIM_THRESHOLD defaults to twice this, as it did whenever the dynamic
+  adjustment fired.  The two have to move together: on its own a higher
+  mmap threshold only turns an mmap()/munmap() cycle into an equally
+  expensive sbrk() grow/shrink cycle whenever the freed block borders the
+  top of the arena.
 
-  The threshold goes up in value when the application frees memory that was
-  allocated with the mmap allocator. The idea is that once the application
-  starts freeing memory of a certain size, it's highly probable that this is
-  a size the application uses for transient allocations. This estimator
-  is there to satisfy the new third requirement.
-
+  32-bit targets keep 128Kb: address space is scarce there, and a threshold
+  above HEAP_MAX_SIZE (1Mb) could not be served from a non-main arena.
 */
 
 #define M_MMAP_THRESHOLD      -3
 
 #ifndef DEFAULT_MMAP_THRESHOLD
-#define DEFAULT_MMAP_THRESHOLD DEFAULT_MMAP_THRESHOLD_MIN
+# if __WORDSIZE == 32
+#  define DEFAULT_MMAP_THRESHOLD (128 * 1024)
+# else
+#  define DEFAULT_MMAP_THRESHOLD (4 * 1024 * 1024)
+# endif
 #endif
 
 /*
@@ -1526,9 +1541,12 @@ unlink_chunk (mstate av, mchunkptr p)
 /*
    ATTEMPT_TRIMMING_THRESHOLD is the size of a chunk in free()
    that may attempt trimming of an arena's heap. This is a heuristic, so the
-   exact value should not matter too much. It is defined at half the default
-   trim threshold as a compromise heuristic to only attempt trimming if it is
-   likely to release a significant amount of memory.
+   exact value should not matter too much. It only filters out the frees too
+   small to be worth the trimming attempt for; M_TRIM_THRESHOLD, checked
+   against the top chunk, is what actually decides whether memory is
+   released. It is deliberately not scaled with the default trim threshold:
+   a top block grown by many small frees still has to be trimmable, and the
+   trim threshold itself is tunable at run time.
  */
 
 #define ATTEMPT_TRIMMING_THRESHOLD  (65536UL)

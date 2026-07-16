@@ -1333,7 +1333,8 @@ that the memory for these chunks can be returned to the system on
 @code{free}.  Note that requests smaller than this threshold might still
 be allocated via @code{mmap}.
 
-If this parameter is not set, the default value is set as 128 KiB.
+If this parameter is not set, the default value is set as 4 MiB on 64-bit
+targets and as 128 KiB on 32-bit targets.
 
 This parameter can also be set for the process at startup by setting the
 environment variable @env{MALLOC_MMAP_THRESHOLD_} to the desired value.
@@ -1368,7 +1369,9 @@ environment variable @env{MALLOC_TOP_PAD_} to the desired value.
 This is the minimum size (in bytes) of the top-most, releasable chunk
 that will trigger a system call in order to return memory to the system.
 
-If this parameter is not set, the default value is set as 128 KiB.
+If this parameter is not set, the default value is set as 8 MiB on 64-bit
+targets and as 128 KiB on 32-bit targets, that is, twice
+@code{M_MMAP_THRESHOLD}.
 
 This parameter can also be set for the process at startup by setting the
 environment variable @env{MALLOC_TRIM_THRESHOLD_} to the desired value.

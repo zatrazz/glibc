@@ -281,10 +281,8 @@ it is guaranteed that the memory for these chunks can be returned to the system
 on @code{free}. Note that requests smaller than this threshold might still be
 allocated via @code{mmap}.
 
-If this tunable is not set, the default value is set to @samp{131072} bytes and
-the threshold is adjusted dynamically to suit the allocation patterns of the
-program.  If the tunable is set, the dynamic adjustment is disabled and the
-value is set as static.
+If this tunable is not set, the default value is set to @samp{4194304} bytes
+(4 MB) on 64-bit targets and to @samp{131072} bytes (128 KB) on 32-bit targets.
 @end deftp
 
 @deftp Tunable glibc.malloc.trim_threshold
@@ -295,10 +293,9 @@ The value of this tunable is the minimum size (in bytes) of the top-most,
 releasable chunk in an arena that will trigger a system call in order to return
 memory to the system from that arena.
 
-If this tunable is not set, the default value is set as 128 KB and the
-threshold is adjusted dynamically to suit the allocation patterns of the
-program.  If the tunable is set, the dynamic adjustment is disabled and the
-value is set as static.
+If this tunable is not set, the default value is set as 8 MB on 64-bit targets
+and as 128 KB on 32-bit targets, that is, twice
+@code{glibc.malloc.mmap_threshold}.
 @end deftp
 
 @deftp Tunable glibc.malloc.mmap_max
