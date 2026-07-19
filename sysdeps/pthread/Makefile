@@ -349,6 +349,7 @@ tests += \
   tst-atfork3 \
   tst-atfork4 \
   tst-create1 \
+  tst-create2 \
   tst-fini1 \
   tst-pt-tls4 \
   # tests
@@ -365,6 +366,7 @@ modules-names += \
   tst-atfork3mod \
   tst-atfork4mod \
   tst-create1mod \
+  tst-create2mod \
   tst-fini1mod \
   tst-stack2-mod \
   tst-tls4moda \
@@ -539,6 +541,10 @@ CFLAGS-tst-unwind-thread.c += -funwind-tables
 LDFLAGS-tst-create1 = -Wl,-export-dynamic
 $(objpfx)tst-create1: $(shared-thread-library)
 $(objpfx)tst-create1.out: $(objpfx)tst-create1mod.so
+
+$(objpfx)tst-create2: $(shared-thread-library)
+$(objpfx)tst-create2mod.so: $(libsupport) $(shared-thread-library)
+$(objpfx)tst-create2.out: $(objpfx)tst-create2mod.so
 
 $(objpfx)tst-stack2.out: $(objpfx)tst-stack2-mod.so
 $(objpfx)tst-stack2-mod.so: $(shared-thread-library)
