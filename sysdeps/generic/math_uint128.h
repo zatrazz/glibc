@@ -20,6 +20,7 @@
 #define _MATH_INT128_H
 
 #include <stdbool.h>
+#include <intprops.h>
 
 /* Limited support for internal 128 bit integer, used on some math
    implementations.  It uses compiler builtin type if supported, otherwise
@@ -74,19 +75,19 @@ typedef struct
 
 static inline u128 u128_add (u128 x, u128 y)
 {
-  bool carry = x.low + y.low < x.low;
-  return (u128) { .high = x.high + y.high + carry, .low = x.low + y.low };
-}
-
-static inline u128 u128_neg (u128 x)
-{
-  u128 xbitnot = u128_from_hl (~x.high, ~x.low);
-  return u128_add (xbitnot, u128_from_u64 (1));
+  bool carry = INT_ADD_WRAPV (x.low, y.low, &x.low);
+  return (u128) { .high = x.high + y.high + carry, .low = x.low };
 }
 
 static inline u128 u128_sub (u128 x, u128 y)
 {
-  return u128_add (x, u128_neg (y));
+  bool borrow = INT_SUBTRACT_WRAPV (x.low, y.low, &x.low);
+  return (u128) { .high = x.high - y.high - borrow, .low = x.low };
+}
+
+static inline u128 u128_neg (u128 x)
+{
+  return u128_sub (u128_from_u64 (0), x);
 }
 
 static inline u128 u128_lshift (u128 x, unsigned int n)
@@ -115,54 +116,22 @@ static inline u128 u128_rshift (u128 x, unsigned int n)
 
 static inline u128 u128_mul (u128 x, u128 y)
 {
-  if (x.high == 0 && y.high == 0)
-    {
-      uint64_t x0 = x.low & MASK32;
-      uint64_t x1 = x.low >> 32;
-      uint64_t y0 = y.low & MASK32;
-      uint64_t y1 = y.low >> 32;
-      u128 x0y0 = { .high = 0, .low = x0 * y0 };
-      u128 x0y1 = { .high = 0, .low = x0 * y1 };
-      u128 x1y0 = { .high = 0, .low = x1 * y0 };
-      u128 x1y1 = { .high = x1 * y1, .low = 0 };
-      /* x0y0 + ((x0y1 + x1y0) << 32) + x1y1  */
-      return u128_add (u128_add (x0y0,
-				 u128_lshift (u128_add (x0y1, x1y0),
-					      32)),
-		       x1y1);
-    }
-  else
-    {
-      uint64_t x0 = x.low & MASK32;
-      uint64_t x1 = x.low >> 32;
-      uint64_t x2 = x.high & MASK32;
-      uint64_t x3 = x.high >> 32;
-      uint64_t y0 = y.low & MASK32;
-      uint64_t y1 = y.low >> 32;
-      uint64_t y2 = y.high & MASK32;
-      uint64_t y3 = y.high >> 32;
-      u128 x0y0 = { .high = 0, .low = x0 * y0 };
-      u128 x0y1 = { .high = 0, .low = x0 * y1 };
-      u128 x0y2 = { .high = 0, .low = x0 * y2 };
-      u128 x0y3 = { .high = 0, .low = x0 * y3 };
-      u128 x1y0 = { .high = 0, .low = x1 * y0 };
-      u128 x1y1 = { .high = 0, .low = x1 * y1 };
-      u128 x1y2 = { .high = 0, .low = x1 * y2 };
-      u128 x2y0 = { .high = 0, .low = x2 * y0 };
-      u128 x2y1 = { .high = 0, .low = x2 * y1 };
-      u128 x3y0 = { .high = 0, .low = x3 * y0 };
-      /* x0y0 + ((x0y1 + x1y0) << 32) + ((x0y2 + x1y1 + x2y0) << 64) +
-          ((x0y3 + x1y2 + x2y1 + x3y0) << 96)  */
-      u128 r0 = u128_add (x0y0,
-			  u128_lshift (u128_add (x0y1, x1y0),
-				       32));
-      u128 r1 = u128_add (u128_lshift (u128_add (u128_add (x0y2, x1y1), x2y0),
-				       64),
-			  u128_lshift (u128_add (u128_add (x0y3, x1y2),
-						 u128_add (x2y1, x3y0)),
-				       96));
-      return u128_add (r0, r1);
-   }
+  /* Compute the low 128 bits of the product: a full 64x64->128
+     multiplication of the low words done in 64 bit arithmetic, with the
+     cross products folded into the high word (their upper halves would
+     fall beyond bit 127).  */
+  uint64_t x0 = x.low & MASK32;
+  uint64_t x1 = x.low >> 32;
+  uint64_t y0 = y.low & MASK32;
+  uint64_t y1 = y.low >> 32;
+  uint64_t x0y0 = x0 * y0;
+  uint64_t x1y0 = x1 * y0;
+  uint64_t x0y1 = x0 * y1;
+  uint64_t x1y1 = x1 * y1;
+  uint64_t cross = (x0y0 >> 32) + (x1y0 & MASK32) + (x0y1 & MASK32);
+  uint64_t high = x1y1 + (x1y0 >> 32) + (x0y1 >> 32) + (cross >> 32);
+  return (u128) { .high = high + x.low * y.high + x.high * y.low,
+		  .low = x.low * y.low };
 }
 #endif /* __SIZEOF_INT128__ */
 
