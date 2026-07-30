@@ -17,23 +17,31 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <ldsodefs.h>
+#include <sys/param.h>
 
-static bool
+static enum dl_readonly_area_error_type
 check_relro (const struct link_map *l, uintptr_t start, uintptr_t end)
 {
-  if (l->l_relro_addr != 0)
-    {
-      uintptr_t relro_start = ALIGN_DOWN (l->l_addr + l->l_relro_addr,
-					  GLRO(dl_pagesize));
-      uintptr_t relro_end = ALIGN_DOWN (l->l_addr + l->l_relro_addr
-					+ l->l_relro_size,
-					GLRO(dl_pagesize));
-      /* RELRO is caved out from a RW segment, so the next range is either
-	 RW or nonexistent.  */
-      return relro_start <= start && end <= relro_end
-	? dl_readonly_area_rdonly : dl_readonly_area_writable;
+  /* The range may span multiple PT_GNU_RELRO segments whose ranges are
+     adjacent, so accumulate the covered bytes.  There is no need to handle
+     the rounding done by _dl_protect_relro, the toolchain is expected to
+     place the objects within the segments.  */
+  size_t size = end - start;
+  for (const ElfW(Phdr) *ph = l->l_phdr; ph < &l->l_phdr[l->l_phnum]; ++ph)
+    if (ph->p_type == PT_GNU_RELRO)
+      {
+	uintptr_t relro_start = l->l_addr + ph->p_vaddr;
+	uintptr_t relro_end = relro_start + ph->p_memsz;
+	uintptr_t from = MAX (relro_start, start);
+	uintptr_t to = MIN (relro_end, end);
+	if (from < to)
+	  size -= to - from;
+	if (size == 0)
+	  return dl_readonly_area_rdonly;
+      }
 
-    }
+  /* RELRO is caved out from a RW segment, so any range outside of
+     a RELRO segment is either RW or nonexistent.  */
   return dl_readonly_area_writable;
 }
 

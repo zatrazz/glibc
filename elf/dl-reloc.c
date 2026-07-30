@@ -409,23 +409,44 @@ _dl_relocate_object (struct link_map *l, struct r_scope_elem *scope[],
 void
 _dl_protect_relro (struct link_map *l)
 {
-  if (l->l_relro_size == 0)
-    return;
+  for (const ElfW(Phdr) *ph = l->l_phdr; ph < &l->l_phdr[l->l_phnum]; ++ph)
+    if (ph->p_type == PT_GNU_RELRO)
+      {
+	bool at_load_start = false;
+	for (const ElfW(Phdr) *lph = l->l_phdr;
+	     lph < &l->l_phdr[l->l_phnum]; ++lph)
+	  if (lph->p_type == PT_LOAD && lph->p_vaddr == ph->p_vaddr)
+	    {
+	      at_load_start = true;
+	      break;
+	    }
 
-  ElfW(Addr) start = ALIGN_DOWN((l->l_addr
-				 + l->l_relro_addr),
-				GLRO(dl_pagesize));
-  ElfW(Addr) end = ALIGN_DOWN((l->l_addr
-			       + l->l_relro_addr
-			       + l->l_relro_size),
-			      GLRO(dl_pagesize));
-  if (start != end
-      && __mprotect ((void *) start, end - start, PROT_READ) < 0)
-    {
-      static const char errstring[] = N_("\
+	ElfW(Addr) vaddr = l->l_addr + ph->p_vaddr;
+	ElfW(Addr) start = at_load_start
+			   ? ALIGN_DOWN (vaddr, GLRO(dl_pagesize))
+			   : ALIGN_UP (vaddr, GLRO(dl_pagesize));
+	ElfW(Addr) end = ALIGN_DOWN (vaddr + ph->p_memsz, GLRO(dl_pagesize));
+
+	/* A segment that does not cover a complete page is not protected at
+	   all.  This is a loss of hardening (and arguably a malformed
+	   object).  */
+	if (start >= end)
+	  {
+	    if (__glibc_unlikely (GLRO(dl_debug_mask) & DL_DEBUG_RELOC))
+	      _dl_debug_printf ("\nnot protecting RELRO segment at 0x%lx of "
+				"%s: no complete page in range\n",
+				(unsigned long int) vaddr,
+				DSO_FILENAME (l->l_name));
+	    continue;
+	  }
+
+	if (__mprotect ((void *) start, end - start, PROT_READ) < 0)
+	  {
+	    static const char errstring[] = N_("\
 cannot apply additional memory protection after relocation");
-      _dl_signal_error (errno, l->l_name, NULL, errstring);
-    }
+	    _dl_signal_error (errno, l->l_name, NULL, errstring);
+	  }
+      }
 }
 
 void

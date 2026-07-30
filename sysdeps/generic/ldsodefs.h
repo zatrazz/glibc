@@ -32,6 +32,7 @@
 #include <dlfcn.h>
 #include <fpu_control.h>
 #include <sys/mman.h>
+#include <libc-pointer-arith.h>
 #include <link.h>
 #include <dl-lookupcfg.h>
 #include <dl-sysdep.h>
