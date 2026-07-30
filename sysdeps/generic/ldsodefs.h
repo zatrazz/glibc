@@ -32,6 +32,7 @@
 #include <dlfcn.h>
 #include <fpu_control.h>
 #include <sys/mman.h>
+#include <libc-pointer-arith.h>
 #include <link.h>
 #include <dl-lookupcfg.h>
 #include <dl-sysdep.h>
@@ -1036,6 +1037,41 @@ void _dl_relocate_object_no_relro (struct link_map *map,
 
 /* Protect PT_GNU_RELRO area.  */
 extern void _dl_protect_relro (struct link_map *map) attribute_hidden;
+
+struct dl_relro_range
+{
+  ElfW(Addr) start;
+  ElfW(Addr) end;
+};
+
+/* Compute the address range to protect for the PT_GNU_RELRO segment
+   PH of map L.  AT_LOAD_START tells whether the segment starts a
+   PT_LOAD segment.  mprotect requires page-aligned boundaries, but
+   the static linker only aligns the segment end, possibly only to a
+   link-time page size smaller than the run-time one.  The end is
+   rounded down so the writable data after the segment never loses
+   write access.  A segment that starts a PT_LOAD segment (the
+   traditional single-RELRO layout) has only unused slack below it in
+   its first page, so its start is rounded down; rounding up instead
+   could drop the protection entirely (BFD ld does not align the
+   start at all).  Any other segment is preceded by live writable
+   data, so its start is rounded up.  The result may be empty with
+   START above END; callers must check START < END.  */
+static inline struct dl_relro_range
+_dl_relro_range (const struct link_map *l, const ElfW(Phdr) *ph,
+		 bool at_load_start)
+{
+  ElfW(Addr) start = l->l_addr + ph->p_vaddr;
+  ElfW(Addr) end = start + ph->p_memsz;
+
+  return (struct dl_relro_range)
+    {
+      .start = at_load_start
+	       ? ALIGN_DOWN (start, GLRO(dl_pagesize))
+	       : ALIGN_UP (start, GLRO(dl_pagesize)),
+      .end = ALIGN_DOWN (end, GLRO(dl_pagesize)),
+    };
+}
 
 /* Call _dl_signal_error with a message about an unhandled reloc type.
    TYPE is the result of ELFW(R_TYPE) (r_info), i.e. an R_<CPU>_* value.
