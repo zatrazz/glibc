@@ -394,6 +394,19 @@ not match a long option (or its abbreviation).
 
 @end deftypefun
 
+It is possible for the programmer to introduce a new option name that
+conflicts with the translation of an existing option name.  Such a
+case would disrupt the workflow of users as the new option would
+replace the existing option.  Before adding a new option to a program,
+the developer should check for collisions with all known translations.
+This can be done with the installed
+@command{check-getopt-translations} script, by calling for each PO
+file in the project:
+
+@smallexample
+check-getopt-translations "context used for translations" @file{file.po}
+@end smallexample
+
 @node Getopt Long Option Example
 @subsection Example of Parsing Long Options with @code{getopt_long}
 

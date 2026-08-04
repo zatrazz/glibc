@@ -18,6 +18,9 @@ Major new features:
 * Argp parsers enable translated long option names with "command-line
   option" as the message context.
 
+* The new installed script check-getopt-translations parses PO files to
+  check for collisions between long option names and translations.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
   [Add deprecations, removals and changes affecting compatibility here]

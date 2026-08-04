@@ -382,7 +382,7 @@ xtests-time64 := \
 
 ifeq (yes,$(build-shared))
 test-srcs := \
-  globtest
+  globtest \
   # tests-src
 tests += \
   tst-exec \
@@ -391,6 +391,11 @@ tests += \
   tst-spawn3 \
   wordexp-test \
   # tests
+endif
+
+ifneq ($(PERL),no)
+test-srcs +=  \
+  tst-check-getopt-translations
 endif
 
 ifeq (yesyes,$(build-shared)$(have-thread-library))
@@ -422,6 +427,9 @@ install-others-programs := \
   $(inst_libexecdir)/getconf \
   # install-others-programs
 
+install-bin-script = check-getopt-translations
+generated += check-getopt-translations
+
 before-compile += \
   $(objpfx)posix-conf-vars-def.h \
   # before-compile
@@ -434,6 +442,7 @@ generated += \
   getconf.speclist \
   ptestcases.h \
   testcases.h \
+  tst-check-getopt-translations.out \
   tst-getconf.out \
   wordexp-tst.out \
   # generated
@@ -510,6 +519,11 @@ tests-special += \
   # tests-special
 endif
 endif
+endif
+
+ifneq ($(PERL),no)
+tests-special += \
+  $(objpfx)tst-check-getopt-translations.out
 endif
 
 include ../Rules
@@ -829,3 +843,15 @@ $(tst_getopt_long_collision_mo): tst-getopt_long_collision.po
 
 $(objpfx)tst-getopt_long_collision.out: $(tst_getopt_long_collision_mo) $(gen-locales)
 CFLAGS-tst-getopt_long_collision.c += -DOBJPFX=\"$(objpfx)\"
+
+$(objpfx)check-getopt-translations: check-getopt-translations.pl
+	rm -f $@.new
+	sed -e 's|@XXX@|$(address-width)|' \
+	    -e 's|@VERSION@|$(version)|' \
+	    -e 's|@PKGVERSION@|$(PKGVERSION)|' \
+	    -e 's|@REPORT_BUGS_TO@|$(REPORT_BUGS_TO)|' $^ > $@.new \
+	&& rm -f $@ && mv $@.new $@ && chmod +x $@
+
+$(objpfx)tst-check-getopt-translations.out: tst-check-getopt-translations.sh $(objpfx)check-getopt-translations standalone-multiple-getopt-collisions.po
+	$(SHELL) $^ $(common-objpfx)posix/tst-check-getopt-translations.out
+	$(evaluate-test)

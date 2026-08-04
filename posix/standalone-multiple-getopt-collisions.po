@@ -1,0 +1,45 @@
+# French translations for the getopt static checker
+# Copyright (C) 2026 THE GNU C Library'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the GNU C Library.
+#
+# This has two errors:
+# 1. "toto" is used both as a translation of "foo" and "bar";
+# 2. "bar" is used as a translation of "pub", but it is another option.
+msgid ""
+msgstr ""
+"Project-Id-Version: GNU C Library (see version.h)\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-06-06 22:37+0200\n"
+"PO-Revision-Date: 2025-06-06 22:38+0200\n"
+"Language-Team: French <traduc@traduc.org>\n"
+"Language: fr\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n > 1);\n"
+
+# This is not an option name, so it’s OK for it to clash with option
+# names.
+msgctxt "fish"
+msgid "bass"
+msgstr "bar"
+
+# This is the --foo option.
+msgctxt "command-line option"
+msgid "foo"
+msgstr "toto"
+
+# This is the --bar option.  Oops, I translated with toto here too.
+msgctxt "command-line option"
+msgid "bar"
+msgstr "toto"
+
+# Let’s go to the --pub!
+msgctxt "command-line option"
+msgid "pub"
+msgstr "bar"
+
+# Wait, it’s OK if baz is translated to baz though.
+msgctxt "command-line option"
+msgid "baz"
+msgstr "baz"
