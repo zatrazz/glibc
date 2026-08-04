@@ -265,7 +265,7 @@ _dl_close_worker (struct link_map *map, bool force)
 	  /* Call its termination function.  Do not do it for
 	     half-cooked objects.  Temporarily disable exception
 	     handling, so that errors are fatal.  */
-	  if (imap->l_init_called)
+	  if (l_init_called (imap))
 	    _dl_catch_exception (NULL, _dl_call_fini, imap);
 
 #ifdef SHARED
@@ -511,7 +511,7 @@ _dl_close_worker (struct link_map *map, bool force)
 	      if (GL(dl_tls_dtv_slotinfo_list) != NULL
 		  && ! remove_slotinfo (imap->l_tls_modid,
 					GL(dl_tls_dtv_slotinfo_list), 0,
-					imap->l_init_called))
+					l_init_called (imap)))
 		/* All dynamically loaded modules with TLS are unloaded.  */
 		/* Can be read concurrently.  */
 		atomic_store_relaxed (&GL(dl_tls_max_dtv_idx),

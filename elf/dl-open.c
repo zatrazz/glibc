@@ -273,7 +273,7 @@ resize_scopes (struct link_map *new)
 
       /* If the initializer has been called already, the object has
 	 not been loaded here and now.  */
-      if (imap->l_init_called && imap->l_type == lt_loaded)
+      if (l_init_called (imap) && imap->l_type == lt_loaded)
 	{
 	  if (scope_has_map (imap, new))
 	    /* Avoid duplicates.  */
@@ -337,7 +337,7 @@ update_scopes (struct link_map *new)
       struct link_map *imap = new->l_searchlist.r_list[i];
       int from_scope = 0;
 
-      if (imap->l_init_called && imap->l_type == lt_loaded)
+      if (l_init_called (imap) && imap->l_type == lt_loaded)
 	{
 	  if (scope_has_map (imap, new))
 	    /* Avoid duplicates.  */

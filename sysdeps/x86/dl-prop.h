@@ -40,7 +40,7 @@ dl_isa_level_check (struct link_map *m, const char *program)
       l = m->l_initfini[i];
 
       /* Skip ISA level check if functions have been executed.  */
-      if (l->l_init_called)
+      if (l_init_called (l))
 	continue;
 
 #ifdef SHARED

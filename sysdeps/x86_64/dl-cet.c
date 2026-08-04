@@ -70,7 +70,7 @@ dl_check_legacy_object (struct link_map *m,
       /* Check each shared object to see if IBT and SHSTK are enabled.  */
       l = m->l_initfini[i];
 
-      if (l->l_init_called)
+      if (l_init_called (l))
         continue;
 
 #ifdef SHARED

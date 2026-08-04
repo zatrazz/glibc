@@ -180,7 +180,6 @@ struct link_map
     unsigned int l_dt_relr_ref:1; /* Nonzero if GLIBC_ABI_DT_RELR is
 				     referenced.  */
     unsigned int l_relocated:1;	/* Nonzero if object's relocations done.  */
-    unsigned int l_init_called:1; /* Nonzero if DT_INIT function called.  */
     unsigned int l_global:1;	/* Nonzero if object in _dl_global_scope.  */
     unsigned int l_reserved:2;	/* Reserved for internal use.  */
     unsigned int l_main_map:1;  /* Nonzero for the map of the main program.  */
@@ -222,6 +221,13 @@ struct link_map
        ignored.  */
     bool l_nodelete_active;
     bool l_nodelete_pending;
+
+    /* Progress of the ELF constructor execution for this map, with
+       the values defined by enum l_init_state_value in ldsodefs.h.
+       All transitions happen while GL(dl_load_lock) is held; the
+       field is read outside the lock in _dl_fini, so it is updated
+       with atomic stores.  See call_init in elf/dl-init.c.  */
+    unsigned int l_init_state;
 
 #include <link_map.h>
 

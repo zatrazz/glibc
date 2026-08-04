@@ -29,7 +29,7 @@ _dl_call_fini (void *closure_map)
     _dl_debug_printf ("\ncalling fini: %s [%lu]\n\n", map->l_name, map->l_ns);
 
   /* Make sure nothing happens if we are called twice.  */
-  map->l_init_called = 0;
+  atomic_store_release (&map->l_init_state, lm_init_not_called);
 
   ElfW(Dyn) *fini_array = map->l_info[DT_FINI_ARRAY];
   if (fini_array != NULL)

@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <assert.h>
+#include <atomic.h>
 #include <stddef.h>
 #include <ldsodefs.h>
 #include <elf-initfini.h>
@@ -34,18 +35,26 @@ call_init (struct link_map *l, int argc, char **argv, char **env)
      need relocation.)  */
   assert (l->l_relocated || l->l_type == lt_executable);
 
-  if (l->l_init_called)
-    /* This object is all done.  */
+  if (l->l_init_state != lm_init_not_called)
+    /* This object is all done, or its constructors are already
+       executing further up the stack of this very thread (circular
+       dependency).  */
     return;
 
   /* Avoid handling this constructor again in case we have a circular
      dependency.  */
-  l->l_init_called = 1;
+  atomic_store_release (&l->l_init_state, lm_init_running);
 
   /* Check for object which constructors we do not run here.  */
   if (__builtin_expect (l->l_name[0], 'a') == '\0'
       && l->l_type == lt_executable)
-    return;
+    {
+      /* The startup code takes care of running the constructors of
+	 the main executable, but the map still needs to reach the
+	 final state.  */
+      atomic_store_release (&l->l_init_state, lm_init_done);
+      return;
+    }
 
   /* Print a debug message if wanted.  */
   if (__glibc_unlikely (GLRO(dl_debug_mask) & DL_DEBUG_IMPCALLS))
@@ -73,6 +82,8 @@ call_init (struct link_map *l, int argc, char **argv, char **env)
       for (j = 0; j < jm; ++j)
 	((dl_init_t) addrs[j]) (argc, argv, env);
     }
+
+  atomic_store_release (&l->l_init_state, lm_init_done);
 }
 
 

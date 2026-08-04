@@ -115,7 +115,7 @@ _dl_fini (void)
 	    {
 	      struct link_map *l = maps[i];
 
-	      if (l->l_init_called)
+	      if (l_init_called (l))
 		{
 		  _dl_call_fini (l);
 #ifdef SHARED

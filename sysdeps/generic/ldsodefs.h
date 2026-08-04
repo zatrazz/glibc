@@ -101,6 +101,39 @@ l_soname (const struct link_map *l)
 	    + l->l_info[DT_SONAME]->d_un.d_val);
 }
 
+/* Values for the l_init_state member of struct link_map, describing
+   the progress of ELF constructor execution for the map.  All
+   transitions happen while GL(dl_load_lock) is held, and states only
+   move forward, except for the reset to lm_init_not_called in
+   _dl_call_fini.  */
+enum l_init_state_value
+  {
+    /* The constructors have not run, and no dlopen call has committed
+       to running them yet.  */
+    lm_init_not_called = 0,
+
+    /* An in-flight dlopen call has committed to running the
+       constructors from its _dl_init call.  */
+    lm_init_scheduled,
+
+    /* The constructors are executing.  */
+    lm_init_running,
+
+    /* The constructors have returned.  */
+    lm_init_done
+  };
+
+/* Returns true if the ELF constructors of L have started executing
+   (and possibly not yet finished).  This is the historical meaning of
+   the former l_init_called flag: destructors are run for such maps,
+   and scope/property handling treats them as preexisting objects
+   rather than objects being loaded by the current dlopen call.  */
+static inline bool
+l_init_called (const struct link_map *l)
+{
+  return l->l_init_state >= lm_init_running;
+}
+
 /* Result of the lookup functions and how to retrieve the base address.  */
 typedef struct link_map *lookup_t;
 #define LOOKUP_VALUE(map) map
