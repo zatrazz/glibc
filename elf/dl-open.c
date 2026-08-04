@@ -54,10 +54,13 @@ struct dl_open_args
   /* Namespace ID.  */
   Lmid_t nsid;
 
-  /* Original value of _ns_global_scope_pending_adds.  Set by
-     dl_open_worker.  Only valid if nsid is a real namespace
-     (non-negative).  */
-  unsigned int original_global_scope_pending_adds;
+  /* Number of global scope slots this call added to
+     _ns_global_scope_pending_adds in add_to_global_resize, and the number of
+     objects it actually moved into the global scope in add_to_global_update.
+     The difference is the reserved part that _dl_open releases when the call
+     finishes.  Only valid if  nsid is a real namespace (non-negative).  */
+  unsigned int global_scope_reserved;
+  unsigned int global_scope_consumed;
 
   /* Set to true by dl_open_worker if libc.so was already loaded into
      the namespace at the time dl_open_worker was called.  This is
@@ -88,8 +91,9 @@ add_to_global_resize_failure (struct link_map *new)
    risk of memory allocation failure.  add_to_global_resize raises
    exceptions for memory allocation errors.  */
 static void
-add_to_global_resize (struct link_map *new)
+add_to_global_resize (struct dl_open_args *args)
 {
+  struct link_map *new = args->map;
   struct link_namespaces *ns = &GL (dl_ns)[new->l_ns];
 
   /* Count the objects we have to put in the global scope.  */
@@ -112,9 +116,14 @@ add_to_global_resize (struct link_map *new)
      in an realloc() call.  Therefore we allocate a completely new
      array the first time we have to add something to the locale scope.  */
 
+  /* Record the reservation before any of the failure paths below, so
+     that _dl_open releases it even if an exception is raised.  */
+  unsigned int new_pending_adds;
   if (__builtin_add_overflow (ns->_ns_global_scope_pending_adds, to_add,
-			      &ns->_ns_global_scope_pending_adds))
+			      &new_pending_adds))
     add_to_global_resize_failure (new);
+  ns->_ns_global_scope_pending_adds = new_pending_adds;
+  args->global_scope_reserved = to_add;
 
   unsigned int new_size = 0; /* 0 means no new allocation.  */
   void *old_global = NULL; /* Old allocation if free-able.  */
@@ -169,8 +178,9 @@ add_to_global_resize (struct link_map *new)
 /* Actually add the new global objects to the global scope.  Must be
    called after add_to_global_resize.  This function cannot fail.  */
 static void
-add_to_global_update (struct link_map *new)
+add_to_global_update (struct dl_open_args *args)
 {
+  struct link_map *new = args->map;
   struct link_namespaces *ns = &GL (dl_ns)[new->l_ns];
 
   /* Now add the new entries.  */
@@ -200,6 +210,7 @@ add_to_global_update (struct link_map *new)
   unsigned int added = new_nlist - ns->_ns_main_searchlist->r_nlist;
   assert (added <= ns->_ns_global_scope_pending_adds);
   ns->_ns_global_scope_pending_adds -= added;
+  args->global_scope_consumed = added;
 
   atomic_write_barrier ();
   ns->_ns_main_searchlist->r_nlist = new_nlist;
@@ -474,10 +485,6 @@ dl_open_worker_begin (void *a)
      early initialization routine (or clear libc_map on error).  */
   args->libc_already_loaded = GL(dl_ns)[args->nsid].libc_map != NULL;
 
-  /* Retain the old value, so that it can be restored.  */
-  args->original_global_scope_pending_adds
-    = GL (dl_ns)[args->nsid]._ns_global_scope_pending_adds;
-
   /* One might be tempted to assert that we are RT_CONSISTENT at this point, but that
      may not be true if this is a recursive call to dlopen.  */
   _dl_debug_initialize (0, args->nsid);
@@ -523,7 +530,7 @@ dl_open_worker_begin (void *a)
 	 namespace but it is not so far, prepare to add it now.  This
 	 can raise an exception to do a malloc failure.  */
       if ((mode & RTLD_GLOBAL) && new->l_global == 0)
-	add_to_global_resize (new);
+	add_to_global_resize (args);
 
       /* Mark the object as not deletable if the RTLD_NODELETE flags
 	 was passed.  */
@@ -538,7 +545,7 @@ dl_open_worker_begin (void *a)
 
       /* Finalize the addition to the global scope.  */
       if ((mode & RTLD_GLOBAL) && new->l_global == 0)
-	add_to_global_update (new);
+	add_to_global_update (args);
 
       /* It is not possible to run the ELF constructor for the new
 	 link map if it has not executed yet: If this dlopen call came
@@ -622,7 +629,7 @@ dl_open_worker_begin (void *a)
   /* Perform the necessary allocations for adding new global objects
      to the global scope below.  */
   if (mode & RTLD_GLOBAL)
-    add_to_global_resize (new);
+    add_to_global_resize (args);
 
   /* Register the new modules in the DTV slotinfo and bump the TLS
      generation counter *before* relocation, so an IFUNC resolver firing
@@ -761,7 +768,7 @@ dl_open_worker (void *a)
 
   /* Now we can make the new map available in the global scope.  */
   if (mode & RTLD_GLOBAL)
-    add_to_global_update (new);
+    add_to_global_update (args);
 
   /* Let the user know about the opencount.  */
   if (__glibc_unlikely (GLRO(dl_debug_mask) & DL_DEBUG_FILES))
@@ -825,6 +832,8 @@ no more namespaces available for dlmopen()"));
   args.nsid = nsid;
   /* args.libc_already_loaded is always assigned by dl_open_worker
      (before any explicit/non-local returns).  */
+  args.global_scope_reserved = 0;
+  args.global_scope_consumed = 0;
   args.argc = argc;
   args.argv = argv;
   args.env = env;
@@ -860,18 +869,23 @@ no more namespaces available for dlmopen()"));
   struct dl_exception exception;
   int errcode = _dl_catch_exception (&exception, dl_open_worker, &args);
 
-  /* Do this for both the error and success cases.  The old value has
-     only been determined if the namespace ID was assigned (i.e., it
-     is not __LM_ID_CALLER).  In the success case, we actually may
-     have consumed more pending adds than planned (because the local
-     scopes overlap in case of a recursive dlopen, the inner dlopen
-     doing some of the globalization work of the outer dlopen), so the
-     old pending adds value is larger than absolutely necessary.
-     Since it is just a conservative upper bound, this is harmless.
-     The top-level dlopen call will restore the field to zero.  */
+  /* Release the part of the global scope reservation this call did not
+     consume itself, doing for both the error and success cases.  The consumed
+     part can be smaller than the reservation when a recursive dlopen
+     performed some of the globalization work of this call (the local scopes
+     overlap), or when an error was  raised before add_to_global_update ran.
+     Either way the remainder is released here, keeping the accounting exact
+     even when multiple dlopen calls are in flight.  The namespace ID has been
+     assigned by this point (i.e., it is not __LM_ID_CALLER).  */
   if (args.nsid >= 0)
-    GL (dl_ns)[args.nsid]._ns_global_scope_pending_adds
-      = args.original_global_scope_pending_adds;
+    {
+      assert (args.global_scope_consumed <= args.global_scope_reserved);
+      unsigned int excess
+	= args.global_scope_reserved - args.global_scope_consumed;
+      assert (excess
+	      <= GL (dl_ns)[args.nsid]._ns_global_scope_pending_adds);
+      GL(dl_ns)[args.nsid]._ns_global_scope_pending_adds -= excess;
+    }
 
   /* See if an error occurred during loading.  */
   if (__glibc_unlikely (exception.errstring != NULL))
