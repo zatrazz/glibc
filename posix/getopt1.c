@@ -26,13 +26,53 @@
 
 #include "getopt.h"
 #include "getopt_int.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <assert.h>
+
+/* Callers store an optional context to enable option name
+   translation.  The argument is allocated.  */
+
+char *optctxt = NULL;
+
+/* FIXME: use pgettext_expr.  */
+static char *
+do_translate (const char *context, const char *msgid, char **allocated)
+{
+  char *full_msgid;
+  const char *translated = msgid;
+  int output_length = 0;
+
+  *allocated = NULL;
+  if (context != NULL)
+    {
+      output_length = __asprintf (&full_msgid, "%s\004%s", context, msgid);
+      *allocated = full_msgid;
+      if (output_length >= 0)
+	{
+	  translated = __dcgettext (NULL, full_msgid, LC_MESSAGES);
+	  if (strcmp (translated, full_msgid) == 0)
+	    {
+	      /* No translation for this context and message, so drop
+		 the context + ^D prefix.  */
+	      translated = msgid;
+	    }
+	}
+      /* Otherwise, if memory allocation failed, then we won’t accept
+	 translations.  translated remains an alias to msgid.  */
+    }
+  else
+    translated = msgid;
+  return (char *) translated;
+}
 
 int
 getopt_long (int argc, char *__getopt_argv_const *argv, const char *options,
 	     const struct option *long_options, int *opt_index)
 {
   return _getopt_internal (argc, (char **) argv, options, long_options,
-			   opt_index, 0, 0, gettext);
+			   opt_index, 0, 0, do_translate, optctxt);
 }
 
 int
@@ -41,7 +81,7 @@ _getopt_long_r (int argc, char **argv, const char *options,
 		struct _getopt_data *d)
 {
   return _getopt_internal_r (argc, argv, options, long_options, opt_index,
-			     0, d, 0, gettext);
+			     0, d, 0, do_translate);
 }
 
 /* Like getopt_long, but '-' as well as '--' can indicate a long option.
@@ -55,7 +95,7 @@ getopt_long_only (int argc, char *__getopt_argv_const *argv,
 		  const struct option *long_options, int *opt_index)
 {
   return _getopt_internal (argc, (char **) argv, options, long_options,
-			   opt_index, 1, 0, gettext);
+			   opt_index, 1, 0, do_translate, optctxt);
 }
 
 int
@@ -64,7 +104,33 @@ _getopt_long_only_r (int argc, char **argv, const char *options,
 		     struct _getopt_data *d)
 {
   return _getopt_internal_r (argc, argv, options, long_options, opt_index,
-			     1, d, 0, gettext);
+			     1, d, 0, do_translate);
+}
+
+static void
+disable_translations (void)
+{
+  free (optctxt);
+  optctxt = NULL;
+}
+
+int
+getopt_long_enable_translations (const char *msgctxt)
+{
+  disable_translations ();
+  if (msgctxt != NULL)
+    {
+      optctxt = __strdup (msgctxt);
+      if (optctxt == NULL)
+	return -1;
+    }
+  return 0;
+}
+
+void
+getopt_long_disable_translations (void)
+{
+  disable_translations ();
 }
 
 

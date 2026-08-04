@@ -71,6 +71,9 @@ extern int getopt_long_only (int ___argc, char *__getopt_argv_const *___argv,
 			     const char *__shortopts,
 		             const struct option *__longopts, int *__longind)
        __THROW __nonnull ((2, 3));
+extern int getopt_long_enable_translations (const char *__msgctxt)
+       __attribute_warn_unused_result__;
+extern void getopt_long_disable_translations (void);
 
 __END_DECLS
 

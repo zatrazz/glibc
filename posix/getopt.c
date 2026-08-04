@@ -182,22 +182,30 @@ exchange (char **argv, struct _getopt_data *d)
   d->__last_nonopt = d->optind;
 }
 
-/* Return true iff a translation for opt_name has been found and it
-   matches the substring from argument, length argument_length.
+/* Return true iff translation_context is not NULL, a translation for
+   opt_name has been found and it matches the substring from argument,
+   length argument_length.
 */
 static bool
-match_translated_option_name (char *(*translate) (const char *msgid),
+match_translated_option_name (char *(*translate) (const char *, const char *,
+						  char **),
 			      const char *argument, size_t argument_length,
+			      const char *translation_context,
 			      const char *opt_name)
 {
   const char *translated = opt_name;
+  char *translation_buffer = NULL;
+  bool matches = false;
   if (translate != NULL)
-    translated = translate (opt_name);
+    translated = translate (translation_context, opt_name, &translation_buffer);
 
   if (strncmp (translated, argument, argument_length) != 0)
-    return false;
-  /* We know that argument is a prefix of translated.  */
-  return translated[argument_length] == '\0';
+    matches = false;
+  else
+    /* We know that argument is a prefix of translated.  */
+    matches = translated[argument_length] == '\0';
+  free (translation_buffer);
+  return matches;
 }
 
 /* Process the argument starting with d->__nextchar as a long option.
@@ -213,7 +221,8 @@ process_long_option (int argc, char **argv, const char *optstring,
 		     const struct option *longopts, int *longind,
 		     int long_only, struct _getopt_data *d,
 		     int print_errors, const char *prefix,
-		     char *(*translate) (const char *msgid))
+		     char *(*translate) (const char *, const char *,
+					 char **))
 {
   char *nameend;
   size_t namelen;
@@ -222,6 +231,7 @@ process_long_option (int argc, char **argv, const char *optstring,
   int n_options;
   int option_index;
   const char *translated_option_name;
+  char *translation_buffer = NULL;
 
   for (nameend = d->__nextchar; *nameend && *nameend != '='; nameend++)
     /* Do nothing.  */ ;
@@ -244,7 +254,9 @@ process_long_option (int argc, char **argv, const char *optstring,
       /* Didn't find an exact match, try with translated option
 	 names.  */
       for (p = longopts, option_index = 0; p->name; p++, option_index++)
-	if (match_translated_option_name (translate, d->__nextchar, namelen, p->name))
+	if (match_translated_option_name (translate,
+					  d->__nextchar, namelen,
+					  d->optctxt, p->name))
 	  {
 	    /* Exact match found with translation.  */
 	    pfound = p;
@@ -377,7 +389,8 @@ process_long_option (int argc, char **argv, const char *optstring,
 	{
 	  if (print_errors)
 	    {
-	      translated_option_name = translate (pfound->name);
+	      translated_option_name = translate (d->optctxt, pfound->name,
+						  &translation_buffer);
 	      if (strcmp (translated_option_name, pfound->name) != 0)
 		/* Print both names of the option.  */
 		fprintf (stderr,
@@ -389,6 +402,7 @@ process_long_option (int argc, char **argv, const char *optstring,
 		fprintf (stderr,
 			 _("%s: option '%s%s' doesn't allow an argument\n"),
 			 argv[0], prefix, pfound->name);
+	      free (translation_buffer);
 	    }
 	  d->optopt = pfound->val;
 	  return '?';
@@ -404,7 +418,8 @@ process_long_option (int argc, char **argv, const char *optstring,
 	    {
 	      /* Same dichotomy as when the option does not allow an
 		 argument.  */
-	      translated_option_name = translate (pfound->name);
+	      translated_option_name = translate (d->optctxt, pfound->name,
+						  &translation_buffer);
 	      if (strcmp (translated_option_name, pfound->name) != 0)
 		fprintf (stderr,
 			 _("%s: option '%s%s' / '%s%s' requires an argument\n"),
@@ -413,6 +428,7 @@ process_long_option (int argc, char **argv, const char *optstring,
 		fprintf (stderr,
 			 _("%s: option '%s%s' requires an argument\n"),
 			 argv[0], prefix, pfound->name);
+	      free (translation_buffer);
 	    }
 
 	  d->optopt = pfound->val;
@@ -526,7 +542,7 @@ int
 _getopt_internal_r (int argc, char **argv, const char *optstring,
 		    const struct option *longopts, int *longind,
 		    int long_only, struct _getopt_data *d, int posixly_correct,
-		    char *(*translate) (const char *msgid))
+		    char *(*translate) (const char *, const char *, char **))
 {
   int print_errors = d->opterr;
 
@@ -761,12 +777,15 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
 int
 _getopt_internal (int argc, char **argv, const char *optstring,
 		  const struct option *longopts, int *longind, int long_only,
-		  int posixly_correct, char *(*translate) (const char *))
+		  int posixly_correct,
+		  char *(*translate) (const char *, const char *, char **),
+		  const char *ctxt)
 {
   int result;
 
   getopt_data.optind = optind;
   getopt_data.opterr = opterr;
+  getopt_data.optctxt = ctxt;
 
   result = _getopt_internal_r (argc, argv, optstring, longopts,
 			       longind, long_only, &getopt_data,
@@ -789,7 +808,7 @@ _getopt_internal (int argc, char **argv, const char *optstring,
   {								\
     return _getopt_internal (argc, (char **)argv, optstring,	\
 			     NULL, NULL, 0, POSIXLY_CORRECT,	\
-			     NULL);				\
+			     NULL, NULL);			\
   }
 
 #ifdef _LIBC

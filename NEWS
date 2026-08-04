@@ -12,6 +12,11 @@ Major new features:
   [Add new features here]
 
 * The getopt_long function now accepts translated long option names.
+  This functionality is enabled or disabled by calling
+  getopt_long_enable_translations / getopt_long_disable_translations.
+
+* Argp parsers enable translated long option names with "command-line
+  option" as the message context.
 
 Deprecated and removed features, and other changes affecting compatibility:
 

@@ -39,6 +39,8 @@
    known translation of flavor) without the program recognizing a
    --flavor option.  */
 
+#define TRANSLATION_CONTEXT "command-line option"
+
 static void
 prepare_localedir (void)
 {
@@ -47,8 +49,8 @@ prepare_localedir (void)
   TEST_VERIFY_EXIT (bindtextdomain ("tstgetoptl", OBJPFX "domaindir") != NULL);
   TEST_VERIFY_EXIT (textdomain ("tstgetoptl") != NULL);
   /* Check that the catalog is OK: */
-  TEST_COMPARE_STRING (gettext ("color"), "colour");
-  TEST_COMPARE_STRING (gettext ("flavor"), "flavour");
+  TEST_COMPARE_STRING (gettext (TRANSLATION_CONTEXT "\004" "color"), "colour");
+  TEST_COMPARE_STRING (gettext (TRANSLATION_CONTEXT "\004" "flavor"), "flavour");
 }
 
 static char **
@@ -65,8 +67,9 @@ prepare_argv (int *argc)
 }
 
 static void
-do_my_test (void)
+do_my_test (bool with_optctxt)
 {
+  static const char *translation_context = TRANSLATION_CONTEXT;
   int argc;
   char **argv = prepare_argv (&argc);
   static const struct option options[] =
@@ -87,8 +90,14 @@ do_my_test (void)
   int c;
   bool found_flavor = false;
 
+  if (with_optctxt)
+    TEST_VERIFY_EXIT (getopt_long_enable_translations (translation_context) == 0);
+  else
+    getopt_long_disable_translations ();
   optind = 0;
   fputs ("Reminder that --flavor is not an option of the program.\n", stderr);
+  if (!with_optctxt)
+    fputs ("No optctxt set, so --colour should not be recognized.\n", stderr);
   while ((c = getopt_long (argc, argv, "", options, NULL)) >= 0)
     switch (c)
       {
@@ -96,8 +105,13 @@ do_my_test (void)
 	++Cflag;
 	break;
       case '?':
-	TEST_VERIFY (!found_flavor);
-	found_flavor = true;
+	if (with_optctxt)
+	  {
+	    TEST_VERIFY (!found_flavor);
+	    found_flavor = true;
+	  }
+	/* Otherwise, this is OK; --colour should not exist if we did not set
+	   optctxt.  */
 	break;
       default:
 	/* This should not happen.  */
@@ -115,11 +129,18 @@ do_my_test (void)
 	break;
       }
 
-  TEST_VERIFY (found_flavor);
+  if (with_optctxt)
+    TEST_VERIFY (found_flavor);
 
   printf ("Cflags = %d\n", Cflag);
 
-  TEST_COMPARE (Cflag, 3);
+  if (with_optctxt)
+    TEST_COMPARE (Cflag, 3);
+  else
+    TEST_COMPARE (Cflag, 2);
+
+  if (with_optctxt)
+    getopt_long_disable_translations ();
 
   for (index = optind; index < argc; index++)
     printf ("Non-option argument %s\n", argv[index]);
@@ -131,7 +152,8 @@ int
 do_test (void)
 {
   prepare_localedir ();
-  do_my_test ();
+  do_my_test (false);
+  do_my_test (true);
   return 0;
 }
 

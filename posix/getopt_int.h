@@ -29,7 +29,9 @@ extern int _getopt_internal (int ___argc, char **___argv,
 			     const char *__shortopts,
 			     const struct option *__longopts, int *__longind,
 			     int __long_only, int __posixly_correct,
-			     char *(*translate) (const char *msgid));
+			     char *(*translate) (const char *, const char *,
+						 char **),
+			     const char *__optctxt);
 
 
 /* Reentrant versions which can handle parsing multiple argument
@@ -71,6 +73,7 @@ struct _getopt_data
   int opterr;
   int optopt;
   char *optarg;
+  const char *optctxt;
 
   /* Internal members.  */
 
@@ -107,7 +110,8 @@ extern int _getopt_internal_r (int ___argc, char **___argv,
 			       const struct option *__longopts, int *__longind,
 			       int __long_only, struct _getopt_data *__data,
 			       int __posixly_correct,
-			       char *(*translate) (const char *msgid));
+			       char *(*translate) (const char *, const char *,
+						   char **));
 
 extern int _getopt_long_r (int ___argc, char **___argv,
 			   const char *__shortopts,

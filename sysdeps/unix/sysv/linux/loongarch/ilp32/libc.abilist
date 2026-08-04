@@ -995,6 +995,8 @@ GLIBC_2.44 getnetgrent F
 GLIBC_2.44 getnetgrent_r F
 GLIBC_2.44 getopt F
 GLIBC_2.44 getopt_long F
+GLIBC_2.44 getopt_long_disable_translations F
+GLIBC_2.44 getopt_long_enable_translations F
 GLIBC_2.44 getopt_long_only F
 GLIBC_2.44 getpagesize F
 GLIBC_2.44 getpass F
