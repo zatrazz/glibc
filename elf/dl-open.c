@@ -756,15 +756,43 @@ dl_open_worker (void *a)
   }
 
   if (!args->worker_continue)
-    return;
+    {
+      /* The object (if any) was already fully open, and its
+	 constructors may still be running as part of another
+	 thread's in-flight dlopen call.  Wait for them, so that
+	 dlopen does not return the object unconstructed.  A
+	 recursive dlopen from an ELF constructor does not wait for
+	 constructors its own thread is responsible for (they run
+	 once the outer dlopen or the startup initialization
+	 continues), keeping the previous behavior.  This must happen
+	 after dl_load_tls_lock has been released above, so that the
+	 constructors can create threads.  */
+      if (args->map != NULL && !(args->mode & __RTLD_SPROF))
+	_dl_init_wait (args->map);
+      return;
+    }
 
   int mode = args->mode;
   struct link_map *new = args->map;
 
-  /* Run the initializer functions of new objects.  Temporarily
-     disable the exception handler, so that lazy binding failures are
-     fatal.  */
+  /* Claim the constructors this call is going to run while the lock
+     is still held, so that concurrent dlopen callers wait for their
+     completion once the lock is released, instead of observing the
+     new objects unconstructed or constructing them in the wrong
+     order.  */
+  _dl_init_schedule (new);
+
+  /* Run the initializer functions of new objects.  This runs without
+     dl_load_lock: the constructors may use arbitrary libc
+     functionality, and threads they create (or any other thread) may
+     enter the dynamic loader concurrently (BZ 15686).  _dl_init
+     acquires the lock for its own constructor state changes and
+     releases it around the actual constructor invocations.
+     Temporarily disable the exception handler, so that lazy binding
+     failures are fatal.  */
+  __rtld_lock_unlock_recursive (GL(dl_load_lock));
   _dl_catch_exception (NULL, call_dl_init, args);
+  __rtld_lock_lock_recursive (GL(dl_load_lock));
 
   /* Now we can make the new map available in the global scope.  */
   if (mode & RTLD_GLOBAL)
@@ -860,8 +888,12 @@ no more namespaces available for dlmopen()"));
   args.map = _dl_lookup_map (args.nsid, file);
   if (is_already_fully_open (args.map, mode))
     {
-      /* We can use the fast path.  */
+      /* We can use the fast path.  The object cannot vanish once the
+	 open count has been incremented, so waiting for in-flight
+	 constructor execution in another thread (which releases the
+	 lock) is safe.  */
       ++args.map->l_direct_opencount;
+      _dl_init_wait (args.map);
       __rtld_lock_unlock_recursive (GL(dl_load_lock));
       return args.map;
     }

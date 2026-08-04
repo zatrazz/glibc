@@ -113,7 +113,10 @@ enum l_init_state_value
     lm_init_not_called = 0,
 
     /* An in-flight dlopen call has committed to running the
-       constructors from its _dl_init call.  */
+       constructors from its _dl_init call.  Set by _dl_init_schedule
+       while GL(dl_load_lock) is still held, so that the object is
+       never observed as unclaimed once the lock is released for
+       constructor execution.  */
     lm_init_scheduled,
 
     /* The constructors are executing.  */
@@ -1088,9 +1091,25 @@ extern int _dl_check_map_versions (struct link_map *map, int verbose,
 				   int trace_mode) attribute_hidden;
 
 /* Initialize the object in SCOPE by calling the constructors with
-   ARGC, ARGV, and ENV as the parameters.  */
+   ARGC, ARGV, and ENV as the parameters.  Acquires GL(dl_load_lock)
+   for the constructor state changes, so callers must not hold it.  */
 extern void _dl_init (struct link_map *main_map, int argc, char **argv,
 		      char **env) attribute_hidden;
+
+/* Mark the objects in the dependency tree of MAIN_MAP whose
+   constructors have not run, and that no other dlopen call has
+   committed to initialize, as scheduled for initialization by this
+   thread's subsequent _dl_init call.  Called with GL(dl_load_lock)
+   held.  */
+extern void _dl_init_schedule (struct link_map *main_map)
+     attribute_hidden;
+
+/* If the ELF constructors of MAP are being run (or are scheduled to
+   be run) by an in-flight dlopen call in another thread, wait until
+   they complete.  Must be called with GL(dl_load_lock) held at
+   acquisition depth one and without GL(dl_load_tls_lock); the lock
+   is released while waiting and reacquired before returning.  */
+extern void _dl_init_wait (struct link_map *map) attribute_hidden;
 
 /* Call the finalizer functions of all shared objects whose
    initializer functions have completed.  */

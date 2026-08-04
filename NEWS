@@ -9,6 +9,16 @@ Version 2.45
 
 Major new features:
 
+* The dynamic linker no longer holds its internal loader lock while
+  running ELF constructors from dlopen.  Constructors can now spawn and
+  join threads that use the dynamic loader (for example through the
+  first access to a C++ thread_local variable, lazy binding, or dlopen
+  itself), and other threads can call dlopen, dlsym, and dlclose while
+  a constructor is running, without deadlocking.  dlopen still returns
+  only after the constructors of the requested object and its
+  dependencies have completed, including when another thread's dlopen
+  call runs them.
+
   [Add new features here]
 
 Deprecated and removed features, and other changes affecting compatibility:

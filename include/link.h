@@ -225,9 +225,17 @@ struct link_map
     /* Progress of the ELF constructor execution for this map, with
        the values defined by enum l_init_state_value in ldsodefs.h.
        All transitions happen while GL(dl_load_lock) is held; the
-       field is read outside the lock in _dl_fini, so it is updated
-       with atomic stores.  See call_init in elf/dl-init.c.  */
+       field is read outside the lock in _dl_fini, and it is the
+       futex word concurrent dlopen callers block on while another
+       thread runs the constructors, so it is updated with atomic
+       stores.  See call_init in elf/dl-init.c.  */
     unsigned int l_init_state;
+
+    /* The thread that is running (or has committed to run) this
+       map's ELF constructors, as reported by _dl_init_state_self.
+       Only meaningful while l_init_state is lm_init_scheduled or
+       lm_init_running.  Protected by GL(dl_load_lock).  */
+    void *l_init_thread;
 
 #include <link_map.h>
 

@@ -16,6 +16,7 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <dl-init-state.h>
 #include <fork.h>
 #include <libio/libioP.h>
 #include <ldsodefs.h>
@@ -106,6 +107,29 @@ __libc_fork (void)
 
       /* Reset the lock protecting dynamic TLS related data.  */
       __rtld_lock_initialize (GL(dl_load_tls_lock));
+
+      /* An ELF constructor executing in another thread at the time of
+	 the fork cannot complete in the child (only the forking
+	 thread survives), so no thread may be left waiting for it.
+	 Mark maps with constructors running in another thread as
+	 initialized: they may have run partially, which matches the
+	 state produced by a fork during a dlopen call back when
+	 constructors ran with dl_load_lock held.  Maps merely
+	 scheduled by another thread's dlopen call return to the
+	 unconstructed state, so a later dlopen in the child runs
+	 their constructors.  Maps claimed by the forking thread
+	 itself (a fork from a constructor) are left alone; their
+	 constructors continue to run in the child.  */
+      for (Lmid_t ns = 0; ns < GL(dl_nns); ++ns)
+	for (struct link_map *l = GL(dl_ns)[ns]._ns_loaded; l != NULL;
+	     l = l->l_next)
+	  if (l->l_init_thread != _dl_init_state_self ())
+	    {
+	      if (l->l_init_state == lm_init_running)
+		l->l_init_state = lm_init_done;
+	      else if (l->l_init_state == lm_init_scheduled)
+		l->l_init_state = lm_init_not_called;
+	    }
 
       reclaim_stacks ();
 

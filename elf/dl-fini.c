@@ -17,9 +17,11 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <assert.h>
+#include <atomic.h>
 #include <string.h>
 #include <ldsodefs.h>
 #include <elf-initfini.h>
+#include <dl-init-state.h>
 
 void
 _dl_fini (void)
@@ -114,6 +116,23 @@ _dl_fini (void)
 	  for (i = 0; i < nmaps; ++i)
 	    {
 	      struct link_map *l = maps[i];
+
+	      /* If another thread is running (or has committed to
+		 run) the constructors of L from an in-flight dlopen
+		 call, wait for them to finish before running the
+		 destructors, as the serialization through
+		 dl_load_lock previously guaranteed.  A constructor
+		 running in this very thread (an exit call from a
+		 constructor) is not waited for; the destructors run
+		 from within it, as before.  */
+	      unsigned int state = atomic_load_acquire (&l->l_init_state);
+	      if ((state == lm_init_scheduled || state == lm_init_running)
+		  && l->l_init_thread != _dl_init_state_self ())
+		{
+		  __rtld_lock_lock_recursive (GL(dl_load_lock));
+		  _dl_init_wait (l);
+		  __rtld_lock_unlock_recursive (GL(dl_load_lock));
+		}
 
 	      if (l_init_called (l))
 		{

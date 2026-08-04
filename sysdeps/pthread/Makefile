@@ -350,6 +350,10 @@ tests += \
   tst-atfork4 \
   tst-create1 \
   tst-create2 \
+  tst-create3 \
+  tst-create4 \
+  tst-create5 \
+  tst-create6 \
   tst-fini1 \
   tst-pt-tls4 \
   # tests
@@ -367,6 +371,10 @@ modules-names += \
   tst-atfork4mod \
   tst-create1mod \
   tst-create2mod \
+  tst-create3mod \
+  tst-create4mod-a \
+  tst-create4mod-b \
+  tst-create6mod \
   tst-fini1mod \
   tst-stack2-mod \
   tst-tls4moda \
@@ -379,6 +387,8 @@ tst-atfork2mod.so-no-z-defs = yes
 tst-atfork3mod.so-no-z-defs = yes
 tst-atfork4mod.so-no-z-defs = yes
 tst-create1mod.so-no-z-defs = yes
+tst-create4mod-a.so-no-z-defs = yes
+tst-create4mod-b.so-no-z-defs = yes
 
 ifeq ($(build-shared),yes)
 # Build all the modules even when not actually running test programs.
@@ -545,6 +555,33 @@ $(objpfx)tst-create1.out: $(objpfx)tst-create1mod.so
 $(objpfx)tst-create2: $(shared-thread-library)
 $(objpfx)tst-create2mod.so: $(libsupport) $(shared-thread-library)
 $(objpfx)tst-create2.out: $(objpfx)tst-create2mod.so
+
+$(objpfx)tst-create3: $(shared-thread-library)
+$(objpfx)tst-create3.out: $(objpfx)tst-create3mod.so
+
+# tst-create4 verifies that a long-running constructor does not block
+# concurrent dlopen of an unrelated library.  Thread A's constructor
+# blocks on a barrier defined in the main program; thread B dlopens a
+# different library.
+LDFLAGS-tst-create4 = -Wl,-export-dynamic
+$(objpfx)tst-create4: $(shared-thread-library)
+$(objpfx)tst-create4mod-a.so: $(shared-thread-library)
+$(objpfx)tst-create4mod-b.so: $(shared-thread-library)
+$(objpfx)tst-create4.out: $(objpfx)tst-create4mod-a.so \
+  $(objpfx)tst-create4mod-b.so
+
+$(objpfx)tst-create5: $(shared-thread-library)
+
+# tst-create6 combines what tst-create2 and tst-create3 exercise
+# separately: the module constructor spawns and joins a thread (thread
+# creation takes dl_load_tls_lock in _dl_allocate_tls_init) while a
+# second thread concurrently dlopens the same DSO and waits for the
+# constructor to complete.  The wait must not hold dl_load_tls_lock,
+# otherwise the constructor's pthread_create blocks on it and the test
+# deadlocks.
+$(objpfx)tst-create6: $(shared-thread-library)
+$(objpfx)tst-create6mod.so: $(shared-thread-library)
+$(objpfx)tst-create6.out: $(objpfx)tst-create6mod.so
 
 $(objpfx)tst-stack2.out: $(objpfx)tst-stack2-mod.so
 $(objpfx)tst-stack2-mod.so: $(shared-thread-library)
