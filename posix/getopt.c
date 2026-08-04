@@ -182,6 +182,24 @@ exchange (char **argv, struct _getopt_data *d)
   d->__last_nonopt = d->optind;
 }
 
+/* Return true iff a translation for opt_name has been found and it
+   matches the substring from argument, length argument_length.
+*/
+static bool
+match_translated_option_name (char *(*translate) (const char *msgid),
+			      const char *argument, size_t argument_length,
+			      const char *opt_name)
+{
+  const char *translated = opt_name;
+  if (translate != NULL)
+    translated = translate (opt_name);
+
+  if (strncmp (translated, argument, argument_length) != 0)
+    return false;
+  /* We know that argument is a prefix of translated.  */
+  return translated[argument_length] == '\0';
+}
+
 /* Process the argument starting with d->__nextchar as a long option.
    d->optind should *not* have been advanced over this argument.
 
@@ -194,7 +212,8 @@ static int
 process_long_option (int argc, char **argv, const char *optstring,
 		     const struct option *longopts, int *longind,
 		     int long_only, struct _getopt_data *d,
-		     int print_errors, const char *prefix)
+		     int print_errors, const char *prefix,
+		     char *(*translate) (const char *msgid))
 {
   char *nameend;
   size_t namelen;
@@ -202,6 +221,7 @@ process_long_option (int argc, char **argv, const char *optstring,
   const struct option *pfound = NULL;
   int n_options;
   int option_index;
+  const char *translated_option_name;
 
   for (nameend = d->__nextchar; *nameend && *nameend != '='; nameend++)
     /* Do nothing.  */ ;
@@ -221,7 +241,22 @@ process_long_option (int argc, char **argv, const char *optstring,
 
   if (pfound == NULL)
     {
-      /* Didn't find an exact match, so look for abbreviations.  */
+      /* Didn't find an exact match, try with translated option
+	 names.  */
+      for (p = longopts, option_index = 0; p->name; p++, option_index++)
+	if (match_translated_option_name (translate, d->__nextchar, namelen, p->name))
+	  {
+	    /* Exact match found with translation.  */
+	    pfound = p;
+	    break;
+	  }
+    }
+
+  if (pfound == NULL)
+    {
+      /* Didn't find an exact match with translations, so look for
+	 abbreviations, but only for the option name in the C
+	 locale.  */
       unsigned char *ambig_set = NULL;
       int ambig_malloced = 0;
       int ambig_fallback = 0;
@@ -341,10 +376,20 @@ process_long_option (int argc, char **argv, const char *optstring,
       else
 	{
 	  if (print_errors)
-	    fprintf (stderr,
-		     _("%s: option '%s%s' doesn't allow an argument\n"),
-		     argv[0], prefix, pfound->name);
-
+	    {
+	      translated_option_name = translate (pfound->name);
+	      if (strcmp (translated_option_name, pfound->name) != 0)
+		/* Print both names of the option.  */
+		fprintf (stderr,
+			 _("%s: option '%s%s' / '%s%s' doesn't allow an argument\n"),
+			 argv[0], prefix, translated_option_name, prefix, pfound->name);
+	      else
+		/* Either the option name is not translated, or its
+		   translation is the same as the option name.  */
+		fprintf (stderr,
+			 _("%s: option '%s%s' doesn't allow an argument\n"),
+			 argv[0], prefix, pfound->name);
+	    }
 	  d->optopt = pfound->val;
 	  return '?';
 	}
@@ -356,9 +401,19 @@ process_long_option (int argc, char **argv, const char *optstring,
       else
 	{
 	  if (print_errors)
-	    fprintf (stderr,
-		     _("%s: option '%s%s' requires an argument\n"),
-		     argv[0], prefix, pfound->name);
+	    {
+	      /* Same dichotomy as when the option does not allow an
+		 argument.  */
+	      translated_option_name = translate (pfound->name);
+	      if (strcmp (translated_option_name, pfound->name) != 0)
+		fprintf (stderr,
+			 _("%s: option '%s%s' / '%s%s' requires an argument\n"),
+			 argv[0], prefix, translated_option_name, prefix, pfound->name);
+	      else
+		fprintf (stderr,
+			 _("%s: option '%s%s' requires an argument\n"),
+			 argv[0], prefix, pfound->name);
+	    }
 
 	  d->optopt = pfound->val;
 	  return optstring[0] == ':' ? ':' : '?';
@@ -470,7 +525,8 @@ _getopt_initialize (_GL_UNUSED int argc,
 int
 _getopt_internal_r (int argc, char **argv, const char *optstring,
 		    const struct option *longopts, int *longind,
-		    int long_only, struct _getopt_data *d, int posixly_correct)
+		    int long_only, struct _getopt_data *d, int posixly_correct,
+		    char *(*translate) (const char *msgid))
 {
   int print_errors = d->opterr;
 
@@ -573,7 +629,8 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
 	      d->__nextchar = argv[d->optind] + 2;
 	      return process_long_option (argc, argv, optstring, longopts,
 					  longind, long_only, d,
-					  print_errors, "--");
+					  print_errors, "--",
+					  translate);
 	    }
 
 	  /* If long_only and the ARGV-element has the form "-f",
@@ -595,7 +652,8 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
 	      d->__nextchar = argv[d->optind] + 1;
 	      code = process_long_option (argc, argv, optstring, longopts,
 					  longind, long_only, d,
-					  print_errors, "-");
+					  print_errors, "-",
+					  translate);
 	      if (code != -1)
 		return code;
 	    }
@@ -649,7 +707,8 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
 	d->__nextchar = d->optarg;
 	d->optarg = NULL;
 	return process_long_option (argc, argv, optstring, longopts, longind,
-				    0 /* long_only */, d, print_errors, "-W ");
+				    0 /* long_only */, d, print_errors, "-W ",
+				    translate);
       }
     if (temp[1] == ':')
       {
@@ -702,7 +761,7 @@ _getopt_internal_r (int argc, char **argv, const char *optstring,
 int
 _getopt_internal (int argc, char **argv, const char *optstring,
 		  const struct option *longopts, int *longind, int long_only,
-		  int posixly_correct)
+		  int posixly_correct, char *(*translate) (const char *))
 {
   int result;
 
@@ -711,7 +770,7 @@ _getopt_internal (int argc, char **argv, const char *optstring,
 
   result = _getopt_internal_r (argc, argv, optstring, longopts,
 			       longind, long_only, &getopt_data,
-			       posixly_correct);
+			       posixly_correct, translate);
 
   optind = getopt_data.optind;
   optarg = getopt_data.optarg;
@@ -729,7 +788,8 @@ _getopt_internal (int argc, char **argv, const char *optstring,
   NAME (int argc, char *const *argv, const char *optstring)	\
   {								\
     return _getopt_internal (argc, (char **)argv, optstring,	\
-			     NULL, NULL, 0, POSIXLY_CORRECT);	\
+			     NULL, NULL, 0, POSIXLY_CORRECT,	\
+			     NULL);				\
   }
 
 #ifdef _LIBC

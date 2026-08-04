@@ -1,0 +1,29 @@
+# English translations for tstgetoptl, a test case in glibc.
+# Copyright (C) 2026 THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the glibc package.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: tstgetoptl 0.0.0\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2025-05-27 19:29+0200\n"
+"PO-Revision-Date: 2025-05-27 19:30+0200\n"
+"Language-Team: English (British) <(nothing)>\n"
+"Language: en_GB\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=ASCII\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=2; plural=(n != 1);\n"
+
+#: xxx.c:yy
+msgid "color"
+msgstr "colour"
+
+#: xxx.c:yy
+msgid "flavor"
+msgstr "flavour"
+
+# This is to make sure the translator cannot redirect options.
+#: xxx.c:yy
+msgid "optional"
+msgstr "required"

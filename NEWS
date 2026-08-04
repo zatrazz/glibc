@@ -11,6 +11,8 @@ Major new features:
 
   [Add new features here]
 
+* The getopt_long function now accepts translated long option names.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
   [Add deprecations, removals and changes affecting compatibility here]

@@ -22,10 +22,14 @@
 
 #include <getopt.h>
 
+/* The translate argument here is optional (can be NULL), it is used
+   to avoid depending on the gettext functions in the posix getopt
+   function.  */
 extern int _getopt_internal (int ___argc, char **___argv,
 			     const char *__shortopts,
 			     const struct option *__longopts, int *__longind,
-			     int __long_only, int __posixly_correct);
+			     int __long_only, int __posixly_correct,
+			     char *(*translate) (const char *msgid));
 
 
 /* Reentrant versions which can handle parsing multiple argument
@@ -102,7 +106,8 @@ extern int _getopt_internal_r (int ___argc, char **___argv,
 			       const char *__shortopts,
 			       const struct option *__longopts, int *__longind,
 			       int __long_only, struct _getopt_data *__data,
-			       int __posixly_correct);
+			       int __posixly_correct,
+			       char *(*translate) (const char *msgid));
 
 extern int _getopt_long_r (int ___argc, char **___argv,
 			   const char *__shortopts,

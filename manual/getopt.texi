@@ -202,6 +202,15 @@ declared in @file{getopt.h}, not @file{unistd.h}.  You should make every
 program accept long options if it uses any options, for this takes
 little extra work and helps beginners remember how to use the program.
 
+Both long option names and their translations provided by the program
+for the user's current locale are recognized.  This helps users of
+your program who do not speak English understand the meaning of the
+options, and it does not break the function of the program in scripts
+if the untranslated option names are used.  If international
+communication involves the invocation of your program, the program
+users should be encouraged to use untranslated option names or publish
+the locale used for this invocation.
+
 @deftp {Data Type} {struct option}
 @standards{GNU, getopt.h}
 This structure describes a single long option name for the sake of
@@ -213,7 +222,9 @@ The @code{struct option} structure has these fields:
 
 @table @code
 @item const char *name
-This field is the name of the option.  It is a string.
+This field is the name of the option.  It is a string.  In order for
+@command{getopt_long} to accept either the long option name or its
+translated form, you should mark this string for translation.
 
 @item int has_arg
 This field says whether the option takes an argument.  It is an integer,
@@ -248,10 +259,14 @@ When @code{getopt_long} encounters a short option, it does the same
 thing that @code{getopt} would do: it returns the character code for the
 option, and stores the option's argument (if it has one) in @code{optarg}.
 
-When @code{getopt_long} encounters a long option, it takes actions based
-on the @code{flag} and @code{val} fields of the definition of that
-option.  The option name may be abbreviated as long as the abbreviation is
-unique.
+When @code{getopt_long} encounters a long option or its translation in
+the current textdomain, it takes actions based on the @code{flag} and
+@code{val} fields of the definition of that option.  The English name
+of the option name may be abbreviated as long as the abbreviation is
+unique.  No abbreviation of the translated option name is recognized.
+Since the untranslated option names have precedence over the
+translated option names, it is not possible to hide or divert an
+option with a translation.
 
 If @code{flag} is a null pointer, then @code{getopt_long} returns the
 contents of @code{val} to indicate which option it found.  You should

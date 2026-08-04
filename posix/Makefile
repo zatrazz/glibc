@@ -334,6 +334,7 @@ tests := \
   tst-wordexp-nocmd \
   tst-wordexp-reuse \
   tstgetopt \
+  tstgetoptl \
   # tests
 
 # Test for the glob symbol version that was replaced in glibc 2.27.
@@ -532,6 +533,7 @@ LOCALES := \
   da_DK.ISO-8859-1 \
   de_DE.ISO-8859-1 \
   de_DE.UTF-8 \
+  en_GB.UTF-8 \
   en_US.UTF-8 \
   es_US.ISO-8859-1 \
   es_US.UTF-8 \
@@ -805,3 +807,14 @@ tst-wordexp-reuse-ENV += MALLOC_TRACE=$(objpfx)tst-wordexp-reuse.mtrace \
 $(objpfx)tst-wordexp-reuse-mem.out: $(objpfx)tst-wordexp-reuse.out
 	$(common-objpfx)malloc/mtrace $(objpfx)tst-wordexp-reuse.mtrace > $@; \
 	$(evaluate-test)
+
+# tstgetoptl uses a translation catalog for translated option names.
+tstgetoptl_mo = $(objpfx)domaindir/en_GB/LC_MESSAGES/tstgetoptl.mo
+
+$(tstgetoptl_mo): tstgetoptl.po
+	$(make-target-directory)
+	msgfmt -o $@T $<
+	mv -f $@T $@
+
+$(objpfx)tstgetoptl.out: $(tstgetoptl_mo) $(gen-locales)
+CFLAGS-tstgetoptl.c += -DOBJPFX=\"$(objpfx)\"

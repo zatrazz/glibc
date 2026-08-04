@@ -19,6 +19,9 @@
 
 #ifndef _LIBC
 # include <config.h>
+# include "gettext.h"
+#else
+# include <libintl.h>
 #endif
 
 #include "getopt.h"
@@ -29,7 +32,7 @@ getopt_long (int argc, char *__getopt_argv_const *argv, const char *options,
 	     const struct option *long_options, int *opt_index)
 {
   return _getopt_internal (argc, (char **) argv, options, long_options,
-			   opt_index, 0, 0);
+			   opt_index, 0, 0, gettext);
 }
 
 int
@@ -38,7 +41,7 @@ _getopt_long_r (int argc, char **argv, const char *options,
 		struct _getopt_data *d)
 {
   return _getopt_internal_r (argc, argv, options, long_options, opt_index,
-			     0, d, 0);
+			     0, d, 0, gettext);
 }
 
 /* Like getopt_long, but '-' as well as '--' can indicate a long option.
@@ -52,7 +55,7 @@ getopt_long_only (int argc, char *__getopt_argv_const *argv,
 		  const struct option *long_options, int *opt_index)
 {
   return _getopt_internal (argc, (char **) argv, options, long_options,
-			   opt_index, 1, 0);
+			   opt_index, 1, 0, gettext);
 }
 
 int
@@ -61,7 +64,7 @@ _getopt_long_only_r (int argc, char **argv, const char *options,
 		     struct _getopt_data *d)
 {
   return _getopt_internal_r (argc, argv, options, long_options, opt_index,
-			     1, d, 0);
+			     1, d, 0, gettext);
 }
 
 
