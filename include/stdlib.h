@@ -181,6 +181,7 @@ libc_hidden_proto (__libc_reallocarray)
 extern int __libc_system (const char *line);
 
 extern __typeof (getpt) __getpt;
+extern __typeof (ptsname) __ptsname;
 extern __typeof (ptsname_r) __ptsname_r;
 libc_hidden_proto (__getpt)
 libc_hidden_proto (__ptsname_r)

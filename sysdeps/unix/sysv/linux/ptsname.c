@@ -36,10 +36,11 @@ static char buffer[sizeof (_PATH_DEVPTS) + 20];
    the master FD is open on, or NULL on errors.
    The returned storage is good until the next call to this function.  */
 char *
-ptsname (int fd)
+__ptsname (int fd)
 {
   return __ptsname_r (fd, buffer, sizeof (buffer)) != 0 ? NULL : buffer;
 }
+weak_alias (__ptsname, ptsname)
 
 
 /* Store at most BUFLEN characters of the pathname of the slave pseudo

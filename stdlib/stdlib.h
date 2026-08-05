@@ -578,8 +578,12 @@ extern int rand (void) __THROW;
 /* Seed the random number generator with the given number.  */
 extern void srand (unsigned int __seed) __THROW;
 
-#ifdef __USE_POSIX199506
-/* Reentrant interface according to POSIX.1.  */
+#if defined __USE_MISC \
+    || (defined __USE_POSIX199506 && !defined __USE_XOPEN2K24)
+/* Reentrant interface according to POSIX.1.  X/Open Issue 8 removed
+   rand_r, so it is not declared for _POSIX_C_SOURCE >= 202405L or
+   _XOPEN_SOURCE >= 800 unless _DEFAULT_SOURCE or _GNU_SOURCE is
+   defined.  */
 extern int rand_r (unsigned int *__seed) __THROW;
 #endif
 
@@ -708,7 +712,7 @@ extern void free_aligned_sized (void *__ptr, size_t __alignment, size_t __size)
      __THROW;
 #endif
 
-#ifdef __USE_MISC
+#if defined __USE_MISC || defined __USE_XOPEN2K24
 /* Re-allocate the previously allocated block in PTR, making the new
    block large enough for NMEMB elements of SIZE bytes each.  */
 /* __attribute_malloc__ is not used, because if reallocarray returns
@@ -794,7 +798,7 @@ extern void _Exit (int __status) __THROW __attribute__ ((__noreturn__));
 /* Return the value of envariable NAME, or NULL if it doesn't exist.  */
 extern char *getenv (const char *__name) __THROW __nonnull ((1)) __wur;
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* This function is similar to the above but returns NULL if the
    programs is running with SUID or SGID enabled.  */
 extern char *secure_getenv (const char *__name)
@@ -892,7 +896,7 @@ extern int mkstemps64 (char *__template, int __suffixlen)
 extern char *mkdtemp (char *__template) __THROW __nonnull ((1)) __wur;
 #endif
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Generate a unique temporary file name from TEMPLATE similar to
    mkstemp.  But allow the caller to pass additional flags which are
    used in the open call to create the file..
@@ -912,7 +916,9 @@ extern int __REDIRECT (mkostemp, (char *__template, int __flags), mkostemp64)
 # ifdef __USE_LARGEFILE64
 extern int mkostemp64 (char *__template, int __flags) __nonnull ((1)) __wur;
 # endif
+#endif
 
+#ifdef __USE_GNU
 /* Similar to mkostemp, but the template can have a suffix after the
    XXXXXX.  The length of the suffix is specified in the second
    parameter.
@@ -973,7 +979,7 @@ typedef int (*__compar_fn_t) (const void *, const void *);
 typedef __compar_fn_t comparison_fn_t;
 # endif
 #endif
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 typedef int (*__compar_d_fn_t) (const void *, const void *, void *);
 #endif
 
@@ -997,7 +1003,7 @@ extern void *bsearch (const void *__key, const void *__base,
    using COMPAR to perform the comparisons.  */
 extern void qsort (void *__base, size_t __nmemb, size_t __size,
 		   __compar_fn_t __compar) __nonnull ((1, 4));
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 extern void qsort_r (void *__base, size_t __nmemb, size_t __size,
 		     __compar_d_fn_t __compar, void *__arg)
   __nonnull ((1, 4));
@@ -1161,13 +1167,15 @@ extern int unlockpt (int __fd) __THROW;
 extern char *ptsname (int __fd) __THROW __wur;
 #endif
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Store at most BUFLEN characters of the pathname of the slave pseudo
    terminal associated with the master FD is open on in BUF.
    Return 0 on success, otherwise an error number.  */
 extern int ptsname_r (int __fd, char *__buf, size_t __buflen)
      __THROW __nonnull ((2)) __fortified_attr_access (__write_only__, 2, 3);
+#endif
 
+#ifdef __USE_GNU
 /* Open a master pseudo terminal and return its file descriptor.  */
 extern int getpt (void);
 #endif

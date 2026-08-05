@@ -28,7 +28,7 @@
    the master FD is open on, or NULL on errors.
    The returned storage is good until the next call to this function.  */
 char *
-ptsname (int fd)
+__ptsname (int fd)
 {
   static string_t peername;
   error_t err;
@@ -37,6 +37,7 @@ ptsname (int fd)
 
   return err ? NULL : peername;
 }
+weak_alias (__ptsname, ptsname)
 
 
 /* We don't need STP, but fill it for conformity with the Linux version...  */
