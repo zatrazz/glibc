@@ -76,7 +76,7 @@ extern int __REDIRECT (sem_timedwait,
 # endif
 #endif
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 # ifndef __USE_TIME64_REDIRECTS
 extern int sem_clockwait (sem_t *__restrict __sem,
 			  clockid_t clock,
