@@ -59,7 +59,11 @@ typedef struct
 #define POSIX_SPAWN_SETSCHEDULER	0x20
 #ifdef __USE_GNU
 # define POSIX_SPAWN_USEVFORK		0x40
+#endif
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 # define POSIX_SPAWN_SETSID		0x80
+#endif
+#ifdef __USE_GNU
 # define POSIX_SPAWN_SETCGROUP         0x100
 #endif
 
