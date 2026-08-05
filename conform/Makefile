@@ -440,7 +440,6 @@ test-xfail-XOPEN2K24/poll.h/conform = yes
 test-xfail-XOPEN2K24/pthread.h/conform = yes
 test-xfail-XOPEN2K24/semaphore.h/conform = yes
 test-xfail-XOPEN2K24/signal.h/conform = yes
-test-xfail-XOPEN2K24/stdio.h/conform = yes
 test-xfail-XOPEN2K24/stdlib.h/conform = yes
 test-xfail-XOPEN2K24/strings.h/conform = yes
 test-xfail-XOPEN2K24/sys/socket.h/conform = yes

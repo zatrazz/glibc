@@ -224,14 +224,18 @@ extern char *tmpnam_r (char __s[L_tmpnam]) __THROW __wur;
 #endif
 
 
-#if defined __USE_MISC || defined __USE_XOPEN
+#if defined __USE_MISC || (defined __USE_XOPEN && !defined __USE_XOPEN2K24)
 /* Generate a unique temporary filename using up to five characters of PFX
    if it is not NULL.  The directory to put this file in is searched for
    as follows: First the environment variable "TMPDIR" is checked.
    If it contains the name of a writable directory, that directory is used.
    If not and if DIR is not NULL, that value is checked.  If that fails,
    P_tmpdir is tried and finally "/tmp".  The storage for the filename
-   is allocated by `malloc'.  */
+   is allocated by `malloc'.
+
+   X/Open Issue 8 removed tempnam, so it is not declared for
+   _XOPEN_SOURCE >= 800 unless _DEFAULT_SOURCE or _GNU_SOURCE is
+   defined.  */
 extern char *tempnam (const char *__dir, const char *__pfx)
    __THROW __attribute_malloc__ __wur __attr_dealloc_free;
 #endif
