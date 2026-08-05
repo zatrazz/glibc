@@ -581,7 +581,7 @@ function int seteuid (uid_t)
 #endif
 function int setgid (gid_t)
 function int setpgid (pid_t, pid_t)
-# if !defined XPG4 && !defined POSIX && !defined POSIX2008 && !defined POSIX2024
+# if !defined XPG4 && !defined POSIX && !defined POSIX2008 && !defined POSIX2024 && !defined XOPEN2K24
 function pid_t setpgrp (void)
 function int setregid (gid_t, gid_t)
 function int setreuid (uid_t, uid_t)

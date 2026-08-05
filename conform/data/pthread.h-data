@@ -113,7 +113,7 @@ function int pthread_create (pthread_t*, const pthread_attr_t*, void *(*) (void*
 function int pthread_detach (pthread_t)
 function int pthread_equal (pthread_t, pthread_t)
 function void pthread_exit (void*)
-# if !defined POSIX && !defined POSIX2008 && !defined POSIX2024
+# if !defined POSIX && !defined POSIX2008 && !defined POSIX2024 && !defined XOPEN2K24
 function int pthread_getconcurrency (void)
 # endif
 # if !defined POSIX && !defined UNIX98

@@ -156,7 +156,7 @@ function int snprintf (char*, size_t, const char*, ...)
 #endif
 function int sprintf (char *, const char *, ...)
 function int sscanf (const char*, const char*, ...)
-#if defined XPG4 || defined XPG42 || defined UNIX98 || defined XOPEN2K || defined XOPEN2K8 || defined XOPEN2K24
+#if defined XPG4 || defined XPG42 || defined UNIX98 || defined XOPEN2K || defined XOPEN2K8
 function {char*} tempnam (const char*, const char*)
 #endif
 function {FILE*} tmpfile (void)

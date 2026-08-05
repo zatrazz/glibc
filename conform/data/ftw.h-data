@@ -23,7 +23,9 @@ macro FTW_DEPTH
 macro FTW_CHDIR
 # endif
 
+# if !defined XOPEN2K24
 function int ftw (const char*, int (*) (const char *, const struct stat*, int), int)
+# endif
 # ifndef XPG4
 function int nftw (const char*, int (*) (const char *, const struct stat*, int, struct FTW *), int, int)
 # endif

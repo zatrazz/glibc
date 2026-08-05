@@ -4,10 +4,12 @@ type {struct timeval}
 element {struct timeval} time_t tv_sec
 element {struct timeval} suseconds_t tv_usec
 
+# if !defined XOPEN2K24
 type {struct itimerval}
 
 element {struct itimerval} {struct timeval} it_interval
 element {struct itimerval} {struct timeval} it_value
+# endif
 
 type time_t
 type suseconds_t
@@ -15,9 +17,11 @@ type suseconds_t
 type fd_set
 element fd_set long fds_bits []
 
+# if !defined XOPEN2K24
 constant ITIMER_REAL
 constant ITIMER_VIRTUAL
 constant ITIMER_PROF
+# endif
 
 macro FD_CLR
 macro FD_ISSET
@@ -26,9 +30,11 @@ macro FD_ZERO
 
 constant FD_SETSIZE
 
+# if !defined XOPEN2K24
 function int getitimer (int, struct itimerval*)
 function int setitimer (int, const struct itimerval*, struct itimerval*)
 function int gettimeofday (struct timeval*, void*)
+# endif
 function int select (int, fd_set*, fd_set*, fd_set*, struct timeval*)
 function int utimes (const char*, const struct timeval [2])
 

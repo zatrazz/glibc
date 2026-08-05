@@ -243,13 +243,13 @@ function int sigaltstack (const stack_t*, stack_t*)
 function int sigdelset (sigset_t*, int)
 function int sigemptyset (sigset_t*)
 function int sigfillset (sigset_t*)
-# if !defined XPG4 && !defined POSIX && !defined POSIX2008 && !defined POSIX2024
+# if !defined XPG4 && !defined POSIX && !defined POSIX2008 && !defined POSIX2024 && !defined XOPEN2K24
 function int sighold (int)
 function int sigignore (int)
 function int siginterrupt (int, int)
 # endif
 function int sigismember (const sigset_t*, int)
-#if !defined XPG4 && !defined POSIX && !defined POSIX2008 && !defined POSIX2024
+#if !defined XPG4 && !defined POSIX && !defined POSIX2008 && !defined POSIX2024 && !defined XOPEN2K24
 function int sigpause (int)
 # endif
 function int sigpending (sigset_t*)
@@ -257,7 +257,7 @@ function int sigprocmask (int, const sigset_t*, sigset_t*)
 # if !defined XPG4 && !defined XPG42
 function int sigqueue (pid_t, int, const union sigval)
 # endif
-# if !defined XPG4 && !defined POSIX && !defined POSIX2008 && !defined POSIX2024
+# if !defined XPG4 && !defined POSIX && !defined POSIX2008 && !defined POSIX2024 && !defined XOPEN2K24
 function int sigrelse (int)
 function void (*sigset (int, void(*)(int)))(int)
 # endif
