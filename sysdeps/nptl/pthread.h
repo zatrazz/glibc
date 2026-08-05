@@ -181,6 +181,12 @@ enum
 };
 #define PTHREAD_CANCELED ((void *) -1)
 
+#ifdef __USE_XOPEN2K24
+/* A value of pthread_t that compares unequal to the ID of any
+   thread.  */
+# define PTHREAD_NULL ((pthread_t) 0)
+#endif
+
 
 /* Single execution handling.  */
 #define PTHREAD_ONCE_INIT 0
@@ -812,7 +818,7 @@ extern int __REDIRECT_NTHNL (pthread_mutex_timedlock,
 # endif
 #endif
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 # ifndef __USE_TIME64_REDIRECTS
 extern int pthread_mutex_clocklock (pthread_mutex_t *__restrict __mutex,
 				    clockid_t __clockid,
@@ -999,7 +1005,7 @@ extern int __REDIRECT_NTHNL (pthread_rwlock_timedrdlock,
 #  endif
 # endif
 
-# ifdef __USE_GNU
+# if defined __USE_GNU || defined __USE_XOPEN2K24
 #  ifndef __USE_TIME64_REDIRECTS
 extern int pthread_rwlock_clockrdlock (pthread_rwlock_t *__restrict __rwlock,
 				       clockid_t __clockid,
@@ -1046,7 +1052,7 @@ extern int __REDIRECT_NTHNL (pthread_rwlock_timedwrlock,
 #  endif
 # endif
 
-# ifdef __USE_GNU
+# if defined __USE_GNU || defined __USE_XOPEN2K24
 #  ifndef __USE_TIME64_REDIRECTS
 extern int pthread_rwlock_clockwrlock (pthread_rwlock_t *__restrict __rwlock,
 				       clockid_t __clockid,
@@ -1159,7 +1165,7 @@ extern int __REDIRECT (pthread_cond_timedwait,
 #  endif
 # endif
 
-# ifdef __USE_GNU
+# if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Wait for condition variable COND to be signaled or broadcast until
    ABSTIME measured by the specified clock. MUTEX is assumed to be
    locked before. CLOCK is the clock to use. ABSTIME is an absolute

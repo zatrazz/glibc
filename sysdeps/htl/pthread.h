@@ -427,7 +427,7 @@ extern int pthread_mutex_timedlock (struct __pthread_mutex *__restrict __mutex,
 	__THROWNL __nonnull ((1, 2));
 #endif
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 extern int pthread_mutex_clocklock (pthread_mutex_t *__restrict __mutex,
 				    clockid_t __clockid,
 				    const struct timespec *__restrict
@@ -551,7 +551,7 @@ extern int pthread_cond_timedwait (pthread_cond_t *__restrict __cond,
 				   __const struct timespec *__restrict __abstime)
 	 __nonnull ((1, 2, 3));
 
-# ifdef __USE_GNU
+# if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Wait for condition variable COND to be signaled or broadcast until
    ABSTIME measured by the specified clock. MUTEX is assumed to be
    locked before. CLOCK is the clock to use. ABSTIME is an absolute
@@ -671,7 +671,7 @@ extern int pthread_rwlock_timedrdlock (struct __pthread_rwlock *__restrict __rwl
 	__THROWNL __nonnull ((1, 2));
 # endif
 
-# ifdef __USE_GNU
+# if defined __USE_GNU || defined __USE_XOPEN2K24
 extern int pthread_rwlock_clockrdlock (pthread_rwlock_t *__restrict __rwlock,
 				       clockid_t __clockid,
 				       const struct timespec *__restrict
@@ -694,7 +694,7 @@ extern int pthread_rwlock_timedwrlock (struct __pthread_rwlock *__restrict __rwl
 	__THROWNL __nonnull ((1, 2));
 # endif
 
-# ifdef __USE_GNU
+# if defined __USE_GNU || defined __USE_XOPEN2K24
 extern int pthread_rwlock_clockwrlock (pthread_rwlock_t *__restrict __rwlock,
 				       clockid_t __clockid,
 				       const struct timespec *__restrict
@@ -739,6 +739,12 @@ extern int pthread_setcanceltype (int __type, int *__oldtype);
 /* Value returned by pthread_join if the target thread was
    canceled.  */
 #define PTHREAD_CANCELED ((void *) -1)
+
+#ifdef __USE_XOPEN2K24
+/* A value of pthread_t that compares unequal to the ID of any
+   thread.  */
+# define PTHREAD_NULL ((pthread_t) 0)
+#endif
 
 /* Cancel THEAD.  */
 extern int pthread_cancel (pthread_t __thr);
