@@ -33,7 +33,8 @@ CFLAGS = {'ISO': '-ansi',
           'UNIX98': '-ansi -D_XOPEN_SOURCE=500',
           'XOPEN2K': '-std=c99 -D_XOPEN_SOURCE=600',
           'XOPEN2K8': '-std=c99 -D_XOPEN_SOURCE=700',
-          'POSIX2008': '-std=c99 -D_POSIX_C_SOURCE=200809L'}
+          'POSIX2008': '-std=c99 -D_POSIX_C_SOURCE=200809L',
+          'POSIX2024': '-std=c17 -D_POSIX_C_SOURCE=202405L'}
 
 # ISO C90 keywords.
 KEYWORDS_C90 = {'auto', 'break', 'case', 'char', 'const', 'continue',
@@ -55,7 +56,8 @@ KEYWORDS = {'ISO': KEYWORDS_C90,
             'UNIX98': KEYWORDS_C90,
             'XOPEN2K': KEYWORDS_C99,
             'XOPEN2K8': KEYWORDS_C99,
-            'POSIX2008': KEYWORDS_C99}
+            'POSIX2008': KEYWORDS_C99,
+            'POSIX2024': KEYWORDS_C99}
 
 
 def list_exported_functions(cc, standard, header):

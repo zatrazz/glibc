@@ -49,6 +49,7 @@ EXTRA_SYMS['POSIX2008'] = (EXTRA_SYMS['POSIX']
                            | {'in6addr_any', 'in6addr_loopback'})
 EXTRA_SYMS['XOPEN2K8'] = (EXTRA_SYMS['POSIX2008']
                           | {'signgam', 'daylight', 'timezone', 'getdate_err'})
+EXTRA_SYMS['POSIX2024'] = EXTRA_SYMS['POSIX2008']
 
 
 def main():

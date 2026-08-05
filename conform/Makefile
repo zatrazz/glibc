@@ -31,6 +31,7 @@ conformtest-standards := \
   ISO99 \
   POSIX \
   POSIX2008 \
+  POSIX2024 \
   UNIX98 \
   XOPEN2K \
   XOPEN2K8 \
@@ -289,6 +290,20 @@ conformtest-headers-POSIX2008 := \
   wchar.h \
   wctype.h \
   # conformtest-headers-POSIX2008
+# The POSIX.1-2024 expectations were initially copied from the
+# POSIX.1-2008 ones; utime.h was removed in Issue 8.  Headers whose
+# glibc implementation does not yet conform to POSIX.1-2024 have
+# test-xfail-POSIX2024/* entries below.
+# Missing POSIX2024 expectations for:
+#   devctl.h
+#   endian.h
+#   libintl.h
+#   stdatomic.h
+#   threads.h
+#   uchar.h
+conformtest-headers-POSIX2024 := \
+  $(filter-out utime.h,$(conformtest-headers-POSIX2008)) \
+  # conformtest-headers-POSIX2024
 # Missing XOPEN2K8 expectations for:
 #   trace.h
 conformtest-headers-XOPEN2K8 := \
@@ -372,6 +387,25 @@ test-xfail-UNIX98/ndbm.h/conform = yes
 test-xfail-XOPEN2K/ndbm.h/conform = yes
 test-xfail-XOPEN2K8/ndbm.h/conform = yes
 
+# glibc does not yet conform to POSIX.1-2024 for these headers: the
+# Issue 8 additions are not yet declared or defined under the new
+# feature test macros (and <stdlib.h> still declares rand_r, which
+# Issue 8 removed).  Remove the xfails as the individual headers are
+# fixed.
+test-xfail-POSIX2024/dirent.h/conform = yes
+test-xfail-POSIX2024/dlfcn.h/conform = yes
+test-xfail-POSIX2024/fcntl.h/conform = yes
+test-xfail-POSIX2024/locale.h/conform = yes
+test-xfail-POSIX2024/poll.h/conform = yes
+test-xfail-POSIX2024/pthread.h/conform = yes
+test-xfail-POSIX2024/semaphore.h/conform = yes
+test-xfail-POSIX2024/signal.h/conform = yes
+test-xfail-POSIX2024/stdio.h/conform = yes
+test-xfail-POSIX2024/stdlib.h/conform = yes
+test-xfail-POSIX2024/sys/socket.h/conform = yes
+test-xfail-POSIX2024/termios.h/conform = yes
+test-xfail-POSIX2024/unistd.h/conform = yes
+
 conformtest-cc-flags =  -I../include $(+sysdep-includes) $(sysincludes) -I.. $(no-file-offset-bits-source) $(no-time-bits-source)
 # conformtest-xfail-conds may be set by a sysdeps Makefile fragment to
 # a list of conditions that are considered to be true when encountered
@@ -420,6 +454,7 @@ linknamespace-libs-POSIX = $(linknamespace-libs-thr)
 linknamespace-libs-UNIX98 = $(linknamespace-libs-xsi)
 linknamespace-libs-XOPEN2K = $(linknamespace-libs-xsi)
 linknamespace-libs-POSIX2008 = $(linknamespace-libs-posix)
+linknamespace-libs-POSIX2024 = $(linknamespace-libs-posix)
 linknamespace-libs-XOPEN2K8 = $(linknamespace-libs-xsi)
 linknamespace-libs = $(foreach std,$(conformtest-standards),\
 				   $(linknamespace-libs-$(std)))
