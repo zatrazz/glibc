@@ -34,6 +34,7 @@ conformtest-standards := \
   POSIX2024 \
   UNIX98 \
   XOPEN2K \
+  XOPEN2K24 \
   XOPEN2K8 \
   XPG4 \
   XPG42 \
@@ -324,6 +325,20 @@ conformtest-headers-XOPEN2K8 := \
   ulimit.h \
   utmpx.h \
   # conformtest-headers-XOPEN2K8
+# The XOPEN2K24 expectations were initially copied from the XOPEN2K8
+# ones; ulimit.h and utime.h were removed in Issue 8.  Headers whose
+# glibc implementation does not yet conform to POSIX.1-2024 have
+# test-xfail-XOPEN2K24/* entries below.
+# Missing XOPEN2K24 expectations for:
+#   devctl.h
+#   endian.h
+#   libintl.h
+#   stdatomic.h
+#   threads.h
+#   uchar.h
+conformtest-headers-XOPEN2K24 := \
+  $(filter-out ulimit.h utime.h,$(conformtest-headers-XOPEN2K8)) \
+  # conformtest-headers-XOPEN2K24
 
 conformtest-header-list-base := $(foreach std,$(conformtest-standards),\
 					      header-list-$(std).out)
@@ -386,6 +401,7 @@ test-xfail-XPG42/ndbm.h/conform = yes
 test-xfail-UNIX98/ndbm.h/conform = yes
 test-xfail-XOPEN2K/ndbm.h/conform = yes
 test-xfail-XOPEN2K8/ndbm.h/conform = yes
+test-xfail-XOPEN2K24/ndbm.h/conform = yes
 
 # glibc does not yet conform to POSIX.1-2024 for these headers: the
 # Issue 8 additions are not yet declared or defined under the new
@@ -405,6 +421,31 @@ test-xfail-POSIX2024/stdlib.h/conform = yes
 test-xfail-POSIX2024/sys/socket.h/conform = yes
 test-xfail-POSIX2024/termios.h/conform = yes
 test-xfail-POSIX2024/unistd.h/conform = yes
+
+# Likewise for X/Open Issue 8; in addition to the POSIX2024 gaps,
+# glibc still declares the XSI interfaces that Issue 8 removed (ftw,
+# getitimer, setitimer, gettimeofday, the sighold family — the
+# sys/wait.h and utmpx.h failures are those declarations leaking in
+# via <signal.h> and <sys/time.h>), and does not yet declare the XSI
+# additions ffsl and ffsll.
+test-xfail-XOPEN2K24/dirent.h/conform = yes
+test-xfail-XOPEN2K24/dlfcn.h/conform = yes
+test-xfail-XOPEN2K24/fcntl.h/conform = yes
+test-xfail-XOPEN2K24/ftw.h/conform = yes
+test-xfail-XOPEN2K24/locale.h/conform = yes
+test-xfail-XOPEN2K24/poll.h/conform = yes
+test-xfail-XOPEN2K24/pthread.h/conform = yes
+test-xfail-XOPEN2K24/semaphore.h/conform = yes
+test-xfail-XOPEN2K24/signal.h/conform = yes
+test-xfail-XOPEN2K24/stdio.h/conform = yes
+test-xfail-XOPEN2K24/stdlib.h/conform = yes
+test-xfail-XOPEN2K24/strings.h/conform = yes
+test-xfail-XOPEN2K24/sys/socket.h/conform = yes
+test-xfail-XOPEN2K24/sys/time.h/conform = yes
+test-xfail-XOPEN2K24/sys/wait.h/conform = yes
+test-xfail-XOPEN2K24/termios.h/conform = yes
+test-xfail-XOPEN2K24/unistd.h/conform = yes
+test-xfail-XOPEN2K24/utmpx.h/conform = yes
 
 conformtest-cc-flags =  -I../include $(+sysdep-includes) $(sysincludes) -I.. $(no-file-offset-bits-source) $(no-time-bits-source)
 # conformtest-xfail-conds may be set by a sysdeps Makefile fragment to
@@ -456,6 +497,7 @@ linknamespace-libs-XOPEN2K = $(linknamespace-libs-xsi)
 linknamespace-libs-POSIX2008 = $(linknamespace-libs-posix)
 linknamespace-libs-POSIX2024 = $(linknamespace-libs-posix)
 linknamespace-libs-XOPEN2K8 = $(linknamespace-libs-xsi)
+linknamespace-libs-XOPEN2K24 = $(linknamespace-libs-xsi)
 linknamespace-libs = $(foreach std,$(conformtest-standards),\
 				   $(linknamespace-libs-$(std)))
 
@@ -488,3 +530,4 @@ test-xfail-XPG42/ndbm.h/linknamespace = yes
 test-xfail-UNIX98/ndbm.h/linknamespace = yes
 test-xfail-XOPEN2K/ndbm.h/linknamespace = yes
 test-xfail-XOPEN2K8/ndbm.h/linknamespace = yes
+test-xfail-XOPEN2K24/ndbm.h/linknamespace = yes
