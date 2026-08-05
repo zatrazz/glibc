@@ -2506,6 +2506,8 @@ GLIBC_2.44 mq_setattr F
 GLIBC_2.44 mq_timedreceive F
 GLIBC_2.44 mq_timedsend F
 GLIBC_2.44 mq_unlink F
+GLIBC_2.44 posix_spawn_file_actions_addchdir F
+GLIBC_2.44 posix_spawn_file_actions_addfchdir F
 GLIBC_2.44 timer_create F
 GLIBC_2.44 timer_delete F
 GLIBC_2.44 timer_getoverrun F
