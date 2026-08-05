@@ -128,28 +128,30 @@ typedef int (*__nftw64_func_t) (const char *__filename,
 # endif
 #endif
 
+#if defined __USE_MISC || !defined __USE_XOPEN2K24
 /* Call a function on every element in a directory tree.
 
    This function is a possible cancellation point and therefore not
    marked with __THROW.  */
-#ifndef __USE_FILE_OFFSET64
+# ifndef __USE_FILE_OFFSET64
 extern int ftw (const char *__dir, __ftw_func_t __func, int __descriptors)
      __nonnull ((1, 2));
-#else
-# ifdef __REDIRECT
-#  ifndef __USE_TIME64_REDIRECTS
+# else
+#  ifdef __REDIRECT
+#   ifndef __USE_TIME64_REDIRECTS
 extern int __REDIRECT (ftw, (const char *__dir, __ftw_func_t __func,
 			     int __descriptors), ftw64) __nonnull ((1, 2));
-#  else
+#   else
 extern int __REDIRECT (ftw, (const char *__dir, __ftw_func_t __func,
 			     int __descriptors), __ftw64_time64)
      __nonnull ((1, 2));
-#  endif
-# else
-#  ifndef __USE_TIME64_REDIRECTS
-#   define ftw ftw64
+#   endif
 #  else
-#   define ftw __ftw64_time64
+#   ifndef __USE_TIME64_REDIRECTS
+#    define ftw ftw64
+#   else
+#    define ftw __ftw64_time64
+#   endif
 #  endif
 # endif
 #endif
