@@ -18,6 +18,11 @@ constant POLLHUP
 constant POLLNVAL
 
 function int poll (struct pollfd[], nfds_t, int)
+#if defined XOPEN2K24 || defined POSIX2024
+type sigset_t
+type {struct timespec}
+function int ppoll (struct pollfd[], nfds_t, const struct timespec*, const sigset_t*)
+#endif
 
 allow pd_*
 allow ph_*

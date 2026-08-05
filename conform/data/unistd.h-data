@@ -170,6 +170,11 @@ constant _CS_XBS5_LPBIG_OFFBIG_LINTFLAGS
 constant SEEK_SET
 constant SEEK_CUR
 constant SEEK_END
+#if defined XOPEN2K24 || defined POSIX2024
+constant SEEK_DATA
+constant SEEK_HOLE
+constant POSIX_CLOSE_RESTART
+#endif
 
 #ifndef POSIX
 constant _SC_2_C_BIND
@@ -446,6 +451,9 @@ allow cuserid
 #endif
 function int dup (int)
 function int dup2 (int, int)
+#if defined XOPEN2K24 || defined POSIX2024
+function int dup3 (int, int, int)
+#endif
 function int execl (const char*, const char*, ...)
 function int execle (const char*, const char*, ...)
 function int execlp (const char*, const char*, ...)
@@ -472,6 +480,16 @@ function int fdatasync (int)
 function int fexecve (int, char *const[], char *const[])
 # endif
 function pid_t fork (void)
+#if defined XOPEN2K24 || defined POSIX2024
+function pid_t _Fork (void)
+function int getentropy (void*, size_t)
+#endif
+#ifdef XOPEN2K24
+function int getresgid (gid_t*, gid_t*, gid_t*)
+function int getresuid (uid_t*, uid_t*, uid_t*)
+function int setresgid (gid_t, gid_t, gid_t)
+function int setresuid (uid_t, uid_t, uid_t)
+#endif
 function {long int} fpathconf (int, int)
 function int fsync (int)
 #ifndef XPG4
@@ -533,6 +551,10 @@ function int nice (int)
 function {long int} pathconf (const char*, int)
 function int pause (void)
 function int pipe (int[2])
+#if defined XOPEN2K24 || defined POSIX2024
+function int pipe2 (int[2], int)
+function int posix_close (int, int)
+#endif
 #if !defined POSIX && !defined XPG4 && !defined XPG42
 function ssize_t pread (int, void*, size_t, off_t)
 #endif

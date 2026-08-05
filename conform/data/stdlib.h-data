@@ -40,11 +40,11 @@ function long a64l (const char*)
 #endif
 function void abort (void)
 function int abs (int)
-#if defined ISO11 || defined ISO23
+#if defined ISO11 || defined ISO23 || defined XOPEN2K24 || defined POSIX2024
 function {void *} aligned_alloc (size_t, size_t)
 #endif
 function int atexit (void(*)(void))
-#if defined ISO11 || defined ISO23
+#if defined ISO11 || defined ISO23 || defined XOPEN2K24 || defined POSIX2024
 function int at_quick_exit (void (*) (void))
 #endif
 function double atof (const char*)
@@ -74,6 +74,9 @@ function void free (void*)
 function {char*} gcvt (double, int, char*)
 #endif
 function {char*} getenv (const char*)
+#if defined XOPEN2K24 || defined POSIX2024
+function {char*} secure_getenv (const char*)
+#endif
 #if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23 && !defined XPG4 && !defined POSIX
 function int getsubopt (char**, char *const*, char**)
 #endif
@@ -112,6 +115,9 @@ function {char*} mktemp (char*)
 #if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23 && !defined XPG4 && !defined POSIX
 function int mkstemp (char*)
 #endif
+#if defined XOPEN2K24 || defined POSIX2024
+function int mkostemp (char*, int)
+#endif
 #if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23 && !defined POSIX && !defined POSIX2008 && !defined POSIX2024
 function {long int} mrand48 (void)
 function {long int} nrand48 (unsigned short int[3])
@@ -125,21 +131,30 @@ function int posix_openpt (int)
 #if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23 && !defined XPG4 && !defined POSIX && !defined POSIX2008 && !defined POSIX2024
 function {char*} ptsname (int)
 #endif
+#if defined XOPEN2K24 || defined POSIX2024
+function int ptsname_r (int, char*, size_t)
+#endif
 #if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23 && !defined POSIX && !defined POSIX2008 && !defined POSIX2024
 function int putenv (char*)
 #endif
 function void qsort (void*, size_t, size_t, int(*)(const void*, const void*))
-#if defined ISO11 || defined ISO23
+#if defined XOPEN2K24 || defined POSIX2024
+function void qsort_r (void*, size_t, size_t, int(*)(const void*, const void*, void*), void*)
+#endif
+#if defined ISO11 || defined ISO23 || defined XOPEN2K24 || defined POSIX2024
 function void quick_exit (int)
 #endif
 function int rand (void)
-#if defined POSIX || defined UNIX98 || defined XOPEN2K || defined XOPEN2K8 || defined XOPEN2K24 || defined POSIX2008 || defined POSIX2024
+#if defined POSIX || defined UNIX98 || defined XOPEN2K || defined XOPEN2K8 || defined POSIX2008
 function int rand_r (unsigned int*)
 #endif
 #if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23 && !defined XPG4 && !defined POSIX && !defined POSIX2008 && !defined POSIX2024
 function long random (void)
 #endif
 function {void*} realloc (void*, size_t)
+#if defined XOPEN2K24 || defined POSIX2024
+function {void*} reallocarray (void*, size_t, size_t)
+#endif
 #if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23 && !defined XPG4 && !defined POSIX && !defined POSIX2008 && !defined POSIX2024
 function {char*} realpath (const char*, char*)
 #endif

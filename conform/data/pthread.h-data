@@ -4,6 +4,9 @@ constant PTHREAD_CANCEL_ENABLE
 constant PTHREAD_CANCEL_DEFERRED
 constant PTHREAD_CANCEL_DISABLE
 constant PTHREAD_CANCELED
+#if defined XOPEN2K24 || defined POSIX2024
+constant PTHREAD_NULL
+#endif
 macro PTHREAD_COND_INITIALIZER
 constant PTHREAD_CREATE_DETACHED
 constant PTHREAD_CREATE_JOINABLE
@@ -92,6 +95,9 @@ function int pthread_cond_destroy (pthread_cond_t*)
 function int pthread_cond_init (pthread_cond_t*, const pthread_condattr_t*)
 function int pthread_cond_signal (pthread_cond_t*)
 function int pthread_cond_timedwait (pthread_cond_t*, pthread_mutex_t*, const struct timespec*)
+#if defined XOPEN2K24 || defined POSIX2024
+function int pthread_cond_clockwait (pthread_cond_t*, pthread_mutex_t*, clockid_t, const struct timespec*)
+#endif
 function int pthread_cond_wait (pthread_cond_t*, pthread_mutex_t*)
 function int pthread_condattr_destroy (pthread_condattr_t*)
 #if !defined POSIX && !defined UNIX98 && !defined XOPEN2K
@@ -125,6 +131,9 @@ function int pthread_mutex_lock (pthread_mutex_t*)
 optional-function int pthread_mutex_setprioceiling (pthread_mutex_t*, int, int*)
 # if !defined POSIX && !defined UNIX98
 function int pthread_mutex_timedlock (pthread_mutex_t*, const struct timespec*)
+#if defined XOPEN2K24 || defined POSIX2024
+function int pthread_mutex_clocklock (pthread_mutex_t*, clockid_t, const struct timespec*)
+#endif
 # endif
 function int pthread_mutex_trylock (pthread_mutex_t*)
 function int pthread_mutex_unlock (pthread_mutex_t*)
@@ -150,6 +159,10 @@ function int pthread_rwlock_rdlock (pthread_rwlock_t*)
 # if !defined POSIX && !defined UNIX98
 function int pthread_rwlock_timedrdlock (pthread_rwlock_t*, const struct timespec*)
 function int pthread_rwlock_timedwrlock (pthread_rwlock_t*, const struct timespec*)
+#if defined XOPEN2K24 || defined POSIX2024
+function int pthread_rwlock_clockrdlock (pthread_rwlock_t*, clockid_t, const struct timespec*)
+function int pthread_rwlock_clockwrlock (pthread_rwlock_t*, clockid_t, const struct timespec*)
+#endif
 # endif
 # if !defined POSIX
 function int pthread_rwlock_tryrdlock (pthread_rwlock_t*)

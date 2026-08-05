@@ -8,6 +8,10 @@ function {void*} dlopen (const char*, int)
 function {void*} dlsym (void *, const char*)
 function int dlclose (void*)
 function {char*} dlerror (void)
+# if defined XOPEN2K24 || defined POSIX2024
+type Dl_info_t
+function int dladdr (const void*, Dl_info_t*)
+# endif
 
 allow *_t
 allow RTLD_*

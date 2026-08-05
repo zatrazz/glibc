@@ -113,6 +113,18 @@ xfail-constant O_SEARCH
 constant O_DIRECTORY
 constant O_NOFOLLOW
 constant F_DUPFD_CLOEXEC
+#if defined XOPEN2K24 || defined POSIX2024
+constant F_DUPFD_CLOFORK
+constant FD_CLOFORK
+constant O_CLOFORK
+constant F_OFD_GETLK
+constant F_OFD_SETLK
+constant F_OFD_SETLKW
+constant F_GETOWN_EX
+constant F_SETOWN_EX
+constant F_OWNER_PID
+constant F_OWNER_PGRP
+#endif
 constant AT_FDCWD
 constant AT_EACCESS
 constant AT_SYMLINK_NOFOLLOW

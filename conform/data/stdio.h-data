@@ -59,6 +59,9 @@ function {char*} cuserid (char*)
 #if defined XOPEN2K8 || defined XOPEN2K24 || defined POSIX2008 || defined POSIX2024
 function int dprintf (int, const char*, ...)
 #endif
+#if defined XOPEN2K24 || defined POSIX2024
+function int asprintf (char**, const char*, ...)
+#endif
 function int fclose (FILE*)
 #if !defined ISO && !defined ISO99 && !defined ISO11 && !defined ISO23
 function {FILE*} fdopen (int, const char*)
@@ -112,7 +115,7 @@ function ssize_t getline (char**, size_t*, FILE*)
 #if defined XPG4 || defined XPG42 || defined UNIX98
 function int getopt (int, char *const[], const char *)
 #endif
-#if !defined ISO11 && !defined ISO23
+#if !defined ISO11 && !defined ISO23 && !defined XOPEN2K24 && !defined POSIX2024
 function {char*} gets (char*)
 #endif
 #if defined XPG4 || defined XPG42 || defined UNIX98
@@ -161,6 +164,9 @@ function {char*} tmpnam (char*)
 function int ungetc (int, FILE*)
 #if defined XOPEN2K8 || defined XOPEN2K24 || defined POSIX2008 || defined POSIX2024
 function int vdprintf (int, const char*, va_list)
+#endif
+#if defined XOPEN2K24 || defined POSIX2024
+function int vasprintf (char**, const char*, va_list)
 #endif
 function int vfprintf (FILE*, const char*, va_list)
 #if !defined ISO && !defined POSIX && !defined XPG4 && !defined XPG42 && !defined UNIX98

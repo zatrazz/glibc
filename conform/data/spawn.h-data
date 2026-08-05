@@ -14,6 +14,9 @@ constant POSIX_SPAWN_SETSCHEDPARAM
 constant POSIX_SPAWN_SETSCHEDULER
 constant POSIX_SPAWN_SETSIGDEF
 constant POSIX_SPAWN_SETSIGMASK
+#if defined XOPEN2K24 || defined POSIX2024
+constant POSIX_SPAWN_SETSID
+#endif
 
 function int posix_spawnattr_destroy (posix_spawnattr_t*)
 function int posix_spawnattr_getsigdefault (const posix_spawnattr_t*, sigset_t*)

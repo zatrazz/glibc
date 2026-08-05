@@ -54,6 +54,11 @@ element {struct linger} int l_linger
 macro SOCK_DGRAM
 macro SOCK_STREAM
 macro SOCK_SEQPACKET
+#if defined XOPEN2K24 || defined POSIX2024
+macro SOCK_CLOEXEC
+macro SOCK_CLOFORK
+macro SOCK_NONBLOCK
+#endif
 
 macro SOL_SOCKET
 
@@ -73,6 +78,10 @@ macro SO_SNDBUF
 macro SO_SNDLOWAT
 macro SO_SNDTIMEO
 macro SO_TYPE
+#if defined XOPEN2K24 || defined POSIX2024
+macro SO_DOMAIN
+macro SO_PROTOCOL
+#endif
 
 macro SOMAXCONN
 
@@ -81,6 +90,10 @@ macro MSG_DONTROUTE
 macro MSG_EOR
 macro MSG_OOB
 macro MSG_PEEK
+#if defined XOPEN2K24 || defined POSIX2024
+macro MSG_CMSG_CLOEXEC
+macro MSG_CMSG_CLOFORK
+#endif
 macro MSG_TRUNC
 macro MSG_WAITALL
 # if defined XOPEN2K8 || defined XOPEN2K24 || defined POSIX2008 || defined POSIX2024
@@ -97,6 +110,9 @@ macro SHUT_WR
 macro SHUT_RDWR
 
 function int accept (int, struct sockaddr*, socklen_t*)
+#if defined XOPEN2K24 || defined POSIX2024
+function int accept4 (int, struct sockaddr*, socklen_t*, int)
+#endif
 function int bind (int, const struct sockaddr*, socklen_t)
 function int connect (int, const struct sockaddr*, socklen_t)
 function int getpeername (int, struct sockaddr*, socklen_t*)

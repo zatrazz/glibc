@@ -59,6 +59,9 @@ function locale_t duplocale (locale_t)
 function void freelocale (locale_t)
 function locale_t newlocale (int, const char*, locale_t)
 function locale_t uselocale (locale_t)
+#if defined XOPEN2K24 || defined POSIX2024
+function {const char*} getlocalename_l (int, locale_t)
+#endif
 #endif
 
 allow LC_[ABCDEFGHIJKLMNOPQRSTUVWXYZ]*

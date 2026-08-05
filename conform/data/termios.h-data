@@ -14,6 +14,13 @@ element {struct termios} tcflag_t c_oflag
 element {struct termios} tcflag_t c_cflag
 element {struct termios} tcflag_t c_lflag
 element {struct termios} cc_t c_cc [NCCS]
+#if defined XOPEN2K24 || defined POSIX2024
+type {struct winsize}
+element {struct winsize} {unsigned short} ws_row
+element {struct winsize} {unsigned short} ws_col
+function int tcgetwinsize (int, struct winsize*)
+function int tcsetwinsize (int, const struct winsize*)
+#endif
 
 constant NCCS
 

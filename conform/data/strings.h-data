@@ -9,6 +9,10 @@ function {char*} rindex (const char*, int)
 # if !defined POSIX2008 && !defined POSIX2024
 function int ffs (int)
 # endif
+#ifdef XOPEN2K24
+function int ffsl (long int)
+function int ffsll (long long int)
+#endif
 function int strcasecmp (const char*, const char*)
 function int strncasecmp (const char*, const char*, size_t)
 # if defined XOPEN2K8 || defined XOPEN2K24 || defined POSIX2008 || defined POSIX2024
