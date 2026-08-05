@@ -56,6 +56,7 @@ struct timezone
   };
 #endif
 
+#if defined __USE_MISC || !defined __USE_XOPEN2K24
 /* Get the current time of day, putting it into *TV.
    If TZ is not null, *TZ must be a struct timezone, and both fields
    will be set to zero.
@@ -63,16 +64,17 @@ struct timezone
    use localtime etc. instead.
    This function itself is semi-obsolete;
    most callers should use time or clock_gettime instead. */
-#ifndef __USE_TIME64_REDIRECTS
+# ifndef __USE_TIME64_REDIRECTS
 extern int gettimeofday (struct timeval *__restrict __tv,
 			 void *__restrict __tz) __THROW __nonnull ((1));
-#else
-# ifdef __REDIRECT_NTH
+# else
+#  ifdef __REDIRECT_NTH
 extern int __REDIRECT_NTH (gettimeofday, (struct timeval *__restrict __tv,
                                           void *__restrict __tz),
                            __gettimeofday64) __nonnull ((1));
-# else
-#  define gettimeofday __gettimeofday64
+#  else
+#   define gettimeofday __gettimeofday64
+#  endif
 # endif
 #endif
 
@@ -110,19 +112,20 @@ extern int __REDIRECT_NTH (adjtime, (const struct timeval *__delta,
 #endif
 
 
+#if defined __USE_MISC || !defined __USE_XOPEN2K24
 /* Values for the first argument to `getitimer' and `setitimer'.  */
 enum __itimer_which
   {
     /* Timers run in real time.  */
     ITIMER_REAL = 0,
-#define ITIMER_REAL ITIMER_REAL
+# define ITIMER_REAL ITIMER_REAL
     /* Timers run only when the process is executing.  */
     ITIMER_VIRTUAL = 1,
-#define ITIMER_VIRTUAL ITIMER_VIRTUAL
+# define ITIMER_VIRTUAL ITIMER_VIRTUAL
     /* Timers run when the process is executing and when
        the system is executing on behalf of the process.  */
     ITIMER_PROF = 2
-#define ITIMER_PROF ITIMER_PROF
+# define ITIMER_PROF ITIMER_PROF
   };
 
 /* Type of the second argument to `getitimer' and
@@ -135,15 +138,17 @@ struct itimerval
     struct timeval it_value;
   };
 
-#if defined __USE_GNU && !defined __cplusplus
+# if defined __USE_GNU && !defined __cplusplus
 /* Use the nicer parameter type only in GNU mode and not for C++ since the
    strict C++ rules prevent the automatic promotion.  */
 typedef enum __itimer_which __itimer_which_t;
-#else
+# else
 typedef int __itimer_which_t;
+# endif
 #endif
 
-#ifndef __USE_TIME64_REDIRECTS
+#if defined __USE_MISC || !defined __USE_XOPEN2K24
+# ifndef __USE_TIME64_REDIRECTS
 /* Set *VALUE to the current setting of timer WHICH.
    Return 0 on success, -1 on errors.  */
 extern int getitimer (__itimer_which_t __which,
@@ -156,14 +161,8 @@ extern int setitimer (__itimer_which_t __which,
 		      const struct itimerval *__restrict __new,
 		      struct itimerval *__restrict __old) __THROW;
 
-/* Change the access time of FILE to TVP[0] and the modification time of
-   FILE to TVP[1].  If TVP is a null pointer, use the current time instead.
-   Returns 0 on success, -1 on errors.  */
-extern int utimes (const char *__file, const struct timeval __tvp[2])
-     __THROW __nonnull ((1));
-
-#else
-# ifdef __REDIRECT_NTH
+# else
+#  ifdef __REDIRECT_NTH
 extern int __REDIRECT_NTH (getitimer, (__itimer_which_t __which,
                                        struct itimerval *__value),
                            __getitimer64);
@@ -172,14 +171,26 @@ extern int __REDIRECT_NTH (setitimer, (__itimer_which_t __which,
                                        const struct itimerval *__restrict __new,
                                        struct itimerval *__restrict __old),
                            __setitimer64);
+#  else
+#   define getitimer __getitimer64
+#   define setitimer __setitimer64
+#  endif
+# endif
+#endif
 
+#ifndef __USE_TIME64_REDIRECTS
+/* Change the access time of FILE to TVP[0] and the modification time of
+   FILE to TVP[1].  If TVP is a null pointer, use the current time instead.
+   Returns 0 on success, -1 on errors.  */
+extern int utimes (const char *__file, const struct timeval __tvp[2])
+     __THROW __nonnull ((1));
+#else
+# ifdef __REDIRECT_NTH
 extern int __REDIRECT_NTH (utimes, (const char *__file,
                                     const struct timeval __tvp[2]),
                            __utimes64) __nonnull ((1));
 # else
-#  define getitimer __getitimer64
-#  define setitimer __setitimer64
-#  define utimes __utimes64
+#   define utimes __utimes64
 # endif
 #endif
 

@@ -434,11 +434,9 @@ test-xfail-XOPEN2K24/ftw.h/conform = yes
 test-xfail-XOPEN2K24/locale.h/conform = yes
 test-xfail-XOPEN2K24/signal.h/conform = yes
 test-xfail-XOPEN2K24/sys/socket.h/conform = yes
-test-xfail-XOPEN2K24/sys/time.h/conform = yes
 test-xfail-XOPEN2K24/sys/wait.h/conform = yes
 test-xfail-XOPEN2K24/termios.h/conform = yes
 test-xfail-XOPEN2K24/unistd.h/conform = yes
-test-xfail-XOPEN2K24/utmpx.h/conform = yes
 
 conformtest-cc-flags =  -I../include $(+sysdep-includes) $(sysincludes) -I.. $(no-file-offset-bits-source) $(no-time-bits-source)
 # conformtest-xfail-conds may be set by a sysdeps Makefile fragment to
