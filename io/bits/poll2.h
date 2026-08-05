@@ -47,7 +47,7 @@ poll (__fortify_clang_overload_arg (struct pollfd *, ,__fds), nfds_t __nfds,
 }
 
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 # ifdef __USE_TIME64_REDIRECTS
 extern int __REDIRECT (__ppoll64_alias, (struct pollfd *__fds, nfds_t __nfds,
 				       const struct timespec *__timeout,

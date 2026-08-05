@@ -22,6 +22,8 @@ function int poll (struct pollfd[], nfds_t, int)
 type sigset_t
 type {struct timespec}
 function int ppoll (struct pollfd[], nfds_t, const struct timespec*, const sigset_t*)
+
+allow tv_*
 #endif
 
 allow pd_*

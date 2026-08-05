@@ -23,8 +23,8 @@
 
 /* Get the platform dependent bits of `poll'.  */
 #include <bits/poll.h>
-#ifdef __USE_GNU
-# include <bits/types/__sigset_t.h>
+#if defined __USE_GNU || defined __USE_XOPEN2K24
+# include <bits/types/sigset_t.h>
 # include <bits/types/struct_timespec.h>
 #endif
 
@@ -54,7 +54,7 @@ __BEGIN_DECLS
 extern int poll (struct pollfd *__fds, nfds_t __nfds, int __timeout)
     __fortified_attr_access (__write_only__, 1, 2);
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Like poll, but before waiting the threads signal mask is replaced
    with that specified in the fourth parameter.  For better usability,
    the timeout value is specified using a TIMESPEC object.
