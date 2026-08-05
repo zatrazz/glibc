@@ -727,7 +727,7 @@ GLIBC_2.2.6 _libc_intl_domainname D 0x5
 GLIBC_2.2.6 _longjmp F
 GLIBC_2.2.6 _mcleanup F
 GLIBC_2.2.6 _mcount F
-GLIBC_2.2.6 _nl_default_dirname D 0xe
+GLIBC_2.2.6 _nl_default_dirname D 0x12
 GLIBC_2.2.6 _nl_domain_bindings D 0x4
 GLIBC_2.2.6 _nl_msg_cat_cntr D 0x4
 GLIBC_2.2.6 _null_auth D 0xc
@@ -2835,6 +2835,8 @@ GLIBC_2.44 timer_delete F
 GLIBC_2.44 timer_getoverrun F
 GLIBC_2.44 timer_gettime F
 GLIBC_2.44 timer_settime F
+GLIBC_2.45 posix_spawn_file_actions_addchdir F
+GLIBC_2.45 posix_spawn_file_actions_addfchdir F
 GLIBC_2.5 __readlinkat_chk F
 GLIBC_2.5 inet6_opt_append F
 GLIBC_2.5 inet6_opt_find F
