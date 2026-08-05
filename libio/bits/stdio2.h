@@ -198,7 +198,7 @@ vdprintf (int __fd, const char *__restrict __fmt, __gnuc_va_list __ap)
 }
 # endif
 
-# ifdef __USE_GNU
+# if defined __USE_MISC || defined __USE_XOPEN2K24 || __GLIBC_USE (LIB_EXT2)
 #  ifdef __va_arg_pack
 __fortify_function int
 __NTH (asprintf (char **__restrict __ptr, const char *__restrict __fmt, ...))
@@ -213,14 +213,6 @@ __NTH (__asprintf (char **__restrict __ptr, const char *__restrict __fmt,
 {
   return __asprintf_chk (__ptr, __USE_FORTIFY_LEVEL - 1, __fmt,
 			 __va_arg_pack ());
-}
-
-__fortify_function int
-__NTH (obstack_printf (struct obstack *__restrict __obstack,
-		       const char *__restrict __fmt, ...))
-{
-  return __obstack_printf_chk (__obstack, __USE_FORTIFY_LEVEL - 1, __fmt,
-			       __va_arg_pack ());
 }
 #  elif __fortify_use_clang
 __fortify_function_error_function __attribute_overloadable__ int
@@ -246,7 +238,31 @@ __NTH (__asprintf (__fortify_clang_overload_arg (char **, __restrict, __ptr),
   __builtin_va_end (__fortify_ap);
   return __r;
 }
+#  elif !defined __cplusplus
+#   define asprintf(ptr, ...) \
+  __asprintf_chk (ptr, __USE_FORTIFY_LEVEL - 1, __VA_ARGS__)
+#   define __asprintf(ptr, ...) \
+  __asprintf_chk (ptr, __USE_FORTIFY_LEVEL - 1, __VA_ARGS__)
+#  endif
 
+__fortify_function int
+__NTH (vasprintf (char **__restrict __ptr, const char *__restrict __fmt,
+		  __gnuc_va_list __ap))
+{
+  return __vasprintf_chk (__ptr, __USE_FORTIFY_LEVEL - 1, __fmt, __ap);
+}
+# endif
+
+# ifdef __USE_GNU
+#  ifdef __va_arg_pack
+__fortify_function int
+__NTH (obstack_printf (struct obstack *__restrict __obstack,
+		       const char *__restrict __fmt, ...))
+{
+  return __obstack_printf_chk (__obstack, __USE_FORTIFY_LEVEL - 1, __fmt,
+			       __va_arg_pack ());
+}
+#  elif __fortify_use_clang
 __fortify_function_error_function __attribute_overloadable__ int
 __NTH (obstack_printf (__fortify_clang_overload_arg (struct obstack *,
 						     __restrict, __obstack),
@@ -260,20 +276,9 @@ __NTH (obstack_printf (__fortify_clang_overload_arg (struct obstack *,
   return __r;
 }
 #  elif !defined __cplusplus
-#   define asprintf(ptr, ...) \
-  __asprintf_chk (ptr, __USE_FORTIFY_LEVEL - 1, __VA_ARGS__)
-#   define __asprintf(ptr, ...) \
-  __asprintf_chk (ptr, __USE_FORTIFY_LEVEL - 1, __VA_ARGS__)
 #   define obstack_printf(obstack, ...) \
   __obstack_printf_chk (obstack, __USE_FORTIFY_LEVEL - 1, __VA_ARGS__)
 #  endif
-
-__fortify_function int
-__NTH (vasprintf (char **__restrict __ptr, const char *__restrict __fmt,
-		  __gnuc_va_list __ap))
-{
-  return __vasprintf_chk (__ptr, __USE_FORTIFY_LEVEL - 1, __fmt, __ap);
-}
 
 __fortify_function int
 __NTH (obstack_vprintf (struct obstack *__restrict __obstack,
@@ -282,7 +287,6 @@ __NTH (obstack_vprintf (struct obstack *__restrict __obstack,
   return __obstack_vprintf_chk (__obstack, __USE_FORTIFY_LEVEL - 1, __fmt,
 				__ap);
 }
-
 # endif
 
 #endif

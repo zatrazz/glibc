@@ -418,7 +418,6 @@ test-xfail-POSIX2024/poll.h/conform = yes
 test-xfail-POSIX2024/pthread.h/conform = yes
 test-xfail-POSIX2024/semaphore.h/conform = yes
 test-xfail-POSIX2024/signal.h/conform = yes
-test-xfail-POSIX2024/stdio.h/conform = yes
 test-xfail-POSIX2024/stdlib.h/conform = yes
 test-xfail-POSIX2024/sys/socket.h/conform = yes
 test-xfail-POSIX2024/termios.h/conform = yes

@@ -64,7 +64,7 @@ extern int __vdprintf_chk (int __fd, int __flag,
      __attribute__ ((__format__ (__printf__, 3, 0)));
 # endif
 
-# ifdef __USE_GNU
+# if defined __USE_MISC || defined __USE_XOPEN2K24 || __GLIBC_USE (LIB_EXT2)
 
 extern int __asprintf_chk (char **__restrict __ptr, int __flag,
 			   const char *__restrict __fmt, ...)
@@ -72,6 +72,10 @@ extern int __asprintf_chk (char **__restrict __ptr, int __flag,
 extern int __vasprintf_chk (char **__restrict __ptr, int __flag,
 			    const char *__restrict __fmt, __gnuc_va_list __arg)
      __THROW __attribute__ ((__format__ (__printf__, 3, 0))) __wur;
+# endif
+
+# ifdef __USE_GNU
+
 extern int __obstack_printf_chk (struct obstack *__restrict __obstack,
 				 int __flag, const char *__restrict __format,
 				 ...)

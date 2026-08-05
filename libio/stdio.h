@@ -398,7 +398,7 @@ extern int vsnprintf (char *__restrict __s, size_t __maxlen,
      __THROWNL __attribute__ ((__format__ (__printf__, 3, 0)));
 #endif
 
-#if defined (__USE_MISC) || __GLIBC_USE (LIB_EXT2)
+#if defined (__USE_MISC) || defined __USE_XOPEN2K24 || __GLIBC_USE (LIB_EXT2)
 /* Write formatted output to a string dynamically allocated with `malloc'.
    Store the address of the string in *PTR.  */
 extern int vasprintf (char **__restrict __ptr, const char *__restrict __f,
