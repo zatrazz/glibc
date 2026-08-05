@@ -1,0 +1,25 @@
+#if defined XOPEN2K24 || defined POSIX2024
+macro-int-constant BYTE_ORDER
+macro-int-constant LITTLE_ENDIAN
+macro-int-constant BIG_ENDIAN
+
+type uint16_t
+type uint32_t
+type uint64_t
+
+macro-function uint16_t be16toh (uint16_t)
+macro-function uint32_t be32toh (uint32_t)
+macro-function uint64_t be64toh (uint64_t)
+macro-function uint16_t htobe16 (uint16_t)
+macro-function uint32_t htobe32 (uint32_t)
+macro-function uint64_t htobe64 (uint64_t)
+macro-function uint16_t le16toh (uint16_t)
+macro-function uint32_t le32toh (uint32_t)
+macro-function uint64_t le64toh (uint64_t)
+macro-function uint16_t htole16 (uint16_t)
+macro-function uint32_t htole32 (uint32_t)
+macro-function uint64_t htole64 (uint64_t)
+
+allow *_ENDIAN
+allow *_t
+#endif

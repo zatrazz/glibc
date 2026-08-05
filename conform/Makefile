@@ -297,13 +297,13 @@ conformtest-headers-POSIX2008 := \
 # test-xfail-POSIX2024/* entries below.
 # Missing POSIX2024 expectations for:
 #   devctl.h
-#   endian.h
-#   libintl.h
 #   stdatomic.h
-#   threads.h
-#   uchar.h
 conformtest-headers-POSIX2024 := \
   $(filter-out utime.h,$(conformtest-headers-POSIX2008)) \
+  endian.h \
+  libintl.h \
+  threads.h \
+  uchar.h \
   # conformtest-headers-POSIX2024
 # Missing XOPEN2K8 expectations for:
 #   trace.h
@@ -331,13 +331,13 @@ conformtest-headers-XOPEN2K8 := \
 # test-xfail-XOPEN2K24/* entries below.
 # Missing XOPEN2K24 expectations for:
 #   devctl.h
-#   endian.h
-#   libintl.h
 #   stdatomic.h
-#   threads.h
-#   uchar.h
 conformtest-headers-XOPEN2K24 := \
   $(filter-out ulimit.h utime.h,$(conformtest-headers-XOPEN2K8)) \
+  endian.h \
+  libintl.h \
+  threads.h \
+  uchar.h \
   # conformtest-headers-XOPEN2K24
 
 conformtest-header-list-base := $(foreach std,$(conformtest-standards),\
@@ -410,6 +410,8 @@ test-xfail-XOPEN2K24/ndbm.h/conform = yes
 # fixed.
 test-xfail-POSIX2024/dirent.h/conform = yes
 test-xfail-POSIX2024/dlfcn.h/conform = yes
+test-xfail-POSIX2024/endian.h/conform = yes
+test-xfail-POSIX2024/libintl.h/conform = yes
 test-xfail-POSIX2024/fcntl.h/conform = yes
 test-xfail-POSIX2024/locale.h/conform = yes
 test-xfail-POSIX2024/poll.h/conform = yes
@@ -430,6 +432,8 @@ test-xfail-POSIX2024/unistd.h/conform = yes
 # additions ffsl and ffsll.
 test-xfail-XOPEN2K24/dirent.h/conform = yes
 test-xfail-XOPEN2K24/dlfcn.h/conform = yes
+test-xfail-XOPEN2K24/endian.h/conform = yes
+test-xfail-XOPEN2K24/libintl.h/conform = yes
 test-xfail-XOPEN2K24/fcntl.h/conform = yes
 test-xfail-XOPEN2K24/ftw.h/conform = yes
 test-xfail-XOPEN2K24/locale.h/conform = yes
