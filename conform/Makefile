@@ -433,7 +433,6 @@ test-xfail-XOPEN2K24/fcntl.h/conform = yes
 test-xfail-XOPEN2K24/locale.h/conform = yes
 test-xfail-XOPEN2K24/signal.h/conform = yes
 test-xfail-XOPEN2K24/sys/socket.h/conform = yes
-test-xfail-XOPEN2K24/sys/wait.h/conform = yes
 test-xfail-XOPEN2K24/termios.h/conform = yes
 test-xfail-XOPEN2K24/unistd.h/conform = yes
 

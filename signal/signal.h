@@ -146,7 +146,8 @@ extern void psiginfo (const siginfo_t *__pinfo, const char *__s);
    This function is a cancellation point and therefore not marked with
    __THROW.  */
 
-#ifdef __USE_XOPEN_EXTENDED
+#if (defined __USE_XOPEN_EXTENDED && !defined __USE_XOPEN2K24) \
+    || defined __USE_MISC
 # ifdef __GNUC__
 extern int sigpause (int __sig) __asm__ ("__xpg_sigpause")
   __attribute_deprecated_msg__ ("Use the sigsuspend function instead");
@@ -317,13 +318,16 @@ extern int sigreturn (struct sigcontext *__scp) __THROW;
 # endif
 #endif /* Use POSIX.1-2008 or X/Open Unix.  */
 
-#if defined __USE_XOPEN_EXTENDED || defined __USE_MISC
+#if (defined __USE_XOPEN_EXTENDED && !defined __USE_XOPEN2K24) \
+    || defined __USE_MISC
 /* If INTERRUPT is nonzero, make signal SIG interrupt system calls
    (causing them to fail with EINTR); if INTERRUPT is zero, make system
    calls be restarted after signal SIG.  */
 extern int siginterrupt (int __sig, int __interrupt) __THROW
   __attribute_deprecated_msg__ ("Use sigaction with SA_RESTART instead");
+#endif
 
+#if defined __USE_XOPEN_EXTENDED || defined __USE_MISC
 # include <bits/sigstack.h>
 # include <bits/sigstksz.h>
 # include <bits/ss_flags.h>
@@ -348,7 +352,8 @@ extern int sigstack (struct sigstack *__ss, struct sigstack *__oss)
      __THROW __attribute_deprecated__;
 #endif
 
-#ifdef __USE_XOPEN_EXTENDED
+#if (defined __USE_XOPEN_EXTENDED && !defined __USE_XOPEN2K24) \
+    || defined __USE_MISC
 /* Simplified interface for signal management.  */
 
 /* Add SIG to the calling process' signal mask.  */
