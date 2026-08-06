@@ -10,6 +10,10 @@ function int dlclose (void*)
 function {char*} dlerror (void)
 # if defined XOPEN2K24 || defined POSIX2024
 type Dl_info_t
+element Dl_info_t {const char*} dli_fname
+element Dl_info_t {void*} dli_fbase
+element Dl_info_t {const char*} dli_sname
+element Dl_info_t {void*} dli_saddr
 function int dladdr (const void*, Dl_info_t*)
 # endif
 

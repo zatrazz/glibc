@@ -23,6 +23,10 @@ Major new features:
   declared when 64-bit file offsets are in use (_FILE_OFFSET_BITS=64 on
   systems where they are not the default).
 
+* The dladdr function is now declared for POSIX.1-2024, along with the
+  standard Dl_info_t name for its structure argument (the original
+  Dl_info name remains available for _DEFAULT_SOURCE and _GNU_SOURCE).
+
   [Add new features here]
 
 Deprecated and removed features, and other changes affecting compatibility:

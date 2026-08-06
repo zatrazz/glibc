@@ -82,9 +82,13 @@ extern void *dlvsym (void *__restrict __handle,
 extern char *dlerror (void) __THROW;
 
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Structure containing information about object searched using
-   `dladdr'.  */
+   `dladdr'.  POSIX.1-2024 names the type Dl_info_t; Dl_info is the
+   original name, from Solaris.  The struct body is repeated instead
+   of using a common tag or typedef so that the C++ name mangling of
+   the pre-existing GNU Dl_info name is unchanged.  */
+# ifdef __USE_GNU
 typedef struct
 {
   const char *dli_fname;	/* File name of defining object.  */
@@ -92,12 +96,24 @@ typedef struct
   const char *dli_sname;	/* Name of nearest symbol.  */
   void *dli_saddr;		/* Exact value of nearest symbol.  */
 } Dl_info;
+typedef Dl_info Dl_info_t;
+# else
+typedef struct
+{
+  const char *dli_fname;	/* File name of defining object.  */
+  void *dli_fbase;		/* Load address of that object.  */
+  const char *dli_sname;	/* Name of nearest symbol.  */
+  void *dli_saddr;		/* Exact value of nearest symbol.  */
+} Dl_info_t;
+# endif
 
 /* Fill in *INFO with the following information about ADDRESS.
    Returns 0 iff no shared object's segments contain that address.  */
-extern int dladdr (const void *__address, Dl_info *__info)
+extern int dladdr (const void *__address, Dl_info_t *__info)
      __THROW __nonnull ((2));
+#endif
 
+#ifdef __USE_GNU
 /* Same as `dladdr', but additionally sets *EXTRA_INFO according to FLAGS.  */
 extern int dladdr1 (const void *__address, Dl_info *__info,
 		    void **__extra_info, int __flags) __THROW __nonnull ((2));
