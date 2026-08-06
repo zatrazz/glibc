@@ -316,7 +316,7 @@ extern int faccessat (int __fd, const char *__file, int __type, int __flag)
 # define SEEK_SET	0	/* Seek from beginning of file.  */
 # define SEEK_CUR	1	/* Seek from current position.  */
 # define SEEK_END	2	/* Seek from end of file.  */
-# ifdef __USE_GNU
+# if defined __USE_GNU || defined __USE_XOPEN2K24
 #  define SEEK_DATA	3	/* Seek to next data.  */
 #  define SEEK_HOLE	4	/* Seek to next hole.  */
 # endif
@@ -436,7 +436,7 @@ extern ssize_t pwrite64 (int __fd, const void *__buf, size_t __n,
    Returns 0 if successful, -1 if not.  */
 extern int pipe (int __pipedes[2]) __THROW __wur;
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Same as pipe but apply flags passed in FLAGS to the new file
    descriptors.  */
 extern int pipe2 (int __pipedes[2], int __flags) __THROW __wur;
@@ -554,7 +554,7 @@ extern int dup (int __fd) __THROW __wur;
 /* Duplicate FD to FD2, closing FD2 and making it open on the same file.  */
 extern int dup2 (int __fd, int __fd2) __THROW;
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* Duplicate FD to FD2, closing FD2 and making it open on the same
    file while setting flags according to FLAGS.  */
 extern int dup3 (int __fd, int __fd2, int __flags) __THROW;
@@ -749,7 +749,7 @@ extern int setregid (__gid_t __rgid, __gid_t __egid) __THROW __wur;
 extern int setegid (__gid_t __gid) __THROW __wur;
 #endif /* Use POSIX.1-2001.  */
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24XSI
 /* Fetch the real user ID, effective user ID, and saved-set user ID,
    of the calling process.  */
 extern int getresuid (__uid_t *__ruid, __uid_t *__euid, __uid_t *__suid)
@@ -786,7 +786,7 @@ extern __pid_t fork (void) __THROWNL;
 extern __pid_t vfork (void) __THROW;
 #endif /* Use misc or XPG < 7. */
 
-#ifdef __USE_GNU
+#if defined __USE_GNU || defined __USE_XOPEN2K24
 /* This is similar to fork, however it does not run the atfork handlers
    neither reinitialize any internal locks in multithread case.
    Different than fork, _Fork is async-signal-safe.  */
@@ -1195,7 +1195,7 @@ extern int pthread_atfork (void (*__prepare) (void),
 			   void (*__child) (void)) __THROW;
 #endif
 
-#ifdef __USE_MISC
+#if defined __USE_MISC || defined __USE_XOPEN2K24
 /* Write LENGTH bytes of randomness starting at BUFFER.  Return 0 on
    success or -1 on error.  */
 int getentropy (void *__buffer, size_t __length) __wur
