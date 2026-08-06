@@ -23,13 +23,8 @@
 /* Get definition of constants for use with `ioctl'.  */
 #include <asm/ioctls.h>
 
-struct winsize
-  {
-    unsigned short int ws_row;
-    unsigned short int ws_col;
-    unsigned short int ws_xpixel;
-    unsigned short int ws_ypixel;
-  };
+/* Get the definition of struct winsize.  */
+#include <bits/types/struct_winsize.h>
 
 /* modem lines */
 #define TIOCM_LE	0x001		/* line enable */

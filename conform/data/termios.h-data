@@ -20,6 +20,10 @@ element {struct winsize} {unsigned short} ws_row
 element {struct winsize} {unsigned short} ws_col
 function int tcgetwinsize (int, struct winsize*)
 function int tcsetwinsize (int, const struct winsize*)
+
+// The glibc struct winsize has the additional ws_xpixel and ws_ypixel
+// members.
+allow ws_*
 #endif
 
 constant NCCS

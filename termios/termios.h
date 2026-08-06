@@ -119,6 +119,18 @@ extern int tcflow (int __fd, int __action) __THROW;
 extern __pid_t tcgetsid (int __fd) __THROW;
 #endif
 
+#ifdef __USE_XOPEN2K24
+# include <bits/types/struct_winsize.h>
+
+/* Store the window size of terminal FD in *WINSIZE.  */
+extern int tcgetwinsize (int __fd, struct winsize *__winsize) __THROW
+  __nonnull ((2));
+
+/* Set the window size of terminal FD to *WINSIZE.  */
+extern int tcsetwinsize (int __fd, const struct winsize *__winsize) __THROW
+  __nonnull ((2));
+#endif
+
 
 #ifdef __USE_MISC
 # include <sys/ttydefaults.h>

@@ -2515,6 +2515,8 @@ GLIBC_2.44 timer_gettime F
 GLIBC_2.44 timer_settime F
 GLIBC_2.45 sig2str F
 GLIBC_2.45 str2sig F
+GLIBC_2.45 tcgetwinsize F
+GLIBC_2.45 tcsetwinsize F
 HURD_CTHREADS_0.3 __mutex_init F
 HURD_CTHREADS_0.3 __mutex_lock F
 HURD_CTHREADS_0.3 __mutex_trylock F

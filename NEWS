@@ -13,6 +13,10 @@ Major new features:
   POSIX.1-2024 have been added to <signal.h>, to convert between signal
   numbers and signal names.
 
+* The tcgetwinsize and tcsetwinsize functions and struct winsize from
+  POSIX.1-2024 have been added to <termios.h>, to query and change the
+  window size of a terminal.
+
   [Add new features here]
 
 Deprecated and removed features, and other changes affecting compatibility:

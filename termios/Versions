@@ -18,4 +18,7 @@ libc {
     # cf*baud
     cfgetibaud; cfgetobaud; cfsetibaud; cfsetobaud; cfsetbaud;
   }
+  GLIBC_2.45 {
+    tcgetwinsize; tcsetwinsize;
+  }
 }

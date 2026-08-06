@@ -452,6 +452,32 @@ something wrong with the data in the @var{termios-p} argument.
 @end table
 @end deftypefun
 
+@deftypefun int tcgetwinsize (int @var{filedes}, struct winsize *@var{winsize})
+@standards{POSIX.1-2024, termios.h}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function stores the window size of the terminal open on
+@var{filedes} in the structure pointed to by @var{winsize}: the
+@code{ws_row} member holds the number of rows and the @code{ws_col}
+member the number of columns.
+
+If successful, @code{tcgetwinsize} returns @math{0}.  A return value
+of @math{-1} indicates an error, with @code{EBADF} and @code{ENOTTY}
+error conditions defined as for @code{tcgetattr}.
+@end deftypefun
+
+@deftypefun int tcsetwinsize (int @var{filedes}, const struct winsize *@var{winsize})
+@standards{POSIX.1-2024, termios.h}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function sets the window size of the terminal open on
+@var{filedes} from the structure pointed to by @var{winsize}.  If the
+new size differs from the old one, a @code{SIGWINCH} signal is sent to
+the foreground process group of the terminal.
+
+If successful, @code{tcsetwinsize} returns @math{0}.  A return value
+of @math{-1} indicates an error, with @code{EBADF} and @code{ENOTTY}
+error conditions defined as for @code{tcsetattr}.
+@end deftypefun
+
 Although @code{tcgetattr} and @code{tcsetattr} specify the terminal
 device with a file descriptor, the attributes are those of the terminal
 device itself and not of the file descriptor.  This means that the

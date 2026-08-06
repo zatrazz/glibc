@@ -415,7 +415,6 @@ test-xfail-POSIX2024/libintl.h/conform = yes
 test-xfail-POSIX2024/fcntl.h/conform = yes
 test-xfail-POSIX2024/locale.h/conform = yes
 test-xfail-POSIX2024/sys/socket.h/conform = yes
-test-xfail-POSIX2024/termios.h/conform = yes
 test-xfail-POSIX2024/unistd.h/conform = yes
 
 # Likewise for X/Open Issue 8; in addition to the POSIX2024 gaps,
@@ -431,7 +430,6 @@ test-xfail-XOPEN2K24/libintl.h/conform = yes
 test-xfail-XOPEN2K24/fcntl.h/conform = yes
 test-xfail-XOPEN2K24/locale.h/conform = yes
 test-xfail-XOPEN2K24/sys/socket.h/conform = yes
-test-xfail-XOPEN2K24/termios.h/conform = yes
 test-xfail-XOPEN2K24/unistd.h/conform = yes
 
 conformtest-cc-flags =  -I../include $(+sysdep-includes) $(sysincludes) -I.. $(no-file-offset-bits-source) $(no-time-bits-source)
