@@ -36,6 +36,7 @@ routines := \
   getdents \
   getdents64 \
   opendir \
+  posix_getdents \
   readdir \
   readdir64 \
   readdir64_r \
@@ -61,6 +62,7 @@ tests := \
   tst-closedir-leaks \
   tst-fdopendir \
   tst-fdopendir2 \
+  tst-posix_getdents \
   tst-readdir-long \
   tst-readdir-zero-inode \
   tst-rewinddir \
@@ -80,6 +82,9 @@ tests-special += \
   # tests-special
 endif # $(PERL) ! no
 endif # $(run-built-tests) == yes
+
+CFLAGS-tst-posix_getdents.c += $(no-file-offset-bits-source) \
+  -D_FILE_OFFSET_BITS=64
 
 CFLAGS-scandir.c += $(uses-callbacks)
 CFLAGS-scandir64.c += $(uses-callbacks)

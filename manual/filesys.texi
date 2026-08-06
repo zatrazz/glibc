@@ -841,6 +841,29 @@ The @var{dirstream} argument is not valid.
 @end table
 @end deftypefun
 
+@deftypefun ssize_t posix_getdents (int @var{fd}, void *@var{buf}, size_t @var{nbytes}, int @var{flags})
+@standards{POSIX.1-2024, dirent.h}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+This function reads directory entries from the directory open on the
+file descriptor @var{fd} into the buffer @var{buf}, filling in at most
+@var{nbytes} bytes, without the opaque @code{DIR} stream abstraction.
+The buffer contains a packed sequence of @code{struct posix_dent}
+records; the @code{d_reclen} member of each record gives the offset of
+the next record, and the @code{d_ino}, @code{d_type}, and
+@code{d_name} members describe the directory entry.  No flags are
+currently defined; @var{flags} must be zero.
+
+The return value is the number of bytes filled in, zero at the end of
+the directory, or @math{-1} on failure.  The @code{EBADF},
+@code{ENOTDIR}, and @code{EINVAL} (buffer too small for the next
+entry, or invalid @var{flags}) @code{errno} error conditions are
+defined for this function.
+
+This function is only declared when 64-bit file offsets are in use;
+on systems where they are not the default, @code{_FILE_OFFSET_BITS}
+must be defined to @math{64}.
+@end deftypefun
+
 @node Simple Directory Lister
 @subsection Simple Program to List a Directory
 

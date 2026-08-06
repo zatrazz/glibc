@@ -19,15 +19,22 @@ function int readdir_r (DIR*, struct dirent*, struct dirent**)
 function void rewinddir (DIR*)
 #if defined XOPEN2K24 || defined POSIX2024
 type {struct posix_dent}
+type reclen_t
 constant DT_BLK
 constant DT_CHR
 constant DT_DIR
 constant DT_FIFO
 constant DT_LNK
+constant DT_MQ
 constant DT_REG
+constant DT_SEM
+constant DT_SHM
 constant DT_SOCK
 constant DT_UNKNOWN
 function ssize_t posix_getdents (int, void*, size_t, int)
+
+// glibc defines the additional DT_WHT file type.
+allow DT_*
 #endif
 # if !defined POSIX && !defined POSIX2008 && !defined POSIX2024
 function void seekdir (DIR*, long int)

@@ -28,7 +28,7 @@ __BEGIN_DECLS
 
 #include <bits/types.h>
 
-#ifdef __USE_XOPEN
+#if defined __USE_XOPEN || defined __USE_XOPEN2K24
 # ifndef __ino_t_defined
 #  ifndef __USE_FILE_OFFSET64
 typedef __ino_t ino_t;
@@ -40,6 +40,15 @@ typedef __ino64_t ino_t;
 # if defined __USE_LARGEFILE64 && !defined __ino64_t_defined
 typedef __ino64_t ino64_t;
 #  define __ino64_t_defined
+# endif
+#endif
+
+#ifdef __USE_XOPEN2K24
+# define __need_size_t
+# include <stddef.h>
+# ifndef __ssize_t_defined
+typedef __ssize_t ssize_t;
+#  define __ssize_t_defined
 # endif
 #endif
 
@@ -92,7 +101,7 @@ typedef __ino64_t ino64_t;
 #endif
 
 
-#ifdef __USE_MISC
+#if defined __USE_MISC || defined __USE_XOPEN2K24
 /* File types for `d_type'.  */
 enum
   {
@@ -112,13 +121,51 @@ enum
 # define DT_LNK		DT_LNK
     DT_SOCK = 12,
 # define DT_SOCK	DT_SOCK
-    DT_WHT = 14
+    DT_WHT = 14,
 # define DT_WHT		DT_WHT
-  };
 
+    /* POSIX.1-2024 requires the following constants even when the
+       corresponding file types are not implemented as distinct types;
+       these values are never returned in d_type.  */
+    DT_MQ = 16,
+# define DT_MQ		DT_MQ
+    DT_SEM = 17,
+# define DT_SEM		DT_SEM
+    DT_SHM = 18
+# define DT_SHM		DT_SHM
+  };
+#endif
+
+#ifdef __USE_MISC
 /* Convert between stat structure types and directory types.  */
 # define IFTODT(mode)	(((mode) & 0170000) >> 12)
 # define DTTOIF(dirtype)	((dirtype) << 12)
+#endif
+
+#ifdef __USE_XOPEN2K24
+/* Type of the d_reclen member of struct posix_dent.  */
+typedef unsigned short int reclen_t;
+
+# if defined __USE_FILE_OFFSET64 || defined __INO_T_MATCHES_INO64_T
+/* Directory entry as returned by posix_getdents.  Only supported with
+   64-bit file offsets: _FILE_OFFSET_BITS=64 is required on systems
+   where ino_t is not 64 bits wide by default.  */
+struct posix_dent
+{
+  __ino64_t d_ino;		/* File serial number.  */
+  __off64_t d_off;		/* Offset of the next entry.  */
+  reclen_t d_reclen;		/* Length of this entry, including any
+				   trailing padding.  */
+  unsigned char d_type;		/* File type.  */
+  char d_name[];		/* Null-terminated filename.  */
+};
+
+/* Read directory entries from FD into BUF, filling in at most NBYTES
+   bytes as struct posix_dent records.  Return the number of bytes
+   filled in, zero at the end of the directory, or -1 for errors.  */
+extern ssize_t posix_getdents (int __fd, void *__buf, size_t __nbytes,
+			       int __flags) __nonnull ((2));
+# endif
 #endif
 
 

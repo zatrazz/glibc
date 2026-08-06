@@ -42,6 +42,9 @@ extern __ssize_t __getdirentries (int __fd, char *__restrict __buf,
 extern __ssize_t __getdents (int __fd, void *__buf, size_t __nbytes)
      attribute_hidden;
 extern __ssize_t __getdents64 (int __fd, void *__buf, size_t __nbytes);
+/* The public declaration is only available with 64-bit file offsets.  */
+extern __ssize_t posix_getdents (int __fd, void *__buf, size_t __nbytes,
+				 int __flags);
 libc_hidden_proto (__getdents64)
 
 extern int __alphasort64 (const struct dirent64 **a, const struct dirent64 **b)

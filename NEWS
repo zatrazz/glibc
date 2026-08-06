@@ -17,6 +17,12 @@ Major new features:
   POSIX.1-2024 have been added to <termios.h>, to query and change the
   window size of a terminal.
 
+* The posix_getdents function and struct posix_dent from POSIX.1-2024
+  have been added to <dirent.h>, to read directory entries from a file
+  descriptor without the opaque DIR stream.  The interface is only
+  declared when 64-bit file offsets are in use (_FILE_OFFSET_BITS=64 on
+  systems where they are not the default).
+
   [Add new features here]
 
 Deprecated and removed features, and other changes affecting compatibility:

@@ -408,7 +408,6 @@ test-xfail-XOPEN2K24/ndbm.h/conform = yes
 # feature test macros (and <stdlib.h> still declares rand_r, which
 # Issue 8 removed).  Remove the xfails as the individual headers are
 # fixed.
-test-xfail-POSIX2024/dirent.h/conform = yes
 test-xfail-POSIX2024/dlfcn.h/conform = yes
 test-xfail-POSIX2024/endian.h/conform = yes
 test-xfail-POSIX2024/libintl.h/conform = yes
@@ -423,7 +422,6 @@ test-xfail-POSIX2024/unistd.h/conform = yes
 # sys/wait.h and utmpx.h failures are those declarations leaking in
 # via <signal.h> and <sys/time.h>), and does not yet declare the XSI
 # additions ffsl and ffsll.
-test-xfail-XOPEN2K24/dirent.h/conform = yes
 test-xfail-XOPEN2K24/dlfcn.h/conform = yes
 test-xfail-XOPEN2K24/endian.h/conform = yes
 test-xfail-XOPEN2K24/libintl.h/conform = yes
