@@ -137,6 +137,20 @@ extern void psignal (int __sig, const char *__s);
 extern void psiginfo (const siginfo_t *__pinfo, const char *__s);
 #endif /* POSIX 2008.  */
 
+#ifdef __USE_XOPEN2K24
+/* Maximum size of a signal name string, including the terminating
+   null byte.  */
+# define SIG2STR_MAX 32
+
+/* Translate the signal number SIGNUM to a signal name, stored in STR,
+   which must be at least SIG2STR_MAX bytes long.  */
+extern int sig2str (int __signum, char *__str) __THROW __nonnull ((2));
+
+/* Translate the signal name STR to a signal number, stored in *PNUM.  */
+extern int str2sig (const char *__restrict __str, int *__restrict __pnum)
+     __THROW __nonnull ((1, 2));
+#endif /* POSIX 2024.  */
+
 
 
 /* The `sigpause' function in X/Open defines the argument as the

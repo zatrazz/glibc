@@ -2940,6 +2940,8 @@ GLIBC_2.43 openat2 F
 GLIBC_2.43 umaxabs F
 GLIBC_2.44 posix_spawn_file_actions_addchdir F
 GLIBC_2.44 posix_spawn_file_actions_addfchdir F
+GLIBC_2.45 sig2str F
+GLIBC_2.45 str2sig F
 GLIBC_2.5 __readlinkat_chk F
 GLIBC_2.5 inet6_opt_append F
 GLIBC_2.5 inet6_opt_find F

@@ -9,6 +9,10 @@ Version 2.45
 
 Major new features:
 
+* The sig2str and str2sig functions and the SIG2STR_MAX macro from
+  POSIX.1-2024 have been added to <signal.h>, to convert between signal
+  numbers and signal names.
+
   [Add new features here]
 
 Deprecated and removed features, and other changes affecting compatibility:

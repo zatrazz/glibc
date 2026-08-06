@@ -44,7 +44,8 @@ routines	:= signal raise killpg \
 		   siggetmask sysv_signal \
 		   sigisempty sigandset sigorset \
 		   allocrtsig sigtimedwait sigwaitinfo sigqueue \
-		   sighold sigrelse sigignore sigset
+		   sighold sigrelse sigignore sigset \
+		   sig2str str2sig
 
 tests := \
   tst-minsigstksz-1 \
@@ -54,6 +55,7 @@ tests := \
   tst-minsigstksz-4 \
   tst-minsigstksz-5 \
   tst-raise \
+  tst-sig2str \
   tst-sigaction \
   tst-sigisemptyset \
   tst-signal \

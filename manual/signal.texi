@@ -926,6 +926,39 @@ storage whose lifetime is the whole lifetime of the program.
 This function is a GNU extension, declared in the header file @file{string.h}.
 @end deftypefun
 
+@deftypefun int sig2str (int @var{signum}, char *@var{str})
+@standards{POSIX.1-2024, signal.h}
+@safety{@mtsafe{}@assafe{}@acsafe{}}
+This function translates the signal number @var{signum} to a signal
+name, stored in @var{str}, without the @samp{SIG} prefix (e.g.
+@code{"HUP"} for @code{SIGHUP}).  Realtime signals are rendered as
+@code{"RTMIN"}, @code{"RTMAX"}, or the offset forms
+@code{"RTMIN+@var{n}"} and @code{"RTMAX-@var{n}"}.  The buffer
+@var{str} must be at least @code{SIG2STR_MAX} bytes long.  It returns
+@code{0} on success and @code{-1} if @var{signum} is not a valid
+signal number.
+
+@pindex signal.h
+This function is from POSIX.1-2024, declared in the header file
+@file{signal.h}.
+@end deftypefun
+
+@deftypefun int str2sig (const char *@var{str}, int *@var{pnum})
+@standards{POSIX.1-2024, signal.h}
+@safety{@mtsafe{}@assafe{}@acsafe{}}
+This function translates the signal name @var{str} to a signal number,
+stored in @code{*@var{pnum}}.  It accepts the signal names without the
+@samp{SIG} prefix, the realtime signal forms @code{"RTMIN"},
+@code{"RTMAX"}, @code{"RTMIN+@var{n}"}, and @code{"RTMAX-@var{n}"},
+and the decimal representation of a valid signal number.  It returns
+@code{0} on success and @code{-1} if @var{str} does not name a
+supported signal.
+
+@pindex signal.h
+This function is from POSIX.1-2024, declared in the header file
+@file{signal.h}.
+@end deftypefun
+
 @node Signal Actions
 @section Specifying Signal Actions
 @cindex signal actions
