@@ -23,15 +23,17 @@
 /* Get the definitions of __*_ENDIAN, __BYTE_ORDER, and __FLOAT_WORD_ORDER.  */
 #include <bits/endian.h>
 
-#ifdef __USE_MISC
+#if defined __USE_MISC || defined __USE_XOPEN2K24
 # define LITTLE_ENDIAN	__LITTLE_ENDIAN
 # define BIG_ENDIAN	__BIG_ENDIAN
 # define PDP_ENDIAN	__PDP_ENDIAN
 # define BYTE_ORDER	__BYTE_ORDER
 #endif
 
-#if defined __USE_MISC && !defined __ASSEMBLER__
-/* Conversion interfaces.  */
+#if (defined __USE_MISC || defined __USE_XOPEN2K24) && !defined __ASSEMBLER__
+/* Conversion interfaces.  POSIX.1-2024 also requires the uint16_t,
+   uint32_t, and uint64_t types to be defined.  */
+# include <bits/stdint-uintn.h>
 # include <bits/byteswap.h>
 # include <bits/uintn-identity.h>
 

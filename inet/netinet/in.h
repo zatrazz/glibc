@@ -408,7 +408,9 @@ extern uint32_t htonl (uint32_t __hostlong)
 extern uint16_t htons (uint16_t __hostshort)
      __THROW __attribute__ ((__const__));
 
-#include <endian.h>
+/* Get the __BYTE_ORDER and __*_ENDIAN definitions, without exposing
+   the public <endian.h> interfaces in standard modes.  */
+#include <bits/endian.h>
 
 /* Get machine dependent optimized versions of byte swapping functions.  */
 #include <bits/byteswap.h>
