@@ -415,6 +415,22 @@ operation knows which mode the descriptor is used for and can handle
 this situation.
 @end deftypefun
 
+@deftypefun int posix_close (int @var{filedes}, int @var{flags})
+@standards{POSIX.1-2024, unistd.h}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{@acsfd{}}}
+This function is equivalent to @code{close}, except that the state of
+@var{filedes} is always well defined on failure.  On Linux the file
+descriptor is unconditionally released even when the @code{close}
+system call is interrupted by a signal, so @code{posix_close} never
+fails with @code{EINTR} (which would suggest that the call can be
+retried); it fails with @code{EINPROGRESS} instead, with the
+descriptor already closed.  For the same reason,
+@code{POSIX_CLOSE_RESTART} is defined to @math{0}, and the
+@var{flags} argument is ignored.
+
+This function is a cancellation point in multi-threaded programs.
+@end deftypefun
+
 To close a stream, call @code{fclose} (@pxref{Closing Streams}) instead
 of trying to close its underlying file descriptor with @code{close}.
 This flushes any buffered output and updates the stream object to

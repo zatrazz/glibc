@@ -137,6 +137,9 @@ libc {
   GLIBC_2.34 {
     closefrom;
   }
+  GLIBC_2.45 {
+    posix_close;
+  }
   GLIBC_PRIVATE {
     __fcntl_nocancel;
     __open64_nocancel;

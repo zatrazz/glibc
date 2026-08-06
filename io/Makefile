@@ -118,6 +118,7 @@ routines := \
   pipe \
   pipe2 \
   poll \
+  posix_close \
   posix_fadvise \
   posix_fadvise64 \
   posix_fallocate \
@@ -219,6 +220,7 @@ tests := \
   tst-nftw-bz33882 \
   tst-open-tmpfile \
   tst-openat \
+  tst-posix_close \
   tst-posix_fallocate \
   tst-posix_fallocate64 \
   tst-read-zero \

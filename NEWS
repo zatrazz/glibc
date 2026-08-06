@@ -27,6 +27,12 @@ Major new features:
   standard Dl_info_t name for its structure argument (the original
   Dl_info name remains available for _DEFAULT_SOURCE and _GNU_SOURCE).
 
+* The posix_close function from POSIX.1-2024 has been added, a variant
+  of close with a well-defined state of the file descriptor on failure:
+  it never fails with EINTR.  POSIX_CLOSE_RESTART is defined to 0
+  because the Linux close system call always releases the file
+  descriptor, even when interrupted by a signal.
+
   [Add new features here]
 
 Deprecated and removed features, and other changes affecting compatibility:

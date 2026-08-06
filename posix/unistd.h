@@ -357,6 +357,19 @@ extern __off64_t lseek64 (int __fd, __off64_t __offset, int __whence)
    __THROW.  */
 extern int close (int __fd);
 
+#ifdef __USE_XOPEN2K24
+/* Close the file descriptor FD, leaving FD in a well-defined state on
+   failure.  POSIX_CLOSE_RESTART is defined to 0 because the close
+   system call cannot be restarted: the file descriptor is always
+   released even when the call is interrupted, and posix_close never
+   fails with EINTR.
+
+   This function is a cancellation point and therefore not marked with
+   __THROW.  */
+# define POSIX_CLOSE_RESTART 0
+extern int posix_close (int __fd, int __flags);
+#endif
+
 #ifdef __USE_MISC
 /* Close all open file descriptors greater than or equal to LOWFD.
    Negative LOWFD is clamped to 0.  */
