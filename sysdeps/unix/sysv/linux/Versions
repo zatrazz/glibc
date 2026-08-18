@@ -343,6 +343,12 @@ libc {
     mseal;
     openat2;
   }
+  GLIBC_2.45 {
+    futex_requeue;
+    futex_timedwait;
+    futex_wait;
+    futex_wake;
+  }
   GLIBC_PRIVATE {
     # functions used in other libraries
     __syscall_rt_sigqueueinfo;
