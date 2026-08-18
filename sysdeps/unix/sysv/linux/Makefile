@@ -77,6 +77,7 @@ sysdep_routines += \
   futex_requeue \
   futex_timedwait \
   futex_wait \
+  futex_waitv \
   futex_wake \
   fxstat \
   fxstat64 \
@@ -205,6 +206,7 @@ tests += \
   tst-fanotify \
   tst-fdopendir-o_path \
   tst-futex \
+  tst-futex-waitv \
   tst-getauxval \
   tst-gettid \
   tst-gettid-kill \
@@ -282,6 +284,7 @@ tests-time64 += \
   tst-clock_adjtime-time64 \
   tst-epoll-time64 \
   tst-futex-time64 \
+  tst-futex-waitv-time64 \
   tst-ntp_adjtime-time64 \
   tst-ntp_gettime-time64 \
   tst-ntp_gettimex-time64 \

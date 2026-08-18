@@ -1682,6 +1682,76 @@ same address, @var{nwake} or @var{nrequeue} are negative, or
 @end table
 @end deftypefun
 
+@deftp {Data Type} {struct futex_waiter}
+@standards{Linux, sys/futex.h}
+Describes one futex to wait on in a call to @code{futex_waitv}.  It
+has the following members:
+
+@table @code
+@item uint32_t *addr
+The address of the futex word.
+
+@item uint32_t expected
+The value the futex word is expected to contain, as for
+@code{futex_wait}.
+
+@item unsigned int flags
+Either @code{FUTEX_FLAG_PRIVATE} or @code{FUTEX_FLAG_SHARED}, for this
+futex word.
+@end table
+@end deftp
+
+@deftypevr Macro int FUTEX_WAITV_MAX
+@standards{Linux, sys/futex.h}
+The maximum number of elements of the array passed to @code{futex_waitv},
+ currently 128.
+@end deftypevr
+
+@deftypefun int futex_waitv (const struct futex_waiter *@var{waiters}, unsigned int @var{nwaiters}, clockid_t @var{clockid}, const struct timespec *@var{abstime}, unsigned int *@var{index})
+@standards{Linux, sys/futex.h}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+Wait on all of the @var{nwaiters} futex words described by the array
+@var{waiters}, blocking until any one of them is woken (or until a
+spurious wake-up).  Each futex word is checked against the expected
+value recorded in its array entry, atomically with respect to
+concurrent futex operations, as for @code{futex_wait}.
+
+The wait is bounded by the absolute time @var{abstime} measured
+against the clock @var{clockid}, which must be @code{CLOCK_REALTIME}
+or @code{CLOCK_MONOTONIC}.  If @var{abstime} is a null pointer, the
+call blocks without a timeout.
+
+The return value is zero if a futex word has been woken, or one of the following
+error codes.  For the success case the array index of one of the woken futex words
+is stored in @code{*@var{index}} unless @var{index} is a null pointer.
+
+@table @code
+@item EAGAIN
+A futex word did not contain the value expected by its array entry at
+the time of the call.
+
+@item EINTR
+The wait was interrupted by a signal handler.
+
+@item ETIMEDOUT
+The absolute time @var{abstime} passed before any futex word was
+woken.
+
+@item EINVAL
+@var{nwaiters} is zero or greater than @code{FUTEX_WAITV_MAX}, a futex
+word is not aligned to four bytes, a @code{flags} member is not valid,
+or @var{clockid} is not a supported clock.
+
+@item ENOSYS
+The kernel does not support the @code{futex_waitv} system call, which
+was added in Linux 5.16.
+@end table
+
+Like @code{futex_timedwait}, this function only operates on 64-bit
+@code{time_t} and is only declared when @code{time_t} is a 64-bit
+type.
+@end deftypefun
+
 @c FIXME these are undocumented:
 @c pthread_atfork
 @c pthread_attr_destroy
