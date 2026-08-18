@@ -61,6 +61,12 @@ Major new features:
   returns the page cache statistics of a range of a file: the number of
   cached, dirty, under writeback, and evicted pages.
 
+* On Linux, the functions futex_wait, futex_timedwait, futex_wake, and
+  futex_requeue have been added, along with the <sys/futex.h> header.
+  They are wrappers around a subset of the futex system call and provide
+  the blocking building block for implementing custom synchronization
+  primitives.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

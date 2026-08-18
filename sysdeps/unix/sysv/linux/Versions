@@ -348,6 +348,13 @@ libc {
     fchroot;
     file_getattr;
     file_setattr;
+    futex_requeue;
+%ifdef TIME64_NON_DEFAULT
+    __futex_timedwait_time64;
+%endif
+    futex_timedwait;
+    futex_wait;
+    futex_wake;
     getxattrat;
     ioprio_get;
     ioprio_set;
