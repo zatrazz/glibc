@@ -15,6 +15,10 @@ Major new features:
   implementing custom synchronization primitives.  Failures are
   reported by returning -1 and setting errno.
 
+* On Linux, the futex_waitv function has been added.  It wraps the
+  futex_waitv system call (Linux 5.16) and allows waiting on multiple
+  futexes at the same time, reporting the index of the woken one.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
   [Add deprecations, removals and changes affecting compatibility here]

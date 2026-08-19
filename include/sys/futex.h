@@ -18,6 +18,11 @@ extern int futex_timedwait (uint32_t *futexp, uint32_t expected,
 			    const struct __timespec64 *abstime,
 			    unsigned int flags)
      __nonnull ((1));
+extern int futex_waitv (const struct futex_waiter *waiters,
+			unsigned int nwaiters, unsigned int flags,
+			const struct __timespec64 *abstime,
+			clockid_t clockid)
+     __nonnull ((1));
 # endif
 
 # endif /* !_ISOMAC */
