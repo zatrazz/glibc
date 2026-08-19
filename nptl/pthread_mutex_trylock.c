@@ -175,8 +175,9 @@ ___pthread_mutex_trylock (pthread_mutex_t *mutex)
 	      if (oldval == 0
 		  && (atomic_exchange_release (&mutex->__data.__lock, 0)
 		      & FUTEX_WAITERS) != 0)
-		futex_wake ((unsigned int *) &mutex->__data.__lock, 1,
-			    PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
+		__futex_wake_internal ((unsigned int *)
+				       &mutex->__data.__lock, 1,
+				       PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
 	      /* FIXME This violates the mutex destruction requirements.  See
 		 __pthread_mutex_unlock_full.  */
 	      THREAD_SETMEM (THREAD_SELF, robust_head.list_op_pending, NULL);
@@ -329,7 +330,7 @@ ___pthread_mutex_trylock (pthread_mutex_t *mutex)
 	    /* This mutex is now not recoverable.  */
 	    mutex->__data.__count = 0;
 
-	    futex_unlock_pi ((unsigned int *) &mutex->__data.__lock,
+	    __futex_unlock_pi ((unsigned int *) &mutex->__data.__lock,
 			     PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
 
 	    /* To the kernel, this will be visible after the kernel has
