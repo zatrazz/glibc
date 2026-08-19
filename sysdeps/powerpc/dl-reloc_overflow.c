@@ -1,4 +1,4 @@
-/* Machine-dependent ELF dynamic relocation functions.  PowerPC64 version.
+/* Relocation overflow reporting for POWER.
    Copyright (C) 1995-2026 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
@@ -17,17 +17,24 @@
    not, see <https://www.gnu.org/licenses/>.  */
 
 #include <ldsodefs.h>
-#include <dl-machine.h>
 
-#if _CALL_ELF == 2
 void
-_dl_error_localentry (struct link_map *map, const Elf64_Sym *refsym)
+_dl_reloc_overflow (struct link_map *map, const char *name,
+		    ElfW(Addr) *const reloc_addr, const ElfW(Sym) *refsym)
 {
-  const char *strtab = (const void *) D_PTR (map, l_info[DT_STRTAB]);
-
   struct dl_exception exc;
-  _dl_exception_create_format (&exc, map->l_name, "expected localentry:0 `%s'",
-			       strtab + refsym->st_name);
+
+  if (refsym != NULL)
+    {
+      const char *strtab = (const void *) D_PTR (map, l_info[DT_STRTAB]);
+      _dl_exception_create_format
+	(&exc, map->l_name, "%s reloc at 0x%lx for symbol `%s' out of range",
+	 name, (unsigned long int) reloc_addr, strtab + refsym->st_name);
+    }
+  else
+    _dl_exception_create_format
+      (&exc, map->l_name, "%s reloc at 0x%lx out of range",
+       name, (unsigned long int) reloc_addr);
+
   _dl_signal_exception (0, &exc, NULL);
 }
-#endif
