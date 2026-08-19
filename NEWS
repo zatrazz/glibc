@@ -67,6 +67,10 @@ Major new features:
   the blocking building block for implementing custom synchronization
   primitives.
 
+* On Linux, the futex_waitv function has been added to <sys/futex.h>.
+  It allows waiting on multiple futexes at the same time, reporting the
+  index of the woken one.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

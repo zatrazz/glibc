@@ -77,6 +77,7 @@ sysdep_routines += \
   futex_requeue \
   futex_timedwait \
   futex_wait \
+  futex_waitv \
   futex_wake \
   fxstat \
   fxstat64 \
@@ -220,6 +221,7 @@ tests += \
   tst-fdopendir-o_path \
   tst-file_attr \
   tst-futex \
+  tst-futex-waitv \
   tst-getauxval \
   tst-gettid \
   tst-gettid-kill \
@@ -305,6 +307,7 @@ tests-time64 += \
   tst-clock_adjtime-time64 \
   tst-epoll-time64 \
   tst-futex-time64 \
+  tst-futex-waitv-time64 \
   tst-ntp_adjtime-time64 \
   tst-ntp_gettime-time64 \
   tst-ntp_gettimex-time64 \
@@ -419,6 +422,16 @@ $(objpfx)tst-pidfd-consts.out: ../sysdeps/unix/sysv/linux/tst-pidfd-consts.py
 	    $(sysdeps-linux-python-cc) \
 	  < /dev/null > $@ 2>&1; $(evaluate-test)
 $(objpfx)tst-pidfd-consts.out: $(sysdeps-linux-python-deps)
+
+tests-special += \
+  $(objpfx)tst-futex-consts.out \
+  # tests-special
+$(objpfx)tst-futex-consts.out: ../sysdeps/unix/sysv/linux/tst-futex-consts.py
+	$(sysdeps-linux-python) \
+	  ../sysdeps/unix/sysv/linux/tst-futex-consts.py \
+	    $(sysdeps-linux-python-cc) \
+	  < /dev/null > $@ 2>&1; $(evaluate-test)
+$(objpfx)tst-futex-consts.out: $(sysdeps-linux-python-deps)
 
 tests-special += \
   $(objpfx)tst-mount-consts.out \
