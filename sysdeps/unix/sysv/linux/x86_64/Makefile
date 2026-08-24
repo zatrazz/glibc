@@ -17,6 +17,9 @@ gen-as-const-headers += sigaltstack-offsets.sym
 endif
 
 ifeq ($(subdir),elf)
+# The PMD transparent huge page size is 2MB.
+THP-PAGE-SIZE = 0x200000
+
 ifeq (yes,$(enable-x86-isa-level))
 tests += \
   tst-glibc-hwcaps-2 \

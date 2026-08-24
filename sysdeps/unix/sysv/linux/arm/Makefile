@@ -8,6 +8,10 @@ CFLAGS-tst-nolink-libc.c += -marm
 # https://sourceware.org/bugzilla/show_bug.cgi?id=34096
 test-xfail-tst-thp-1-no-s-code-static = yes
 test-xfail-tst-thp-1-static = yes
+
+# Only LPAE kernels support transparent huge pages, with a 2MB PMD huge
+# page.
+THP-PAGE-SIZE = 0x200000
 endif
 
 ifeq ($(subdir),misc)

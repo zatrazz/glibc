@@ -15,6 +15,12 @@ ifeq ($(subdir),stdlib)
 gen-as-const-headers += ucontext_i.sym
 endif
 
+ifeq ($(subdir),elf)
+# Only 64-bit kernels support transparent huge pages, with a 2MB PMD huge
+# page.
+THP-PAGE-SIZE = 0x200000
+endif
+
 abi-variants := ilp32 ilp32d lp64 lp64d
 
 ifeq (,$(filter $(default-abi),$(abi-variants)))
