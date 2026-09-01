@@ -75,6 +75,8 @@ END(__push___start_context)
 
 
 ENTRY(__start_context)
+	/* Mark as outermost frame.  */
+	cfi_undefined (rip)
 	/* This removes the parameters passed to the function given to
 	   'makecontext' from the stack.  RBX contains the address
 	   on the stack pointer for the next context.  */
