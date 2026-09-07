@@ -27,29 +27,9 @@
 #ifdef __loongarch_hard_float
 
 #include <fenv.h>
+#include <fenv-impl.h>
 #include <fenv_libc.h>
 #include <fpu_control.h>
-
-#define _FPU_MASK_ALL \
-  (_FPU_MASK_V | _FPU_MASK_Z | _FPU_MASK_O | _FPU_MASK_U | _FPU_MASK_I \
-   | FE_ALL_EXCEPT)
-
-static __always_inline void
-libc_feholdexcept_loongarch (fenv_t *envp)
-{
-  fpu_control_t cw;
-
-  /* Save the current state.  */
-  _FPU_GETCW (cw);
-  envp->__fp_control_register = cw;
-
-  /* Clear all exception enable bits and flags.  */
-  cw &= ~(_FPU_MASK_ALL);
-  _FPU_SETCW (cw);
-}
-#define libc_feholdexcept libc_feholdexcept_loongarch
-#define libc_feholdexceptf libc_feholdexcept_loongarch
-#define libc_feholdexceptl libc_feholdexcept_loongarch
 
 static __always_inline void
 libc_fesetround_loongarch (int round)
@@ -148,20 +128,6 @@ libc_feupdateenv_loongarch (fenv_t *envp)
 #define libc_feresetround libc_feupdateenv_loongarch
 #define libc_feresetroundf libc_feupdateenv_loongarch
 #define libc_feresetroundl libc_feupdateenv_loongarch
-
-static __always_inline int
-libc_fetestexcept_loongarch (int excepts)
-{
-  int cw;
-
-  /* Get current control word.  */
-  _FPU_GETCW (cw);
-
-  return cw & excepts & FE_ALL_EXCEPT;
-}
-#define libc_fetestexcept libc_fetestexcept_loongarch
-#define libc_fetestexceptf libc_fetestexcept_loongarch
-#define libc_fetestexceptl libc_fetestexcept_loongarch
 
 /*  Enable support for rounding mode context.  */
 #define HAVE_RM_CTX 1
