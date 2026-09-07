@@ -105,7 +105,7 @@
 # define _FPU_IEEE     0x00000001
 
 /* Macros for accessing the hardware control word.  */
-# define _FPU_GETCW(cw) __asm__ ("fmove%.l %!, %0" : "=dm" (cw))
+# define _FPU_GETCW(cw) __asm__ volatile ("fmove%.l %!, %0" : "=dm" (cw))
 # define _FPU_SETCW(cw) __asm__ volatile ("fmove%.l %0, %!" : : "dm" (cw))
 #endif
 
