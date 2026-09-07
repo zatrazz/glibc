@@ -20,44 +20,9 @@
 #define RISCV_FENV_PRIVATE_H 1
 
 #include <fenv.h>
+#include <fenv-impl.h>
 #include <fpu_control.h>
 #include <get-rounding-mode.h>
-
-static __always_inline int
-riscv_getround (void)
-{
-  return get_rounding_mode ();
-}
-
-static __always_inline void
-riscv_setround (int rm)
-{
-  asm volatile ("fsrm %z0" : : "rJ" (rm));
-}
-
-static __always_inline int
-riscv_getflags (void)
-{
-  int flags;
-  asm volatile ("frflags %0" : "=r" (flags));
-  return flags;
-}
-
-static __always_inline void
-riscv_setflags (int flags)
-{
-  asm volatile ("fsflags %z0" : : "rJ" (flags));
-}
-
-static __always_inline void
-libc_feholdexcept_riscv (fenv_t *envp)
-{
-  asm volatile ("csrrc %0, fcsr, %1" : "=r" (*envp) : "i" (FE_ALL_EXCEPT));
-}
-
-#define libc_feholdexcept  libc_feholdexcept_riscv
-#define libc_feholdexceptf libc_feholdexcept_riscv
-#define libc_feholdexceptl libc_feholdexcept_riscv
 
 static __always_inline void
 libc_fesetround_riscv (int round)
@@ -81,30 +46,6 @@ libc_feholdexcept_setround_riscv (fenv_t *envp, int round)
 #define libc_feholdexcept_setroundl libc_feholdexcept_setround_riscv
 
 static __always_inline int
-libc_fetestexcept_riscv (int ex)
-{
-  return riscv_getflags () & ex;
-}
-
-#define libc_fetestexcept  libc_fetestexcept_riscv
-#define libc_fetestexceptf libc_fetestexcept_riscv
-#define libc_fetestexceptl libc_fetestexcept_riscv
-
-static __always_inline void
-libc_fesetenv_riscv (const fenv_t *envp)
-{
-  long int env = (envp != FE_DFL_ENV ? *envp : 0);
-  _FPU_SETCW (env);
-}
-
-#define libc_fesetenv  libc_fesetenv_riscv
-#define libc_fesetenvf libc_fesetenv_riscv
-#define libc_fesetenvl libc_fesetenv_riscv
-#define libc_feresetround_noex  libc_fesetenv_riscv
-#define libc_feresetround_noexf libc_fesetenv_riscv
-#define libc_feresetround_noexl libc_fesetenv_riscv
-
-static __always_inline int
 libc_feupdateenv_test_riscv (const fenv_t *envp, int ex)
 {
   fenv_t env = *envp;
@@ -116,17 +57,6 @@ libc_feupdateenv_test_riscv (const fenv_t *envp, int ex)
 #define libc_feupdateenv_test  libc_feupdateenv_test_riscv
 #define libc_feupdateenv_testf libc_feupdateenv_test_riscv
 #define libc_feupdateenv_testl libc_feupdateenv_test_riscv
-
-static __always_inline void
-libc_feupdateenv_riscv (const fenv_t *envp)
-{
-  long int env = (envp != FE_DFL_ENV ? *envp : 0);
-  _FPU_SETCW (env | riscv_getflags ());
-}
-
-#define libc_feupdateenv  libc_feupdateenv_riscv
-#define libc_feupdateenvf libc_feupdateenv_riscv
-#define libc_feupdateenvl libc_feupdateenv_riscv
 
 static __always_inline void
 libc_feholdsetround_riscv (fenv_t *envp, int round)
