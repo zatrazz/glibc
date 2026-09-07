@@ -20,32 +20,15 @@
 #define ARM_FENV_PRIVATE_H 1
 
 #include <fenv.h>
+#include <fenv-impl.h>
 #include <fpu_control.h>
 
-static __always_inline void
-libc_feholdexcept_vfp (fenv_t *envp)
-{
-  fpu_control_t fpscr;
-
-  _FPU_GETCW (fpscr);
-  envp->__cw = fpscr;
-
-  /* Clear exception flags and set all exceptions to non-stop.  */
-  fpscr &= ~_FPU_MASK_EXCEPT;
-  _FPU_SETCW (fpscr);
-}
-
-static __always_inline void
-libc_fesetround_vfp (int round)
-{
-  fpu_control_t fpscr;
-
-  _FPU_GETCW (fpscr);
-
-  /* Set new rounding mode if different.  */
-  if (__glibc_unlikely ((fpscr & _FPU_MASK_RM) != round))
-    _FPU_SETCW ((fpscr & ~_FPU_MASK_RM) | round);
-}
+#ifdef __SOFTFP__
+/* The inline functions of <fenv-impl.h> check for the VFP unit at run
+   time, so the soft-float configurations keep calling the out-of-line
+   functions from libm.  */
+# define FENV_PRIVATE_OUT_OF_LINE 1
+#endif
 
 static __always_inline void
 libc_feholdexcept_setround_vfp (fenv_t *envp, int round)
@@ -87,57 +70,6 @@ libc_feresetround_vfp (fenv_t *envp)
   /* Restore the rounding mode if it was changed.  */
   if (__glibc_unlikely (round != 0))
     _FPU_SETCW (fpscr ^ round);
-}
-
-static __always_inline int
-libc_fetestexcept_vfp (int ex)
-{
-  fpu_control_t fpscr;
-
-  _FPU_GETCW (fpscr);
-  return fpscr & ex & FE_ALL_EXCEPT;
-}
-
-static __always_inline void
-libc_fesetenv_vfp (const fenv_t *envp)
-{
-  fpu_control_t fpscr, new_fpscr;
-
-  _FPU_GETCW (fpscr);
-  new_fpscr = envp->__cw;
-
-  /* Write new FPSCR if different (ignoring NZCV flags).  */
-  if (__glibc_unlikely (((fpscr ^ new_fpscr) & ~_FPU_MASK_NZCV) != 0))
-    _FPU_SETCW (new_fpscr);
-}
-
-static __always_inline int
-libc_feupdateenv_test_vfp (const fenv_t *envp, int ex)
-{
-  fpu_control_t fpscr, new_fpscr;
-  int excepts;
-
-  _FPU_GETCW (fpscr);
-
-  /* Merge current exception flags with the saved fenv.  */
-  excepts = fpscr & FE_ALL_EXCEPT;
-  new_fpscr = envp->__cw | excepts;
-
-  /* Write new FPSCR if different (ignoring NZCV flags).  */
-  if (__glibc_unlikely (((fpscr ^ new_fpscr) & ~_FPU_MASK_NZCV) != 0))
-    _FPU_SETCW (new_fpscr);
-
-  /* Raise the exceptions if enabled in the new FP state.  */
-  if (__glibc_unlikely (excepts & (new_fpscr >> FE_EXCEPT_SHIFT)))
-    __feraiseexcept (excepts);
-
-  return excepts & ex;
-}
-
-static __always_inline void
-libc_feupdateenv_vfp (const fenv_t *envp)
-{
-  libc_feupdateenv_test_vfp (envp, 0);
 }
 
 static __always_inline void
