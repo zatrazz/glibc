@@ -3,6 +3,7 @@
 
 #include <bits/floatn.h>
 #include <fenv.h>
+#include <fenv-impl.h>
 #include <fpu_control.h>
 #include <math-inline-asm.h>
 
