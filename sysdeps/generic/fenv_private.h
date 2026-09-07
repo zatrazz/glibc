@@ -32,15 +32,14 @@
    depends on the type; by default they refer to the unsuffixed one.
 
    The architecture <fenv-impl.h> provides the normal interfaces as inline
-   functions, and the default versions below use them.  Configurations
-   without an architecture <fenv-impl.h> get the generic stubs, and use
-   the out-of-line functions instead, so that the architecture
-   implementation is used before it is provided as inline functions.  An
-   architecture <fenv_private.h> may also define FENV_PRIVATE_OUT_OF_LINE
-   to keep using the out-of-line functions, for instance when the inline
-   functions carry run time checks for the floating-point unit.  */
+   functions, and the default versions below use them.  An architecture
+   <fenv_private.h> may define FENV_PRIVATE_OUT_OF_LINE to use the
+   out-of-line functions instead, for instance when the inline functions
+   carry run time checks for the floating-point unit, or when the
+   floating-point environment lives in memory the compiler does not know
+   the arithmetic routines update.  */
 
-#if defined FENV_IMPL_HAVE_ISO_C && !defined FENV_PRIVATE_OUT_OF_LINE
+#ifndef FENV_PRIVATE_OUT_OF_LINE
 # define fenv_private_fegetenv(e) fenv_getenv (e)
 # define fenv_private_feholdexcept(e) fenv_holdexcept (e)
 # define fenv_private_fesetround(r) fenv_setround (r)
