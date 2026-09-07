@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 #include <shlib-compat.h>
 
 #undef __feraiseexcept
@@ -25,8 +26,7 @@
 int
 __feraiseexcept (int excepts)
 {
-  /* This always fails unless nothing needs to be done.  */
-  return (excepts != 0);
+  return fenv_raiseexcept (excepts);
 }
 #if SHLIB_COMPAT (libm, GLIBC_2_1, GLIBC_2_2)
 strong_alias (__feraiseexcept, __old_feraiseexcept)
@@ -36,4 +36,6 @@ libm_hidden_def (__feraiseexcept)
 libm_hidden_ver (__feraiseexcept, feraiseexcept)
 versioned_symbol (libm, __feraiseexcept, feraiseexcept, GLIBC_2_2);
 
+#ifndef FENV_IMPL_HAVE_ISO_C
 stub_warning (feraiseexcept)
+#endif

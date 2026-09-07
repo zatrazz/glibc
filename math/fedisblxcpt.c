@@ -17,11 +17,14 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 
 int
 fedisableexcept (int excepts)
 {
-  /* All exception traps are disabled.  */
-  return 0;
+  return fenv_disableexcept (excepts);
 }
+
+#ifndef FENV_IMPL_HAVE_TRAP_ENABLE
 stub_warning (fedisableexcept)
+#endif

@@ -17,14 +17,17 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 
 int
 __feholdexcept (fenv_t *envp)
 {
-  /* No exception traps to disable and no state to save.  */
-  return 0;
+  return fenv_holdexcept (envp);
 }
 libm_hidden_def (__feholdexcept)
-weak_alias (__feholdexcept, feholdexcept)
+static_weak_alias (__feholdexcept, feholdexcept)
 libm_hidden_weak (feholdexcept)
+
+#ifndef FENV_IMPL_HAVE_ISO_C
 stub_warning (feholdexcept)
+#endif

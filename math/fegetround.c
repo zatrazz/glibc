@@ -17,17 +17,17 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 
 int
 __fegetround (void)
 {
-#ifdef FE_TONEAREST
-  return FE_TONEAREST;
-#else
-  return 0;
-#endif
+  return fenv_getround ();
 }
 libm_hidden_def (__fegetround)
-weak_alias (__fegetround, fegetround)
+static_weak_alias (__fegetround, fegetround)
 libm_hidden_weak (fegetround)
+
+#ifndef FENV_IMPL_HAVE_ISO_C
 stub_warning (fegetround)
+#endif

@@ -17,11 +17,14 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 
 int
 fegetexcept (void)
 {
-  /* All exception traps are disabled.  */
-  return 0;
+  return fenv_getexcept ();
 }
+
+#ifndef FENV_IMPL_HAVE_TRAP_ENABLE
 stub_warning (fegetexcept)
+#endif

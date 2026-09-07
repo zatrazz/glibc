@@ -17,11 +17,14 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 
 int
 fesetmode (const femode_t *modep)
 {
-  /* Nothing to do.  */
-  return 0;
+  return fenv_setmode (modep);
 }
+
+#ifndef FENV_IMPL_HAVE_ISO_C
 stub_warning (fesetmode)
+#endif

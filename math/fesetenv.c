@@ -17,17 +17,13 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 #include <shlib-compat.h>
 
 int
 __fesetenv (const fenv_t *envp)
 {
-#if defined FE_NOMASK_ENV && FE_ALL_EXCEPT != 0
-  if (envp == FE_NOMASK_ENV)
-    return 1;
-#endif
-  /* Nothing to do.  */
-  return 0;
+  return fenv_setenv (envp);
 }
 #if SHLIB_COMPAT (libm, GLIBC_2_1, GLIBC_2_2)
 strong_alias (__fesetenv, __old_fesetenv)
@@ -37,4 +33,6 @@ libm_hidden_def (__fesetenv)
 libm_hidden_ver (__fesetenv, fesetenv)
 versioned_symbol (libm, __fesetenv, fesetenv, GLIBC_2_2);
 
+#ifndef FENV_IMPL_HAVE_ISO_C
 stub_warning (fesetenv)
+#endif

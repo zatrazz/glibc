@@ -17,13 +17,13 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 #include <shlib-compat.h>
 
 int
 __feclearexcept (int excepts)
 {
-  /* This always fails unless nothing needs to be done.  */
-  return (excepts != 0);
+  return fenv_clearexcept (excepts);
 }
 libm_hidden_def (__feclearexcept)
 #if SHLIB_COMPAT (libm, GLIBC_2_1, GLIBC_2_2)
@@ -33,4 +33,6 @@ compat_symbol (libm, __old_feclearexcept, feclearexcept, GLIBC_2_1);
 libm_hidden_ver (__feclearexcept, feclearexcept)
 versioned_symbol (libm, __feclearexcept, feclearexcept, GLIBC_2_2);
 
+#ifndef FENV_IMPL_HAVE_ISO_C
 stub_warning (feclearexcept)
+#endif

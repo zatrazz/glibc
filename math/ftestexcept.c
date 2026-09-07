@@ -17,13 +17,17 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 
 int
 __fetestexcept (int excepts)
 {
-  return 0;
+  return fenv_testexcept (excepts);
 }
 libm_hidden_def (__fetestexcept)
-weak_alias (__fetestexcept, fetestexcept)
-libm_hidden_def (fetestexcept)
+static_weak_alias (__fetestexcept, fetestexcept)
+libm_hidden_weak (fetestexcept)
+
+#ifndef FENV_IMPL_HAVE_ISO_C
 stub_warning (fetestexcept)
+#endif
