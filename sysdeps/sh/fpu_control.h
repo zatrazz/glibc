@@ -54,7 +54,7 @@ extern fpu_control_t __fpu_control;
 typedef unsigned int fpu_control_t;
 
 /* Macros for accessing the hardware control word.  */
-#define _FPU_GETCW(cw) __asm__ ("sts fpscr,%0" : "=r" (cw))
+#define _FPU_GETCW(cw) __asm__ __volatile__ ("sts fpscr,%0" : "=r" (cw))
 
 #if defined __GNUC__
 __BEGIN_DECLS
