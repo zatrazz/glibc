@@ -17,13 +17,13 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 #include <shlib-compat.h>
 
 int
 __fegetenv (fenv_t *envp)
 {
-  /* Nothing to do.  */
-  return 0;
+  return fenv_getenv (envp);
 }
 #if SHLIB_COMPAT (libm, GLIBC_2_1, GLIBC_2_2)
 strong_alias (__fegetenv, __old_fegetenv)
@@ -33,4 +33,6 @@ libm_hidden_def (__fegetenv)
 libm_hidden_ver (__fegetenv, fegetenv)
 versioned_symbol (libm, __fegetenv, fegetenv, GLIBC_2_2);
 
+#ifndef FENV_IMPL_HAVE_ISO_C
 stub_warning (fegetenv)
+#endif

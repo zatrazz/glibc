@@ -17,11 +17,14 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 
 int
 fesetexcept (int excepts)
 {
-  /* This always fails unless nothing needs to be done.  */
-  return (excepts != 0);
+  return fenv_setexcept (excepts);
 }
+
+#ifndef FENV_IMPL_HAVE_ISO_C
 stub_warning (fesetexcept)
+#endif

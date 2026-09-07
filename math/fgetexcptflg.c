@@ -17,14 +17,13 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 #include <shlib-compat.h>
 
 int
 __fegetexceptflag (fexcept_t *flagp, int excepts)
 {
-  /* Nothing to do.  */
-  *flagp = 0;
-  return 0;
+  return fenv_getexceptflag (flagp, excepts);
 }
 #if SHLIB_COMPAT (libm, GLIBC_2_1, GLIBC_2_2)
 strong_alias (__fegetexceptflag, __old_fegetexceptflag)
@@ -32,4 +31,6 @@ compat_symbol (libm, __old_fegetexceptflag, fegetexceptflag, GLIBC_2_1);
 #endif
 versioned_symbol (libm, __fegetexceptflag, fegetexceptflag, GLIBC_2_2);
 
+#ifndef FENV_IMPL_HAVE_ISO_C
 stub_warning (fegetexceptflag)
+#endif

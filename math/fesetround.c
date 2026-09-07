@@ -17,17 +17,17 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 
 int
 __fesetround (int round)
 {
-#ifdef FE_TONEAREST
-  return (round == FE_TONEAREST) ? 0 : 1;
-#else
-  return 1;	/* Signal we are unable to set the direction.  */
-#endif
+  return fenv_setround (round);
 }
 libm_hidden_def (__fesetround)
-weak_alias (__fesetround, fesetround)
+static_weak_alias (__fesetround, fesetround)
 libm_hidden_weak (fesetround)
+
+#ifndef FENV_IMPL_HAVE_ISO_C
 stub_warning (fesetround)
+#endif

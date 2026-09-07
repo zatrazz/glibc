@@ -17,14 +17,14 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 
 int
 feenableexcept (int excepts)
 {
-  /* Signal failure if any exception traps are to be enabled.  */
-  if (excepts != 0)
-    return -1;
-  else
-    return 0;
+  return fenv_enableexcept (excepts);
 }
+
+#ifndef FENV_IMPL_HAVE_TRAP_ENABLE
 stub_warning (feenableexcept)
+#endif
