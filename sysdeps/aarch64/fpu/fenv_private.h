@@ -20,50 +20,8 @@
 #define AARCH64_FENV_PRIVATE_H 1
 
 #include <fenv.h>
+#include <fenv-impl.h>
 #include <fpu_control.h>
-
-static __always_inline void
-libc_feholdexcept_aarch64 (fenv_t *envp)
-{
-  fpu_control_t fpcr;
-  fpu_control_t new_fpcr;
-  fpu_fpsr_t fpsr;
-  fpu_fpsr_t new_fpsr;
-
-  _FPU_GETCW (fpcr);
-  _FPU_GETFPSR (fpsr);
-  envp->__fpcr = fpcr;
-  envp->__fpsr = fpsr;
-
-  /* Clear exception flags and set all exceptions to non-stop.  */
-  new_fpcr = fpcr & ~(FE_ALL_EXCEPT << FE_EXCEPT_SHIFT);
-  new_fpsr = fpsr & ~FE_ALL_EXCEPT;
-
-  if (__glibc_unlikely (new_fpcr != fpcr))
-    _FPU_SETCW (new_fpcr);
-
-  if (new_fpsr != fpsr)
-    _FPU_SETFPSR (new_fpsr);
-}
-
-#define libc_feholdexcept  libc_feholdexcept_aarch64
-#define libc_feholdexceptf libc_feholdexcept_aarch64
-#define libc_feholdexceptl libc_feholdexcept_aarch64
-
-static __always_inline void
-libc_fesetround_aarch64 (int round)
-{
-  fpu_control_t fpcr;
-
-  _FPU_GETCW (fpcr);
-
-  /* Check whether rounding modes are different.  */
-  round = (fpcr ^ round) & _FPU_FPCR_RM_MASK;
-
-  /* Set new rounding mode if different.  */
-  if (__glibc_unlikely (round != 0))
-    _FPU_SETCW (fpcr ^ round);
-}
 
 #define libc_fesetround  libc_fesetround_aarch64
 #define libc_fesetroundf libc_fesetround_aarch64
@@ -99,34 +57,6 @@ libc_feholdexcept_setround_aarch64 (fenv_t *envp, int round)
 #define libc_feholdexcept_setroundf libc_feholdexcept_setround_aarch64
 #define libc_feholdexcept_setroundl libc_feholdexcept_setround_aarch64
 
-static __always_inline int
-libc_fetestexcept_aarch64 (int ex)
-{
-  fpu_fpsr_t fpsr;
-
-  _FPU_GETFPSR (fpsr);
-  return fpsr & ex & FE_ALL_EXCEPT;
-}
-
-#define libc_fetestexcept  libc_fetestexcept_aarch64
-#define libc_fetestexceptf libc_fetestexcept_aarch64
-#define libc_fetestexceptl libc_fetestexcept_aarch64
-
-static __always_inline void
-libc_fesetenv_aarch64 (const fenv_t *envp)
-{
-  fpu_control_t fpcr;
-  fpu_control_t new_fpcr;
-
-  _FPU_GETCW (fpcr);
-  new_fpcr = envp->__fpcr;
-
-  if (__glibc_unlikely (fpcr != new_fpcr))
-    _FPU_SETCW (new_fpcr);
-
-  _FPU_SETFPSR (envp->__fpsr);
-}
-
 #define libc_fesetenv  libc_fesetenv_aarch64
 #define libc_fesetenvf libc_fesetenv_aarch64
 #define libc_fesetenvl libc_fesetenv_aarch64
@@ -134,45 +64,9 @@ libc_fesetenv_aarch64 (const fenv_t *envp)
 #define libc_feresetround_noexf libc_fesetenv_aarch64
 #define libc_feresetround_noexl libc_fesetenv_aarch64
 
-static __always_inline int
-libc_feupdateenv_test_aarch64 (const fenv_t *envp, int ex)
-{
-  fpu_control_t fpcr;
-  fpu_control_t new_fpcr;
-  fpu_fpsr_t fpsr;
-  fpu_fpsr_t new_fpsr;
-  int excepts;
-
-  _FPU_GETCW (fpcr);
-  _FPU_GETFPSR (fpsr);
-
-  /* Merge current exception flags with the saved fenv.  */
-  excepts = fpsr & FE_ALL_EXCEPT;
-  new_fpcr = envp->__fpcr;
-  new_fpsr = envp->__fpsr | excepts;
-
-  if (__glibc_unlikely (fpcr != new_fpcr))
-    _FPU_SETCW (new_fpcr);
-
-  if (fpsr != new_fpsr)
-    _FPU_SETFPSR (new_fpsr);
-
-  /* Raise the exceptions if enabled in the new FP state.  */
-  if (__glibc_unlikely (excepts & (new_fpcr >> FE_EXCEPT_SHIFT)))
-    __feraiseexcept (excepts);
-
-  return excepts & ex;
-}
-
 #define libc_feupdateenv_test  libc_feupdateenv_test_aarch64
 #define libc_feupdateenv_testf libc_feupdateenv_test_aarch64
 #define libc_feupdateenv_testl libc_feupdateenv_test_aarch64
-
-static __always_inline void
-libc_feupdateenv_aarch64 (const fenv_t *envp)
-{
-  libc_feupdateenv_test_aarch64 (envp, 0);
-}
 
 #define libc_feupdateenv  libc_feupdateenv_aarch64
 #define libc_feupdateenvf libc_feupdateenv_aarch64
