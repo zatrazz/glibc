@@ -20,42 +20,9 @@
 #define CSKY_FENV_PRIVATE_H 1
 
 #include <fenv.h>
+#include <fenv-impl.h>
 #include <fpu_control.h>
 #include <fenv_libc.h>
-
-static __always_inline void
-libc_feholdexcept_vfp (fenv_t *envp)
-{
-  fpu_control_t fpsr, fpcr;
-
-  _FPU_GETCW (fpcr);
-  envp->__fpcr = fpcr;
-
-  _FPU_GETFPSR (fpsr);
-  envp->__fpsr = fpsr;
-
-  /* Now set all exceptions to non-stop.  */
-  fpcr &= ~FE_ALL_EXCEPT;
-
-  /* And clear all exception flags.  */
-  fpsr &= ~(FE_ALL_EXCEPT << CAUSE_SHIFT);
-
-  _FPU_SETFPSR (fpsr);
-
-  _FPU_SETCW (fpcr);
-}
-
-static __always_inline void
-libc_fesetround_vfp (int round)
-{
-  fpu_control_t fpcr;
-
-  _FPU_GETCW (fpcr);
-
-  /* Set new rounding mode if different.  */
-  if (__glibc_unlikely ((fpcr & FE_DOWNWARD) != round))
-    _FPU_SETCW ((fpcr & ~FE_DOWNWARD) | round);
-}
 
 static __always_inline void
 libc_feholdexcept_setround_vfp (fenv_t *envp, int round)
@@ -103,16 +70,6 @@ libc_feresetround_vfp (fenv_t *envp)
   /* Restore the rounding mode if it was changed.  */
   if (__glibc_unlikely (round != 0))
     _FPU_SETCW (fpcr ^ round);
-}
-
-static __always_inline int
-libc_fetestexcept_vfp (int ex)
-{
-  fpu_control_t fpsr;
-
-  _FPU_GETFPSR (fpsr);
-  fpsr = fpsr >> CAUSE_SHIFT;
-  return fpsr & ex & FE_ALL_EXCEPT;
 }
 
 static __always_inline void
@@ -220,14 +177,6 @@ libc_fesetenv_vfp_ctx (struct rm_ctx *ctx)
     _FPU_SETCW (new_fpcr);
 }
 
-#define libc_feholdexcept  libc_feholdexcept_vfp
-#define libc_feholdexceptf libc_feholdexcept_vfp
-#define libc_feholdexceptl libc_feholdexcept_vfp
-
-#define libc_fesetround  libc_fesetround_vfp
-#define libc_fesetroundf libc_fesetround_vfp
-#define libc_fesetroundl libc_fesetround_vfp
-
 #define libc_feresetround  libc_feresetround_vfp
 #define libc_feresetroundf libc_feresetround_vfp
 #define libc_feresetroundl libc_feresetround_vfp
@@ -243,10 +192,6 @@ libc_fesetenv_vfp_ctx (struct rm_ctx *ctx)
 #define libc_feholdsetround  libc_feholdsetround_vfp
 #define libc_feholdsetroundf libc_feholdsetround_vfp
 #define libc_feholdsetroundl libc_feholdsetround_vfp
-
-#define libc_fetestexcept  libc_fetestexcept_vfp
-#define libc_fetestexceptf libc_fetestexcept_vfp
-#define libc_fetestexceptl libc_fetestexcept_vfp
 
 #define libc_fesetenv  libc_fesetenv_vfp
 #define libc_fesetenvf libc_fesetenv_vfp
