@@ -20,6 +20,7 @@
 #define POWERPC_FENV_PRIVATE_H 1
 
 #include <fenv.h>
+#include <fenv-impl.h>
 #include <fenv_libc.h>
 #include <fpu_control.h>
 
