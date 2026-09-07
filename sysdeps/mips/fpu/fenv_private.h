@@ -30,8 +30,6 @@
 #include <fpu_control.h>
 
 #define libc_fesetround libc_fesetround_mips
-#define libc_fesetroundf libc_fesetround_mips
-#define libc_fesetroundl libc_fesetround_mips
 
 static __always_inline void
 libc_feholdexcept_setround_mips (fenv_t *envp, int round)
@@ -53,12 +51,8 @@ libc_feholdexcept_setround_mips (fenv_t *envp, int round)
   _FPU_SETCW (cw);
 }
 #define libc_feholdexcept_setround libc_feholdexcept_setround_mips
-#define libc_feholdexcept_setroundf libc_feholdexcept_setround_mips
-#define libc_feholdexcept_setroundl libc_feholdexcept_setround_mips
 
 #define libc_feholdsetround libc_feholdexcept_setround_mips
-#define libc_feholdsetroundf libc_feholdexcept_setround_mips
-#define libc_feholdsetroundl libc_feholdexcept_setround_mips
 
 static __always_inline void
 libc_fesetenv_mips (fenv_t *envp)
@@ -71,8 +65,6 @@ libc_fesetenv_mips (fenv_t *envp)
   _FPU_SETCW (envp->__fp_control_register);
 }
 #define libc_fesetenv libc_fesetenv_mips
-#define libc_fesetenvf libc_fesetenv_mips
-#define libc_fesetenvl libc_fesetenv_mips
 
 static __always_inline int
 libc_feupdateenv_test_mips (fenv_t *envp, int excepts)
@@ -96,8 +88,6 @@ libc_feupdateenv_test_mips (fenv_t *envp, int excepts)
   return cw & excepts & FE_ALL_EXCEPT;
 }
 #define libc_feupdateenv_test libc_feupdateenv_test_mips
-#define libc_feupdateenv_testf libc_feupdateenv_test_mips
-#define libc_feupdateenv_testl libc_feupdateenv_test_mips
 
 static __always_inline void
 libc_feupdateenv_mips (fenv_t *envp)
@@ -105,12 +95,8 @@ libc_feupdateenv_mips (fenv_t *envp)
   libc_feupdateenv_test_mips (envp, 0);
 }
 #define libc_feupdateenv libc_feupdateenv_mips
-#define libc_feupdateenvf libc_feupdateenv_mips
-#define libc_feupdateenvl libc_feupdateenv_mips
 
 #define libc_feresetround libc_feupdateenv_mips
-#define libc_feresetroundf libc_feupdateenv_mips
-#define libc_feresetroundl libc_feupdateenv_mips
 
 /*  Enable support for rounding mode context.  */
 #define HAVE_RM_CTX 1
@@ -139,8 +125,6 @@ libc_feholdexcept_setround_mips_ctx (struct rm_ctx *ctx, int round)
     ctx->updated_status = false;
 }
 #define libc_feholdexcept_setround_ctx   libc_feholdexcept_setround_mips_ctx
-#define libc_feholdexcept_setroundf_ctx  libc_feholdexcept_setround_mips_ctx
-#define libc_feholdexcept_setroundl_ctx  libc_feholdexcept_setround_mips_ctx
 
 static __always_inline void
 libc_fesetenv_mips_ctx (struct rm_ctx *ctx)
@@ -148,8 +132,6 @@ libc_fesetenv_mips_ctx (struct rm_ctx *ctx)
   libc_fesetenv_mips (&ctx->env);
 }
 #define libc_fesetenv_ctx                libc_fesetenv_mips_ctx
-#define libc_fesetenvf_ctx               libc_fesetenv_mips_ctx
-#define libc_fesetenvl_ctx               libc_fesetenv_mips_ctx
 
 static __always_inline void
 libc_feupdateenv_mips_ctx (struct rm_ctx *ctx)
@@ -158,11 +140,7 @@ libc_feupdateenv_mips_ctx (struct rm_ctx *ctx)
     libc_feupdateenv_test_mips (&ctx->env, 0);
 }
 #define libc_feupdateenv_ctx             libc_feupdateenv_mips_ctx
-#define libc_feupdateenvf_ctx            libc_feupdateenv_mips_ctx
-#define libc_feupdateenvl_ctx            libc_feupdateenv_mips_ctx
 #define libc_feresetround_ctx            libc_feupdateenv_mips_ctx
-#define libc_feresetroundf_ctx           libc_feupdateenv_mips_ctx
-#define libc_feresetroundl_ctx           libc_feupdateenv_mips_ctx
 
 static __always_inline void
 libc_feholdsetround_mips_ctx (struct rm_ctx *ctx, int round)
@@ -185,8 +163,6 @@ libc_feholdsetround_mips_ctx (struct rm_ctx *ctx, int round)
     ctx->updated_status = false;
 }
 #define libc_feholdsetround_ctx          libc_feholdsetround_mips_ctx
-#define libc_feholdsetroundf_ctx         libc_feholdsetround_mips_ctx
-#define libc_feholdsetroundl_ctx         libc_feholdsetround_mips_ctx
 
 #include_next <fenv_private.h>
 

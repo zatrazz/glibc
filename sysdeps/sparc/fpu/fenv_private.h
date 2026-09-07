@@ -62,13 +62,6 @@ libc_feresetround (fenv_t *e)
   __fenv_ldfsr(etmp);
 }
 
-#define libc_fesetroundf		libc_fesetround
-#define libc_feholdexcept_setroundf	libc_feholdexcept_setround
-#define libc_fesetenvf			libc_fesetenv
-#define libc_feupdateenv_testf		libc_feupdateenv_test
-#define libc_feupdateenvf		libc_feupdateenv
-#define libc_feholdsetroundf		libc_feholdsetround
-#define libc_feresetroundf		libc_feresetround
 #define libc_fesetround			libc_fesetround
 #define libc_feholdexcept_setround	libc_feholdexcept_setround
 #define libc_fesetenv			libc_fesetenv
@@ -76,13 +69,6 @@ libc_feresetround (fenv_t *e)
 #define libc_feupdateenv		libc_feupdateenv
 #define libc_feholdsetround		libc_feholdsetround
 #define libc_feresetround		libc_feresetround
-#define libc_fesetroundl		libc_fesetround
-#define libc_feholdexcept_setroundl	libc_feholdexcept_setround
-#define libc_fesetenvl			libc_fesetenv
-#define libc_feupdateenv_testl		libc_feupdateenv_test
-#define libc_feupdateenvl		libc_feupdateenv
-#define libc_feholdsetroundl		libc_feholdsetround
-#define libc_feresetroundl		libc_feresetround
 
 /* We have support for rounding mode context.  */
 #define HAVE_RM_CTX 1
@@ -133,20 +119,10 @@ libc_feholdsetround_sparc_ctx (struct rm_ctx *ctx, int round)
     ctx->updated_status = false;
 }
 #define libc_feholdexcept_setround_ctx   libc_feholdexcept_setround_sparc_ctx
-#define libc_feholdexcept_setroundf_ctx  libc_feholdexcept_setround_sparc_ctx
-#define libc_feholdexcept_setroundl_ctx  libc_feholdexcept_setround_sparc_ctx
 #define libc_fesetenv_ctx                libc_fesetenv_sparc_ctx
-#define libc_fesetenvf_ctx               libc_fesetenv_sparc_ctx
-#define libc_fesetenvl_ctx               libc_fesetenv_sparc_ctx
 #define libc_feupdateenv_ctx             libc_feupdateenv_sparc_ctx
-#define libc_feupdateenvf_ctx            libc_feupdateenv_sparc_ctx
-#define libc_feupdateenvl_ctx            libc_feupdateenv_sparc_ctx
 #define libc_feresetround_ctx            libc_feupdateenv_sparc_ctx
-#define libc_feresetroundf_ctx           libc_feupdateenv_sparc_ctx
-#define libc_feresetroundl_ctx           libc_feupdateenv_sparc_ctx
 #define libc_feholdsetround_ctx          libc_feholdsetround_sparc_ctx
-#define libc_feholdsetroundf_ctx         libc_feholdsetround_sparc_ctx
-#define libc_feholdsetroundl_ctx         libc_feholdsetround_sparc_ctx
 
 #include_next <fenv_private.h>
 

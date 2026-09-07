@@ -27,7 +27,9 @@
    But at least for some architectures we can be more efficient if we
    know what operations are going to be performed.  Therefore we
    define additional interfaces.  By default they refer to the normal
-   interfaces.
+   interfaces.  Each interface comes in a float (f) and a long double (l)
+   variant as well, for the architectures where the floating-point state
+   depends on the type; by default they refer to the unsuffixed one.
 
    The architecture <fenv-impl.h> provides the normal interfaces as inline
    functions, and the default versions below use them.  Configurations
@@ -64,10 +66,10 @@ default_libc_feholdexcept (fenv_t *e)
 # define libc_feholdexcept  default_libc_feholdexcept
 #endif
 #ifndef libc_feholdexceptf
-# define libc_feholdexceptf default_libc_feholdexcept
+# define libc_feholdexceptf libc_feholdexcept
 #endif
 #ifndef libc_feholdexceptl
-# define libc_feholdexceptl default_libc_feholdexcept
+# define libc_feholdexceptl libc_feholdexcept
 #endif
 
 static __always_inline void
@@ -80,10 +82,10 @@ default_libc_fesetround (int r)
 # define libc_fesetround  default_libc_fesetround
 #endif
 #ifndef libc_fesetroundf
-# define libc_fesetroundf default_libc_fesetround
+# define libc_fesetroundf libc_fesetround
 #endif
 #ifndef libc_fesetroundl
-# define libc_fesetroundl default_libc_fesetround
+# define libc_fesetroundl libc_fesetround
 #endif
 
 static __always_inline void
@@ -97,10 +99,10 @@ default_libc_feholdexcept_setround (fenv_t *e, int r)
 # define libc_feholdexcept_setround  default_libc_feholdexcept_setround
 #endif
 #ifndef libc_feholdexcept_setroundf
-# define libc_feholdexcept_setroundf default_libc_feholdexcept_setround
+# define libc_feholdexcept_setroundf libc_feholdexcept_setround
 #endif
 #ifndef libc_feholdexcept_setroundl
-# define libc_feholdexcept_setroundl default_libc_feholdexcept_setround
+# define libc_feholdexcept_setroundl libc_feholdexcept_setround
 #endif
 
 #ifndef libc_feholdsetround_53bit
@@ -117,10 +119,10 @@ default_libc_fetestexcept (int ex)
 # define libc_fetestexcept  default_libc_fetestexcept
 #endif
 #ifndef libc_fetestexceptf
-# define libc_fetestexceptf default_libc_fetestexcept
+# define libc_fetestexceptf libc_fetestexcept
 #endif
 #ifndef libc_fetestexceptl
-# define libc_fetestexceptl default_libc_fetestexcept
+# define libc_fetestexceptl libc_fetestexcept
 #endif
 
 static __always_inline void
@@ -133,10 +135,10 @@ default_libc_fesetenv (fenv_t *e)
 # define libc_fesetenv  default_libc_fesetenv
 #endif
 #ifndef libc_fesetenvf
-# define libc_fesetenvf default_libc_fesetenv
+# define libc_fesetenvf libc_fesetenv
 #endif
 #ifndef libc_fesetenvl
-# define libc_fesetenvl default_libc_fesetenv
+# define libc_fesetenvl libc_fesetenv
 #endif
 
 static __always_inline void
@@ -149,10 +151,10 @@ default_libc_feupdateenv (fenv_t *e)
 # define libc_feupdateenv  default_libc_feupdateenv
 #endif
 #ifndef libc_feupdateenvf
-# define libc_feupdateenvf default_libc_feupdateenv
+# define libc_feupdateenvf libc_feupdateenv
 #endif
 #ifndef libc_feupdateenvl
-# define libc_feupdateenvl default_libc_feupdateenv
+# define libc_feupdateenvl libc_feupdateenv
 #endif
 
 #ifndef libc_feresetround_53bit
@@ -171,10 +173,10 @@ default_libc_feupdateenv_test (fenv_t *e, int ex)
 # define libc_feupdateenv_test  default_libc_feupdateenv_test
 #endif
 #ifndef libc_feupdateenv_testf
-# define libc_feupdateenv_testf default_libc_feupdateenv_test
+# define libc_feupdateenv_testf libc_feupdateenv_test
 #endif
 #ifndef libc_feupdateenv_testl
-# define libc_feupdateenv_testl default_libc_feupdateenv_test
+# define libc_feupdateenv_testl libc_feupdateenv_test
 #endif
 
 /* Save and set the rounding mode.  The use of fenv_t to store the old mode
@@ -186,10 +188,10 @@ default_libc_feupdateenv_test (fenv_t *e, int ex)
 # define libc_feholdsetround  libc_feholdexcept_setround
 #endif
 #ifndef libc_feholdsetroundf
-# define libc_feholdsetroundf libc_feholdexcept_setroundf
+# define libc_feholdsetroundf libc_feholdsetround
 #endif
 #ifndef libc_feholdsetroundl
-# define libc_feholdsetroundl libc_feholdexcept_setroundl
+# define libc_feholdsetroundl libc_feholdsetround
 #endif
 
 /* ... and the reverse.  */
@@ -198,10 +200,10 @@ default_libc_feupdateenv_test (fenv_t *e, int ex)
 # define libc_feresetround  libc_feupdateenv
 #endif
 #ifndef libc_feresetroundf
-# define libc_feresetroundf libc_feupdateenvf
+# define libc_feresetroundf libc_feresetround
 #endif
 #ifndef libc_feresetroundl
-# define libc_feresetroundl libc_feupdateenvl
+# define libc_feresetroundl libc_feresetround
 #endif
 
 /* ... and a version that also discards exceptions.  */
@@ -210,10 +212,10 @@ default_libc_feupdateenv_test (fenv_t *e, int ex)
 # define libc_feresetround_noex  libc_fesetenv
 #endif
 #ifndef libc_feresetround_noexf
-# define libc_feresetround_noexf libc_fesetenvf
+# define libc_feresetround_noexf libc_feresetround_noex
 #endif
 #ifndef libc_feresetround_noexl
-# define libc_feresetround_noexl libc_fesetenvl
+# define libc_feresetround_noexl libc_feresetround_noex
 #endif
 
 #ifndef HAVE_RM_CTX
@@ -273,24 +275,37 @@ default_libc_feresetround_noex_ctx (struct rm_ctx *ctx)
    block is different from the current state.  This saves a lot of time when
    the floating point unit is much slower than the fixed point units.  */
 
+# ifndef libc_feholdsetroundf_ctx
+#   define libc_feholdsetroundf_ctx libc_feholdsetround_ctx
+# endif
+# ifndef libc_feholdsetroundl_ctx
+#   define libc_feholdsetroundl_ctx libc_feholdsetround_ctx
+# endif
+# ifndef libc_feresetroundf_ctx
+#   define libc_feresetroundf_ctx libc_feresetround_ctx
+# endif
+# ifndef libc_feresetroundl_ctx
+#   define libc_feresetroundl_ctx libc_feresetround_ctx
+# endif
+
 # ifndef libc_feholdsetround_noex_ctx
 #   define libc_feholdsetround_noex_ctx  libc_feholdsetround_ctx
 # endif
 # ifndef libc_feholdsetround_noexf_ctx
-#   define libc_feholdsetround_noexf_ctx libc_feholdsetroundf_ctx
+#   define libc_feholdsetround_noexf_ctx libc_feholdsetround_noex_ctx
 # endif
 # ifndef libc_feholdsetround_noexl_ctx
-#   define libc_feholdsetround_noexl_ctx libc_feholdsetroundl_ctx
+#   define libc_feholdsetround_noexl_ctx libc_feholdsetround_noex_ctx
 # endif
 
 # ifndef libc_feresetround_noex_ctx
 #   define libc_feresetround_noex_ctx  libc_fesetenv_ctx
 # endif
 # ifndef libc_feresetround_noexf_ctx
-#   define libc_feresetround_noexf_ctx libc_fesetenvf_ctx
+#   define libc_feresetround_noexf_ctx libc_feresetround_noex_ctx
 # endif
 # ifndef libc_feresetround_noexl_ctx
-#   define libc_feresetround_noexl_ctx libc_fesetenvl_ctx
+#   define libc_feresetround_noexl_ctx libc_feresetround_noex_ctx
 # endif
 
 #else

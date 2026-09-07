@@ -109,25 +109,11 @@ libc_feupdateenv_ppc (fenv_t *e)
   libc_feupdateenv_test_ppc (e, 0);
 }
 
-#define libc_feholdexceptf           libc_feholdexcept_ppc
-#define libc_feholdexcept            libc_feholdexcept_ppc
-#define libc_feholdexcept_setroundf  libc_feholdexcept_setround_ppc
 #define libc_feholdexcept_setround   libc_feholdexcept_setround_ppc
-#define libc_fetestexceptf           libc_fetestexcept_ppc
-#define libc_fetestexcept            libc_fetestexcept_ppc
-#define libc_fesetroundf             libc_fesetround_ppc
-#define libc_fesetround              libc_fesetround_ppc
-#define libc_fesetenvf               libc_fesetenv_ppc
 #define libc_fesetenv                libc_fesetenv_ppc
-#define libc_feupdateenv_testf       libc_feupdateenv_test_ppc
 #define libc_feupdateenv_test        libc_feupdateenv_test_ppc
-#define libc_feupdateenvf            libc_feupdateenv_ppc
 #define libc_feupdateenv             libc_feupdateenv_ppc
-#define libc_feholdsetroundf         libc_feholdsetround_ppc
-#define libc_feholdsetround          libc_feholdsetround_ppc
-#define libc_feresetroundf           libc_feresetround_ppc
 #define libc_feresetround            libc_feresetround_ppc
-
 
 /* We have support for rounding mode context.  */
 #define HAVE_RM_CTX 1
@@ -182,20 +168,10 @@ libc_feresetround_ppc_ctx (struct rm_ctx *ctx)
 }
 
 #define libc_fesetenv_ctx                libc_fesetenv_ppc_ctx
-#define libc_fesetenvf_ctx               libc_fesetenv_ppc_ctx
-#define libc_fesetenvl_ctx               libc_fesetenv_ppc_ctx
 #define libc_feholdsetround_ctx          libc_feholdsetround_ppc_ctx
-#define libc_feholdsetroundf_ctx         libc_feholdsetround_ppc_ctx
-#define libc_feholdsetroundl_ctx         libc_feholdsetround_ppc_ctx
 #define libc_feholdsetround_noex_ctx     libc_feholdsetround_noex_ppc_ctx
-#define libc_feholdsetround_noexf_ctx    libc_feholdsetround_noex_ppc_ctx
-#define libc_feholdsetround_noexl_ctx    libc_feholdsetround_noex_ppc_ctx
 #define libc_feresetround_ctx            libc_feresetround_ppc_ctx
-#define libc_feresetroundf_ctx           libc_feresetround_ppc_ctx
-#define libc_feresetroundl_ctx           libc_feresetround_ppc_ctx
 #define libc_feupdateenv_ctx             libc_feupdateenv_ppc_ctx
-#define libc_feupdateenvf_ctx            libc_feupdateenv_ppc_ctx
-#define libc_feupdateenvl_ctx            libc_feupdateenv_ppc_ctx
 
 #include_next <fenv_private.h>
 
