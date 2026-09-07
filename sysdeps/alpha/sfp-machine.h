@@ -18,6 +18,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <fenv_libc.h>
+#include <fenv-impl.h>
 
 #define _FP_W_TYPE_SIZE		64
 #define _FP_W_TYPE		unsigned long
@@ -83,13 +84,10 @@ do {								\
     }								\
 } while (0)
 
-/* We copy the libm function into libc for soft-fp.  */
-extern int __feraiseexcept (int __excepts) attribute_hidden;
-
 #define FP_HANDLE_EXCEPTIONS					\
 do {								\
   if (__builtin_expect (_fex, 0))				\
-    __feraiseexcept (_fex);					\
+    fenv_raiseexcept (_fex);					\
 } while (0)
 
 #define FP_TRAPPING_EXCEPTIONS					\
