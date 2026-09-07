@@ -24,8 +24,6 @@
 #include <fpu_control.h>
 
 #define libc_fesetround  libc_fesetround_aarch64
-#define libc_fesetroundf libc_fesetround_aarch64
-#define libc_fesetroundl libc_fesetround_aarch64
 
 static __always_inline void
 libc_feholdexcept_setround_aarch64 (fenv_t *envp, int round)
@@ -54,23 +52,13 @@ libc_feholdexcept_setround_aarch64 (fenv_t *envp, int round)
 }
 
 #define libc_feholdexcept_setround  libc_feholdexcept_setround_aarch64
-#define libc_feholdexcept_setroundf libc_feholdexcept_setround_aarch64
-#define libc_feholdexcept_setroundl libc_feholdexcept_setround_aarch64
 
 #define libc_fesetenv  libc_fesetenv_aarch64
-#define libc_fesetenvf libc_fesetenv_aarch64
-#define libc_fesetenvl libc_fesetenv_aarch64
 #define libc_feresetround_noex  libc_fesetenv_aarch64
-#define libc_feresetround_noexf libc_fesetenv_aarch64
-#define libc_feresetround_noexl libc_fesetenv_aarch64
 
 #define libc_feupdateenv_test  libc_feupdateenv_test_aarch64
-#define libc_feupdateenv_testf libc_feupdateenv_test_aarch64
-#define libc_feupdateenv_testl libc_feupdateenv_test_aarch64
 
 #define libc_feupdateenv  libc_feupdateenv_aarch64
-#define libc_feupdateenvf libc_feupdateenv_aarch64
-#define libc_feupdateenvl libc_feupdateenv_aarch64
 
 static __always_inline void
 libc_feholdsetround_aarch64 (fenv_t *envp, int round)
@@ -92,8 +80,6 @@ libc_feholdsetround_aarch64 (fenv_t *envp, int round)
 }
 
 #define libc_feholdsetround  libc_feholdsetround_aarch64
-#define libc_feholdsetroundf libc_feholdsetround_aarch64
-#define libc_feholdsetroundl libc_feholdsetround_aarch64
 
 static __always_inline void
 libc_feresetround_aarch64 (fenv_t *envp)
@@ -112,8 +98,6 @@ libc_feresetround_aarch64 (fenv_t *envp)
 }
 
 #define libc_feresetround  libc_feresetround_aarch64
-#define libc_feresetroundf libc_feresetround_aarch64
-#define libc_feresetroundl libc_feresetround_aarch64
 
 /* We have support for rounding mode context.  */
 #define HAVE_RM_CTX 1
@@ -137,8 +121,6 @@ libc_feholdsetround_aarch64_ctx (struct rm_ctx *ctx, int r)
 }
 
 #define libc_feholdsetround_ctx		libc_feholdsetround_aarch64_ctx
-#define libc_feholdsetroundf_ctx	libc_feholdsetround_aarch64_ctx
-#define libc_feholdsetroundl_ctx	libc_feholdsetround_aarch64_ctx
 
 static __always_inline void
 libc_feresetround_aarch64_ctx (struct rm_ctx *ctx)
@@ -149,8 +131,6 @@ libc_feresetround_aarch64_ctx (struct rm_ctx *ctx)
 }
 
 #define libc_feresetround_ctx		libc_feresetround_aarch64_ctx
-#define libc_feresetroundf_ctx		libc_feresetround_aarch64_ctx
-#define libc_feresetroundl_ctx		libc_feresetround_aarch64_ctx
 
 static __always_inline void
 libc_feholdsetround_noex_aarch64_ctx (struct rm_ctx *ctx, int r)
@@ -174,8 +154,6 @@ libc_feholdsetround_noex_aarch64_ctx (struct rm_ctx *ctx, int r)
 }
 
 #define libc_feholdsetround_noex_ctx	libc_feholdsetround_noex_aarch64_ctx
-#define libc_feholdsetround_noexf_ctx	libc_feholdsetround_noex_aarch64_ctx
-#define libc_feholdsetround_noexl_ctx	libc_feholdsetround_noex_aarch64_ctx
 
 static __always_inline void
 libc_feresetround_noex_aarch64_ctx (struct rm_ctx *ctx)
@@ -189,8 +167,6 @@ libc_feresetround_noex_aarch64_ctx (struct rm_ctx *ctx)
 }
 
 #define libc_feresetround_noex_ctx	libc_feresetround_noex_aarch64_ctx
-#define libc_feresetround_noexf_ctx	libc_feresetround_noex_aarch64_ctx
-#define libc_feresetround_noexl_ctx	libc_feresetround_noex_aarch64_ctx
 
 #include_next <fenv_private.h>
 

@@ -24,8 +24,6 @@
 #include <fpu_control.h>
 
 #define libc_fesetround  libc_fesetround_or1k
-#define libc_fesetroundf libc_fesetround_or1k
-#define libc_fesetroundl libc_fesetround_or1k
 
 static __always_inline void
 libc_feholdexcept_setround_or1k (fenv_t *envp, int round)
@@ -48,12 +46,8 @@ libc_feholdexcept_setround_or1k (fenv_t *envp, int round)
 }
 
 #define libc_feholdexcept_setround  libc_feholdexcept_setround_or1k
-#define libc_feholdexcept_setroundf libc_feholdexcept_setround_or1k
-#define libc_feholdexcept_setroundl libc_feholdexcept_setround_or1k
 
 #define libc_feupdateenv_test  libc_feupdateenv_test_or1k
-#define libc_feupdateenv_testf libc_feupdateenv_test_or1k
-#define libc_feupdateenv_testl libc_feupdateenv_test_or1k
 
 static __always_inline void
 libc_feholdsetround_or1k (fenv_t *envp, int round)
@@ -72,8 +66,6 @@ libc_feholdsetround_or1k (fenv_t *envp, int round)
 }
 
 #define libc_feholdsetround  libc_feholdsetround_or1k
-#define libc_feholdsetroundf libc_feholdsetround_or1k
-#define libc_feholdsetroundl libc_feholdsetround_or1k
 
 static __always_inline void
 libc_feresetround_or1k (fenv_t *envp)
@@ -92,8 +84,6 @@ libc_feresetround_or1k (fenv_t *envp)
 }
 
 #define libc_feresetround  libc_feresetround_or1k
-#define libc_feresetroundf libc_feresetround_or1k
-#define libc_feresetroundl libc_feresetround_or1k
 
 #include_next <fenv_private.h>
 

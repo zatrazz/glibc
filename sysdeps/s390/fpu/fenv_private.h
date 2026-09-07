@@ -25,8 +25,6 @@
 #include <fpu_control.h>
 
 #define libc_fesetround  libc_fesetround_s390
-#define libc_fesetroundf libc_fesetround_s390
-#define libc_fesetroundl libc_fesetround_s390
 
 static __always_inline void
 libc_feholdexcept_setround_s390 (fenv_t *envp, int r)
@@ -51,20 +49,12 @@ libc_feholdexcept_setround_s390 (fenv_t *envp, int r)
 }
 
 #define libc_feholdexcept_setround  libc_feholdexcept_setround_s390
-#define libc_feholdexcept_setroundf libc_feholdexcept_setround_s390
-#define libc_feholdexcept_setroundl libc_feholdexcept_setround_s390
 
 #define libc_fesetenv  libc_fesetenv_s390
-#define libc_fesetenvf libc_fesetenv_s390
-#define libc_fesetenvl libc_fesetenv_s390
 
 #define libc_feupdateenv_test  libc_feupdateenv_test_s390
-#define libc_feupdateenv_testf libc_feupdateenv_test_s390
-#define libc_feupdateenv_testl libc_feupdateenv_test_s390
 
 #define libc_feupdateenv  libc_feupdateenv_s390
-#define libc_feupdateenvf libc_feupdateenv_s390
-#define libc_feupdateenvl libc_feupdateenv_s390
 
 /* We have support for rounding mode context.  */
 #define HAVE_RM_CTX 1
@@ -92,8 +82,6 @@ libc_feholdsetround_s390_ctx (struct rm_ctx *ctx, int r)
 }
 
 #define libc_feholdsetround_ctx		libc_feholdsetround_s390_ctx
-#define libc_feholdsetroundf_ctx	libc_feholdsetround_s390_ctx
-#define libc_feholdsetroundl_ctx	libc_feholdsetround_s390_ctx
 
 static __always_inline void
 libc_feresetround_s390_ctx (struct rm_ctx *ctx)
@@ -109,8 +97,6 @@ libc_feresetround_s390_ctx (struct rm_ctx *ctx)
 }
 
 #define libc_feresetround_ctx		libc_feresetround_s390_ctx
-#define libc_feresetroundf_ctx		libc_feresetround_s390_ctx
-#define libc_feresetroundl_ctx		libc_feresetround_s390_ctx
 
 static __always_inline void
 libc_feholdsetround_noex_s390_ctx (struct rm_ctx *ctx, int r)
@@ -119,8 +105,6 @@ libc_feholdsetround_noex_s390_ctx (struct rm_ctx *ctx, int r)
 }
 
 #define libc_feholdsetround_noex_ctx	libc_feholdsetround_noex_s390_ctx
-#define libc_feholdsetround_noexf_ctx	libc_feholdsetround_noex_s390_ctx
-#define libc_feholdsetround_noexl_ctx	libc_feholdsetround_noex_s390_ctx
 
 static __always_inline void
 libc_feresetround_noex_s390_ctx (struct rm_ctx *ctx)
@@ -130,8 +114,6 @@ libc_feresetround_noex_s390_ctx (struct rm_ctx *ctx)
 }
 
 #define libc_feresetround_noex_ctx	libc_feresetround_noex_s390_ctx
-#define libc_feresetround_noexf_ctx	libc_feresetround_noex_s390_ctx
-#define libc_feresetround_noexl_ctx	libc_feresetround_noex_s390_ctx
 
 #include_next <fenv_private.h>
 
