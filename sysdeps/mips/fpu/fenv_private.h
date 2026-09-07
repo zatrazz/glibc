@@ -25,44 +25,10 @@
    code instead.  */
 
 #include <fenv.h>
+#include <fenv-impl.h>
 #include <fenv_libc.h>
 #include <fpu_control.h>
 
-#define _FPU_MASK_ALL (_FPU_MASK_V | _FPU_MASK_Z | _FPU_MASK_O \
-		       |_FPU_MASK_U | _FPU_MASK_I | FE_ALL_EXCEPT)
-
-static __always_inline void
-libc_feholdexcept_mips (fenv_t *envp)
-{
-  fpu_control_t cw;
-
-  /* Save the current state.  */
-  _FPU_GETCW (cw);
-  envp->__fp_control_register = cw;
-
-  /* Clear all exception enable bits and flags.  */
-  cw &= ~(_FPU_MASK_ALL);
-  _FPU_SETCW (cw);
-}
-#define libc_feholdexcept libc_feholdexcept_mips
-#define libc_feholdexceptf libc_feholdexcept_mips
-#define libc_feholdexceptl libc_feholdexcept_mips
-
-static __always_inline void
-libc_fesetround_mips (int round)
-{
-  fpu_control_t cw;
-
-  /* Get current state.  */
-  _FPU_GETCW (cw);
-
-  /* Set rounding bits.  */
-  cw &= ~_FPU_RC_MASK;
-  cw |= round;
-
-  /* Set new state.  */
-  _FPU_SETCW (cw);
-}
 #define libc_fesetround libc_fesetround_mips
 #define libc_fesetroundf libc_fesetround_mips
 #define libc_fesetroundl libc_fesetround_mips
@@ -145,20 +111,6 @@ libc_feupdateenv_mips (fenv_t *envp)
 #define libc_feresetround libc_feupdateenv_mips
 #define libc_feresetroundf libc_feupdateenv_mips
 #define libc_feresetroundl libc_feupdateenv_mips
-
-static __always_inline int
-libc_fetestexcept_mips (int excepts)
-{
-  int cw;
-
-  /* Get current control word.  */
-  _FPU_GETCW (cw);
-
-  return cw & excepts & FE_ALL_EXCEPT;
-}
-#define libc_fetestexcept libc_fetestexcept_mips
-#define libc_fetestexceptf libc_fetestexcept_mips
-#define libc_fetestexceptl libc_fetestexcept_mips
 
 /*  Enable support for rounding mode context.  */
 #define HAVE_RM_CTX 1
