@@ -16,6 +16,9 @@
    License along with the GNU C Library.  If not, see
    <https://www.gnu.org/licenses/>.  */
 
+#ifndef _POWERPC_NOFPU_SOFT_SUPP_H
+#define _POWERPC_NOFPU_SOFT_SUPP_H 1
+
 #if defined __NO_FPRS__ && !defined _SOFT_FLOAT
 
 # include <fenv_libc.h>
@@ -60,3 +63,5 @@ libc_hidden_proto (__sim_round_mode_global);
 #endif
 
 extern void __simulate_exceptions (int x) attribute_hidden;
+
+#endif /* soft-supp.h */

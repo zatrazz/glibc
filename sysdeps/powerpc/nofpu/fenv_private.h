@@ -1,5 +1,5 @@
-/* Store current floating-point environment and clear exceptions.
-   Copyright (C) 1997-2026 Free Software Foundation, Inc.
+/* Optimized inline fenv.h functions for libm.  PowerPC soft-float version.
+   Copyright (C) 2026 Free Software Foundation, Inc.
    This file is part of the GNU C Library.
 
    The GNU C Library is free software; you can redistribute it and/or
@@ -16,31 +16,16 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
-#include <fenv_libc.h>
-#include <fpu_control.h>
+#ifndef POWERPC_NOFPU_FENV_PRIVATE_H
+#define POWERPC_NOFPU_FENV_PRIVATE_H 1
 
-int
-__feholdexcept (fenv_t *envp)
-{
-  fenv_union_t old, new;
+/* The floating-point environment is kept in the __sim_* thread
+   variables, which the compiler does not know the soft-fp arithmetic
+   routines update.  Inlining the accesses into libm would let it reuse
+   the values stored before an operation, so keep calling the out-of-line
+   functions, which act as a barrier.  */
+#define FENV_PRIVATE_OUT_OF_LINE 1
 
-  /* Save the currently set exceptions.  */
-  old.fenv = *envp = fegetenv_register ();
+#include_next <fenv_private.h>
 
-  /* Clear everything except for the rounding modes and non-IEEE arithmetic
-     flag.  */
-  new.l = old.l & 0xffffffff00000007LL;
-
-  if (new.l == old.l)
-    return 0;
-
-  __TEST_AND_ENTER_NON_STOP (old.l, 0ULL);
-
-  /* Put the new state in effect.  */
-  fesetenv_register (new.fenv);
-
-  return 0;
-}
-libm_hidden_def (__feholdexcept)
-weak_alias (__feholdexcept, feholdexcept)
-libm_hidden_weak (feholdexcept)
+#endif /* fenv_private.h */
