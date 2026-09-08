@@ -44,8 +44,23 @@ libc_fesetround_aarch64 (int round)
     _FPU_SETCW (fpcr ^ round);
 }
 
+/* The primitives for the <fenv_private.h> hooks.  The environment is
+   the FPCR control register (rounding mode and trap enable bits) and
+   the FPSR status register (exception flags).  */
+
 static __always_inline void
-libc_fesetenv_aarch64 (const fenv_t *envp)
+fenv_get_env (fenv_t *envp)
+{
+  fpu_control_t fpcr;
+  fpu_fpsr_t fpsr;
+  _FPU_GETCW (fpcr);
+  _FPU_GETFPSR (fpsr);
+  envp->__fpcr = fpcr;
+  envp->__fpsr = fpsr;
+}
+
+static __always_inline void
+fenv_set_env (const fenv_t *envp)
 {
   fpu_control_t fpcr;
   fpu_control_t new_fpcr;
@@ -59,40 +74,90 @@ libc_fesetenv_aarch64 (const fenv_t *envp)
   _FPU_SETFPSR (envp->__fpsr);
 }
 
-static __always_inline int
-libc_feupdateenv_test_aarch64 (const fenv_t *envp, int ex)
+static __always_inline void
+fenv_update_env (const fenv_t *old, const fenv_t *new)
 {
-  fpu_control_t fpcr;
-  fpu_control_t new_fpcr;
-  fpu_fpsr_t fpsr;
-  fpu_fpsr_t new_fpsr;
-  int excepts;
+  if (__glibc_unlikely (old->__fpcr != new->__fpcr))
+    _FPU_SETCW (new->__fpcr);
 
-  _FPU_GETCW (fpcr);
-  _FPU_GETFPSR (fpsr);
-
-  /* Merge current exception flags with the saved fenv.  */
-  excepts = fpsr & FE_ALL_EXCEPT;
-  new_fpcr = envp->__fpcr;
-  new_fpsr = envp->__fpsr | excepts;
-
-  if (__glibc_unlikely (fpcr != new_fpcr))
-    _FPU_SETCW (new_fpcr);
-
-  if (fpsr != new_fpsr)
-    _FPU_SETFPSR (new_fpsr);
-
-  /* Raise the exceptions if enabled in the new FP state.  */
-  if (__glibc_unlikely (excepts & (new_fpcr >> FE_EXCEPT_SHIFT)))
-    __feraiseexcept (excepts);
-
-  return excepts & ex;
+  if (old->__fpsr != new->__fpsr)
+    _FPU_SETFPSR (new->__fpsr);
 }
 
 static __always_inline void
-libc_feupdateenv_aarch64 (const fenv_t *envp)
+fenv_get_control (fenv_t *envp)
 {
-  libc_feupdateenv_test_aarch64 (envp, 0);
+  fpu_control_t fpcr;
+  _FPU_GETCW (fpcr);
+  envp->__fpcr = fpcr;
+}
+
+static __always_inline void
+fenv_set_control (const fenv_t *envp)
+{
+  _FPU_SETCW (envp->__fpcr);
+}
+
+static __always_inline int
+fenv_env_round (const fenv_t *envp)
+{
+  return envp->__fpcr & _FPU_FPCR_RM_MASK;
+}
+
+static __always_inline void
+fenv_env_set_round (fenv_t *envp, int round)
+{
+  envp->__fpcr = (envp->__fpcr & ~_FPU_FPCR_RM_MASK) | round;
+}
+
+static __always_inline int
+fenv_env_except (const fenv_t *envp)
+{
+  return envp->__fpsr & FE_ALL_EXCEPT;
+}
+
+static __always_inline void
+fenv_env_set_except (fenv_t *envp, int excepts)
+{
+  envp->__fpsr |= excepts;
+}
+
+static __always_inline void
+fenv_env_clear_except (fenv_t *envp)
+{
+  envp->__fpsr &= ~FE_ALL_EXCEPT;
+}
+
+static __always_inline int
+fenv_env_traps (const fenv_t *envp)
+{
+  return (envp->__fpcr >> FE_EXCEPT_SHIFT) & FE_ALL_EXCEPT;
+}
+
+static __always_inline void
+fenv_env_clear_traps (fenv_t *envp)
+{
+  envp->__fpcr &= ~(FE_ALL_EXCEPT << FE_EXCEPT_SHIFT);
+}
+
+#define FENV_IMPL_HAVE_ENV_OPS 1
+
+/* Install ENVP and raise the exceptions raised since it was saved, as
+   feupdateenv does for a user environment.  */
+static __always_inline void
+aarch64_feupdateenv (const fenv_t *envp)
+{
+  fenv_t cur, new;
+  int excepts;
+
+  fenv_get_env (&cur);
+  excepts = fenv_env_except (&cur);
+  new = *envp;
+  fenv_env_set_except (&new, excepts);
+  fenv_update_env (&cur, &new);
+
+  if (__glibc_unlikely (excepts & fenv_env_traps (&new)))
+    __feraiseexcept (excepts);
 }
 
 /* Trapping exceptions are optional in AArch64; the relevant enable bits
@@ -311,7 +376,7 @@ fenv_setenv (const fenv_t *envp)
   if ((envp != FE_DFL_ENV) && (envp != FE_NOMASK_ENV))
     {
       /* The new FPCR/FPSR are valid, so don't merge the reserved flags.  */
-      libc_fesetenv_aarch64 (envp);
+      fenv_set_env (envp);
       return 0;
     }
 
@@ -350,7 +415,7 @@ fenv_updateenv (const fenv_t *envp)
 
   if ((envp != FE_DFL_ENV) && (envp != FE_NOMASK_ENV))
     {
-      libc_feupdateenv_aarch64 (envp);
+      aarch64_feupdateenv (envp);
       return 0;
     }
 
