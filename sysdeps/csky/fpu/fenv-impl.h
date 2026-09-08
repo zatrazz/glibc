@@ -26,6 +26,101 @@
 #include <float.h>
 #include <math.h>
 
+/* The primitives for the <fenv_private.h> hooks.  The environment is the
+   FPCR control register (the trap enable bits at ENABLE_SHIFT and the
+   rounding mode, __FE_ROUND_MASK) and the FPSR status register (the
+   exception flags in the CAUSE field, at CAUSE_SHIFT).  */
+
+static __always_inline void
+fenv_get_env (fenv_t *envp)
+{
+  fpu_control_t fpcr, fpsr;
+
+  _FPU_GETCW (fpcr);
+  _FPU_GETFPSR (fpsr);
+  envp->__fpcr = fpcr;
+  envp->__fpsr = fpsr;
+}
+
+static __always_inline void
+fenv_update_env (const fenv_t *old, const fenv_t *new)
+{
+  /* Write FPSR and FPCR if different.  */
+  if (__glibc_unlikely (old->__fpsr != new->__fpsr))
+    _FPU_SETFPSR (new->__fpsr);
+
+  if (__glibc_unlikely (old->__fpcr != new->__fpcr))
+    _FPU_SETCW (new->__fpcr);
+}
+
+static __always_inline void
+fenv_set_env (const fenv_t *envp)
+{
+  fenv_t cur;
+
+  fenv_get_env (&cur);
+  fenv_update_env (&cur, envp);
+}
+
+static __always_inline void
+fenv_get_control (fenv_t *envp)
+{
+  fpu_control_t fpcr;
+
+  _FPU_GETCW (fpcr);
+  envp->__fpcr = fpcr;
+}
+
+static __always_inline void
+fenv_set_control (const fenv_t *envp)
+{
+  _FPU_SETCW (envp->__fpcr);
+}
+
+static __always_inline int
+fenv_env_round (const fenv_t *envp)
+{
+  return envp->__fpcr & __FE_ROUND_MASK;
+}
+
+static __always_inline void
+fenv_env_set_round (fenv_t *envp, int round)
+{
+  envp->__fpcr = (envp->__fpcr & ~__FE_ROUND_MASK) | round;
+}
+
+static __always_inline int
+fenv_env_except (const fenv_t *envp)
+{
+  return (envp->__fpsr >> CAUSE_SHIFT) & FE_ALL_EXCEPT;
+}
+
+static __always_inline void
+fenv_env_set_except (fenv_t *envp, int excepts)
+{
+  envp->__fpsr |= excepts << CAUSE_SHIFT;
+}
+
+static __always_inline void
+fenv_env_clear_except (fenv_t *envp)
+{
+  envp->__fpsr &= ~(FE_ALL_EXCEPT << CAUSE_SHIFT);
+}
+
+static __always_inline int
+fenv_env_traps (const fenv_t *envp)
+{
+  return (envp->__fpcr >> ENABLE_SHIFT) & FE_ALL_EXCEPT;
+}
+
+static __always_inline void
+fenv_env_clear_traps (fenv_t *envp)
+{
+  envp->__fpcr &= ~(FE_ALL_EXCEPT << ENABLE_SHIFT);
+}
+
+#define FENV_IMPL_HAVE_ENV_OPS 1
+
 static __always_inline int
 fenv_clearexcept (int excepts)
 {
@@ -230,13 +325,7 @@ fenv_setround (int round)
 static __always_inline int
 fenv_getenv (fenv_t *envp)
 {
-  unsigned int fpcr;
-  unsigned int fpsr;
-
-  _FPU_GETCW (fpcr);
-  _FPU_GETFPSR (fpsr);
-  envp->__fpcr = fpcr;
-  envp->__fpsr = fpsr;
+  fenv_get_env (envp);
 
   return 0;
 }
