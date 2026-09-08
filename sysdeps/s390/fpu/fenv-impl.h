@@ -35,48 +35,120 @@ libc_fesetround_s390 (int round)
   __asm__ __volatile__ ("srnm 0(%0)" : : "a" (round));
 }
 
+/* The status part of the FPC: the exception flags and the DXC.  */
+#define FPC_STATUS (FPC_FLAGS_MASK | FPC_DXC_MASK)
+
+/* The primitives for the <fenv_private.h> hooks.  The environment is the
+   FPC register: the exception trap masks (bits 0-7), the exception flags
+   (bits 8-15), the data exception code (bits 16-23) and the rounding mode
+   (bits 29-31), see <fenv_libc.h>.  */
+
 static __always_inline void
-libc_fesetenv_s390 (const fenv_t *envp)
+fenv_get_env (fenv_t *envp)
+{
+  _FPU_GETCW (envp->__fpc);
+}
+
+static __always_inline void
+fenv_set_env (const fenv_t *envp)
 {
   _FPU_SETCW (envp->__fpc);
 }
 
-static __always_inline int
-libc_feupdateenv_test_s390 (const fenv_t *envp, int ex)
+static __always_inline void
+fenv_update_env (const fenv_t *old, const fenv_t *new)
 {
-  /* Get the currently raised exceptions.  */
-  int excepts;
-  fexcept_t fpc_old;
-
-  _FPU_GETCW (fpc_old);
-
-  /* Get current exceptions.  */
-  excepts = (fpc_old >> FPC_FLAGS_SHIFT) & FE_ALL_EXCEPT;
-  if ((fpc_old & FPC_NOT_FPU_EXCEPTION) == 0)
-    /* Bits 6, 7 of dxc-byte are zero,
-       thus bits 0-5 of dxc-byte correspond to the flag-bits.
-       Evaluate flags and last dxc-exception-code.  */
-    excepts |= (fpc_old >> FPC_DXC_SHIFT) & FE_ALL_EXCEPT;
-
-  /* Merge the currently raised exceptions with those in envp.  */
-  fpu_control_t fpc_new = envp->__fpc;
-  fpc_new |= excepts << FPC_FLAGS_SHIFT;
-
-  /* Install the new fpc from envp.  */
-  if (fpc_new != fpc_old)
-    _FPU_SETCW (fpc_new);
-
-  /* Raise the exceptions if enabled in new fpc.  */
-  if (__glibc_unlikely ((fpc_new >> FPC_EXCEPTION_MASK_SHIFT) & excepts))
-    __feraiseexcept (excepts);
-
-  return excepts & ex;
+  if (new->__fpc != old->__fpc)
+    _FPU_SETCW (new->__fpc);
 }
 
 static __always_inline void
-libc_feupdateenv_s390 (const fenv_t *envp)
+fenv_get_control (fenv_t *envp)
 {
-  libc_feupdateenv_test_s390 (envp, 0);
+  _FPU_GETCW (envp->__fpc);
+}
+
+static __always_inline void
+fenv_set_control (const fenv_t *envp)
+{
+  fpu_control_t fpc;
+
+  /* Keep the current exception flags.  */
+  _FPU_GETCW (fpc);
+  fpc = envp->__fpc | (fpc & FPC_FLAGS_MASK);
+  _FPU_SETCW (fpc);
+}
+
+static __always_inline int
+fenv_env_round (const fenv_t *envp)
+{
+  return envp->__fpc & FPC_RM_MASK;
+}
+
+static __always_inline void
+fenv_env_set_round (fenv_t *envp, int round)
+{
+  envp->__fpc = (envp->__fpc & ~FPC_RM_MASK) | (round & FPC_RM_MASK);
+}
+
+static __always_inline int
+fenv_env_except (const fenv_t *envp)
+{
+  int excepts = (envp->__fpc >> FPC_FLAGS_SHIFT) & FE_ALL_EXCEPT;
+  if ((envp->__fpc & FPC_NOT_FPU_EXCEPTION) == 0)
+    /* Bits 6, 7 of dxc-byte are zero,
+       thus bits 0-5 of dxc-byte correspond to the flag-bits.
+       Evaluate flags and last dxc-exception-code.  */
+    excepts |= (envp->__fpc >> FPC_DXC_SHIFT) & FE_ALL_EXCEPT;
+  return excepts;
+}
+
+static __always_inline void
+fenv_env_set_except (fenv_t *envp, int excepts)
+{
+  envp->__fpc |= excepts << FPC_FLAGS_SHIFT;
+}
+
+static __always_inline void
+fenv_env_clear_except (fenv_t *envp)
+{
+  /* Clear the exception flags and the dxc field.  */
+  envp->__fpc &= ~FPC_STATUS;
+}
+
+static __always_inline int
+fenv_env_traps (const fenv_t *envp)
+{
+  return (envp->__fpc >> FPC_EXCEPTION_MASK_SHIFT) & FE_ALL_EXCEPT;
+}
+
+static __always_inline void
+fenv_env_clear_traps (fenv_t *envp)
+{
+  envp->__fpc &= ~FPC_EXCEPTION_MASK;
+}
+
+#define FENV_IMPL_HAVE_ENV_OPS 1
+
+/* Install ENVP and raise the exceptions raised since it was saved, as
+   feupdateenv does for a user environment.  */
+static __always_inline void
+s390_feupdateenv (const fenv_t *envp)
+{
+  fenv_t cur, new;
+  int excepts;
+
+  fenv_get_env (&cur);
+  excepts = fenv_env_except (&cur);
+
+  /* Merge the currently raised exceptions with those in envp.  */
+  new = *envp;
+  fenv_env_set_except (&new, excepts);
+  fenv_update_env (&cur, &new);
+
+  /* Raise the exceptions if enabled in new fpc.  */
+  if (__glibc_unlikely (excepts & fenv_env_traps (&new)))
+    __feraiseexcept (excepts);
 }
 
 static __always_inline fenv_t
@@ -96,9 +168,6 @@ libc_handle_user_fenv_s390 (const fenv_t *envp)
 
   return env;
 }
-
-/* The status part of the FPC: the exception flags and the DXC.  */
-#define FPC_STATUS (FPC_FLAGS_MASK | FPC_DXC_MASK)
 
 static __always_inline void
 fexceptdiv (float d, float e)
@@ -337,7 +406,7 @@ static __always_inline int
 fenv_setenv (const fenv_t *envp)
 {
   fenv_t env = libc_handle_user_fenv_s390 (envp);
-  libc_fesetenv_s390 (&env);
+  fenv_set_env (&env);
 
   /* Success.  */
   return 0;
@@ -347,7 +416,7 @@ static __always_inline int
 fenv_updateenv (const fenv_t *envp)
 {
   fenv_t env = libc_handle_user_fenv_s390 (envp);
-  libc_feupdateenv_s390 (&env);
+  s390_feupdateenv (&env);
 
   /* Success.  */
   return 0;
