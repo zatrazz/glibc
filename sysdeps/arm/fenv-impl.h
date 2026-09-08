@@ -26,8 +26,112 @@
 #include <get-rounding-mode.h>
 #include <float.h>
 
-/* The inline functions used both by the fenv functions and by the libm
-   internal <fenv_private.h> hooks.  */
+/* NZCV flags, QC bit, IDC bit and bits for IEEE exception status.  */
+#define FPU_STATUS_BITS 0xf800009f
+
+#ifndef __SOFTFP__
+/* The primitives for the <fenv_private.h> hooks.  The environment is the
+   FPSCR register: the exception flags (FE_ALL_EXCEPT), the trap enable
+   bits (FE_ALL_EXCEPT << FE_EXCEPT_SHIFT), and the rounding mode
+   (_FPU_MASK_RM), along with the NZCV condition flags and other status
+   bits (FPU_STATUS_BITS).  Unlike the fenv functions below they do not
+   check for the VFP unit: the compiler is generating VFP instructions,
+   so the hardware is assumed.  */
+
+static __always_inline void
+fenv_get_env (fenv_t *envp)
+{
+  fpu_control_t fpscr;
+
+  _FPU_GETCW (fpscr);
+  envp->__cw = fpscr;
+}
+
+static __always_inline void
+fenv_update_env (const fenv_t *old, const fenv_t *new)
+{
+  /* Write new FPSCR if different (ignoring NZCV flags).  */
+  if (__glibc_unlikely (((old->__cw ^ new->__cw) & ~_FPU_MASK_NZCV) != 0))
+    _FPU_SETCW (new->__cw);
+}
+
+static __always_inline void
+fenv_set_env (const fenv_t *envp)
+{
+  fenv_t cur;
+
+  fenv_get_env (&cur);
+  fenv_update_env (&cur, envp);
+}
+
+static __always_inline void
+fenv_get_control (fenv_t *envp)
+{
+  fenv_get_env (envp);
+}
+
+static __always_inline void
+fenv_set_control (const fenv_t *envp)
+{
+  fpu_control_t fpscr;
+
+  /* Keep the current status bits, the exception flags among them.  */
+  _FPU_GETCW (fpscr);
+  fpscr = (fpscr & FPU_STATUS_BITS) | (envp->__cw & ~FPU_STATUS_BITS);
+  _FPU_SETCW (fpscr);
+}
+
+static __always_inline int
+fenv_env_round (const fenv_t *envp)
+{
+  return envp->__cw & _FPU_MASK_RM;
+}
+
+static __always_inline void
+fenv_env_set_round (fenv_t *envp, int round)
+{
+  envp->__cw = (envp->__cw & ~_FPU_MASK_RM) | round;
+}
+
+static __always_inline int
+fenv_env_except (const fenv_t *envp)
+{
+  return envp->__cw & FE_ALL_EXCEPT;
+}
+
+static __always_inline void
+fenv_env_set_except (fenv_t *envp, int excepts)
+{
+  envp->__cw |= excepts;
+}
+
+static __always_inline void
+fenv_env_clear_except (fenv_t *envp)
+{
+  envp->__cw &= ~FE_ALL_EXCEPT;
+}
+
+static __always_inline int
+fenv_env_traps (const fenv_t *envp)
+{
+  return (envp->__cw >> FE_EXCEPT_SHIFT) & FE_ALL_EXCEPT;
+}
+
+static __always_inline void
+fenv_env_clear_traps (fenv_t *envp)
+{
+  envp->__cw &= ~(FE_ALL_EXCEPT << FE_EXCEPT_SHIFT);
+}
+
+# define FENV_IMPL_HAVE_ENV_OPS 1
+#else
+/* The inline functions below check for the VFP unit at run time, so the
+   soft-float configurations keep calling the out-of-line functions from
+   libm.  */
+# define FENV_PRIVATE_OUT_OF_LINE 1
+#endif
+
+/* The inline functions used by the fenv functions.  */
 
 static __always_inline void
 libc_feholdexcept_vfp (fenv_t *envp)
@@ -104,9 +208,6 @@ libc_feupdateenv_vfp (const fenv_t *envp)
 {
   libc_feupdateenv_test_vfp (envp, 0);
 }
-
-/* NZCV flags, QC bit, IDC bit and bits for IEEE exception status.  */
-#define FPU_STATUS_BITS 0xf800009f
 
 static __always_inline int
 fenv_clearexcept (int excepts)
