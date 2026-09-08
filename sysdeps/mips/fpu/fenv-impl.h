@@ -50,6 +50,100 @@ libc_fesetround_mips (int round)
   _FPU_SETCW (cw);
 }
 
+/* The primitives for the <fenv_private.h> hooks.  The environment is the
+   FCSR register, with the rounding mode in the low bits, then the
+   exception flags (the FE_* values), the trap enable bits (FE_* shifted
+   by ENABLE_SHIFT) and the cause bits (FE_* shifted by CAUSE_SHIFT);
+   the status bits are the ones in FCSR_STATUS.  */
+
+static __always_inline void
+fenv_get_env (fenv_t *envp)
+{
+  _FPU_GETCW (envp->__fp_control_register);
+}
+
+static __always_inline void
+fenv_set_env (const fenv_t *envp)
+{
+  fpu_control_t cw __attribute__ ((unused));
+
+  /* Read current state to flush fpu pipeline.  */
+  _FPU_GETCW (cw);
+
+  _FPU_SETCW (envp->__fp_control_register);
+}
+
+static __always_inline void
+fenv_update_env (const fenv_t *old, const fenv_t *new)
+{
+  _FPU_SETCW (new->__fp_control_register);
+}
+
+static __always_inline void
+fenv_get_control (fenv_t *envp)
+{
+  _FPU_GETCW (envp->__fp_control_register);
+}
+
+static __always_inline void
+fenv_set_control (const fenv_t *envp)
+{
+  fpu_control_t cw;
+
+  /* Keep the current status bits (exception flags, cause bits and
+     condition codes), and install the control ones of ENVP.  */
+  _FPU_GETCW (cw);
+  cw = (cw & FCSR_STATUS) | (envp->__fp_control_register & ~FCSR_STATUS);
+  _FPU_SETCW (cw);
+}
+
+static __always_inline int
+fenv_env_round (const fenv_t *envp)
+{
+  return envp->__fp_control_register & _FPU_RC_MASK;
+}
+
+static __always_inline void
+fenv_env_set_round (fenv_t *envp, int round)
+{
+  envp->__fp_control_register
+    = (envp->__fp_control_register & ~_FPU_RC_MASK) | round;
+}
+
+static __always_inline int
+fenv_env_except (const fenv_t *envp)
+{
+  return envp->__fp_control_register & FE_ALL_EXCEPT;
+}
+
+static __always_inline void
+fenv_env_set_except (fenv_t *envp, int excepts)
+{
+  envp->__fp_control_register |= excepts;
+}
+
+static __always_inline void
+fenv_env_clear_except (fenv_t *envp)
+{
+  /* Clear the cause bits as well: if they are set, writing the
+     environment into the FCSR re-generates the exception.  */
+  envp->__fp_control_register &= ~(FE_ALL_EXCEPT | CAUSE_MASK);
+}
+
+static __always_inline int
+fenv_env_traps (const fenv_t *envp)
+{
+  return (envp->__fp_control_register & ENABLE_MASK) >> ENABLE_SHIFT;
+}
+
+static __always_inline void
+fenv_env_clear_traps (fenv_t *envp)
+{
+  envp->__fp_control_register &= ~ENABLE_MASK;
+}
+
+#define FENV_IMPL_HAVE_ENV_OPS 1
+
 static __always_inline int
 fenv_clearexcept (int excepts)
 {
@@ -184,7 +278,7 @@ fenv_setround (int round)
 static __always_inline int
 fenv_getenv (fenv_t *envp)
 {
-  _FPU_GETCW (*envp);
+  fenv_get_env (envp);
 
   /* Success.  */
   return 0;
