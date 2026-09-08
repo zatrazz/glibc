@@ -30,21 +30,107 @@
 #define __fenv_stfsr(X)   _FPU_GETCW (X)
 #define __fenv_ldfsr(X)   _FPU_SETCW (X)
 
-/* The inline functions used both by the fenv functions and by the libm
-   internal <fenv_private.h> hooks.  */
+/* The control bits of the FSR: the rounding direction, the trap enable
+   mask, and the nonstandard mode.  */
+#define FPU_CONTROL_BITS 0xcfc00000UL
+
+/* The trap enable mask (TEM) field, the FE_* exception values shifted by
+   FPU_TEM_SHIFT.  */
+#define FPU_TEM_SHIFT 18
+#define FPU_TEM_BITS (FE_ALL_EXCEPT << FPU_TEM_SHIFT)
+
+/* The primitives for the <fenv_private.h> hooks.  The environment is the
+   FSR register: the accrued exception flags (FE_ALL_EXCEPT), the trap
+   enable mask (FPU_TEM_BITS), and the rounding direction (__FE_ROUND_MASK),
+   along with status bits such as the condition codes.  */
+
+static __always_inline void
+fenv_get_env (fenv_t *envp)
+{
+  __fenv_stfsr (*envp);
+}
+
+static __always_inline void
+fenv_set_env (const fenv_t *envp)
+{
+  __fenv_ldfsr (*envp);
+}
+
+static __always_inline void
+fenv_update_env (const fenv_t *old, const fenv_t *new)
+{
+  __fenv_ldfsr (*new);
+}
+
+static __always_inline void
+fenv_get_control (fenv_t *envp)
+{
+  __fenv_stfsr (*envp);
+}
+
+static __always_inline void
+fenv_set_control (const fenv_t *envp)
+{
+  fenv_t fsr;
+
+  /* Keep the current status bits, the accrued exceptions among them.  */
+  __fenv_stfsr (fsr);
+  fsr = (fsr & ~FPU_CONTROL_BITS) | (*envp & FPU_CONTROL_BITS);
+  __fenv_ldfsr (fsr);
+}
+
+static __always_inline int
+fenv_env_round (const fenv_t *envp)
+{
+  return *envp & __FE_ROUND_MASK;
+}
+
+static __always_inline void
+fenv_env_set_round (fenv_t *envp, int round)
+{
+  *envp = (*envp & ~__FE_ROUND_MASK) | round;
+}
+
+static __always_inline int
+fenv_env_except (const fenv_t *envp)
+{
+  return *envp & FE_ALL_EXCEPT;
+}
+
+static __always_inline void
+fenv_env_set_except (fenv_t *envp, int excepts)
+{
+  *envp |= excepts;
+}
+
+static __always_inline void
+fenv_env_clear_except (fenv_t *envp)
+{
+  *envp &= ~FE_ALL_EXCEPT;
+}
+
+static __always_inline int
+fenv_env_traps (const fenv_t *envp)
+{
+  return (*envp >> FPU_TEM_SHIFT) & FE_ALL_EXCEPT;
+}
+
+static __always_inline void
+fenv_env_clear_traps (fenv_t *envp)
+{
+  *envp &= ~FPU_TEM_BITS;
+}
+
+#define FENV_IMPL_HAVE_ENV_OPS 1
 
 static __always_inline void
 libc_fesetround (int r)
 {
   fenv_t etmp;
-  __fenv_stfsr(etmp);
-  etmp = (etmp & ~__FE_ROUND_MASK) | (r);
-  __fenv_ldfsr(etmp);
+  fenv_get_env (&etmp);
+  fenv_env_set_round (&etmp, r);
+  fenv_set_env (&etmp);
 }
-
-/* The control bits of the FSR: the rounding direction, the trap enable
-   mask, and the nonstandard mode.  */
-#define FPU_CONTROL_BITS 0xcfc00000UL
 
 static __always_inline int
 fenv_clearexcept (int excepts)
@@ -196,7 +282,7 @@ fenv_setround (int round)
 static __always_inline int
 fenv_getenv (fenv_t *envp)
 {
-  __fenv_stfsr (*envp);
+  fenv_get_env (envp);
 
   /* Success.  */
   return 0;
@@ -208,10 +294,10 @@ fenv_holdexcept (fenv_t *envp)
   fenv_t etmp;
 
   /* Set all exceptions to non-stop and clear all exceptions.  */
-  __fenv_stfsr(etmp);
-  *(envp) = etmp;
-  etmp = etmp & ~((0x1f << 23) | FE_ALL_EXCEPT);
-  __fenv_ldfsr(etmp);
+  __fenv_stfsr (etmp);
+  *envp = etmp;
+  etmp = etmp & ~(FPU_TEM_BITS | FE_ALL_EXCEPT);
+  __fenv_ldfsr (etmp);
 
   return 0;
 }
@@ -232,7 +318,7 @@ fenv_setenv (const fenv_t *envp)
     }
   else if (envp == FE_NOMASK_ENV)
     {
-      dummy = 0x1f << 23;
+      dummy = FPU_TEM_BITS;
       envp = &dummy;
     }
 
@@ -295,8 +381,8 @@ fenv_disableexcept (int excepts)
 
   __fenv_stfsr (new_exc);
 
-  old_exc = (new_exc >> 18) & FE_ALL_EXCEPT;
-  new_exc &= ~(((fenv_t)excepts & FE_ALL_EXCEPT) << 18);
+  old_exc = (new_exc >> FPU_TEM_SHIFT) & FE_ALL_EXCEPT;
+  new_exc &= ~(((fenv_t)excepts & FE_ALL_EXCEPT) << FPU_TEM_SHIFT);
 
   __fenv_ldfsr (new_exc);
 
@@ -310,8 +396,8 @@ fenv_enableexcept (int excepts)
 
   __fenv_stfsr (new_exc);
 
-  old_exc = (new_exc >> 18) & FE_ALL_EXCEPT;
-  new_exc |= (((fenv_t)excepts & FE_ALL_EXCEPT) << 18);
+  old_exc = (new_exc >> FPU_TEM_SHIFT) & FE_ALL_EXCEPT;
+  new_exc |= (((fenv_t)excepts & FE_ALL_EXCEPT) << FPU_TEM_SHIFT);
 
   __fenv_ldfsr (new_exc);
 
@@ -324,7 +410,7 @@ fenv_getexcept (void)
   fenv_t exc;
   __fenv_stfsr (exc);
 
-  return (exc >> 18) & FE_ALL_EXCEPT;
+  return (exc >> FPU_TEM_SHIFT) & FE_ALL_EXCEPT;
 }
 
 #define FENV_IMPL_HAVE_TRAP_ENABLE 1
