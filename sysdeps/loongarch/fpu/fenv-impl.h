@@ -34,6 +34,97 @@
   (_FPU_MASK_V | _FPU_MASK_Z | _FPU_MASK_O | _FPU_MASK_U | _FPU_MASK_I \
    | FE_ALL_EXCEPT)
 
+/* The primitives for the <fenv_private.h> hooks.  The environment is the
+   FCSR0 register, with the trap enable bits in the low bits (FE_* shifted
+   right by ENABLE_SHIFT), then the rounding mode, the exception flags
+   (the FE_* values) and the cause bits (FE_* shifted by CAUSE_SHIFT).
+   The rounding mode is also accessible on its own through the FCSR3
+   view of the register, which reads as zero elsewhere and whose write
+   only affects the rounding mode field; the control primitives use it,
+   keeping the rounding mode at its FCSR0 position in the environment.  */
+
+static __always_inline void
+fenv_get_env (fenv_t *envp)
+{
+  _FPU_GETCW (envp->__fp_control_register);
+}
+
+static __always_inline void
+fenv_set_env (const fenv_t *envp)
+{
+  fpu_control_t cw __attribute__ ((unused));
+
+  /* Read current state to flush fpu pipeline.  */
+  _FPU_GETCW (cw);
+
+  _FPU_SETCW (envp->__fp_control_register);
+}
+
+static __always_inline void
+fenv_update_env (const fenv_t *old, const fenv_t *new)
+{
+  _FPU_SETCW (new->__fp_control_register);
+}
+
+static __always_inline void
+fenv_get_control (fenv_t *envp)
+{
+  _FPU_GET_RM (envp->__fp_control_register);
+}
+
+static __always_inline void
+fenv_set_control (const fenv_t *envp)
+{
+  /* Only the rounding mode field is written, so the current exception
+     flags are kept.  */
+  _FPU_SET_RM (envp->__fp_control_register);
+}
+
+static __always_inline int
+fenv_env_round (const fenv_t *envp)
+{
+  return envp->__fp_control_register & _FPU_RC_MASK;
+}
+
+static __always_inline void
+fenv_env_set_round (fenv_t *envp, int round)
+{
+  envp->__fp_control_register
+    = (envp->__fp_control_register & ~_FPU_RC_MASK) | round;
+}
+
+static __always_inline int
+fenv_env_except (const fenv_t *envp)
+{
+  return envp->__fp_control_register & FE_ALL_EXCEPT;
+}
+
+static __always_inline void
+fenv_env_set_except (fenv_t *envp, int excepts)
+{
+  envp->__fp_control_register |= excepts;
+}
+
+static __always_inline void
+fenv_env_clear_except (fenv_t *envp)
+{
+  envp->__fp_control_register &= ~FE_ALL_EXCEPT;
+}
+
+static __always_inline int
+fenv_env_traps (const fenv_t *envp)
+{
+  return (envp->__fp_control_register & ENABLE_MASK) << ENABLE_SHIFT;
+}
+
+static __always_inline void
+fenv_env_clear_traps (fenv_t *envp)
+{
+  envp->__fp_control_register &= ~ENABLE_MASK;
+}
+
+#define FENV_IMPL_HAVE_ENV_OPS 1
+
 static __always_inline int
 fenv_clearexcept (int excepts)
 {
@@ -196,7 +287,7 @@ fenv_setround (int round)
 static __always_inline int
 fenv_getenv (fenv_t *envp)
 {
-  _FPU_GETCW (*envp);
+  fenv_get_env (envp);
 
   /* Success.  */
   return 0;
