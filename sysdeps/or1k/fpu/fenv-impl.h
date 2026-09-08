@@ -42,8 +42,96 @@ libc_fesetround_or1k (int round)
     _FPU_SETCW (cw_new);
 }
 
+/* The primitives for the <fenv_private.h> hooks.  The environment is the
+   FPCSR register, with the exception flags and the rounding mode both in
+   it (see <fpu_control.h> for the layout).  */
+
+static __always_inline void
+fenv_get_env (fenv_t *envp)
+{
+  _FPU_GETCW (*envp);
+}
+
+static __always_inline void
+fenv_set_env (const fenv_t *envp)
+{
+  _FPU_SETCW (*envp);
+}
+
+static __always_inline void
+fenv_update_env (const fenv_t *old, const fenv_t *new)
+{
+  if (*old != *new)
+    _FPU_SETCW (*new);
+}
+
+static __always_inline void
+fenv_get_control (fenv_t *envp)
+{
+  _FPU_GETCW (*envp);
+}
+
+static __always_inline void
+fenv_set_control (const fenv_t *envp)
+{
+  fpu_control_t cw;
+  fpu_control_t cw_new;
+
+  /* Keep the current exception flags.  */
+  _FPU_GETCW (cw);
+  cw_new = (*envp & ~FE_ALL_EXCEPT) | (cw & FE_ALL_EXCEPT);
+  if (cw != cw_new)
+    _FPU_SETCW (cw_new);
+}
+
 static __always_inline int
-libc_feupdateenv_test_or1k (const fenv_t *envp, int ex)
+fenv_env_round (const fenv_t *envp)
+{
+  return *envp & _FPU_FPCSR_RM_MASK;
+}
+
+static __always_inline void
+fenv_env_set_round (fenv_t *envp, int round)
+{
+  *envp = (*envp & ~_FPU_FPCSR_RM_MASK) | round;
+}
+
+static __always_inline int
+fenv_env_except (const fenv_t *envp)
+{
+  return *envp & FE_ALL_EXCEPT;
+}
+
+static __always_inline void
+fenv_env_set_except (fenv_t *envp, int excepts)
+{
+  *envp |= excepts;
+}
+
+static __always_inline void
+fenv_env_clear_except (fenv_t *envp)
+{
+  *envp &= ~FE_ALL_EXCEPT;
+}
+
+static __always_inline int
+fenv_env_traps (const fenv_t *envp)
+{
+  /* OpenRISC has no support for trapping exceptions.  */
+  return 0;
+}
+
+static __always_inline void
+fenv_env_clear_traps (fenv_t *envp)
+{
+}
+
+#define FENV_IMPL_HAVE_ENV_OPS 1
+
+/* Install ENVP (or the default environment) and raise the exceptions
+   raised since it was saved, as feupdateenv does.  */
+static __always_inline void
+or1k_feupdateenv (const fenv_t *envp)
 {
   fpu_control_t cw;
   fpu_control_t cw_new;
@@ -59,11 +147,9 @@ libc_feupdateenv_test_or1k (const fenv_t *envp, int ex)
   if (__glibc_unlikely (cw != cw_new))
     _FPU_SETCW (cw_new);
 
-  /* Raise the exceptions if enabled in the new FP state.  */
+  /* Raise the exceptions in the new FP state.  */
   if (__glibc_unlikely (excepts))
     __feraiseexcept (excepts);
-
-  return excepts & ex;
 }
 
 static __always_inline int
@@ -261,7 +347,7 @@ fenv_setenv (const fenv_t *envp)
 static __always_inline int
 fenv_updateenv (const fenv_t *envp)
 {
-  libc_feupdateenv_test_or1k (envp, 0);
+  or1k_feupdateenv (envp);
 
   /* Success.  */
   return 0;
