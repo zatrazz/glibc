@@ -30,8 +30,6 @@ libc_fesetround_riscv (int round)
   riscv_setround (round);
 }
 
-#define libc_fesetround  libc_fesetround_riscv
-
 static __always_inline void
 libc_feholdexcept_setround_riscv (fenv_t *envp, int round)
 {
@@ -51,28 +49,6 @@ libc_feupdateenv_test_riscv (const fenv_t *envp, int ex)
 }
 
 #define libc_feupdateenv_test  libc_feupdateenv_test_riscv
-
-static __always_inline void
-libc_feholdsetround_riscv (fenv_t *envp, int round)
-{
-  /* Note this implementation makes an improperly-formatted fenv_t and
-     so should only be used in conjunction with libc_feresetround.  */
-  int old_round;
-  asm volatile ("csrrw %0, frm, %z1" : "=r" (old_round) : "rJ" (round));
-  *envp = old_round;
-}
-
-#define libc_feholdsetround  libc_feholdsetround_riscv
-
-static __always_inline void
-libc_feresetround_riscv (fenv_t *envp)
-{
-  /* Note this implementation takes an improperly-formatted fenv_t and
-     so should only be used in conjunction with libc_feholdsetround.  */
-  riscv_setround (*envp);
-}
-
-#define libc_feresetround  libc_feresetround_riscv
 
 #include_next <fenv_private.h>
 

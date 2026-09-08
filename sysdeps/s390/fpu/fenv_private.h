@@ -24,8 +24,6 @@
 #include <fenv_libc.h>
 #include <fpu_control.h>
 
-#define libc_fesetround  libc_fesetround_s390
-
 static __always_inline void
 libc_feholdexcept_setround_s390 (fenv_t *envp, int r)
 {
@@ -53,8 +51,6 @@ libc_feholdexcept_setround_s390 (fenv_t *envp, int r)
 #define libc_fesetenv  libc_fesetenv_s390
 
 #define libc_feupdateenv_test  libc_feupdateenv_test_s390
-
-#define libc_feupdateenv  libc_feupdateenv_s390
 
 /* We have support for rounding mode context.  */
 #define HAVE_RM_CTX 1

@@ -23,8 +23,6 @@
 #include <fenv-impl.h>
 #include <fpu_control.h>
 
-#define libc_fesetround  libc_fesetround_or1k
-
 static __always_inline void
 libc_feholdexcept_setround_or1k (fenv_t *envp, int round)
 {
@@ -48,42 +46,6 @@ libc_feholdexcept_setround_or1k (fenv_t *envp, int round)
 #define libc_feholdexcept_setround  libc_feholdexcept_setround_or1k
 
 #define libc_feupdateenv_test  libc_feupdateenv_test_or1k
-
-static __always_inline void
-libc_feholdsetround_or1k (fenv_t *envp, int round)
-{
-  fpu_control_t cw;
-
-  _FPU_GETCW (cw);
-  *envp = cw;
-
-  /* Check whether rounding modes are different.  */
-  round = (cw ^ round) & _FPU_FPCSR_RM_MASK;
-
-  /* Set new rounding mode if different.  */
-  if (__glibc_unlikely (round != 0))
-    _FPU_SETCW (cw ^ round);
-}
-
-#define libc_feholdsetround  libc_feholdsetround_or1k
-
-static __always_inline void
-libc_feresetround_or1k (fenv_t *envp)
-{
-  fpu_control_t cw;
-  int round;
-
-  _FPU_GETCW (cw);
-
-  /* Check whether rounding modes are different.  */
-  round = (*envp ^ cw) & _FPU_FPCSR_RM_MASK;
-
-  /* Restore the rounding mode if it was changed.  */
-  if (__glibc_unlikely (round != 0))
-    _FPU_SETCW (cw ^ round);
-}
-
-#define libc_feresetround  libc_feresetround_or1k
 
 #include_next <fenv_private.h>
 

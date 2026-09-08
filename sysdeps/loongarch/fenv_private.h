@@ -32,23 +32,6 @@
 #include <fpu_control.h>
 
 static __always_inline void
-libc_fesetround_loongarch (int round)
-{
-  fpu_control_t cw;
-
-  /* Get current state.  */
-  _FPU_GETCW (cw);
-
-  /* Set rounding bits.  */
-  cw &= ~_FPU_RC_MASK;
-  cw |= round;
-
-  /* Set new state.  */
-  _FPU_SETCW (cw);
-}
-#define libc_fesetround libc_fesetround_loongarch
-
-static __always_inline void
 libc_feholdexcept_setround_loongarch (fenv_t *envp, int round)
 {
   fpu_control_t cw;
@@ -68,8 +51,6 @@ libc_feholdexcept_setround_loongarch (fenv_t *envp, int round)
   _FPU_SETCW (cw);
 }
 #define libc_feholdexcept_setround libc_feholdexcept_setround_loongarch
-
-#define libc_feholdsetround libc_feholdexcept_setround_loongarch
 
 static __always_inline void
 libc_fesetenv_loongarch (fenv_t *envp)
@@ -106,42 +87,8 @@ libc_feupdateenv_test_loongarch (fenv_t *envp, int excepts)
 }
 #define libc_feupdateenv_test libc_feupdateenv_test_loongarch
 
-static __always_inline void
-libc_feupdateenv_loongarch (fenv_t *envp)
-{
-  libc_feupdateenv_test_loongarch (envp, 0);
-}
-#define libc_feupdateenv libc_feupdateenv_loongarch
-
-#define libc_feresetround libc_feupdateenv_loongarch
-
 /*  Enable support for rounding mode context.  */
 #define HAVE_RM_CTX 1
-
-static __always_inline void
-libc_feholdexcept_setround_loongarch_ctx (struct rm_ctx *ctx, int round)
-{
-  fpu_control_t old, new;
-
-  /* Save the current state.  */
-  _FPU_GETCW (old);
-  ctx->env.__fp_control_register = old;
-
-  /* Clear all exception enable bits and flags.  */
-  new = old & ~(_FPU_MASK_ALL);
-
-  /* Set rounding bits.  */
-  new = (new & ~_FPU_RC_MASK) | round;
-
-  if (__glibc_unlikely (new != old))
-    {
-      _FPU_SETCW (new);
-      ctx->updated_status = true;
-    }
-  else
-    ctx->updated_status = false;
-}
-#define libc_feholdexcept_setround_ctx libc_feholdexcept_setround_loongarch_ctx
 
 static __always_inline void
 libc_fesetenv_loongarch_ctx (struct rm_ctx *ctx)
@@ -156,7 +103,6 @@ libc_feupdateenv_loongarch_ctx (struct rm_ctx *ctx)
   if (__glibc_unlikely (ctx->updated_status))
     libc_feupdateenv_test_loongarch (&ctx->env, 0);
 }
-#define libc_feupdateenv_ctx libc_feupdateenv_loongarch_ctx
 #define libc_feresetround_ctx libc_feupdateenv_loongarch_ctx
 
 static __always_inline void

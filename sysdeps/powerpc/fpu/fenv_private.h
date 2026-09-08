@@ -103,17 +103,9 @@ libc_feupdateenv_test_ppc (fenv_t *envp, int ex)
 				~FPSCR_STATUS_MASK) & ex;
 }
 
-static __always_inline void
-libc_feupdateenv_ppc (fenv_t *e)
-{
-  libc_feupdateenv_test_ppc (e, 0);
-}
-
 #define libc_feholdexcept_setround   libc_feholdexcept_setround_ppc
 #define libc_fesetenv                libc_fesetenv_ppc
 #define libc_feupdateenv_test        libc_feupdateenv_test_ppc
-#define libc_feupdateenv             libc_feupdateenv_ppc
-#define libc_feresetround            libc_feresetround_ppc
 
 /* We have support for rounding mode context.  */
 #define HAVE_RM_CTX 1
@@ -154,13 +146,6 @@ libc_fesetenv_ppc_ctx (struct rm_ctx *ctx)
 }
 
 static __always_inline void
-libc_feupdateenv_ppc_ctx (struct rm_ctx *ctx)
-{
-  if (__glibc_unlikely (ctx->updated_status))
-    libc_feresetround_ppc (&ctx->env);
-}
-
-static __always_inline void
 libc_feresetround_ppc_ctx (struct rm_ctx *ctx)
 {
   if (__glibc_unlikely (ctx->updated_status))
@@ -171,7 +156,6 @@ libc_feresetround_ppc_ctx (struct rm_ctx *ctx)
 #define libc_feholdsetround_ctx          libc_feholdsetround_ppc_ctx
 #define libc_feholdsetround_noex_ctx     libc_feholdsetround_noex_ppc_ctx
 #define libc_feresetround_ctx            libc_feresetround_ppc_ctx
-#define libc_feupdateenv_ctx             libc_feupdateenv_ppc_ctx
 
 #include_next <fenv_private.h>
 

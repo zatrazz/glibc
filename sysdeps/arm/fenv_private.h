@@ -123,21 +123,9 @@ libc_fesetenv_vfp_ctx (struct rm_ctx *ctx)
 
 # define libc_feholdexcept  libc_feholdexcept_vfp
 
-# define libc_fesetround  libc_fesetround_vfp
-
-# define libc_feresetround  libc_feresetround_vfp
-
-# define libc_feresetround_noex  libc_fesetenv_vfp
-
 # define libc_feholdexcept_setround  libc_feholdexcept_setround_vfp
 
-# define libc_feholdsetround  libc_feholdsetround_vfp
-
-# define libc_fetestexcept  libc_fetestexcept_vfp
-
 # define libc_fesetenv  libc_fesetenv_vfp
-
-# define libc_feupdateenv  libc_feupdateenv_vfp
 
 # define libc_feupdateenv_test  libc_feupdateenv_test_vfp
 

@@ -23,8 +23,6 @@
 #include <fenv-impl.h>
 #include <fpu_control.h>
 
-#define libc_fesetround  libc_fesetround_aarch64
-
 static __always_inline void
 libc_feholdexcept_setround_aarch64 (fenv_t *envp, int round)
 {
@@ -54,50 +52,8 @@ libc_feholdexcept_setround_aarch64 (fenv_t *envp, int round)
 #define libc_feholdexcept_setround  libc_feholdexcept_setround_aarch64
 
 #define libc_fesetenv  libc_fesetenv_aarch64
-#define libc_feresetround_noex  libc_fesetenv_aarch64
 
 #define libc_feupdateenv_test  libc_feupdateenv_test_aarch64
-
-#define libc_feupdateenv  libc_feupdateenv_aarch64
-
-static __always_inline void
-libc_feholdsetround_aarch64 (fenv_t *envp, int round)
-{
-  fpu_control_t fpcr;
-  fpu_fpsr_t fpsr;
-
-  _FPU_GETCW (fpcr);
-  _FPU_GETFPSR (fpsr);
-  envp->__fpcr = fpcr;
-  envp->__fpsr = fpsr;
-
-  /* Check whether rounding modes are different.  */
-  round = (fpcr ^ round) & _FPU_FPCR_RM_MASK;
-
-  /* Set new rounding mode if different.  */
-  if (__glibc_unlikely (round != 0))
-    _FPU_SETCW (fpcr ^ round);
-}
-
-#define libc_feholdsetround  libc_feholdsetround_aarch64
-
-static __always_inline void
-libc_feresetround_aarch64 (fenv_t *envp)
-{
-  fpu_control_t fpcr;
-  int round;
-
-  _FPU_GETCW (fpcr);
-
-  /* Check whether rounding modes are different.  */
-  round = (envp->__fpcr ^ fpcr) & _FPU_FPCR_RM_MASK;
-
-  /* Restore the rounding mode if it was changed.  */
-  if (__glibc_unlikely (round != 0))
-    _FPU_SETCW (fpcr ^ round);
-}
-
-#define libc_feresetround  libc_feresetround_aarch64
 
 /* We have support for rounding mode context.  */
 #define HAVE_RM_CTX 1

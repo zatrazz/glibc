@@ -72,22 +72,6 @@ default_libc_feholdexcept (fenv_t *e)
 #endif
 
 static __always_inline void
-default_libc_fesetround (int r)
-{
-  (void) fenv_private_fesetround (r);
-}
-
-#ifndef libc_fesetround
-# define libc_fesetround  default_libc_fesetround
-#endif
-#ifndef libc_fesetroundf
-# define libc_fesetroundf libc_fesetround
-#endif
-#ifndef libc_fesetroundl
-# define libc_fesetroundl libc_fesetround
-#endif
-
-static __always_inline void
 default_libc_feholdexcept_setround (fenv_t *e, int r)
 {
   fenv_private_feholdexcept (e);
@@ -104,26 +88,6 @@ default_libc_feholdexcept_setround (fenv_t *e, int r)
 # define libc_feholdexcept_setroundl libc_feholdexcept_setround
 #endif
 
-#ifndef libc_feholdsetround_53bit
-# define libc_feholdsetround_53bit libc_feholdsetround
-#endif
-
-static __always_inline int
-default_libc_fetestexcept (int ex)
-{
-  return fenv_private_fetestexcept (ex);
-}
-
-#ifndef libc_fetestexcept
-# define libc_fetestexcept  default_libc_fetestexcept
-#endif
-#ifndef libc_fetestexceptf
-# define libc_fetestexceptf libc_fetestexcept
-#endif
-#ifndef libc_fetestexceptl
-# define libc_fetestexceptl libc_fetestexcept
-#endif
-
 static __always_inline void
 default_libc_fesetenv (fenv_t *e)
 {
@@ -138,26 +102,6 @@ default_libc_fesetenv (fenv_t *e)
 #endif
 #ifndef libc_fesetenvl
 # define libc_fesetenvl libc_fesetenv
-#endif
-
-static __always_inline void
-default_libc_feupdateenv (fenv_t *e)
-{
-  (void) fenv_private_feupdateenv (e);
-}
-
-#ifndef libc_feupdateenv
-# define libc_feupdateenv  default_libc_feupdateenv
-#endif
-#ifndef libc_feupdateenvf
-# define libc_feupdateenvf libc_feupdateenv
-#endif
-#ifndef libc_feupdateenvl
-# define libc_feupdateenvl libc_feupdateenv
-#endif
-
-#ifndef libc_feresetround_53bit
-# define libc_feresetround_53bit libc_feresetround
 #endif
 
 static __always_inline int
@@ -178,49 +122,9 @@ default_libc_feupdateenv_test (fenv_t *e, int ex)
 # define libc_feupdateenv_testl libc_feupdateenv_test
 #endif
 
-/* Save and set the rounding mode.  The use of fenv_t to store the old mode
-   allows a target-specific version of this function to avoid converting the
-   rounding mode from the fpu format.  By default we have no choice but to
-   manipulate the entire env.  */
-
-#ifndef libc_feholdsetround
-# define libc_feholdsetround  libc_feholdexcept_setround
-#endif
-#ifndef libc_feholdsetroundf
-# define libc_feholdsetroundf libc_feholdsetround
-#endif
-#ifndef libc_feholdsetroundl
-# define libc_feholdsetroundl libc_feholdsetround
-#endif
-
-/* ... and the reverse.  */
-
-#ifndef libc_feresetround
-# define libc_feresetround  libc_feupdateenv
-#endif
-#ifndef libc_feresetroundf
-# define libc_feresetroundf libc_feresetround
-#endif
-#ifndef libc_feresetroundl
-# define libc_feresetroundl libc_feresetround
-#endif
-
-/* ... and a version that also discards exceptions.  */
-
-#ifndef libc_feresetround_noex
-# define libc_feresetround_noex  libc_fesetenv
-#endif
-#ifndef libc_feresetround_noexf
-# define libc_feresetround_noexf libc_feresetround_noex
-#endif
-#ifndef libc_feresetround_noexl
-# define libc_feresetround_noexl libc_feresetround_noex
-#endif
-
 #ifndef HAVE_RM_CTX
 # define HAVE_RM_CTX 0
 #endif
-
 
 /* Default implementation using standard fenv functions.
    Avoid unnecessary rounding mode changes by first checking the
