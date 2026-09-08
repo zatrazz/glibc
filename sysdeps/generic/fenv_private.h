@@ -71,12 +71,34 @@ default_libc_feholdexcept (fenv_t *e)
 # define libc_feholdexceptl libc_feholdexcept
 #endif
 
+/* With FENV_IMPL_HAVE_ENV_OPS, <fenv-impl.h> provides the primitives to
+   access the floating-point environment registers and to operate on a
+   saved environment (see the generic <fenv-impl.h>), and the hooks below
+   are implemented on them, avoiding the argument validation and the
+   default environment handling of the <fenv.h> functions.  Otherwise the
+   hooks are implemented on the <fenv.h> functions.  */
+
+#ifdef FENV_IMPL_HAVE_ENV_OPS
+static __always_inline void
+default_libc_feholdexcept_setround (fenv_t *e, int r)
+{
+  fenv_t new;
+
+  fenv_get_env (e);
+  new = *e;
+  fenv_env_clear_except (&new);
+  fenv_env_clear_traps (&new);
+  fenv_env_set_round (&new, r);
+  fenv_update_env (e, &new);
+}
+#else
 static __always_inline void
 default_libc_feholdexcept_setround (fenv_t *e, int r)
 {
   fenv_private_feholdexcept (e);
   fenv_private_fesetround (r);
 }
+#endif
 
 #ifndef libc_feholdexcept_setround
 # define libc_feholdexcept_setround  default_libc_feholdexcept_setround
@@ -91,7 +113,11 @@ default_libc_feholdexcept_setround (fenv_t *e, int r)
 static __always_inline void
 default_libc_fesetenv (fenv_t *e)
 {
+#ifdef FENV_IMPL_HAVE_ENV_OPS
+  fenv_set_env (e);
+#else
   (void) fenv_private_fesetenv (e);
+#endif
 }
 
 #ifndef libc_fesetenv
@@ -104,6 +130,28 @@ default_libc_fesetenv (fenv_t *e)
 # define libc_fesetenvl libc_fesetenv
 #endif
 
+#ifdef FENV_IMPL_HAVE_ENV_OPS
+static __always_inline int
+default_libc_feupdateenv_test (fenv_t *e, int ex)
+{
+  fenv_t cur, new;
+  int excepts;
+
+  fenv_get_env (&cur);
+  excepts = fenv_env_except (&cur);
+
+  /* Merge the exceptions raised since the environment was saved.  */
+  new = *e;
+  fenv_env_set_except (&new, excepts);
+  fenv_update_env (&cur, &new);
+
+  /* Raise them if enabled in the new environment.  */
+  if (__glibc_unlikely (excepts & fenv_env_traps (&new)))
+    __feraiseexcept (excepts);
+
+  return excepts & ex;
+}
+#else
 static __always_inline int
 default_libc_feupdateenv_test (fenv_t *e, int ex)
 {
@@ -111,6 +159,7 @@ default_libc_feupdateenv_test (fenv_t *e, int ex)
   fenv_private_feupdateenv (e);
   return ret;
 }
+#endif
 
 #ifndef libc_feupdateenv_test
 # define libc_feupdateenv_test  default_libc_feupdateenv_test
@@ -123,9 +172,65 @@ default_libc_feupdateenv_test (fenv_t *e, int ex)
 #endif
 
 #ifndef HAVE_RM_CTX
-# define HAVE_RM_CTX 0
+# ifdef FENV_IMPL_HAVE_ENV_OPS
+#  define HAVE_RM_CTX 1
+# else
+#  define HAVE_RM_CTX 0
+# endif
 #endif
 
+#ifdef FENV_IMPL_HAVE_ENV_OPS
+/* Implementation on the <fenv-impl.h> primitives: only the control
+   register is saved, and only written when the rounding mode changes.  */
+
+static __always_inline void
+default_libc_feholdsetround_ctx (struct rm_ctx *ctx, int round)
+{
+  fenv_get_control (&ctx->env);
+  ctx->updated_status = fenv_env_round (&ctx->env) != round;
+
+  /* Update rounding mode only if different.  */
+  if (__glibc_unlikely (ctx->updated_status))
+    {
+      fenv_t new = ctx->env;
+      fenv_env_set_round (&new, round);
+      fenv_set_control (&new);
+    }
+}
+
+static __always_inline void
+default_libc_feresetround_ctx (struct rm_ctx *ctx)
+{
+  /* Restore the rounding mode if updated, keeping the exception flags
+     raised meanwhile.  */
+  if (__glibc_unlikely (ctx->updated_status))
+    fenv_set_control (&ctx->env);
+}
+
+static __always_inline void
+default_libc_feholdsetround_noex_ctx (struct rm_ctx *ctx, int round)
+{
+  /* Save the whole environment, to restore the exception flags.  */
+  fenv_get_env (&ctx->env);
+  ctx->updated_status = fenv_env_round (&ctx->env) != round;
+
+  /* Update rounding mode only if different.  */
+  if (__glibc_unlikely (ctx->updated_status))
+    {
+      fenv_t new = ctx->env;
+      fenv_env_set_round (&new, round);
+      fenv_set_control (&new);
+    }
+}
+
+static __always_inline void
+default_libc_feresetround_noex_ctx (struct rm_ctx *ctx)
+{
+  /* Restore exception flags and rounding mode.  */
+  fenv_set_env (&ctx->env);
+}
+
+#else
 /* Default implementation using standard fenv functions.
    Avoid unnecessary rounding mode changes by first checking the
    current rounding mode.  Note the use of __glibc_unlikely is
@@ -171,6 +276,7 @@ default_libc_feresetround_noex_ctx (struct rm_ctx *ctx)
   /* Restore exception flags and rounding mode.  */
   fenv_private_fesetenv (&ctx->env);
 }
+#endif
 
 #if HAVE_RM_CTX
 /* Set/Restore Rounding Modes only when necessary.  If defined, these functions
@@ -178,6 +284,12 @@ default_libc_feresetround_noex_ctx (struct rm_ctx *ctx)
    block is different from the current state.  This saves a lot of time when
    the floating point unit is much slower than the fixed point units.  */
 
+# ifndef libc_feholdsetround_ctx
+#   define libc_feholdsetround_ctx default_libc_feholdsetround_ctx
+# endif
+# ifndef libc_feresetround_ctx
+#   define libc_feresetround_ctx default_libc_feresetround_ctx
+# endif
 # ifndef libc_feholdsetroundf_ctx
 #   define libc_feholdsetroundf_ctx libc_feholdsetround_ctx
 # endif
@@ -192,7 +304,11 @@ default_libc_feresetround_noex_ctx (struct rm_ctx *ctx)
 # endif
 
 # ifndef libc_feholdsetround_noex_ctx
+#  ifdef FENV_IMPL_HAVE_ENV_OPS
+#   define libc_feholdsetround_noex_ctx  default_libc_feholdsetround_noex_ctx
+#  else
 #   define libc_feholdsetround_noex_ctx  libc_feholdsetround_ctx
+#  endif
 # endif
 # ifndef libc_feholdsetround_noexf_ctx
 #   define libc_feholdsetround_noexf_ctx libc_feholdsetround_noex_ctx
@@ -202,7 +318,11 @@ default_libc_feresetround_noex_ctx (struct rm_ctx *ctx)
 # endif
 
 # ifndef libc_feresetround_noex_ctx
+#  ifdef FENV_IMPL_HAVE_ENV_OPS
+#   define libc_feresetround_noex_ctx  default_libc_feresetround_noex_ctx
+#  else
 #   define libc_feresetround_noex_ctx  libc_fesetenv_ctx
+#  endif
 # endif
 # ifndef libc_feresetround_noexf_ctx
 #   define libc_feresetround_noexf_ctx libc_feresetround_noex_ctx

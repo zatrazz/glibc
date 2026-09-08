@@ -39,7 +39,21 @@
    fenv_getexcept.
 
    Every inline function has the same arguments and return value as the
-   <fenv.h> function it implements.  */
+   <fenv.h> function it implements.
+
+   An architecture may also define FENV_IMPL_HAVE_ENV_OPS and provide the
+   primitives the libm internal <fenv_private.h> builds its optimized
+   hooks on: fenv_get_env and fenv_set_env read and write the whole
+   environment (control and status registers), fenv_update_env (OLD, NEW)
+   writes NEW when the current environment is known to be OLD (so that
+   unchanged registers can be skipped), fenv_get_control and
+   fenv_set_control read and write the control register only, the latter
+   keeping the current exception flags, and the fenv_env_* functions
+   operate on a saved environment without touching the registers:
+   fenv_env_round and fenv_env_set_round for the rounding mode,
+   fenv_env_except, fenv_env_set_except (which adds exceptions) and
+   fenv_env_clear_except for the exception flags, fenv_env_traps and
+   fenv_env_clear_traps for the enabled exception traps.  */
 
 #ifndef FENV_IMPL_HAVE_ISO_C
 
