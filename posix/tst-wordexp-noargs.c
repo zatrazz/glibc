@@ -19,6 +19,7 @@
 /* The testsuite runs this without positional parameters, so there is
    nothing for $* and $@ below to expand to.  */
 
+#include <stdlib.h>
 #include <wordexp.h>
 
 #include <support/check.h>
@@ -57,6 +58,26 @@ do_test (void)
   /* ${#*} and ${#@} report the number of positional parameters.  */
   check_one_field ("${#*}", "0");
   check_one_field ("${#@}", "0");
+
+  /* "$*" is not subject to field splitting, so it expands to a single
+     null string.  */
+  check_one_field ("\"$*\"", "");
+
+  /* POSIX requires "$@" to generate zero fields, even though it is
+     double-quoted.  */
+  check_no_field ("\"$@\"");
+
+  setenv ("var", "", 1);
+
+  check_no_field ("\"$@$@\"");
+  check_no_field ("\"$@\"\"$@\"");
+  check_one_field ("\"\"", "");
+  check_one_field ("\"\"\"$@\"", "");
+  check_one_field ("\"$@\"\"\"", "");
+  check_one_field ("\"$var$@\"", "");
+  check_one_field ("\"$@$var\"", "");
+
+  unsetenv ("var");
 
   return 0;
 }

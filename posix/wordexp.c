@@ -48,7 +48,7 @@ extern char **__libc_argv attribute_hidden;
 static int parse_dollars (char **word, size_t *word_length, size_t *max_length,
 			  const char *words, size_t *offset, int flags,
 			  wordexp_t *pwordexp, const char *ifs,
-			  const char *ifs_white, int quoted);
+			  const char *ifs_white, int quoted, bool *started);
 static int parse_backtick (char **word, size_t *word_length,
 			   size_t *max_length, const char *words,
 			   size_t *offset, int flags, wordexp_t *pwordexp,
@@ -56,7 +56,7 @@ static int parse_backtick (char **word, size_t *word_length,
 static int parse_dquote (char **word, size_t *word_length, size_t *max_length,
 			 const char *words, size_t *offset, int flags,
 			 wordexp_t *pwordexp, const char *ifs,
-			 const char *ifs_white);
+			 const char *ifs_white, bool *started);
 static int eval_expr (char *expr, long int *result);
 
 /* The w_*() functions manipulate word lists. */
@@ -499,7 +499,7 @@ parse_glob (char **word, size_t *word_length, size_t *max_length,
 	{
 	  error = parse_dollars (word, word_length, max_length, words,
 				 offset, flags, &glob_list, ifs, ifs_white,
-				 quoted == 2);
+				 quoted == 2, NULL);
 	  if (error)
 	    goto tidy_up;
 
@@ -690,7 +690,8 @@ parse_arith (char **word, size_t *word_length, size_t *max_length,
 	{
 	case '$':
 	  error = parse_dollars (&expr, &expr_length, &expr_maxlen,
-				 words, offset, flags, NULL, NULL, NULL, 1);
+				 words, offset, flags, NULL, NULL, NULL, 1,
+				 NULL);
 	  /* The ``1'' here is to tell parse_dollars not to
 	   * split the fields.
 	   */
@@ -1197,7 +1198,7 @@ parse_comm (char **word, size_t *word_length, size_t *max_length,
 static int
 parse_param (char **word, size_t *word_length, size_t *max_length,
 	     const char *words, size_t *offset, int flags, wordexp_t *pwordexp,
-	     const char *ifs, const char *ifs_white, int quoted)
+	     const char *ifs, const char *ifs_white, int quoted, bool *started)
 {
   /* We are poised just after "$" */
   enum action
@@ -1511,6 +1512,11 @@ envsubst:
 	    }
 	  else
 	    {
+	      /* POSIX says that "$@" generates zero fields when there are no
+		 positional parameters.  */
+	      if (started != NULL)
+		*started = false;
+
 	      free (env);
 	      free (pattern);
 	      return 0;
@@ -1620,7 +1626,8 @@ envsubst:
 		case '$':
 		  offset = 0;
 		  error = parse_dollars (&expanded, &exp_len, &exp_maxl, p,
-					 &offset, flags, NULL, NULL, NULL, 1);
+					 &offset, flags, NULL, NULL, NULL, 1,
+					 NULL);
 		  if (error)
 		    {
 		      if (free_value)
@@ -1947,9 +1954,11 @@ envsubst:
 	{
 	  char *field_end = field_begin;
 	  char *next_field;
+	  bool first_field = field_begin == value_copy;
+	  size_t white;
 
 	  /* If this isn't the first field, start a new word */
-	  if (field_begin != value_copy)
+	  if (!first_field)
 	    {
 	      if (w_addword (pwordexp, *word) == WRDE_NOSPACE)
 		{
@@ -1958,10 +1967,28 @@ envsubst:
 		}
 
 	      *word = w_newword (word_length, max_length);
+	      if (started != NULL)
+		*started = false;
 	    }
 
 	  /* Skip IFS whitespace before the field */
-	  field_begin += strspn (field_begin, ifs_white);
+	  white = strspn (field_begin, ifs_white);
+	  field_begin += white;
+
+	  /* A quoted null right before the expansion is a field of its own
+	     when the expansion starts with a field separator.  */
+	  if (first_field && white != 0 && *word == NULL
+	      && (started != NULL && *started))
+	    {
+	      if (w_addword (pwordexp, *word) == WRDE_NOSPACE)
+		{
+		  free (value_copy);
+		  goto no_space;
+		}
+
+	      *word = w_newword (word_length, max_length);
+	      *started = false;
+	    }
 
 	  if (!seen_nonws_ifs && *field_begin == 0)
 	    /* Nothing but whitespace */
@@ -2028,7 +2055,7 @@ static int
 parse_dollars (char **word, size_t *word_length, size_t *max_length,
 	       const char *words, size_t *offset, int flags,
 	       wordexp_t *pwordexp, const char *ifs, const char *ifs_white,
-	       int quoted)
+	       int quoted, bool *started)
 {
   /* We are poised _at_ "$" */
   switch (words[1 + *offset])
@@ -2078,7 +2105,7 @@ parse_dollars (char **word, size_t *word_length, size_t *max_length,
     default:
       ++(*offset);	/* parse_param needs to know if "{" is there */
       return parse_param (word, word_length, max_length, words, offset, flags,
-			   pwordexp, ifs, ifs_white, quoted);
+			   pwordexp, ifs, ifs_white, quoted, started);
     }
 }
 
@@ -2149,26 +2176,42 @@ parse_backtick (char **word, size_t *word_length, size_t *max_length,
 static int
 parse_dquote (char **word, size_t *word_length, size_t *max_length,
 	      const char *words, size_t *offset, int flags,
-	      wordexp_t *pwordexp, const char * ifs, const char * ifs_white)
+	      wordexp_t *pwordexp, const char * ifs, const char * ifs_white,
+	      bool *started)
 {
   /* We are poised just after a double-quote */
   int error;
+  /* Every element of the quoted section produces a field of its own, even
+     an empty one.  The exception is "$@" that has no positional parameters
+     to expand to.  */
+  bool any = false;
+  bool contributes = false;
 
   for (; words[*offset]; ++(*offset))
     {
       switch (words[*offset])
 	{
 	case '"':
+	  if (!any || contributes)
+	    *started = true;
 	  return 0;
 
 	case '$':
-	  error = parse_dollars (word, word_length, max_length, words, offset,
-				 flags, pwordexp, ifs, ifs_white, 1);
-	  /* The ``1'' here is to tell parse_dollars not to
-	   * split the fields.  It may need to, however ("$@").
-	   */
-	  if (error)
-	    return error;
+	  {
+	    bool dollar_started = true;
+
+	    error = parse_dollars (word, word_length, max_length, words,
+				   offset, flags, pwordexp, ifs, ifs_white, 1,
+				   &dollar_started);
+	    /* The ``1'' here is to tell parse_dollars not to
+	     * split the fields.  It may need to, however ("$@").
+	     */
+	    if (error)
+	      return error;
+
+	    any = true;
+	    contributes |= dollar_started;
+	  }
 
 	  break;
 
@@ -2182,6 +2225,7 @@ parse_dquote (char **word, size_t *word_length, size_t *max_length,
 	  if (error)
 	    return error;
 
+	  any = contributes = true;
 	  break;
 
 	case '\\':
@@ -2191,12 +2235,15 @@ parse_dquote (char **word, size_t *word_length, size_t *max_length,
 	  if (error)
 	    return error;
 
+	  any = contributes = true;
 	  break;
 
 	default:
 	  *word = w_addchar (*word, word_length, max_length, words[*offset]);
 	  if (*word == NULL)
 	    return WRDE_NOSPACE;
+
+	  any = contributes = true;
 	}
     }
 
@@ -2237,6 +2284,8 @@ wordexp (const char *words, wordexp_t *pwordexp, int flags)
   size_t word_length;
   size_t max_length;
   char *word = w_newword (&word_length, &max_length);
+  bool word_started = false;
+  size_t started_wordc = 0;
   int error;
   char *ifs;
   char ifs_white[4];
@@ -2346,7 +2395,7 @@ wordexp (const char *words, wordexp_t *pwordexp, int flags)
       case '$':
 	error = parse_dollars (&word, &word_length, &max_length, words,
 			       &words_offset, flags, pwordexp, ifs, ifs_white,
-			       0);
+			       0, &word_started);
 
 	if (error)
 	  goto do_error;
@@ -2366,41 +2415,38 @@ wordexp (const char *words, wordexp_t *pwordexp, int flags)
 
       case '"':
 	++words_offset;
+	/* parse_dquote sets WORD_STARTED unless the whole quoted section
+	   was a "$@" without positional parameters, which produces no
+	   field at all.  */
 	error = parse_dquote (&word, &word_length, &max_length, words,
-			      &words_offset, flags, pwordexp, ifs, ifs_white);
+			      &words_offset, flags, pwordexp, ifs, ifs_white,
+			      &word_started);
 
 	if (error)
 	  goto do_error;
 
-	if (!word_length)
-	  {
-	    error = w_addword (pwordexp, NULL);
-
-	    if (error)
-	      goto do_error;
-	  }
+	if (word_started)
+	  started_wordc = pwordexp->we_wordc;
 
 	break;
 
       case '\'':
 	++words_offset;
+	word_started = true;
+	started_wordc = pwordexp->we_wordc;
 	error = parse_squote (&word, &word_length, &max_length, words,
 			      &words_offset);
 
 	if (error)
 	  goto do_error;
 
-	if (!word_length)
-	  {
-	    error = w_addword (pwordexp, NULL);
-
-	    if (error)
-	      goto do_error;
-	  }
-
 	break;
 
       case '~':
+	/* Tilde expansion is not subject to field splitting, so the word
+	   exists even if the expansion is empty.  */
+	word_started = true;
+	started_wordc = pwordexp->we_wordc;
 	error = parse_tilde (&word, &word_length, &max_length, words,
 			     &words_offset, pwordexp->we_wordc);
 
@@ -2447,7 +2493,8 @@ wordexp (const char *words, wordexp_t *pwordexp, int flags)
 	  }
 
 	/* If a word has been delimited, add it to the list. */
-	if (word != NULL)
+	if (word != NULL
+	    || (word_started && started_wordc == pwordexp->we_wordc))
 	  {
 	    error = w_addword (pwordexp, word);
 	    if (error)
@@ -2455,12 +2502,14 @@ wordexp (const char *words, wordexp_t *pwordexp, int flags)
 	  }
 
 	word = w_newword (&word_length, &max_length);
+	word_started = false;
       }
 
   /* End of string */
 
   /* There was a word separator at the end */
-  if (word == NULL) /* i.e. w_newword */
+  if (word == NULL
+      && !(word_started && started_wordc == pwordexp->we_wordc))
     {
       free (saved_wordv);
       return 0;

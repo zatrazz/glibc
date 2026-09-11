@@ -105,6 +105,22 @@ struct test_case_struct
     { 0, "", "x\"$var\"", 0, 1, { "x", }, IFS },
     { 0, "", "\"a${var}b\"", 0, 1, { "ab", }, IFS },
     { 0, "", "one \"$var\" two", 0, 3, { "one", "", "two", }, IFS },
+
+    /* A quoted section is part of the word it appears in, so it only produces
+       a field of its own when it is the whole word.  */
+    { 0, NULL, "\"\"x", 0, 1, { "x", }, IFS },
+    { 0, NULL, "''x", 0, 1, { "x", }, IFS },
+    { 0, "", "\"$var\"x", 0, 1, { "x", }, IFS },
+    { 0, NULL, "\"\"$(echo one two)", 0, 2, { "one", "two", }, IFS },
+
+    /* A quoted null merges into the first field of what follows, unless that
+       field is empty because the expansion starts with a separator.  In this
+       case the quoted null is a field of its own.  */
+    { 0, "b", "\"\"$var", 0, 1, { "b", }, IFS },
+    { 0, " b", "\"\"$var", 0, 2, { "", "b", }, IFS },
+    { 0, "", "\"\"$var", 0, 1, { "", }, IFS },
+    { 0, "  ", "\"\"$var", 0, 1, { "", }, IFS },
+    { 0, "a b", "\"\"$var", 0, 2, { "a", "b", }, IFS },
     { 0, NULL, "explicit ``", 0, 1, { "explicit", }, IFS },
 
     /* Simple command substitution */
@@ -316,6 +332,21 @@ do_test (int argc, char *argv[])
   ts.wordc = 2;
   ts.wordv[0] = "/dummy/home";
   ts.wordv[1] = "/dummy/home/foo";
+  ts.ifs = IFS;
+
+  TEST_COMPARE (testit (&ts), 0);
+
+  /* "~" is not subject to field splitting, so it still expands to a
+     single (empty) field when HOME is set but empty.  */
+
+  setenv ("HOME", "", 1);
+  ts.retval = 0;
+  ts.env = NULL;
+  ts.words = "~ ~/foo";
+  ts.flags = 0;
+  ts.wordc = 2;
+  ts.wordv[0] = "";
+  ts.wordv[1] = "/foo";
   ts.ifs = IFS;
 
   TEST_COMPARE (testit (&ts), 0);
