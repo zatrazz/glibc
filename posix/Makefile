@@ -332,10 +332,17 @@ tests := \
   tst-wait4 \
   tst-waitid \
   tst-wordexp-append \
+  tst-wordexp-noargs \
   tst-wordexp-nocmd \
   tst-wordexp-reuse \
   tstgetopt \
   # tests
+
+ifeq ($(build-shared),yes)
+tests-mcheck += \
+  tst-wordexp-noargs \
+  # tests-mcheck
+endif
 
 # Test for the glob symbol version that was replaced in glibc 2.27.
 ifeq ($(have-GLIBC_2.26)$(build-shared),yesyes)

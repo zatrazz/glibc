@@ -1449,7 +1449,8 @@ envsubst:
 	  /* Build up value parameter by parameter (copy them) */
 	  for (p = 1; __libc_argv[p]; ++p)
 	    plist_len += strlen (__libc_argv[p]) + 1; /* for space */
-	  value = malloc (plist_len);
+	  /* Always compute the NULL byte.  */
+	  value = malloc (plist_len + 1);
 	  if (value == NULL)
 	    goto no_space;
 	  end = value;
