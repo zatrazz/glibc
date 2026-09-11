@@ -95,6 +95,16 @@ struct test_case_struct
     { 0, NULL, "contin\\\nuation", 0, 1, { "continuation", }, IFS },
     { 0, NULL, "explicit ''", 0, 2, { "explicit", "", }, IFS },
     { 0, NULL, "explicit \"\"", 0, 2, { "explicit", "", }, IFS },
+
+    /* Quoted expansion of a parameter that is set but null.  No field
+       splitting is done, so the result is a quoted null string rather than
+       no field at all.  */
+    { 0, "", "\"$var\"", 0, 1, { "", }, IFS },
+    { 0, "", "\"${var}\"", 0, 1, { "", }, IFS },
+    { 0, "", "\"$var$var\"", 0, 1, { "", }, IFS },
+    { 0, "", "x\"$var\"", 0, 1, { "x", }, IFS },
+    { 0, "", "\"a${var}b\"", 0, 1, { "ab", }, IFS },
+    { 0, "", "one \"$var\" two", 0, 3, { "one", "", "two", }, IFS },
     { 0, NULL, "explicit ``", 0, 1, { "explicit", }, IFS },
 
     /* Simple command substitution */

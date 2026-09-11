@@ -137,6 +137,18 @@ w_addstr (char *buffer, size_t *actlen, size_t *maxlen, const char *str)
   return w_addmem (buffer, actlen, maxlen, str, len);
 }
 
+/* w_addstr returns NULL both when it runs out of memory and when STR is
+   empty and *WORD has not been started yet.  Only the former is a failure.  */
+static bool
+w_addstr_status (char **word, size_t *word_length, size_t *max_length,
+		 const char *str)
+{
+  bool empty = *str == '\0';
+
+  *word = w_addstr (*word, word_length, max_length, str);
+  return *word != NULL || empty;
+}
+
 static int
 w_addword (wordexp_t *pwordexp, char *word)
 {
@@ -292,8 +304,7 @@ parse_tilde (char **word, size_t *word_length, size_t *max_length,
       home = getenv ("HOME");
       if (home != NULL)
 	{
-	  *word = w_addstr (*word, word_length, max_length, home);
-	  if (*word == NULL)
+	  if (!w_addstr_status (word, word_length, max_length, home))
 	    return WRDE_NOSPACE;
 	}
       else
@@ -313,8 +324,7 @@ parse_tilde (char **word, size_t *word_length, size_t *max_length,
 
 	  if (result == 0 && tpwd != NULL && pwd.pw_dir != NULL)
 	    {
-	      *word = w_addstr (*word, word_length, max_length, pwd.pw_dir);
-	      if (*word == NULL)
+	      if (!w_addstr_status (word, word_length, max_length, pwd.pw_dir))
 		{
 		  scratch_buffer_free (&tmpbuf);
 		  return WRDE_NOSPACE;
@@ -359,21 +369,24 @@ parse_tilde (char **word, size_t *word_length, size_t *max_length,
 	  user = tmpbuf.data;
 	}
 
+      bool ok;
       if (result == 0 && tpwd != NULL && pwd.pw_dir)
-	*word = w_addstr (*word, word_length, max_length, pwd.pw_dir);
+	ok = w_addstr_status (word, word_length, max_length, pwd.pw_dir);
       else
 	{
 	  /* (invalid login name) */
 	  *word = w_addchar (*word, word_length, max_length, '~');
-	  if (*word != NULL)
-	    *word = w_addstr (*word, word_length, max_length, user);
+	  ok = *word != NULL
+	       && w_addstr_status (word, word_length, max_length, user);
 	}
 
       scratch_buffer_free (&tmpbuf);
 
       *offset = i - 1;
+      if (!ok)
+	return WRDE_NOSPACE;
     }
-  return *word ? 0 : WRDE_NOSPACE;
+  return 0;
 }
 
 
@@ -1476,10 +1489,13 @@ envsubst:
 	    {
 	      int p;
 
-	      /* Append first parameter to current word. */
+	      /* Append first parameter to current word.  When the word is
+		 still empty and it is the first parameter, w_addword turns it
+		 into an empty word.  */
 	      value = w_addstr (*word, word_length, max_length,
 				__libc_argv[1]);
-	      if (value == NULL || w_addword (pwordexp, value))
+	      if ((value == NULL && __libc_argv[1][0] != '\0')
+		  || w_addword (pwordexp, value))
 		goto no_space;
 
 	      for (p = 2; __libc_argv[p + 1]; p++)
@@ -1907,11 +1923,12 @@ envsubst:
   if (quoted || !pwordexp)
     {
       /* Quoted - no field split */
-      *word = w_addstr (*word, word_length, max_length, value);
+      bool ok = w_addstr_status (word, word_length, max_length, value);
+
       if (free_value)
 	free (value);
 
-      return *word ? 0 : WRDE_NOSPACE;
+      return ok ? 0 : WRDE_NOSPACE;
     }
   else
     {
