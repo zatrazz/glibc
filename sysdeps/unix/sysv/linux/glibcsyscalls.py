@@ -45,6 +45,35 @@ RE_PSEUDO_SYSCALL = re.compile(r"""__NR_(
     |(|64_|[NO]32_)Linux(_syscalls)?
    )""", re.X)
 
+# Matches a system call number reference, as in __NR_openat.
+RE_SYSCALL_NUMBER = re.compile(r'__NR_(\w+)')
+
+# Matches the name argument of the macros which issue a system call, as
+# in INLINE_SYSCALL_CALL (openat, ...).
+RE_SYSCALL_MACRO = re.compile(r"""\b(?:
+     (?:INLINE|INTERNAL)_V?SYSCALL(?:_CALL|_CANCEL)?
+     |INLINE_(?:SETXID|CLONE)_SYSCALL
+     |SYSCALL_CANCEL(?:_CALL)?
+   )[\s\\]*\([\s\\]*(\w+)""", re.X)
+
+# Matches the name argument of the assembler macros, as in
+# PSEUDO (__openat, openat, 4).
+RE_SYSCALL_PSEUDO = re.compile(
+    r'\bPSEUDO(?:_NOERRNO|_ERRVAL)?[\s\\]*\([\s\\]*\w+[\s\\]*,[\s\\]*(\w+)')
+
+# Headers which list every system call number by construction.
+SYSCALL_NUMBER_HEADERS = frozenset(('arch-syscall.h', 'fixup-asm-unistd.h'))
+
+# Legacy system calls which the generic kernel system call ABI lists.
+LEGACY_SYSCALLS = frozenset((
+    # Wired to sys_ni_syscall in the generic ABI.
+    'lookup_dcookie',
+    # Pre-generic ABI leftover, provided by ARC only.
+    'sysfs',
+    # Superseded by tgkill.
+    'tkill',
+))
+
 def kernel_constants(cc):
     """Return a dictionary with the kernel-defined system call numbers.
 
@@ -195,6 +224,87 @@ def list_arch_syscall_headers(topdir):
                         name=os.path.relpath(root, sysdeps),
                         path=os.path.join(root, filename))
 
+def list_syscall_uses(topdir):
+    """Return a dictionary with the system calls issued by glibc itself.
+
+    The values are the sorted lists of files, relative to TOPDIR, which
+    issue the system call.  The sources are scanned textually.
+
+    """
+    uses = {}
+
+    def add(name, path):
+        uses.setdefault(name, set()).add(os.path.relpath(path, topdir))
+
+    for root, dirs, files in os.walk(topdir):
+        if '.git' in dirs:
+            dirs.remove('.git')
+        if 'config.make' in files:
+            # A build directory: its generated headers list all numbers.
+            del dirs[:]
+            continue
+        for filename in files:
+            path = os.path.join(root, filename)
+
+            if filename == 'syscalls.list':
+                with open(path) as inp:
+                    for line in inp:
+                        comps = line.split()
+                        # The third column is the system call name.
+                        if len(comps) > 2 and not comps[0].startswith('#'):
+                            add(comps[2], path)
+                continue
+
+            if filename in SYSCALL_NUMBER_HEADERS:
+                continue
+            if not filename.endswith(('.c', '.h', '.S')):
+                continue
+            with open(path, errors='replace') as inp:
+                contents = inp.read()
+            for match in RE_SYSCALL_NUMBER.finditer(contents):
+                add(match.group(1), path)
+            for match in RE_SYSCALL_MACRO.finditer(contents):
+                add(match.group(1), path)
+            if filename.endswith('.S'):
+                for match in RE_SYSCALL_PSEUDO.finditer(contents):
+                    add(match.group(1), path)
+
+    return {name: sorted(paths) for name, paths in uses.items()}
+
+def list_exported_symbols(topdir):
+    """Return the symbols exported by the Linux ABIs of glibc.
+
+    The symbols are read from the *.abilist files.
+
+    """
+    result = set()
+    sysdeps = os.path.join(topdir, 'sysdeps', 'unix', 'sysv', 'linux')
+    for root, _, files in os.walk(sysdeps):
+        for filename in files:
+            if not filename.endswith('.abilist'):
+                continue
+            with open(os.path.join(root, filename)) as inp:
+                for line in inp:
+                    # Lines have the form "GLIBC_2.0 symbol F".
+                    comps = line.split()
+                    if len(comps) > 1:
+                        result.add(comps[1])
+    return result
+
+def legacy_syscalls(tables):
+    """Return the legacy and architecture-private system calls in TABLES.
+
+    These are the system calls which no architecture using the generic
+    kernel system call ABI provides, plus LEGACY_SYSCALLS.
+
+    """
+    generic = set()
+    for table in tables:
+        if 'open' not in table.numbers:
+            generic.update(table.numbers)
+    all_syscalls = set(nr for table in tables for nr in table.numbers)
+    return (all_syscalls - generic) | LEGACY_SYSCALLS
+
 def __main():
     """Entry point when called as the main program."""
 
@@ -214,6 +324,19 @@ def __main():
             help='Summarize the implementation status of system calls')
         subparser.add_argument('syscalls', help='Which syscalls to check',
                                nargs='+')
+        subparser = subparsers.add_parser('list-missing-wrappers',
+            help='List system calls without a glibc wrapper function')
+        subparser.add_argument('--arch', action='append', metavar='NAME',
+            help='Only list the system calls of this architecture (the'
+            ' directory name below sysdeps/unix/sysv/linux); can be'
+            ' repeated')
+        subparser.add_argument('--internal', action='store_true',
+            help='Also list the system calls which glibc issues without'
+            ' exporting a wrapper function of the same name')
+        subparser.add_argument('--legacy', action='store_true',
+            help='Also list legacy and architecture-private system calls')
+        subparser.add_argument('--verbose', action='store_true',
+            help='Show the files which issue each listed system call')
         return parser
     parser = get_parser()
     args = parser.parse_args()
@@ -243,6 +366,55 @@ def __main():
                 print('{}:'.format(nr))
                 print('  defined: {}'.format(' '.join(defined)))
                 print('  undefined: {}'.format(' '.join(undefined)))
+
+    elif args.command == 'list-missing-wrappers':
+        tables = sorted(list_arch_syscall_headers(topdir),
+                        key=lambda syscall: syscall.name)
+        for table in tables:
+            table.numbers = load_arch_syscall_header(table.path)
+
+        # Legacy system calls are determined from all architectures, so
+        # that the result does not depend on the --arch selection.
+        skip = set() if args.legacy else legacy_syscalls(tables)
+
+        if args.arch:
+            known = set(table.name for table in tables)
+            unknown = sorted(set(args.arch) - known)
+            if unknown:
+                parser.error('unknown architecture(s): {}\nknown: {}'.format(
+                    ' '.join(unknown), ' '.join(sorted(known))))
+            tables = [table for table in tables if table.name in args.arch]
+
+        uses = list_syscall_uses(topdir)
+        symbols = list_exported_symbols(topdir)
+
+        print('# {:<26} {:<9} {}'.format(
+            'system call', 'status',
+            '' if len(tables) == 1 else 'architectures').rstrip())
+        print('# status: unused = not issued by glibc,'
+              ' internal = issued but not exported')
+
+        for nr in sorted(set(nr for table in tables for nr in table.numbers)):
+            if nr in skip:
+                continue
+            if nr in symbols or '__' + nr in symbols:
+                # There is an exported function of the same name.
+                continue
+            used = uses.get(nr)
+            if used and not args.internal:
+                continue
+            if len(tables) == 1:
+                arches = ''
+            else:
+                arches = [table.name for table in tables
+                          if nr in table.numbers]
+                arches = ('all' if len(arches) == len(tables)
+                          else ' '.join(arches))
+            print('{:<28} {:<9} {}'.format(
+                nr, 'internal' if used else 'unused', arches).rstrip())
+            if args.verbose and used:
+                for path in used:
+                    print('    {}'.format(path))
 
     else:
         # Unrecognized command.
