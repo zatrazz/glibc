@@ -319,8 +319,13 @@ static char *plural_lookup (struct loaded_l10nfile *domain,
 			    unsigned long int n,
 			    const char *translation, size_t translation_len);
 
-static const char *guess_category_value (int category,
-					 const char *categoryname);
+static const char *get_locale_name (int category, const char *categoryname,
+				    int *defaulted);
+
+static const char *guess_category_value (const char *locale,
+					 int locale_defaulted);
+
+static int is_c_locale (const char *locale);
 
 #ifdef _LIBC
 # include "../locale/localeinfo.h"
@@ -415,6 +420,8 @@ DCIGETTEXT (const char *domainname, const char *msgid1, const char *msgid2,
   struct binding *binding;
   const char *categoryname;
   const char *categoryvalue;
+  const char *locale_name;
+  int locale_defaulted;
   const char *dirname;
   char *xdirname = NULL;
   char *xdomainname = NULL;
@@ -526,6 +533,39 @@ DCIGETTEXT (const char *domainname, const char *msgid1, const char *msgid2,
 	}
     }
 
+  /* Now determine the symbolic name of CATEGORY and the name of the locale
+     it is set to.  */
+#ifndef CATEGORYNAME_INITIALIZED
+  categoryname = category_to_name (category);
+#endif
+  locale_name = get_locale_name (category, categoryname, &locale_defaulted);
+  domainname_len = strlen (domainname);
+
+  /* POSIX locates the messages object in three steps, the first of which is
+     a search along the templates of the NLSPATH environment variable.  It
+     uses neither the directory bound to the text domain nor the LANGUAGE
+     environment variable (each template expands to a complete file name).
+
+     NLSPATH lets the user pick a messages object anywhere in the file system,
+     so it is honored neither for privileged programs nor for the locales in
+     which no translation is to take place at all.  */
+  if (!ENABLE_SECURE && !is_c_locale (locale_name))
+    {
+      const char *nlspath = getenv ("NLSPATH");
+
+      if (nlspath != NULL && nlspath[0] != '\0')
+	{
+	  retval = _nl_find_msg_nlspath (nlspath, domainname, locale_name,
+					 binding, msgid1, &retlen, &domain);
+
+	  if (retval == (char *) -1)
+	    goto return_untranslated;
+
+	  if (retval != NULL)
+	    goto found_translation;
+	}
+    }
+
   if (binding == NULL)
     dirname = _nl_default_dirname;
   else
@@ -548,12 +588,10 @@ DCIGETTEXT (const char *domainname, const char *msgid1, const char *msgid2,
 	}
     }
 
-  /* Now determine the symbolic name of CATEGORY and its value.  */
-#ifndef CATEGORYNAME_INITIALIZED
-  categoryname = category_to_name (category);
-#endif
-  categoryvalue = guess_category_value (category, categoryname);
-  domainname_len = strlen (domainname);
+  /* The two remaining steps of the search are a LANGUAGE search and a search
+     using the locale name of CATEGORY. THe CATEGORYVALUE holds the list of
+     locale names they have to go through.  */
+  categoryvalue = guess_category_value (locale_name, locale_defaulted);
   xdomainname = (char *) malloc (strlen (categoryname)
 				 + domainname_len + 5);
   if (xdomainname == NULL)
@@ -600,9 +638,7 @@ DCIGETTEXT (const char *domainname, const char *msgid1, const char *msgid2,
 
       /* If the current locale value is "C" or "C.<encoding>" or "POSIX",
 	 we don't load a domain.  Return the MSGID.  */
-      if ((single_locale[0] == 'C'
-	   && (single_locale[1] == '\0' || single_locale[1] == '.'))
-	  || strcmp (single_locale, "POSIX") == 0)
+      if (is_c_locale (single_locale))
 	break;
 
       /* Find structure describing the message catalog matching the
@@ -642,86 +678,7 @@ DCIGETTEXT (const char *domainname, const char *msgid1, const char *msgid2,
 	    break;
 
 	  if (retval != NULL)
-	    {
-	      /* Found the translation of MSGID1 in domain DOMAIN:
-		 starting at RETVAL, RETLEN bytes.  */
-	      free (xdirname);
-	      free (xdomainname);
-	      free (single_locale);
-	      if (foundp == NULL)
-		{
-		  /* Create a new entry and add it to the search tree.  */
-		  size_t msgid_len;
-		  size_t size;
-		  struct known_translation_t *newp;
-
-		  msgid_len = strlen (msgid1) + 1;
-		  size = offsetof (struct known_translation_t, msgid)
-			 + msgid_len + domainname_len + 1;
-#ifdef HAVE_PER_THREAD_LOCALE
-		  size += strlen (localename) + 1;
-#endif
-		  newp = (struct known_translation_t *) malloc (size);
-		  if (newp != NULL)
-		    {
-		      char *new_domainname;
-#ifdef HAVE_PER_THREAD_LOCALE
-		      char *new_localename;
-#endif
-
-		      new_domainname =
-			(char *) mempcpy (newp->msgid.appended, msgid1,
-					  msgid_len);
-		      memcpy (new_domainname, domainname, domainname_len + 1);
-#ifdef HAVE_PER_THREAD_LOCALE
-		      new_localename = new_domainname + domainname_len + 1;
-		      strcpy (new_localename, localename);
-#endif
-		      newp->domainname = new_domainname;
-		      newp->category = category;
-#ifdef HAVE_PER_THREAD_LOCALE
-		      newp->localename = new_localename;
-#endif
-		      newp->counter = _nl_msg_cat_cntr;
-		      newp->domain = domain;
-		      newp->translation = retval;
-		      newp->translation_length = retlen;
-
-		      gl_rwlock_wrlock (tree_lock);
-
-		      /* Insert the entry in the search tree.  */
-		      foundp = (struct known_translation_t **)
-			tsearch (newp, &root, transcmp);
-
-		      gl_rwlock_unlock (tree_lock);
-
-		      if (foundp == NULL
-			  || __builtin_expect (*foundp != newp, 0))
-			/* The insert failed.  */
-			free (newp);
-		    }
-		}
-	      else
-		{
-		  /* We can update the existing entry.  */
-		  (*foundp)->counter = _nl_msg_cat_cntr;
-		  (*foundp)->domain = domain;
-		  (*foundp)->translation = retval;
-		  (*foundp)->translation_length = retlen;
-		}
-
-	      __set_errno (saved_errno);
-
-	      /* Now deal with plural.  */
-	      if (plural)
-		retval = plural_lookup (domain, n, retval, retlen);
-
-	      gl_rwlock_unlock (_nl_state_lock);
-#ifdef _LIBC
-	      __libc_rwlock_unlock (__libc_setlocale_lock);
-#endif
-	      return retval;
-	    }
+	    goto found_translation;
 	}
     }
 
@@ -752,6 +709,86 @@ DCIGETTEXT (const char *domainname, const char *msgid1, const char *msgid2,
 	  ? (char *) msgid1
 	  /* Use the Germanic plural rule.  */
 	  : n == 1 ? (char *) msgid1 : (char *) msgid2);
+
+ found_translation:
+  /* Found the translation of MSGID1 in domain DOMAIN: starting at RETVAL,
+     RETLEN bytes.  */
+  free (xdirname);
+  free (xdomainname);
+  free (single_locale);
+  if (foundp == NULL)
+    {
+      /* Create a new entry and add it to the search tree.  */
+      size_t msgid_len;
+      size_t size;
+      struct known_translation_t *newp;
+
+      msgid_len = strlen (msgid1) + 1;
+      size = offsetof (struct known_translation_t, msgid)
+	     + msgid_len + domainname_len + 1;
+#ifdef HAVE_PER_THREAD_LOCALE
+      size += strlen (localename) + 1;
+#endif
+      newp = (struct known_translation_t *) malloc (size);
+      if (newp != NULL)
+	{
+	  char *new_domainname;
+#ifdef HAVE_PER_THREAD_LOCALE
+	  char *new_localename;
+#endif
+
+	  new_domainname =
+	    (char *) mempcpy (newp->msgid.appended, msgid1,
+			      msgid_len);
+	  memcpy (new_domainname, domainname, domainname_len + 1);
+#ifdef HAVE_PER_THREAD_LOCALE
+	  new_localename = new_domainname + domainname_len + 1;
+	  strcpy (new_localename, localename);
+#endif
+	  newp->domainname = new_domainname;
+	  newp->category = category;
+#ifdef HAVE_PER_THREAD_LOCALE
+	  newp->localename = new_localename;
+#endif
+	  newp->counter = _nl_msg_cat_cntr;
+	  newp->domain = domain;
+	  newp->translation = retval;
+	  newp->translation_length = retlen;
+
+	  gl_rwlock_wrlock (tree_lock);
+
+	  /* Insert the entry in the search tree.  */
+	  foundp = (struct known_translation_t **)
+	    tsearch (newp, &root, transcmp);
+
+	  gl_rwlock_unlock (tree_lock);
+
+	  if (foundp == NULL
+	      || __builtin_expect (*foundp != newp, 0))
+	    /* The insert failed.  */
+	    free (newp);
+	}
+    }
+  else
+    {
+      /* We can update the existing entry.  */
+      (*foundp)->counter = _nl_msg_cat_cntr;
+      (*foundp)->domain = domain;
+      (*foundp)->translation = retval;
+      (*foundp)->translation_length = retlen;
+    }
+
+  __set_errno (saved_errno);
+
+  /* Now deal with plural.  */
+  if (plural)
+    retval = plural_lookup (domain, n, retval, retlen);
+
+  gl_rwlock_unlock (_nl_state_lock);
+#ifdef _LIBC
+  __libc_rwlock_unlock (__libc_setlocale_lock);
+#endif
+  return retval;
 }
 
 
@@ -1375,16 +1412,62 @@ category_to_name (int category)
 }
 #endif
 
-/* Guess value of current locale from value of the environment variables
-   or system-dependent defaults.  */
+/* Return true if no translation is to take place in the locale named LOCALE,
+   i.e. if it is the "C" locale, one of its "C.<encoding>" variants, or its
+   "POSIX" alias.  */
+static int
+is_c_locale (const char *locale)
+{
+  return ((locale[0] == 'C' && (locale[1] == '\0' || locale[1] == '.'))
+	  || strcmp (locale, "POSIX") == 0);
+}
+
+/* Return the name of the locale that CATEGORY, whose symbolic name is
+   CATEGORYNAME, is set to.  The LANGUAGE environment variable is not taken
+   into accountm, since this is the single locale name that POSIX prescribes
+   for the NLSPATH search and for the single-locale search.  *DEFAULTED is set
+   to a nonzero value if the name comes from a system-dependent default
+   rather than from an explicit setting.  */
 static const char *
-guess_category_value (int category, const char *categoryname)
+get_locale_name (int category, const char *categoryname, int *defaulted)
+{
+  const char *locale;
+
+  /* Fetch the locale name, through the POSIX method of looking to `LC_ALL',
+     `LC_xxx', and `LANG'.  On some systems this can be done by the
+     `setlocale' function itself.  */
+  *defaulted = 0;
+#ifdef _LIBC
+  locale = __current_locale_name (category);
+#else
+# if HAVE_USELOCALE
+  locale = _nl_locale_name_thread_unsafe (category, categoryname);
+  if (locale == NULL)
+# endif
+    {
+      locale = _nl_locale_name_posix (category, categoryname);
+      if (locale == NULL)
+	{
+	  locale = _nl_locale_name_default ();
+	  *defaulted = 1;
+	}
+    }
+#endif
+
+  return locale;
+}
+
+/* Return the list of locale names to look for a messages object in, given
+   that the locale name of the category in question is LOCALE and that
+   LOCALE_DEFAULTED tells whether it came from a system-dependent default.
+   The result is a colon-separated list, in decreasing order of
+   preference.  */
+static const char *
+guess_category_value (const char *locale, int locale_defaulted)
 {
   const char *language;
-  const char *locale;
 #ifndef _LIBC
   const char *language_default;
-  int locale_defaulted;
 #endif
 
   /* We use the settings in the following order:
@@ -1401,27 +1484,6 @@ guess_category_value (int category, const char *categoryname)
        - If the system provides both a list of languages and a default locale,
          the former is used.  */
 
-  /* Fetch the locale name, through the POSIX method of looking to `LC_ALL',
-     `LC_xxx', and `LANG'.  On some systems this can be done by the
-     `setlocale' function itself.  */
-#ifdef _LIBC
-  locale = __current_locale_name (category);
-#else
-  locale_defaulted = 0;
-# if HAVE_USELOCALE
-  locale = _nl_locale_name_thread_unsafe (category, categoryname);
-  if (locale == NULL)
-# endif
-    {
-      locale = _nl_locale_name_posix (category, categoryname);
-      if (locale == NULL)
-	{
-	  locale = _nl_locale_name_default ();
-	  locale_defaulted = 1;
-	}
-    }
-#endif
-
   /* Ignore LANGUAGE and its system-dependent analogon if the locale is set
      to "C" because
      1. "C" locale usually uses the ASCII encoding, and most international
@@ -1437,7 +1499,7 @@ guess_category_value (int category, const char *categoryname)
      set to "C.UTF-8" or, more generally, to "C.<encoding>", because that's
      the by-design behaviour for glibc, see
      <https://sourceware.org/glibc/wiki/Proposals/C.UTF-8>.  */
-  if (locale[0] == 'C' && (locale[1] == '\0' || locale[1] == '.'))
+  if (is_c_locale (locale))
     return locale;
 
   /* The highest priority value is the value of the 'LANGUAGE' environment

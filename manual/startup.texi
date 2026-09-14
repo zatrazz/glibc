@@ -633,7 +633,9 @@ This specifies what locale to use for formatting date/time values.
 @cindex @code{NLSPATH} environment variable
 
 This specifies the directories in which the @code{catopen} function
-looks for message translation catalogs.
+looks for message translation catalogs, and the message catalog files
+which the @code{gettext} family of functions tries before any other.
+@xref{Using gettextized software}.
 
 @item _POSIX_OPTION_ORDER
 @cindex @code{_POSIX_OPTION_ORDER} environment variable.

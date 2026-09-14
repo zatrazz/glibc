@@ -50,6 +50,9 @@
 /* List of already loaded domains.  */
 static struct loaded_l10nfile *_nl_loaded_domains;
 
+/* We need to protect modifying the _NL_LOADED_DOMAINS data.  */
+gl_rwlock_define_initialized (static, lock)
+
 /* Return a data structure describing the message catalog described by
    the DOMAINNAME and CATEGORY parameters with respect to the currently
    established bindings.  */
@@ -80,8 +83,6 @@ _nl_find_domain (const char *dirname, char *locale,
 		(4) modifier
    */
 
-  /* We need to protect modifying the _NL_LOADED_DOMAINS data.  */
-  gl_rwlock_define_initialized (static, lock);
   gl_rwlock_rdlock (lock);
 
   /* If we have already tested for this locale entry there has to
@@ -136,7 +137,6 @@ _nl_find_domain (const char *dirname, char *locale,
 			   &normalized_codeset);
   if (mask != -1) /* Not out of memory?  */
     {
-      /* We need to protect modifying the _NL_LOADED_DOMAINS data.  */
       gl_rwlock_wrlock (lock);
 
       /* Create all possible locale entries which might be interested in
@@ -176,6 +176,31 @@ _nl_find_domain (const char *dirname, char *locale,
     free (locale);
 
   return retval;
+}
+
+/* Return a data structure describing the message catalog stored in the file
+   FILENAME, or NULL if that file does not hold a usable catalog.  Unlike
+   _nl_find_domain, FILENAME is used exactly as given and no locale name
+   generalization is performed on it.  This implements the NLSPATH lookup,
+   where the NLSPATH template already determines the whole file name.  */
+struct loaded_l10nfile *
+_nl_find_domain_file (const char *filename, struct binding *domainbinding)
+{
+  struct loaded_l10nfile *retval;
+
+  gl_rwlock_wrlock (lock);
+  retval = _nl_lookup_l10nfile (&_nl_loaded_domains, filename);
+  gl_rwlock_unlock (lock);
+
+  if (retval == NULL)
+    return NULL;
+
+  if (retval->decided <= 0)
+    _nl_load_domain (retval, domainbinding);
+
+  /* There are no successors to fall back on, so an entry without data is
+     of no use to the caller.  */
+  return retval->data != NULL ? retval : NULL;
 }
 
 #ifdef _LIBC

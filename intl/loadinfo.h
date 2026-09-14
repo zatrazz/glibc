@@ -97,6 +97,15 @@ _nl_make_l10nflist (struct loaded_l10nfile **l10nfile_list,
 		    const char *modifier,
 		    const char *filename, int do_allocate);
 
+/* Return the entry of *L10NFILE_LIST describing the message catalog file
+   ABS_FILENAME, creating it if it does not exist yet.  Unlike the entries
+   created by _nl_make_l10nflist, the returned entry has no successors and
+   ABS_FILENAME is used without deriving any less specific locale name from
+   it.  Return NULL if out of memory.  */
+extern struct loaded_l10nfile *
+_nl_lookup_l10nfile (struct loaded_l10nfile **l10nfile_list,
+		     const char *abs_filename);
+
 /* Lookup the real locale name for a locale alias NAME, or NULL if
    NAME is not a locale alias (but possibly a real locale name).
    The return value is statically allocated and must not be freed.  */

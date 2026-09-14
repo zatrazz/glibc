@@ -147,6 +147,91 @@ pop (int x)
 #endif
 
 
+static struct loaded_l10nfile *
+search_l10nfile (struct loaded_l10nfile **l10nfile_list,
+		 const char *abs_filename, struct loaded_l10nfile **lastp)
+{
+  struct loaded_l10nfile *last = NULL;
+  struct loaded_l10nfile *retval;
+
+  for (retval = *l10nfile_list; retval != NULL; retval = retval->next)
+    if (retval->filename != NULL)
+      {
+	int compare = strcmp (retval->filename, abs_filename);
+	if (compare == 0)
+	  /* We found it!  */
+	  break;
+	if (compare < 0)
+	  {
+	    /* It's not in the list.  */
+	    retval = NULL;
+	    break;
+	  }
+
+	last = retval;
+      }
+
+  *lastp = last;
+  return retval;
+}
+
+static void
+insert_l10nfile (struct loaded_l10nfile **l10nfile_list,
+		 struct loaded_l10nfile *last, struct loaded_l10nfile *newp)
+{
+  if (last == NULL)
+    {
+      newp->next = *l10nfile_list;
+      *l10nfile_list = newp;
+    }
+  else
+    {
+      newp->next = last->next;
+      last->next = newp;
+    }
+}
+
+/* Return the entry of *L10NFILE_LIST describing the message catalog file
+   ABS_FILENAME, creating it if it does not exist yet.  Unlike the entries
+   created by _nl_make_l10nflist, the returned entry has no successors and the
+   ABS_FILENAME is used without deriving any less specific locale name from
+   it.  This is what the NLSPATH lookup needs.
+   Return NULL if out of memory.  */
+struct loaded_l10nfile *
+_nl_lookup_l10nfile (struct loaded_l10nfile **l10nfile_list,
+		     const char *abs_filename)
+{
+  struct loaded_l10nfile *last;
+  struct loaded_l10nfile *retval;
+  size_t filename_len;
+  char *filename_copy;
+
+  retval = search_l10nfile (l10nfile_list, abs_filename, &last);
+  if (retval != NULL)
+    return retval;
+
+  filename_len = strlen (abs_filename) + 1;
+  filename_copy = (char *) malloc (filename_len);
+  if (filename_copy == NULL)
+    return NULL;
+
+  retval = (struct loaded_l10nfile *) malloc (sizeof (*retval));
+  if (retval == NULL)
+    {
+      free (filename_copy);
+      return NULL;
+    }
+
+  retval->filename = memcpy (filename_copy, abs_filename, filename_len);
+  retval->decided = 0;
+  retval->data = NULL;
+  retval->successor[0] = NULL;
+
+  insert_l10nfile (l10nfile_list, last, retval);
+
+  return retval;
+}
+
 struct loaded_l10nfile *
 _nl_make_l10nflist (struct loaded_l10nfile **l10nfile_list,
 		    const char *dirlist, size_t dirlist_len,
@@ -177,9 +262,6 @@ _nl_make_l10nflist (struct loaded_l10nfile **l10nfile_list,
 
   if (abs_filename == NULL)
     return NULL;
-
-  retval = NULL;
-  last = NULL;
 
   /* Construct file name.  */
   memcpy (abs_filename, dirlist, dirlist_len);
@@ -214,23 +296,7 @@ _nl_make_l10nflist (struct loaded_l10nfile **l10nfile_list,
 
   /* Look in list of already loaded domains whether it is already
      available.  */
-  last = NULL;
-  for (retval = *l10nfile_list; retval != NULL; retval = retval->next)
-    if (retval->filename != NULL)
-      {
-	int compare = strcmp (retval->filename, abs_filename);
-	if (compare == 0)
-	  /* We found it!  */
-	  break;
-	if (compare < 0)
-	  {
-	    /* It's not in the list.  */
-	    retval = NULL;
-	    break;
-	  }
-
-	last = retval;
-      }
+  retval = search_l10nfile (l10nfile_list, abs_filename, &last);
 
   if (retval != NULL || do_allocate == 0)
     {
@@ -257,16 +323,7 @@ _nl_make_l10nflist (struct loaded_l10nfile **l10nfile_list,
 			 && (mask & XPG_NORM_CODESET) != 0));
   retval->data = NULL;
 
-  if (last == NULL)
-    {
-      retval->next = *l10nfile_list;
-      *l10nfile_list = retval;
-    }
-  else
-    {
-      retval->next = last->next;
-      last->next = retval;
-    }
+  insert_l10nfile (l10nfile_list, last, retval);
 
   entries = 0;
   /* If the DIRLIST is a real list the RETVAL entry corresponds not to

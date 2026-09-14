@@ -1,0 +1,44 @@
+msgid ""
+msgstr ""
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+msgid "by-name"
+msgstr "@MARKER@:by-name"
+
+msgid "by-locale"
+msgstr "@MARKER@:by-locale"
+
+msgid "by-parts"
+msgstr "@MARKER@:by-parts"
+
+msgid "by-percent"
+msgstr "@MARKER@:by-percent"
+
+msgid "by-empty"
+msgstr "@MARKER@:by-empty"
+
+msgid "by-order"
+msgstr "@MARKER@:by-order"
+
+msgid "by-bad-spec"
+msgstr "@MARKER@:by-bad-spec"
+
+msgid "by-trailing-pct"
+msgstr "@MARKER@:by-trailing-pct"
+
+msgid "by-precedence"
+msgstr "@MARKER@:by-precedence"
+
+msgid "by-language"
+msgstr "@MARKER@:by-language"
+
+msgid "by-fallback"
+msgstr "@MARKER@:by-fallback"
+
+msgid "by-empty-var"
+msgstr "@MARKER@:by-empty-var"
+
+msgid "by-c-locale"
+msgstr "@MARKER@:by-c-locale"

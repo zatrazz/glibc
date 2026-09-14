@@ -9,7 +9,11 @@ Version 2.45
 
 Major new features:
 
-  [Add new features here]
+* The gettext family of functions now honors the NLSPATH environment
+  variable as specified by POSIX.1-2024.  If NLSPATH is set, the message
+  catalog files named by its templates are tried before the ones
+  selected by LANGUAGE and the locale settings.  This gives users a
+  standard way of using message catalogs of their own.
 
 Deprecated and removed features, and other changes affecting compatibility:
 

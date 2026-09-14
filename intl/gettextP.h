@@ -241,8 +241,18 @@ struct loaded_l10nfile *_nl_find_domain (const char *__dirname, char *__locale,
 					 const char *__domainname,
 					 struct binding *__domainbinding)
      attribute_hidden;
+struct loaded_l10nfile *_nl_find_domain_file (const char *__filename,
+					      struct binding *__domainbinding)
+     attribute_hidden;
 void _nl_load_domain (struct loaded_l10nfile *__domain,
 		      struct binding *__domainbinding)
+     attribute_hidden;
+
+char *_nl_find_msg_nlspath (const char *__nlspath, const char *__domainname,
+			    const char *__localename,
+			    struct binding *__domainbinding,
+			    const char *__msgid, size_t *__lengthp,
+			    struct loaded_l10nfile **__domainp)
      attribute_hidden;
 
 char *_nl_find_msg (struct loaded_l10nfile *domain_file,

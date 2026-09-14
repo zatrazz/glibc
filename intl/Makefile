@@ -25,7 +25,7 @@ headers = libintl.h
 routines = bindtextdom dcgettext dgettext gettext \
 	   dcigettext dcngettext dngettext ngettext \
 	   finddomain loadmsgcat localealias textdomain
-aux = l10nflist explodename plural plural-exp hash-string
+aux = l10nflist explodename plural plural-exp hash-string nlspath
 
 multithread-test-srcs := tst-gettext4 tst-gettext5 tst-gettext6
 test-srcs := \
@@ -50,7 +50,7 @@ before-compile += $(objpfx)msgs.h
 install-others = $(inst_localedir)/locale.alias
 
 generated += msgs.h mtrace-tst-gettext.out tst-gettext.mtrace plural.c
-generated-dirs += domaindir localedir
+generated-dirs += domaindir localedir nlspathdir
 
 $(objpfx)plural.c: plural.y
 	$(make-target-directory)
@@ -78,6 +78,12 @@ ifneq (no,$(PERL))
 tests-special += $(objpfx)mtrace-tst-gettext.out
 endif
 endif
+endif
+endif
+
+ifeq ($(run-built-tests),yes)
+ifneq ($(strip $(MSGFMT)),:)
+tests += tst-gettext-nlspath
 endif
 endif
 
@@ -127,6 +133,53 @@ $(objpfx)tst-gettext3.out: $(codeset_mo)
 $(objpfx)tst-gettext5.out: $(codeset_mo)
 endif
 
+nlspath-catalogs = \
+  $(objpfx)nlspathdir/bound/de_DE/LC_MESSAGES/nlspath.mo \
+  $(objpfx)nlspathdir/bycwd/nlspath \
+  $(objpfx)nlspathdir/bylocale/de_DE.UTF-8.mo \
+  $(objpfx)nlspathdir/byname/nlspath.mo \
+  $(objpfx)nlspathdir/byparts/de/DE/UTF-8.mo \
+  $(objpfx)nlspathdir/first/nlspath.mo \
+  # nlspath-catalogs
+
+# Compile tst-nlspath.po into $@, with @MARKER@ replaced by $(1).
+define build-nlspath-catalog
+$(make-target-directory)
+LC_ALL=C sed -e 's/@MARKER@/$(1)/' $< > $@.po
+msgfmt -o $@T $@.po
+mv -f $@T $@
+endef
+
+$(objpfx)nlspathdir/bound/de_DE/LC_MESSAGES/nlspath.mo: tst-nlspath.po
+	$(call build-nlspath-catalog,bound)
+$(objpfx)nlspathdir/byname/nlspath.mo: tst-nlspath.po
+	$(call build-nlspath-catalog,byname)
+$(objpfx)nlspathdir/bylocale/de_DE.UTF-8.mo: tst-nlspath.po
+	$(call build-nlspath-catalog,bylocale)
+$(objpfx)nlspathdir/byparts/de/DE/UTF-8.mo: tst-nlspath.po
+	$(call build-nlspath-catalog,byparts)
+$(objpfx)nlspathdir/bycwd/nlspath: tst-nlspath.po
+	$(call build-nlspath-catalog,bycwd)
+$(objpfx)nlspathdir/first/nlspath.mo: tst-nlspath.po
+	$(call build-nlspath-catalog,first)
+
+# The catalog for the "%%" conversion specification sits in a directory
+# whose name holds a percent sign.  That name cannot be a make target, which
+# would turn the rule into a pattern rule, so go through a stamp file.
+$(objpfx)nlspathdir/pct-stamp: tst-nlspath.po
+	$(make-target-directory)
+	LC_ALL=C sed -e 's/@MARKER@/bypercent/' $< > $@.po
+	mkdir -p '$(objpfx)nlspathdir/pct%'
+	msgfmt -o '$(objpfx)nlspathdir/pct%/nlspath.mo' $@.po
+	touch $@
+
+$(objpfx)nlspathdir/notacatalog:
+	$(make-target-directory)
+	echo 'not a message catalog' > $@
+
+$(objpfx)tst-gettext-nlspath.out: $(nlspath-catalogs) \
+  $(objpfx)nlspathdir/pct-stamp $(objpfx)nlspathdir/notacatalog
+
 LOCALES := de_DE.ISO-8859-1 de_DE.UTF-8 en_US.ANSI_X3.4-1968 fr_FR.ISO-8859-1 \
 	   ja_JP.UTF-8
 include ../gen-locales.mk
@@ -139,6 +192,7 @@ $(objpfx)tst-gettext4.out: $(gen-locales)
 $(objpfx)tst-gettext5.out: $(gen-locales)
 $(objpfx)tst-gettext6.out: $(gen-locales)
 $(objpfx)tst-gettext-c-utf8.out: $(gen-locales)
+$(objpfx)tst-gettext-nlspath.out: $(gen-locales)
 $(objpfx)tst-translit.out: $(gen-locales)
 endif
 
@@ -159,6 +213,7 @@ CFLAGS-tst-gettext4.c += -DOBJPFX=\"$(objpfx)\"
 CFLAGS-tst-gettext5.c += -DOBJPFX=\"$(objpfx)\"
 CFLAGS-tst-gettext6.c += -DOBJPFX=\"$(objpfx)\"
 CFLAGS-tst-plural-eval.c += -DOBJPFX=\"$(objpfx)\"
+CFLAGS-tst-gettext-nlspath.c += -DOBJPFX=\"$(objpfx)\"
 
 ifeq ($(have-thread-library),yes)
 ifeq (yes,$(build-shared))

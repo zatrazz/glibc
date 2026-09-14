@@ -1916,6 +1916,63 @@ locale from the environment is compared with the entries in the first
 column of this file ignoring the case.  If they match, the value of the
 second column is used instead for the further handling.
 
+@cindex NLSPATH environment variable
+All of the above is about the second and third of the three steps which
+POSIX prescribes for locating a message catalog.  The first step is an
+@code{NLSPATH} search, which takes place only if the @code{NLSPATH}
+environment variable is set to a non-empty value.  Its value is a
+colon-separated list of templates, each of which expands to the complete
+file name of a message catalog; the templates are tried in turn, and the
+first file holding a valid catalog that contains the requested message is
+used.  If none does, the search continues with @code{LANGUAGE} and the
+locale settings as described above.  This lets a user try out a
+translation of their own, or a modified one, without installing it below
+the directory the program bound its domain to.
+
+Within a template, the following conversion specifications are replaced:
+
+@table @code
+@item %N
+The text domain name, as selected by @code{textdomain} or given to
+@code{dgettext} and friends.  Unlike @var{domain_name} above, it does not
+imply a @file{.mo} suffix.
+@item %L
+The name of the locale the relevant category is set to, e.g.@:
+@code{de_DE.UTF-8}.  The value of @code{LANGUAGE} is @emph{not} used here.
+@item %l
+The @var{language} part of that locale name, e.g.@: @code{de}.
+@item %t
+The @var{territory} part of that locale name, e.g.@: @code{DE}.
+@item %c
+The @var{codeset} part of that locale name, e.g.@: @code{UTF-8}.
+@item %%
+A single @samp{%} character.
+@end table
+
+A part missing from the locale name expands to the empty string.  A
+template containing any other conversion specification is ignored, and so
+is one that ends in a lone @samp{%}.  An empty template, as given by a
+leading, trailing, or doubled colon, is equivalent to @code{%N}.  For
+example, with
+
+@smallexample
+NLSPATH=$HOME/po/%l/%N.mo:$HOME/po/%N.mo
+@end smallexample
+
+@noindent
+a program using the domain @code{test-package} in the @code{de_DE.UTF-8}
+locale first tries @file{$HOME/po/de/test-package.mo}, then
+@file{$HOME/po/test-package.mo}.
+
+Relative file names in @code{NLSPATH} are interpreted relative to the
+current working directory of the program at the time of the lookup, so
+they are best avoided.  @code{NLSPATH} is not consulted at all when the
+locale of the category is @code{C}, @code{C.@var{encoding}}, or
+@code{POSIX}, since no translation happens there.  It is also ignored in
+programs running with elevated privileges, such as set-user-ID programs.
+@code{catopen} uses the same variable, with the same syntax
+(@pxref{The catgets Functions}).
+
 In the description of the format of the environment variables we already
 mentioned the character set as a factor in the selection of the message
 catalog.  In fact, only catalogs which contain text written using the
