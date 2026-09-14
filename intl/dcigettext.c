@@ -790,8 +790,13 @@ _nl_find_msg (struct loaded_l10nfile *domain_file,
       nls_uint32 hash_val = __hash_string (msgid);
       nls_uint32 idx = hash_val % domain->hash_size;
       nls_uint32 incr = 1 + (hash_val % (domain->hash_size - 2));
+      nls_uint32 probes;
 
-      while (1)
+      /* A well-formed catalog has an empty slot on any probe sequence, so
+	 the loop below always stops at one.  Bound it by the table size
+	 anyway: a crafted catalog whose hash table has no empty slot (or
+	 whose size and increment are not coprime) must not loop forever.  */
+      for (probes = 0; probes < domain->hash_size; probes++)
 	{
 	  nls_uint32 nstr =
 	    W (domain->must_swap_hash_tab, domain->hash_tab[idx]);
@@ -804,7 +809,8 @@ _nl_find_msg (struct loaded_l10nfile *domain_file,
 
 	  /* Compare msgid with the original string at index nstr.
 	     We compare the lengths with >=, not ==, because plural entries
-	     are represented by strings with an embedded NUL.  */
+	     are represented by strings with an embedded NUL.  The index is
+	     validated when the catalog is loaded, so it is in range here.  */
 	  if (nstr < nstrings
 	      ? W (domain->must_swap, domain->orig_tab[nstr].length) >= len
 		&& (strcmp (msgid,
@@ -825,7 +831,9 @@ _nl_find_msg (struct loaded_l10nfile *domain_file,
 	  else
 	    idx += incr;
 	}
-      /* NOTREACHED */
+
+      /* The message was not found.  */
+      return NULL;
     }
   else
     {

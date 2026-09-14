@@ -742,6 +742,45 @@ get_sysdep_segment_value (const char *name)
   return NULL;
 }
 
+#ifndef SIZE_MAX
+# define SIZE_MAX ((size_t) -1)
+#endif
+
+/* The offsets, counts and lengths found in a .mo file are entirely
+   attacker-controlled: the file may be corrupt or deliberately crafted.
+   Every access into the mapped file must therefore be verified to lie
+   within the SIZE bytes that were actually loaded, and the arithmetic
+   used to do so must not itself overflow (all inputs are 32-bit values
+   read from the file, but size_t is only 32 bits wide on ILP32 hosts).
+   The helpers below never add two potentially large values together.  */
+
+/* Return true if the byte range [OFFSET, OFFSET + NBYTES) is entirely
+   contained in a file of SIZE bytes.  */
+static inline int
+mo_offset_in_range (size_t offset, size_t nbytes, size_t size)
+{
+  return offset <= size && nbytes <= size - offset;
+}
+
+/* Return true if an array of COUNT elements of ELEMSIZE bytes each,
+   starting at byte OFFSET, is entirely contained in a file of SIZE bytes.
+   ELEMSIZE must be nonzero.  */
+static inline int
+mo_table_in_range (size_t offset, size_t count, size_t elemsize, size_t size)
+{
+  return offset <= size && count <= (size - offset) / elemsize;
+}
+
+/* Return true if a NUL-terminated string of LEN bytes (excluding the
+   terminating NUL) at byte OFFSET is contained in DATA, a file of SIZE
+   bytes, and is actually NUL terminated there.  */
+static inline int
+mo_string_in_range (const char *data, size_t offset, size_t len, size_t size)
+{
+  /* Need room for the LEN bytes plus the trailing NUL, without overflow.  */
+  return offset <= size && len < size - offset && data[offset + len] == '\0';
+}
+
 /* Load the message catalogs specified by FILENAME.  If it is no valid
    message catalog do nothing.  */
 void
@@ -905,6 +944,58 @@ _nl_load_domain (struct loaded_l10nfile *domain_file,
 	 : NULL);
       domain->must_swap_hash_tab = domain->must_swap;
 
+      /* The string and hash tables described by the header are indexed by
+	 both _nl_load_domain and _nl_find_msg using offsets taken straight
+	 from the (untrusted) file.  Reject the catalog now if any of these
+	 tables, or any of the strings they point to, would extend past the
+	 end of the mapped file.  This closes out-of-bounds reads for both
+	 the revision-0 and revision-1 code paths.  */
+      {
+	size_t orig_tab_offset
+	  = W (domain->must_swap, data->orig_tab_offset);
+	size_t trans_tab_offset
+	  = W (domain->must_swap, data->trans_tab_offset);
+	size_t hash_tab_offset
+	  = W (domain->must_swap, data->hash_tab_offset);
+	nls_uint32 n;
+
+	if (!mo_table_in_range (orig_tab_offset, domain->nstrings,
+				sizeof (struct string_desc), size)
+	    || !mo_table_in_range (trans_tab_offset, domain->nstrings,
+				   sizeof (struct string_desc), size)
+	    || (domain->hash_tab != NULL
+		&& !mo_table_in_range (hash_tab_offset, domain->hash_size,
+				       sizeof (nls_uint32), size)))
+	  goto invalid;
+
+	for (n = 0; n < domain->nstrings; n++)
+	  {
+	    if (!mo_string_in_range ((char *) data,
+				     W (domain->must_swap,
+					domain->orig_tab[n].offset),
+				     W (domain->must_swap,
+					domain->orig_tab[n].length),
+				     size)
+		|| !mo_string_in_range ((char *) data,
+					W (domain->must_swap,
+					   domain->trans_tab[n].offset),
+					W (domain->must_swap,
+					   domain->trans_tab[n].length),
+					size))
+	      goto invalid;
+	  }
+
+	/* Every non-empty hash slot encodes a string index as 1 + index.
+	   _nl_find_msg turns it back into an index and uses it to address the
+	   string tables, so an out-of-range value would be an out-of-bounds
+	   access there.  The file only references static strings here (sysdep
+	   entries are added later, in memory), so each entry must be 0 (empty)
+	   or at most nstrings.  */
+	for (n = 0; domain->hash_tab != NULL && n < domain->hash_size; n++)
+	  if (W (domain->must_swap, domain->hash_tab[n]) > domain->nstrings)
+	    goto invalid;
+      }
+
       /* Now dispatch on the minor revision.  */
       switch (revision & 0xffff)
 	{
@@ -945,19 +1036,27 @@ _nl_load_domain (struct loaded_l10nfile *domain_file,
 		sysdep_segments = (const struct sysdep_segment *)
 		  ((char *) data
 		   + W (domain->must_swap, data->sysdep_segments_offset));
+		/* Reject a segment table that does not fit in the file.  */
+		if (!mo_table_in_range (W (domain->must_swap,
+					   data->sysdep_segments_offset),
+					n_sysdep_segments,
+					sizeof (struct sysdep_segment), size))
+		  goto invalid;
 		sysdep_segment_values = calloc
 		  (n_sysdep_segments, sizeof (const char *));
 		if (sysdep_segment_values == NULL)
 		  goto invalid;
 		for (i = 0; i < n_sysdep_segments; i++)
 		  {
-		    const char *name =
-		      (char *) data
-		      + W (domain->must_swap, sysdep_segments[i].offset);
+		    size_t name_offset =
+		      W (domain->must_swap, sysdep_segments[i].offset);
 		    nls_uint32 namelen =
 		      W (domain->must_swap, sysdep_segments[i].length);
+		    const char *name = (char *) data + name_offset;
 
-		    if (!(namelen > 0 && name[namelen - 1] == '\0'))
+		    if (!(namelen > 0
+			  && mo_offset_in_range (name_offset, namelen, size)
+			  && name[namelen - 1] == '\0'))
 		      {
 			free (sysdep_segment_values);
 			goto invalid;
@@ -972,6 +1071,19 @@ _nl_load_domain (struct loaded_l10nfile *domain_file,
 		trans_sysdep_tab = (const nls_uint32 *)
 		  ((char *) data
 		   + W (domain->must_swap, data->trans_sysdep_tab_offset));
+		/* Both sysdep string-offset tables must fit in the file.  */
+		if (!mo_table_in_range (W (domain->must_swap,
+					   data->orig_sysdep_tab_offset),
+					n_sysdep_strings,
+					sizeof (nls_uint32), size)
+		    || !mo_table_in_range (W (domain->must_swap,
+					      data->trans_sysdep_tab_offset),
+					   n_sysdep_strings,
+					   sizeof (nls_uint32), size))
+		  {
+		    free (sysdep_segment_values);
+		    goto invalid;
+		  }
 
 		/* Compute the amount of additional memory needed for the
 		   system dependent strings and the augmented hash table.
@@ -986,24 +1098,55 @@ _nl_load_domain (struct loaded_l10nfile *domain_file,
 
 		    for (j = 0; j < 2; j++)
 		      {
-			const struct sysdep_string *sysdep_string =
-			  (const struct sysdep_string *)
-			  ((char *) data
-			   + W (domain->must_swap,
-				j == 0
-				? orig_sysdep_tab[i]
-				: trans_sysdep_tab[i]));
+			const struct sysdep_string *sysdep_string;
+			size_t str_offset =
+			  W (domain->must_swap,
+			     j == 0 ? orig_sysdep_tab[i] : trans_sysdep_tab[i]);
+			size_t static_offset;
+			size_t static_need = 0;
+			size_t seg_offset;
 			size_t need = 0;
-			const struct segment_pair *p = sysdep_string->segments;
+			const struct segment_pair *p;
+
+			/* The descriptor is a fixed offset field followed by at
+			   least one segment_pair; make sure both lie within the
+			   file before dereferencing them.  */
+			if (!mo_offset_in_range (str_offset,
+						 sizeof (struct sysdep_string),
+						 size))
+			  {
+			    free (sysdep_segment_values);
+			    goto invalid;
+			  }
+
+			sysdep_string = (const struct sysdep_string *)
+			  ((char *) data + str_offset);
+			static_offset
+			  = W (domain->must_swap, sysdep_string->offset);
+			seg_offset =
+			  str_offset + offsetof (struct sysdep_string, segments);
+			p = sysdep_string->segments;
 
 			if (W (domain->must_swap, p->sysdepref) != SEGMENTS_END)
-			  for (p = sysdep_string->segments;; p++)
+			  for (;;)
 			    {
-			      nls_uint32 sysdepref;
+			      nls_uint32 segsize =
+				W (domain->must_swap, p->segsize);
+			      nls_uint32 sysdepref =
+				W (domain->must_swap, p->sysdepref);
+			      size_t valuelen;
 
-			      need += W (domain->must_swap, p->segsize);
+			      /* Accumulate static and in-memory sizes, guarding
+				 against size_t overflow on ILP32.  */
+			      if (segsize > size - static_need
+				  || segsize > SIZE_MAX - need)
+				{
+				  free (sysdep_segment_values);
+				  goto invalid;
+				}
+			      static_need += segsize;
+			      need += segsize;
 
-			      sysdepref = W (domain->must_swap, p->sysdepref);
 			      if (sysdepref == SEGMENTS_END)
 				break;
 
@@ -1021,22 +1164,84 @@ _nl_load_domain (struct loaded_l10nfile *domain_file,
 				  break;
 				}
 
-			      need += strlen (sysdep_segment_values[sysdepref]);
+			      valuelen
+				= strlen (sysdep_segment_values[sysdepref]);
+			      if (valuelen > SIZE_MAX - need)
+				{
+				  free (sysdep_segment_values);
+				  goto invalid;
+				}
+			      need += valuelen;
+
+			      /* Advance to the next segment_pair and verify it
+				 lies within the file before it is read.  */
+			      p++;
+			      seg_offset += sizeof (struct segment_pair);
+			      if (!mo_offset_in_range
+				    (seg_offset, sizeof (struct segment_pair),
+				     size))
+				{
+				  free (sysdep_segment_values);
+				  goto invalid;
+				}
 			    }
+			else
+			  /* A single static segment, used in place from the file
+			     mapping.  */
+			  static_need = W (domain->must_swap, p->segsize);
 
 			needs[j] = need;
 			if (!valid)
 			  break;
+
+			/* This pair is kept: the static segment bytes it uses,
+			   [static_offset, static_offset + static_need), must be
+			   inside the file.  */
+			if (!mo_offset_in_range (static_offset, static_need,
+						 size))
+			  {
+			    free (sysdep_segment_values);
+			    goto invalid;
+			  }
+
+			/* The reconstructed string is used as a C string (as a
+			   hash key and as a returned translation), so its final
+			   static segment must supply a terminating NUL inside the
+			   file.  */
+			if (static_need == 0
+			    || (((char *) data)[static_offset + static_need - 1]
+				!= '\0'))
+			  {
+			    free (sysdep_segment_values);
+			    goto invalid;
+			  }
 		      }
 
 		    if (valid)
 		      {
 			n_inmem_sysdep_strings++;
+			/* memneed += needs[0] + needs[1], overflow-checked.  */
+			if (needs[0] > SIZE_MAX - needs[1]
+			    || needs[0] + needs[1] > SIZE_MAX - memneed)
+			  {
+			    free (sysdep_segment_values);
+			    goto invalid;
+			  }
 			memneed += needs[0] + needs[1];
 		      }
 		  }
-		memneed += 2 * n_inmem_sysdep_strings
-			   * sizeof (struct sysdep_string_desc);
+		/* memneed += 2 * n_inmem_sysdep_strings
+			     * sizeof (struct sysdep_string_desc),
+		   overflow-checked.  */
+		if (n_inmem_sysdep_strings
+		    > ((SIZE_MAX - memneed)
+		      / (2 * sizeof (struct sysdep_string_desc))))
+		  {
+		    free (sysdep_segment_values);
+		    goto invalid;
+		  }
+		memneed += ((size_t) n_inmem_sysdep_strings
+			    * (2 * sizeof (struct sysdep_string_desc)));
 
 		if (n_inmem_sysdep_strings > 0)
 		  {
@@ -1183,8 +1388,14 @@ _nl_load_domain (struct loaded_l10nfile *domain_file,
 			nls_uint32 idx = hash_val % domain->hash_size;
 			nls_uint32 incr =
 			  1 + (hash_val % (domain->hash_size - 2));
+			nls_uint32 tries;
 
-			for (;;)
+			/* Look for a free slot.  A well-formed catalog always has
+			   one, since the hash table is sized with spare capacity;
+			   bound the probe by the table size so that a crafted table
+			   with no free slot (or a bad increment) cannot loop
+			   forever.  */
+			for (tries = 0; tries < domain->hash_size; tries++)
 			  {
 			    if (inmem_hash_tab[idx] == 0)
 			      {
@@ -1197,6 +1408,13 @@ _nl_load_domain (struct loaded_l10nfile *domain_file,
 			      idx -= domain->hash_size - incr;
 			    else
 			      idx += incr;
+			  }
+
+			if (tries == domain->hash_size)
+			  {
+			    /* No free slot: the catalog is invalid.  */
+			    free (sysdep_segment_values);
+			    goto invalid;
 			  }
 		      }
 

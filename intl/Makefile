@@ -42,6 +42,7 @@ test-srcs += $(multithread-test-srcs)
 endif
 tests = \
   tst-gettext-c-utf8 \
+  tst-mo-hardening \
   tst-ngettext \
   # tests
 
@@ -139,8 +140,13 @@ $(objpfx)tst-gettext4.out: $(gen-locales)
 $(objpfx)tst-gettext5.out: $(gen-locales)
 $(objpfx)tst-gettext6.out: $(gen-locales)
 $(objpfx)tst-gettext-c-utf8.out: $(gen-locales)
+$(objpfx)tst-mo-hardening.out: $(gen-locales)
 $(objpfx)tst-translit.out: $(gen-locales)
 endif
+
+# tst-mo-hardening needs a real (non-C) locale so that LANGUAGE is honoured
+# when selecting the crafted catalogs.
+tst-mo-hardening-ENV = LOCPATH=$(common-objpfx)localedata
 
 $(objpfx)tst-gettext-de.po: ../po/de.po
 	$(make-target-directory)
