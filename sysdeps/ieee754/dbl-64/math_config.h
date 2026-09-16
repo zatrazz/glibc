@@ -21,6 +21,7 @@
 
 #include <math.h>
 #include <math_private.h>
+#include <math-ptr-barrier.h>
 #include <nan-high-order-bit.h>
 #include <stdint.h>
 #include <stdbit.h>
