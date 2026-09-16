@@ -58,18 +58,20 @@ __tanhf (float x)
   double z2 = z * z;
   double z4 = z2 * z2;
   double z8 = z4 * z4;
-  static const double cn[] =
+  static const double cn_data[] =
     {
       0x1p+0,                0x1.30877b8b72d33p-3,  0x1.694aa09ae9e5ep-8,
       0x1.4101377abb729p-14, 0x1.e0392b1db0018p-22, 0x1.2533756e546f7p-30,
       0x1.d62e5abe6ae8ap-41, 0x1.b06be534182dep-54
     };
-  static const double cd[] =
+  const double *cn = ptr_barrier (cn_data);
+  static const double cd_data[] =
     {
       0x1p+0,                0x1.ed99131b0ebeap-2,  0x1.0d27ed6c95a69p-5,
       0x1.7cbdaca0e9fccp-11, 0x1.b4e60b892578ep-18, 0x1.a6f707c5c71abp-26,
       0x1.35a8b6e2cd94cp-35, 0x1.ca8230677aa01p-47
     };
+  const double *cd = ptr_barrier (cd_data);
   double n0 = cn[0] + z2 * cn[1];
   double n2 = cn[2] + z2 * cn[3];
   double n4 = cn[4] + z2 * cn[5];

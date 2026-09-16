@@ -126,11 +126,12 @@ __erfcf (float xf)
 	  return 1.0f + d[sgn];
 	}
       /* around 0, erfc(x) behaves as 1 - (odd polynomial) */
-      static const double c[] =
+      static const double c_data[] =
 	{
 	  0x1.20dd750429b6dp+0, -0x1.812746b03610bp-2, 0x1.ce2f218831d2fp-4,
 	  -0x1.b82c609607dcbp-6, 0x1.553af09b8008ep-8
 	};
+      const double *c = ptr_barrier (c_data);
       double f0 = (double) xf
 	    * (c[0] + x2 * (c[1] + x2 * (c[2] + x2 * (c[3] + x2 * (c[4])))));
       return 1.0 - f0;
@@ -143,11 +144,12 @@ __erfcf (float xf)
   uint64_t jt = asuint64 (x2 * iln2 + -(1024 + 0x1p-8));
   int64_t j = (int64_t) (jt << 12) >> 48;
   double S = asdouble ((uint64_t)((j >> 7) + (0x3ff | sgn << 11)) << 52);
-  static const double ch[] =
+  static const double ch_data[] =
     {
       -0x1.ffffffffff333p-2, 0x1.5555555556a14p-3, -0x1.55556666659b4p-5,
       0x1.1111074cc7b22p-7
     };
+  const double *ch = ptr_barrier (ch_data);
   double d = (x2 + ln2h * j) + ln2l * j;
   double d2 = d * d;
   double e0 = E[j & 127];

@@ -56,13 +56,14 @@ __acoshf (float x)
       float zf = x - 1.0f;
       double z = zf;
       double a = sqrt (2.0 * z);
-      static const double c[] =
+      static const double c_data[] =
          {
 	   -0x1.555555555491ep-4,  0x1.333333319c2p-6,
 	   -0x1.6db6da26e5e0ep-8,  0x1.f1c698b7100cep-10,
 	   -0x1.6e7ca9e152dc2p-11, 0x1.1b4cf187158bdp-12,
 	   -0x1.b5137f11a88e5p-14, 0x1.056c6c57152b2p-15
 	 };
+      const double *c = ptr_barrier (c_data);
       double z2 = z * z;
       double z4 = z2 * z2;
       double f = ((c[0] + z * c[1]) + z2 * (c[2] + z * c[3]))

@@ -88,35 +88,38 @@ __exp10m1f (float x)
 			    }
 			  else
 			    {
-			      static const double cp[] =
+			      static const double cp_data[] =
 				{
 				  0x1.26bb1bbb55515p+1, 0x1.53524c73cea69p+1,
 				  0x1.0470595038cc2p+1, 0x1.2bd7609fe1561p+0
 			        };
+			      const double *cp = ptr_barrier (cp_data);
 			      r = (cp[0] + z * cp[1])
 				  + z2 * (cp[2] + z * cp[3]);
 			    }
 			}
 		      else
 			{
-			  static const double cp[] =
+			  static const double cp_data[] =
 			    {
 			      0x1.26bb1bbb55516p+1, 0x1.53524c73ce6dbp+1,
 			      0x1.0470591de3024p+1, 0x1.2bd76b79060e6p+0,
 			      0x1.1429ffd3a963dp-1
 			    };
+			  const double *cp = ptr_barrier (cp_data);
 			  r = (cp[0] + z * cp[1])
 			      + z2 * (cp[2] + z * (cp[3] + z * cp[4]));
 			}
 		    }
 		  else
 		    {
-		      static const double cp[] =
+		      static const double cp_data[] =
 			{
 			  0x1.26bb1bbb55516p+1, 0x1.53524c73cea67p+1,
 			  0x1.0470591dc2953p+1, 0x1.2bd760a004d64p+0,
 			  0x1.142a85da6f072p-1, 0x1.a7ed70725b00ep-3
 			};
+		      const double *cp = ptr_barrier (cp_data);
 		      r = (cp[0] + z * cp[1]) + z2
 			    * ((cp[2] + z * cp[3])
 			       + z2 * (cp[4] + z * cp[5]));
@@ -124,13 +127,14 @@ __exp10m1f (float x)
 		}
 	      else
 		{
-		  static const double cp[] =
+		  static const double cp_data[] =
 		    {
 		      0x1.26bb1bbb55516p+1, 0x1.53524c73ceadep+1,
 		      0x1.0470591de2bb4p+1, 0x1.2bd76099a9d33p+0,
 		      0x1.1429ffd829b0bp-1, 0x1.a7f2a6a0f7dc8p-3,
 		      0x1.16e4dfbce0f56p-4
 		    };
+		  const double *cp = ptr_barrier (cp_data);
 		  r = (cp[0] + z * cp[1])
 		      + z2 * ((cp[2] + z * cp[3])
 			      + z2 * (cp[4] + z * (cp[5] + z * cp[6])));
@@ -138,13 +142,14 @@ __exp10m1f (float x)
 	    }
 	  else
 	    {
-	      static const double cp[] =
+	      static const double cp_data[] =
 		{
 		  0x1.26bb1bbb55515p+1, 0x1.53524c73cea6ap+1,
 		  0x1.0470591de476p+1,  0x1.2bd7609fd4ee2p+0,
 		  0x1.1429ff70a9b48p-1, 0x1.a7ed71259ba5bp-3,
 		  0x1.16f3004fb3ac1p-4, 0x1.4116b0388aa9fp-6
 		};
+	      const double *cp = ptr_barrier (cp_data);
 	      r = ((cp[0] + z * cp[1]) + z2 * (cp[2] + z * cp[3]))
 		  + (z2 * z2) * ((cp[4] + z * cp[5]) + z2 * (cp[6]
 							     + z * cp[7]));
@@ -152,12 +157,13 @@ __exp10m1f (float x)
 	}
       else
 	{
-	  static const double cp[] =
+	  static const double cp_data[] =
 	    {
 	      0x1.26bb1bbb55515p+1, 0x1.53524c73cea42p+1, 0x1.0470591de2d1dp+1,
 	      0x1.2bd760a010a53p+0, 0x1.1429ffd16170cp-1, 0x1.a7ed6b2a0d97fp-3,
 	      0x1.16e4e37fa51e4p-4, 0x1.4147fe4c1676fp-6, 0x1.4897c4b3e329ap-8
 	    };
+	  const double *cp = ptr_barrier (cp_data);
 	  r = ((cp[0] + z * cp[1]) + z2 * (cp[2] + z * cp[3]))
 	      + (z2 * z2) * ((cp[4] + z * cp[5])
 			     + z2 * (cp[6] + z * (cp[7] + z * cp[8])));
@@ -177,11 +183,12 @@ __exp10m1f (float x)
 	  0x1.ae89f995ad3adp+0, 0x1.c199bdd85529cp+0, 0x1.d5818dcfba487p+0,
 	  0x1.ea4afa2a490dap+0
 	};
-      static const double c[] =
+      static const double c_data[] =
 	{
 	  0x1.62e42fefa398bp-5,  0x1.ebfbdff84555ap-11, 0x1.c6b08d4ad86d3p-17,
 	  0x1.3b2ad1b1716a2p-23, 0x1.5d7472718ce9dp-30, 0x1.4a1d7f457ac56p-37
 	};
+      const double *c = ptr_barrier (c_data);
 
       if (__glibc_unlikely ((ux << 11) == 0))
 	{

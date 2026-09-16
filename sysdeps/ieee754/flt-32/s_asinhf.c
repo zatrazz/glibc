@@ -44,12 +44,13 @@ __asinhf (float x)
 	    return x;
 	  return fmaf (x, -0x1p-25f, x);
 	}
-      static const double c[] =
+      static const double c_data[] =
 	{
 	   0x1.5555555555553p-3, -0x1.3333333330e9dp-4,  0x1.6db6db67cb37ap-5,
 	  -0x1.f1c71699375dp-6,   0x1.6e8a374c39ff9p-6, -0x1.1c1e98f9d01e1p-6,
 	   0x1.c277e96d84026p-7, -0x1.329ff5faf02abp-7
 	};
+      const double *c = ptr_barrier (c_data);
       double x2 = xs * xs;
       double x4 = x2 * x2;
       double  x8 = x4 * x4;

@@ -97,18 +97,20 @@ cr_atan2f_tiny (float y, float x)
 float
 __atan2f (float y, float x)
 {
-  static const double cn[] =
+  static const double cn_data[] =
     {
       0x1p+0,               0x1.40e0698f94c35p+1, 0x1.248c5da347f0dp+1,
       0x1.d873386572976p-1, 0x1.46fa40b20f1dp-3,  0x1.33f5e041eed0fp-7,
       0x1.546bbf28667c5p-14
     };
-  static const double cd[] =
+  const double *cn = ptr_barrier (cn_data);
+  static const double cd_data[] =
     {
       0x1p+0,               0x1.6b8b143a3f6dap+1, 0x1.8421201d18ed5p+1,
       0x1.8221d086914ebp+0, 0x1.670657e3a07bap-2, 0x1.0f4951fd1e72dp-5,
       0x1.b3874b8798286p-11
     };
+  const double *cd = ptr_barrier (cd_data);
   static const double m[] = { 0, 1 };
 #define pi 0x1.921fb54442d18p+1
 #define pi2 0x1.921fb54442d18p+0
@@ -253,7 +255,7 @@ __atan2f (float y, float x)
 	  { -0x1.29b7e6f676385p-23, -0x1.a783b6de718fbp-77 }
 	};
       double pl;
-      double ph = polydd (z2h, z2l, 32, c, &pl);
+      double ph = polydd (z2h, z2l, 32, ptr_barrier (c), &pl);
       zh *= sgn[gt];
       zl *= sgn[gt];
       ph = muldd (zh, zl, ph, pl, &pl);

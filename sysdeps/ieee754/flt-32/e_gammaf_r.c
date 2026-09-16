@@ -119,7 +119,7 @@ __tgammaf (float x)
     return __math_uflowf (k & 1);
   /* The array c[] stores a degree-15 polynomial approximation for
      gamma(x).  */
-  static const double c[] =
+  static const double c_data[] =
     {
        0x1.c9a76be577123p+0,   0x1.8f2754ddcf90dp+0,  0x1.0d1191949419bp+0,
        0x1.e1f42cf0ae4a1p-2,   0x1.82b358a3ab638p-3,  0x1.e1f2b30cd907bp-5,
@@ -128,6 +128,7 @@ __tgammaf (float x)
        0x1.471ca49184475p-19, -0x1.368f0b7ed9e36p-23, 0x1.882222f9049efp-23,
       -0x1.a69ed2042842cp-25
    };
+  const double *c = ptr_barrier (c_data);
 
   double m = z - 0x1.7p+1;
   double i = roundeven_finite (m);

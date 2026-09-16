@@ -103,10 +103,11 @@ __atanhf (float x)
       0x1.a56ef8ec733d1p+2, 0x1.bb9d3beb6d77p+2,  0x1.d1cb7eea67b0fp+2,
       0x1.e7f9c1e961eaep+2, 0x1.fe2804e85c24dp+2, 0x1.0a2b23f3ab2f6p+3
     };
-  static const double b[] =
+  static const double b_data[] =
     {
       0x1.fffffffce5a6ap-2, -0x1.0001f81ec0ab8p-2, 0x1.555a0f53d79a5p-3
     };
+  const double *b = ptr_barrier (b_data);
   static const double s[] = { 1, -1 };
 
   uint32_t ux = asuint (x);
@@ -123,11 +124,12 @@ __atanhf (float x)
 	}
       else
 	{ /* |x| < 0x1.3p-5 */
-	  static const double c[] =
+	  static const double c_data[] =
 	    {
 	      0x1.5555555555527p-2, 0x1.9999999ba4ee8p-3,
 	      0x1.24922c280990ap-3, 0x1.c8236aae809c6p-4
 	    };
+	  const double *c = ptr_barrier (c_data);
 	  double z = x;
 	  double z2 = z * z;
 	  double z4 = z2 * z2;
@@ -156,12 +158,13 @@ __atanhf (float x)
   float lb = r + sgn * 0.226e-9;
   if (__glibc_unlikely (ub != lb))
     {
-      static const double c[] =
+      static const double c_data[] =
 	{
 	   0x1p-1,               -0x1.000000000001bp-2,  0x1.55555555555bap-3,
 	  -0x1.fffffff26d72ep-4,  0x1.99999989035p-4,   -0x1.555c39cb9ee8p-4,
 	   0x1.24992d8b014a1p-4
 	};
+      const double *c = ptr_barrier (c_data);
       double zn4 = zn2 * zn2;
       double zd4 = zd2 * zd2;
       double fn = zn * (((c[0] + zn * c[1]) + zn2 * (c[2] + zn * c[3]))

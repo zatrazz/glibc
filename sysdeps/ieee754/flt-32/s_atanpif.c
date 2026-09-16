@@ -77,17 +77,19 @@ __atanpif (float x)
   double z2 = z * z;
   double z4 = z2 * z2;
   double z8 = z4 * z4;
-  static const double cn[] =
+  static const double cn_data[] =
     {
       0x1.45f306dc9c882p-2, 0x1.733b561bc23d5p-1, 0x1.28d9805bdfbf2p-1,
       0x1.8c3ba966ae287p-3, 0x1.94a7f81ee634bp-6, 0x1.a6bbf6127a6dfp-11
     };
-  static const double cd[] =
+  const double *cn = ptr_barrier (cn_data);
+  static const double cd_data[] =
     {
       0x1p+0,               0x1.4e3b3ecc2518fp+1, 0x1.3ef4a360ff063p+1,
       0x1.0f1dc55bad551p+0, 0x1.8da0fecc018a4p-3, 0x1.8fa87803776bfp-7,
       0x1.dadf2ca0acb43p-14
     };
+  const double *cd = ptr_barrier (cd_data);
   double cn0 = cn[0] + z2 * cn[1];
   double cn2 = cn[2] + z2 * cn[3];
   double cn4 = cn[4] + z2 * cn[5];

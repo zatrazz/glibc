@@ -123,16 +123,18 @@ __tanf (float x)
     }
   double z2 = z * z;
   double z4 = z2 * z2;
-  static const double cn[] =
+  static const double cn_data[] =
     {
       0x1.921fb54442d18p+0, -0x1.fd226e573289fp-2,
       0x1.b7a60c8dac9f6p-6, -0x1.725beb40f33e5p-13
     };
-  static const double cd[] =
+  const double *cn = ptr_barrier (cn_data);
+  static const double cd_data[] =
     {
       0x1p+0,               -0x1.2395347fb829dp+0,
       0x1.2313660f29c36p-3, -0x1.9a707ab98d1c1p-9
     };
+  const double *cd = ptr_barrier (cd_data);
   static const double s[] = { 0, 1 };
   double n = cn[0] + z2 * cn[1];
   double n2 = cn[2] + z2 * cn[3];

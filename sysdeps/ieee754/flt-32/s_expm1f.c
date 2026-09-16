@@ -32,15 +32,17 @@ SOFTWARE.
 float
 __expm1f (float x)
 {
-  static const double c[] =
+  static const double c_data[] =
     {
       1, 0x1.62e42fef4c4e7p-6, 0x1.ebfd1b232f475p-13, 0x1.c6b19384ecd93p-20
     };
-  static const double ch[] =
+  const double *c = ptr_barrier (c_data);
+  static const double ch_data[] =
     {
       0x1.62e42fefa39efp-6,  0x1.ebfbdff82c58fp-13, 0x1.c6b08d702e0edp-20,
       0x1.3b2ab6fb92e5ep-27, 0x1.5d886e6d54203p-35, 0x1.430976b8ce6efp-43
     };
+  const double *ch = ptr_barrier (ch_data);
   static const double td[] =
     {
       0x1p+0,               0x1.059b0d3158574p+0, 0x1.0b5586cf9890fp+0,
@@ -68,12 +70,13 @@ __expm1f (float x)
 	    return x; /* x = +-0 */
 	  return fmaf (fabsf (x), 0x1p-25f, x);
 	}
-      static const double b[] =
+      static const double b_data[] =
 	{
 	  0x1.fffffffffffc2p-2,  0x1.55555555555fep-3,  0x1.555555559767fp-5,
 	  0x1.1111111098dc1p-7,  0x1.6c16bca988aa9p-10, 0x1.a01a07658483fp-13,
 	  0x1.a05b04d2c3503p-16, 0x1.71de3a960b5e3p-19
 	};
+      const double *b = ptr_barrier (b_data);
       double z2 = z * z, z4 = z2 * z2;
       double r = z + z2
 	* ((b[0] + z * b[1]) + z2 * (b[2] + z * b[3])

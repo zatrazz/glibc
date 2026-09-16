@@ -80,7 +80,7 @@ __acosf (float x)
     return as_special (x);
   if (__glibc_likely (ax < 0x7ec2a1dcu)) /* |x| < 0x1.c2a1dcp-1 */
     {
-      static const double b[] =
+      static const double b_data[] =
 	{
 	   0x1.fffffffd9ccb8p-1,  0x1.5555c94838007p-3,  0x1.32ded4b7c20fap-4,
 	   0x1.8566df703309ep-5, -0x1.980c959bec9a3p-6,  0x1.56fbb04998344p-1,
@@ -89,6 +89,7 @@ __acosf (float x)
 	  -0x1.aca4b6a529ffp+9,   0x1.228744703f813p+9, -0x1.d7dbb0b322228p+7,
 	   0x1.5c2018c0c0105p+5
 	};
+      const double *b = ptr_barrier (b_data);
       /* Avoid spurious underflow exception.  */
       if (__glibc_unlikely (ax <= 0x40000000u)) /* |x| < 2^-63 */
 	/* GCC <= 11 wrongly assumes the rounding is to nearest and
