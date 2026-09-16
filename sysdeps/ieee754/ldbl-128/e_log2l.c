@@ -62,6 +62,7 @@
 #include <math.h>
 #include <math_private.h>
 #include <libm-alias-finite.h>
+#include <math-ptr-barrier.h>
 
 /* Coefficients for ln(1+x) = x - x**2/2 + x**3 P(x)/Q(x)
  * 1/sqrt(2) <= x < sqrt(2)
@@ -141,6 +142,7 @@ neval (_Float128 x, const _Float128 *p, int n)
 {
   _Float128 y;
 
+  p = ptr_barrier (p);
   p += n;
   y = *p--;
   do
@@ -159,6 +161,7 @@ deval (_Float128 x, const _Float128 *p, int n)
 {
   _Float128 y;
 
+  p = ptr_barrier (p);
   p += n;
   y = x + *p--;
   do

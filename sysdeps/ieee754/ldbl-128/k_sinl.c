@@ -20,8 +20,9 @@
 #include <math.h>
 #include <math_private.h>
 #include <math-underflow.h>
+#include <math-ptr-barrier.h>
 
-static const _Float128 c[] = {
+static const _Float128 c_data[] = {
 #define ONE c[0]
  L(1.00000000000000000000000000000000000E+00), /* 3fff0000000000000000000000000000 */
 
@@ -83,6 +84,7 @@ __kernel_sinl(_Float128 x, _Float128 y, int iy)
   _Float128 h, l, z, sin_l, cos_l_m1;
   int64_t ix;
   uint32_t tix, hix, index;
+  const _Float128 *c = ptr_barrier (c_data);
   GET_LDOUBLE_MSW64 (ix, x);
   tix = ((uint64_t)ix) >> 32;
   tix &= ~0x80000000;			/* tix = |x|'s high 32 bits */

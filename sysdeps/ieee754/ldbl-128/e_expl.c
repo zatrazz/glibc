@@ -67,8 +67,9 @@
 #include <stdlib.h>
 #include "t_expl.h"
 #include <libm-alias-finite.h>
+#include <math-ptr-barrier.h>
 
-static const _Float128 C[] = {
+static const _Float128 C_data[] = {
 /* Smallest integer x for which e^x overflows.  */
 #define himark C[0]
  L(11356.523406294143949491931077970765),
@@ -135,6 +136,8 @@ L(-1.94704509238074995158795957333327386E-31),
 _Float128
 __ieee754_expl (_Float128 x)
 {
+  const _Float128 *C = ptr_barrier (C_data);
+
   /* Check for usual case.  */
   if (isless (x, himark) && isgreater (x, lomark))
     {

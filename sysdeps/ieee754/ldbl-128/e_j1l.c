@@ -102,6 +102,7 @@
 #include <math-underflow.h>
 #include <float.h>
 #include <libm-alias-finite.h>
+#include <math-ptr-barrier.h>
 
 /* 1 / sqrt(pi) */
 static const _Float128 ONEOSQPI = L(5.6418958354775628694807945156077258584405E-1);
@@ -654,6 +655,7 @@ neval (_Float128 x, const _Float128 *p, int n)
 {
   _Float128 y;
 
+  p = ptr_barrier (p);
   p += n;
   y = *p--;
   do
@@ -672,6 +674,7 @@ deval (_Float128 x, const _Float128 *p, int n)
 {
   _Float128 y;
 
+  p = ptr_barrier (p);
   p += n;
   y = x + *p--;
   do

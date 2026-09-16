@@ -72,6 +72,7 @@
 #include <math_private.h>
 #include <float.h>
 #include <libm-alias-finite.h>
+#include <math-ptr-barrier.h>
 
 static const _Float128 PIL = L(3.1415926535897932384626433832795028841972E0);
 static const _Float128 MAXLGM = L(1.0485738685148938358098967157129705071571E4928);
@@ -726,6 +727,7 @@ neval (_Float128 x, const _Float128 *p, int n)
 {
   _Float128 y;
 
+  p = ptr_barrier (p);
   p += n;
   y = *p--;
   do
@@ -744,6 +746,7 @@ deval (_Float128 x, const _Float128 *p, int n)
 {
   _Float128 y;
 
+  p = ptr_barrier (p);
   p += n;
   y = x + *p--;
   do

@@ -18,6 +18,7 @@
 
 #include <math.h>
 #include <math_private.h>
+#include <math-ptr-barrier.h>
 
 /*
  * Table of constants for 2/pi, 5628 hexadecimal digits of 2/pi
@@ -182,7 +183,7 @@ static const int32_t two_over_pi[] = {
 0x7b7b89, 0x483d38,
 };
 
-static const _Float128 c[] = {
+static const _Float128 c_data[] = {
 /* 113 bits of pi/2 */
 #define PI_2_1 c[0]
  L(0x1.921fb54442d18469898cc51701b8p+0),
@@ -198,6 +199,7 @@ int32_t __ieee754_rem_pio2l(_Float128 x, _Float128 *y)
   double tx[8];
   int64_t exp, n, ix, hx;
   uint64_t lx;
+  const _Float128 *c = ptr_barrier (c_data);
 
   GET_LDOUBLE_WORDS64 (hx, lx, x);
   ix = hx & 0x7fffffffffffffffLL;

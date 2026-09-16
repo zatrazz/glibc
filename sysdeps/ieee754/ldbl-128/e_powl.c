@@ -68,6 +68,7 @@
 #include <math-barriers.h>
 #include <math_private.h>
 #include <libm-alias-finite.h>
+#include <math-ptr-barrier.h>
 
 static const _Float128 bp[] = {
   1,
@@ -97,7 +98,7 @@ static const _Float128 zero = 0,
    z = (x-1)/(x+1)
    1 <= x <= 1.25
    Peak relative error 2.3e-37 */
-static const _Float128 LN[] =
+static const _Float128 LN_data[] =
 {
  L(-3.0779177200290054398792536829702930623200E1),
   L(6.5135778082209159921251824580292116201640E1),
@@ -105,7 +106,7 @@ static const _Float128 LN[] =
   L(1.2510208195629420304615674658258363295208E1),
  L(-9.9266909031921425609179910128531667336670E-1)
 };
-static const _Float128 LD[] =
+static const _Float128 LD_data[] =
 {
  L(-5.129862866715009066465422805058933131960E1),
   L(1.452015077564081884387441590064272782044E2),
@@ -118,7 +119,7 @@ static const _Float128 LD[] =
 /* exp(x) = 1 + x - x / (1 - 2 / (x - x^2 R(x^2)))
    0 <= x <= 0.5
    Peak relative error 5.7e-38  */
-static const _Float128 PN[] =
+static const _Float128 PN_data[] =
 {
   L(5.081801691915377692446852383385968225675E8),
   L(9.360895299872484512023336636427675327355E6),
@@ -126,7 +127,7 @@ static const _Float128 PN[] =
   L(5.201006511142748908655720086041570288182E1),
   L(9.088368420359444263703202925095675982530E-3),
 };
-static const _Float128 PD[] =
+static const _Float128 PD_data[] =
 {
   L(3.049081015149226615468111430031590411682E9),
   L(1.069833887183886839966085436512368982758E8),
@@ -344,6 +345,8 @@ __ieee754_powl (_Float128 x, _Float128 y)
   s_l = v * ((u - s_h * t_h) - s_h * t_l);
   /* compute log(ax) */
   s2 = s * s;
+  const _Float128 *LN = ptr_barrier (LN_data);
+  const _Float128 *LD = ptr_barrier (LD_data);
   u = LN[0] + s2 * (LN[1] + s2 * (LN[2] + s2 * (LN[3] + s2 * LN[4])));
   v = LD[0] + s2 * (LD[1] + s2 * (LD[2] + s2 * (LD[3] + s2 * (LD[4] + s2))));
   r = s2 * s2 * u / v;
@@ -431,6 +434,8 @@ __ieee754_powl (_Float128 x, _Float128 y)
   w = v - (z - u);
   /*  exp(z) */
   t = z * z;
+  const _Float128 *PN = ptr_barrier (PN_data);
+  const _Float128 *PD = ptr_barrier (PD_data);
   u = PN[0] + t * (PN[1] + t * (PN[2] + t * (PN[3] + t * PN[4])));
   v = PD[0] + t * (PD[1] + t * (PD[2] + t * (PD[3] + t)));
   t1 = z - t * u / v;

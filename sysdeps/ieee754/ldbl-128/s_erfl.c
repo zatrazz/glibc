@@ -102,6 +102,7 @@
 #include <math_private.h>
 #include <math-underflow.h>
 #include <libm-alias-ldouble.h>
+#include <math-ptr-barrier.h>
 
 /* Evaluate P[n] x^n  +  P[n-1] x^(n-1)  +  ...  +  P[0] */
 
@@ -110,6 +111,7 @@ neval (_Float128 x, const _Float128 *p, int n)
 {
   _Float128 y;
 
+  p = ptr_barrier (p);
   p += n;
   y = *p--;
   do
@@ -128,6 +130,7 @@ deval (_Float128 x, const _Float128 *p, int n)
 {
   _Float128 y;
 
+  p = ptr_barrier (p);
   p += n;
   y = x + *p--;
   do
