@@ -77,10 +77,18 @@ __tanpif (float x)
 
   double z = zf, z2 = z * z;
 
-  static const double cn[] = { 0x1.921fb54442d19p-1, -0x1.1f458b3e1f8d6p-2,
-			       0x1.68a34bd0b8f6ap-6, -0x1.e4866f7a25f99p-13 };
-  static const double cd[] = { 0x1p+0, -0x1.4b4b98d2df3a7p-1,
-			       0x1.8e9926d2bb901p-4, -0x1.a6f77fd847eep-9 };
+  static const double cn_data[] =
+    {
+      0x1.921fb54442d19p-1, -0x1.1f458b3e1f8d6p-2,
+      0x1.68a34bd0b8f6ap-6, -0x1.e4866f7a25f99p-13
+    };
+  const double *cn = ptr_barrier (cn_data);
+  static const double cd_data[] =
+    {
+      0x1p+0, -0x1.4b4b98d2df3a7p-1,
+      0x1.8e9926d2bb901p-4, -0x1.a6f77fd847eep-9
+    };
+  const double *cd = ptr_barrier (cd_data);
   double z4
       = z2 * z2,
       r = (z - z * z2) * ((cn[0] + z2 * cn[1]) + z4 * (cn[2] + z2 * cn[3]))

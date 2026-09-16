@@ -64,11 +64,12 @@ __sinhf (float x)
 	    }
 	  return (x * 0x1.555556p-3f) * (x * x) + x;
 	}
-      static const double cp[] =
+      static const double cp_data[] =
 	{
 	  0x1.5555555555555p-3,  0x1.11111111146e1p-7,
 	  0x1.a01a00930dda6p-13, 0x1.71f92198aa6e9p-19
 	};
+      const double *cp = ptr_barrier (cp_data);
       double z2 = z * z;
       double z4 = z2 * z2;
       return z + (z2 * z)

@@ -83,11 +83,12 @@ __exp2m1f (float x)
 				return -0x1.2bdf76p-24 - 0x1.8p-77;
 			      if (__glibc_unlikely (ux == 0x3338428du))
 				return 0x1.fee08ap-26 + 0x1p-80;
-			      static const double c[] =
+			      static const double c_data[] =
 				{
 				  0x1.62e42fefa39efp-1, 0x1.ebfbdff8548fdp-3,
 				  0x1.c6b08d704a06dp-5
 				};
+			      const double *c = ptr_barrier (c_data);
 			      r = c[0] + z * (c[1] + z * c[2]);
 			    }
 			}
@@ -95,47 +96,51 @@ __exp2m1f (float x)
 			{
 			  if (__glibc_unlikely (ux == 0x388bca4fu))
 			    return 0x1.839702p-15 - 0x1.8p-68;
-			  static const double c[] =
+			  static const double c_data[] =
 			    {
 			      0x1.62e42fefa39efp-1, 0x1.ebfbdff82c58fp-3,
 			      0x1.c6b08dc82b347p-5, 0x1.3b2ab6fbad172p-7
 			    };
+			  const double *c = ptr_barrier (c_data);
 			  r = (c[0] + z * c[1]) + z2 * (c[2] + z * c[3]);
 			}
 		    }
 		  else
 		    {
-		      static const double c[] =
+		      static const double c_data[] =
 			{
 			  0x1.62e42fefa39efp-1, 0x1.ebfbdff82c068p-3,
 			  0x1.c6b08d704a6dcp-5, 0x1.3b2ac262c3eedp-7,
 			  0x1.5d87fe7af779ap-10
 			};
+		      const double *c = ptr_barrier (c_data);
 		      r = (c[0] + z * c[1])
 			  + z2 * (c[2] + z * (c[3] + z * c[4]));
 		    }
 		}
 	      else
 		{
-		  static const double c[] =
+		  static const double c_data[] =
 		    {
 		      0x1.62e42fefa39fp-1,   0x1.ebfbdff82c58dp-3,
 		      0x1.c6b08d7011d13p-5,  0x1.3b2ab6fbd267dp-7,
 		      0x1.5d88a81cea49ep-10, 0x1.430912ea9b963p-13
 		    };
+		  const double *c = ptr_barrier (c_data);
 		  r = (c[0] + z * c[1])
 		      + z2 * ((c[2] + z * c[3]) + z2 * (c[4] + z * c[5]));
 		}
 	    }
 	  else
 	    {
-	      static const double c[] =
+	      static const double c_data[] =
 		{
 		  0x1.62e42fefa39efp-1,  0x1.ebfbdff82c639p-3,
 		  0x1.c6b08d7049f1cp-5,  0x1.3b2ab6f5243bdp-7,
 		  0x1.5d87fe80a9e6cp-10, 0x1.430d0b9257fa8p-13,
 		  0x1.ffcbfc4cf0952p-17
 		};
+	      const double *c = ptr_barrier (c_data);
 	      r = (c[0] + z * c[1])
 		  + z2 * ((c[2] + z * c[3])
 			  + z2 * (c[4] + z * (c[5] + z * c[6])));
@@ -143,13 +148,14 @@ __exp2m1f (float x)
 	}
       else
 	{
-	  static const double c[] =
+	  static const double c_data[] =
 	    {
 	      0x1.62e42fefa39efp-1,  0x1.ebfbdff82c591p-3,
 	      0x1.c6b08d704cf6bp-5,  0x1.3b2ab6fba00cep-7,
 	      0x1.5d87fdfdaadb4p-10, 0x1.4309137333066p-13,
 	      0x1.ffe5e90daf7ddp-17, 0x1.62c0220eed731p-20
 	    };
+	  const double *c = ptr_barrier (c_data);
 	  r = ((c[0] + z * c[1]) + z2 * (c[2] + z * c[3]))
 	      + (z2 * z2) * ((c[4] + z * c[5]) + z2 * (c[6] + z * c[7]));
 	}
@@ -158,12 +164,13 @@ __exp2m1f (float x)
     }
   else
     {
-      static const double c[] =
+      static const double c_data[] =
 	{
 	  0x1.62e42fefa398bp-5,  0x1.ebfbdff84555ap-11,
 	  0x1.c6b08d4ad86d3p-17, 0x1.3b2ad1b1716a2p-23,
 	  0x1.5d7472718ce9dp-30, 0x1.4a1d7f457ac56p-37
 	};
+      const double *c = ptr_barrier (c_data);
       static const double tb[] =
 	{
 	  0x1p+0,               0x1.0b5586cf9890fp+0,  0x1.172b83c7d517bp+0,

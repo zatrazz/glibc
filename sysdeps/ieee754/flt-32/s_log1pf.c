@@ -75,7 +75,7 @@ __log1pf (float x)
       0x1.3d9028a72cd5fp-1, 0x1.4618b9c1dd52dp-1, 0x1.4e7d825b8d20bp-1,
       0x1.56bf9fab56a02p-1, 0x1.5ee02ab258ccap-1
   };
-  static const double b[] =
+  static const double b_data[] =
     {
       0x1p+0,
       -0x1p-1,
@@ -86,11 +86,13 @@ __log1pf (float x)
       0x1.24adeca50e2bcp-3,
       -0x1.001ba33bf57cfp-3
     };
-  static const double c[] =
+  const double *b = ptr_barrier (b_data);
+  static const double c_data[] =
     {
       0x1.ffffffe1eac82p-1, -0x1.ffffff7da1724p-2, 0x1.5564d8fa59d0cp-2,
       -0x1.001219d3dba2ap-2
     };
+  const double *c = ptr_barrier (c_data);
 
   double z = x;
   uint32_t ux = asuint (x);

@@ -64,12 +64,13 @@ __cbrtf (float x)
   isc += (uint64_t) (et - 342) << 52;
   isc |= (uint64_t) sgn << 63;
   double cvt2 = asdouble (isc);
-  static const double c[] =
+  static const double c_data[] =
     {
        0x1.2319d352ea5d5p-1,  0x1.67ad8ee258d1ap-1, -0x1.9342edf9cbad9p-2,
        0x1.b6388fc510a75p-3, -0x1.6002455599e2fp-4,  0x1.7b096936192c4p-6,
       -0x1.e5577187e8bf8p-9,  0x1.169ef81d6c34ep-12
     };
+  const double *c = ptr_barrier (c_data);
   double z = asdouble ((uint64_t) mant << 28 | UINT64_C(0x3ff) << 52);
   double r0 = -0x1.9931c6c2d19d1p-6 / z;
   double z2 = z * z;

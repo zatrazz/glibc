@@ -58,12 +58,13 @@ as_r8 (double x, const double *c)
 static double
 as_sinpi (double x)
 {
-  static const double c[] =
+  static const double c_data[] =
     {
        0x1p+2,                -0x1.de9e64df22ea4p+1,   0x1.472be122401f8p+0,
       -0x1.d4fcd82df91bp-3,    0x1.9f05c97e0aab2p-6,  -0x1.f3091c427b611p-10,
        0x1.b22c9bfdca547p-14, -0x1.15484325ef569p-18
     };
+  const double *c = ptr_barrier (c_data);
   x -= 0.5;
   double x2 = x * x, x4 = x2 * x2, x8 = x4 * x4;
   return (0.25 - x2)
@@ -76,12 +77,13 @@ as_ln (double x)
 {
   uint64_t t = asuint64 (x);
   int e = (t >> 52) - 0x3ff;
-  static const double c[] =
+  static const double c_data[] =
     {
        0x1.fffffffffff24p-1, -0x1.ffffffffd1d67p-2,  0x1.55555537802dep-2,
       -0x1.ffffeca81b866p-3,  0x1.999611761d772p-3, -0x1.54f3e581b61bfp-3,
        0x1.1e642b4cb5143p-3, -0x1.9115a5af1e1edp-4
     };
+  const double *c = ptr_barrier (c_data);
   static const double il[] =
     {
       0x1.59caeec280116p-57, 0x1.f0a30c01162aap-5, 0x1.e27076e2af2ebp-4,
@@ -201,7 +203,8 @@ __lgammaf_r (float x, int *signgamp)
 	  -0x1.7dd25af0b83d4p+0, -0x1.36bf1880125fcp+0,
 	  -0x1.1379fc8023d9cp+0, -0x1.03712e41525d2p+0
 	};
-      f = (c0 * s) * as_r8 (s, rn) / as_r8 (s, rd) - as_ln (z);
+      f = (c0 * s) * as_r8 (s, ptr_barrier (rn)) / as_r8 (s, ptr_barrier (rd))
+	  - as_ln (z);
     }
   else
     { /* |x| >= 0x1.52p-1 */
@@ -231,31 +234,34 @@ __lgammaf_r (float x, int *signgamp)
 		f += iz * (1. / 12.);
 	      else if (ax > 0x1.279a7p+6f)
 		{
-		  static const double c[] =
+		  static const double c_data[] =
 		    {
 		      0x1.555555547fbadp-4, -0x1.6c0fd270c465p-9
 		    };
+		  const double *c = ptr_barrier (c_data);
 		  f += iz * (c[0] + iz2 * c[1]);
 		}
 	      else if (ax > 0x1.555556p+3f)
 		{
-		  static const double c[] =
+		  static const double c_data[] =
 		    {
 		      0x1.555555554de0bp-4,  -0x1.6c16bdc45944fp-9,
 		      0x1.a0077f300ecb3p-11, -0x1.2e9cfff3b29c2p-11
 		    };
+		  const double *c = ptr_barrier (c_data);
 		  double iz4 = iz2 * iz2;
 		  f += iz * ((c[0] + iz2 * c[1]) + iz4 * (c[2] + iz2 * c[3]));
 		}
 	      else
 		{
-		  static const double c[] =
+		  static const double c_data[] =
 		    {
 		      0x1.5555555551286p-4,  -0x1.6c16c0e7c4cf4p-9,
 		      0x1.a0193267fe6f2p-11, -0x1.37e87ec19cb45p-11,
 		      0x1.b40011dfff081p-11, -0x1.c16c8946b19b6p-10,
 		      0x1.e9f47ace150d8p-9,  -0x1.4f5843a71a338p-8
 		    };
+		  const double *c = ptr_barrier (c_data);
 		  double iz4 = iz2 * iz2, iz8 = iz4 * iz4;
 		  double p = ((c[0] + iz2 * c[1]) + iz4 * (c[2] + iz2 * c[3]))
 			     + iz8 * ((c[4] + iz2 * c[5])
@@ -287,7 +293,8 @@ __lgammaf_r (float x, int *signgamp)
 	      -0x1.1302e3337271p+0,  -0x1.c36b802f26dffp-2,
 	      -0x1.3ded448acc39dp-3, -0x1.bffc491078eafp-6
 	    };
-	  f = (z - 1) * (z - 2) * c0 * as_r7 (z, rn) / as_r8 (z, rd);
+	  f = (z - 1) * (z - 2) * c0 * as_r7 (z, ptr_barrier (rn))
+	      / as_r8 (z, ptr_barrier (rd));
 	  if (x < 0.0f)
 	    {
 	      if (__glibc_unlikely (t < 0x40301b93u && t > 0x402f95c2u))
@@ -296,13 +303,14 @@ __lgammaf_r (float x, int *signgamp)
 		    - 0x1.a19a96d2e6f85p-54;
 		  double h2 = h * h;
 		  double h4 = h2 * h2;
-		  static const double c[] =
+		  static const double c_data[] =
 		    {
 		      -0x1.ea12da904b18cp+0,  0x1.3267f3c265a54p+3,
 		      -0x1.4185ac30cadb3p+4,  0x1.f504accc3f2e4p+5,
 		      -0x1.8588444c679b4p+7,  0x1.43740491dc22p+9,
 		      -0x1.12400ea23f9e6p+11, 0x1.dac829f365795p+12
 		    };
+		  const double *c = ptr_barrier (c_data);
 		  f = h * ((c[0] + h * c[1]) + h2 * (c[2] + h * c[3])
 			 + h4 * ((c[4] + h * c[5]) + h2 * (c[6] + h * c[7])));
 		}
@@ -312,13 +320,14 @@ __lgammaf_r (float x, int *signgamp)
 		    + 0x1.55f64f98af8dp-55;
 		  double h2 = h * h;
 		  double h4 = h2 * h2;
-		  static const double c[] =
+		  static const double c_data[] =
 		    {
 		      0x1.83fe966af535fp+0, 0x1.36eebb002f61ap+2,
 		      0x1.694a60589a0b3p+0, 0x1.1718d7aedb0b5p+3,
 		      0x1.733a045eca0d3p+2, 0x1.8d4297421205bp+4,
 		      0x1.7feea5fb29965p+4
 		    };
+		  const double *c = ptr_barrier (c_data);
 		  f = h
 		      * ((c[0] + h * c[1]) + h2 * (c[2] + h * c[3])
 			 + h4 * ((c[4] + h * c[5]) + h2 * (c[6])));
@@ -329,13 +338,14 @@ __lgammaf_r (float x, int *signgamp)
 		    + 0x1.f717cd335a7b3p-53;
 		  double h2 = h * h;
 		  double h4 = h2 * h2;
-		  static const double c[] =
+		  static const double c_data[] =
 		    {
 		      0x1.f20a65f2fac55p+2,  0x1.9d4d297715105p+4,
 		      0x1.c1137124d5b21p+6,  0x1.267203d24de38p+9,
 		      0x1.99a63399a0b44p+11, 0x1.2941214faaf0cp+14,
 		      0x1.bb912c0c9cdd1p+16
 		    };
+		  const double *c = ptr_barrier (c_data);
 		  f = h * ((c[0] + h * c[1]) + h2 * (c[2] + h * c[3])
 			 + h4 * ((c[4] + h * c[5]) + h2 * (c[6])));
 		}

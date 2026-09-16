@@ -63,18 +63,20 @@ polydd (double xh, double xl, int n, const double c[][2], double *l)
 float
 __atan2pif (float y, float x)
 {
-  static const double cn[] =
+  static const double cn_data[] =
     {
       0x1.45f306dc9c883p-2, 0x1.988d83a142adap-1, 0x1.747bebf492057p-1,
       0x1.2cc5645094ff3p-2, 0x1.a0521c711ab66p-5, 0x1.881b8058b9a0dp-9,
       0x1.b16ff514a0afp-16
     };
-  static const double cd[] =
+  const double *cn = ptr_barrier (cn_data);
+  static const double cd_data[] =
     {
       0x1p+0,               0x1.6b8b143a3f6dap+1, 0x1.8421201d18ed5p+1,
       0x1.8221d086914ebp+0, 0x1.670657e3a07bap-2, 0x1.0f4951fd1e72dp-5,
       0x1.b3874b8798286p-11
     };
+  const double *cd = ptr_barrier (cd_data);
   static const double m[] = { 0, 1 };
   static const double off[]
       = { 0.0f, 0.5f, 1.0f, 0.5f, -0.0f, -0.5f, -1.0f, -0.5f };
@@ -211,7 +213,7 @@ __atan2pif (float y, float x)
 	      { 0x1.91e15e7ab5bdcp-21, -0x1.730dbc6279d0dp-77 },
 	      { -0x1.7b1119c1ff867p-25, 0x1.145f9980759c4p-79 }
 	    };
-	  double pl, ph = polydd (z2h, z2l, 32, c, &pl);
+	  double pl, ph = polydd (z2h, z2l, 32, ptr_barrier (c), &pl);
 	  zh *= sgn[gt];
 	  zl *= sgn[gt];
 	  ph = muldd (zh, zl, ph, pl, &pl);

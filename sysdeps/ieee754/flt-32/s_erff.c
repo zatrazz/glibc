@@ -224,13 +224,14 @@ __erff (float x)
   /* 0x3ee00000 corresponds to x = 0.4375, for smaller x we have i < 7.  */
   if (__glibc_unlikely (ux < 0x3ee00000u))
     {
-      static const double c[] =
+      static const double c_data[] =
 	{
 	  0x1.20dd750429b6dp+0,  -0x1.812746b0375fbp-2,
 	  0x1.ce2f219fd6f45p-4,  -0x1.b82ce2cbf0838p-6,
 	  0x1.565bb655adb85p-8,  -0x1.c025bfc879c94p-11,
 	  0x1.f81718f61309cp-14, -0x1.cc67bd88f5867p-17
 	};
+      const double *c = ptr_barrier (c_data);
       double z2 = s * s, z4 = z2 * z2, z8 = z4 * z4;
       double c0 = c[0] + z2 * c[1];
       double c2 = c[2] + z2 * c[3];

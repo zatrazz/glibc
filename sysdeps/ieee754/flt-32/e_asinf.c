@@ -72,7 +72,7 @@ __asinf (float x)
     {
       if (__glibc_unlikely (ax < 115 << 24))
 	return fmaf (x, 0x1p-25, x);
-      static const double b[] =
+      static const double b_data[] =
 	{
 	   0x1.0000000000005p+0,  0x1.55557aeca105dp-3,  0x1.3314ec3db7d12p-4,
 	   0x1.775738a5a6f92p-5,  0x1.5d5f7ce1c8538p-8,  0x1.605c6d58740fp-2,
@@ -81,6 +81,7 @@ __asinf (float x)
 	  -0x1.36f2ea5698b51p+9,  0x1.b3d722aebfa2ep+8, -0x1.6cf89703b1289p+7,
 	   0x1.1518af6a65e2dp+5
 	};
+      const double *b = ptr_barrier (b_data);
       double z = xs;
       double z2 = z * z;
       double z4 = z2 * z2;

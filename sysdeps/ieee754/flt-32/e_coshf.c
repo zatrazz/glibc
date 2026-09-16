@@ -56,11 +56,12 @@ __coshf (float x)
 	    return fmaf (fabsf (x), 0x1p-25, 1.0f);
 	  return (0.5f * x) * x + 1.0f;
 	}
-      static const double cp[] =
+      static const double cp_data[] =
 	{
 	  0x1.fffffffffffe3p-2,  0x1.55555555723cfp-5,
 	  0x1.6c16bee4a5986p-10, 0x1.a0483fc0328f7p-16
 	};
+      const double *cp = ptr_barrier (cp_data);
       double z2 = z * z;
       double z4 = z2 * z2;
       return 1.0 + z2 * ((cp[0] + z2 * cp[1]) + z4 * (cp[2] + z2 * (cp[3])));

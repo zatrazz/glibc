@@ -116,17 +116,19 @@ __log10p1f (float x)
     { 0 },          { 0x1.e847ep+19 }, { 0 },             { 0x1.312cfep+23 },
     { 0 },          { 0 },             { 0 },             { 0 }
   };
-  static const double b[] =
+  static const double b_data[] =
     {
        0x1.bcb7b150bf33dp-2, -0x1.bcb7b14b2164ep-3, 0x1.287de1f406bedp-3,
       -0x1.bcbfad32135bdp-4
     };
-  static const double c[] =
+  const double *b = ptr_barrier (b_data);
+  static const double c_data[] =
     {
        0x1.bcb7b1526e50ep-2, -0x1.bcb7b1526e48ep-3,  0x1.287a7636f422fp-3,
       -0x1.bcb7b15514181p-4,  0x1.63c62778ff0d1p-4, -0x1.287a581961505p-4,
        0x1.fc3f60b6c20a5p-5, -0x1.bdb55f5990c49p-5,  0x1.8c4ba9c7c0692p-5
     };
+  const double *c = ptr_barrier (c_data);
   const double ln10 = 0x1.34413509f79ffp-2,
 	       ln10h = 0x1.34413509f8p-2,
 	       ln10l = -0x1.80433b83b532ap-44;

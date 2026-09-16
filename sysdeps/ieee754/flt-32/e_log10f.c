@@ -75,7 +75,7 @@ __log10f (float x)
       0.5
     };
   // logarithms of the reciprocals with offset
-  static const double tl[] =
+  static const double tl_data[] =
     {
       -0x1.2p-46,             0x1.b947689310dfap-8, 0x1.b5e909c96d11bp-7,
       0x1.45f4f59ed1e08p-6,   0x1.af5f92cbd8bc1p-6, 0x1.0ba01a606dcdep-5,
@@ -100,6 +100,7 @@ __log10f (float x)
       0x1.2622b0f52e469p-2,   0x1.29b522a4c62dep-2, 0x1.2d404b0e30f4ap-2,
       0x1.30c4478f3fbafp-2,   0x1.34413509f78dfp-2
     };
+  const double *tl = ptr_barrier (tl_data);
   // 10^n
   static const union
   {
@@ -112,16 +113,18 @@ __log10f (float x)
     { 0 },              { 0x1.e848p+19 }, { 0 },             { 0x1.312dp+23 },
     { 0x1.7d784p+26 },  { 0 },            { 0x1.dcd65p+29 }, { 0x1p+0 }
   };
-  static const double b[] =
+  static const double b_data[] =
     {
       0x1.bcb7b15d35067p-2, -0x1.bcbb1cd29cbafp-3, 0x1.2870e2624ce4ep-3
     };
-  static const double c[] =
+  const double *b = ptr_barrier (b_data);
+  static const double c_data[] =
     {
       0x1.bcb7b1526e50ep-2,  -0x1.bcb7b1526e53dp-3, 0x1.287a7636f3fa2p-3,
       -0x1.bcb7b146a14b3p-4, 0x1.63c627d5219cbp-4,  -0x1.2880736c8762dp-4,
       0x1.fc1ecf913961ap-5
     };
+  const double *c = ptr_barrier (c_data);
 
   // ln(2)/ln(10)
   const double ln10 = 0x1.34413509f79ffp-2,
