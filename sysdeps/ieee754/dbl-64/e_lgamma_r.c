@@ -328,9 +328,10 @@ as_lgamma_accurate (double x)
     {
       if (fabs (fh) < 0x1.74p-4 && sx > SX_BND && sx < -2)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.3a7fc9600f86cp+1, 0x1.55f64f98af8dp-55,
 		  0x1.c4b0cd201366ap-110 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { 0x1.83fe966af535fp+0, -0x1.775909a36a68cp-55 },
 		  { 0x1.36eebb002f55dp-1, -0x1.8d4b2124a39f8p-55 },
@@ -363,15 +364,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 6;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.168p-4 && sx > -3 && sx < SX_BND)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.5fb410a1bd901p+1, -0x1.a19a96d2e6f85p-54,
 		  -0x1.140b4ff4b7d6p-108 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { -0x1.ea12da904b18cp+0, -0x1.220130f99b2cbp-54 },
 		  { 0x1.3267f3c265a52p-1, -0x1.1c630ff19db83p-55 },
@@ -405,15 +407,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 6;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.2d4p-4 && sx > -3.5 && sx < -3)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.9260dbc9e59afp+1, 0x1.f717cd335a7b3p-53,
 		  0x1.d32a2a65bfd63p-107 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { 0x1.f20a65f2fac55p+2, -0x1.1d258e4b0beb5p-53 },
 		  { 0x1.9d4d2977150efp-2, 0x1.a04089578ae88p-56 },
@@ -440,15 +443,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 7;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.efp-5 && sx > -4 && sx < -3.5)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.fa471547c2fe5p+1, 0x1.70d4561291237p-56,
 		  -0x1.9e6fadbbc171ap-111 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { -0x1.4b99d966c5647p+4, 0x1.9cba2450b0003p-50 },
 		  { 0x1.f76deae0436bep-1, -0x1.5af99a1af2d4bp-55 },
@@ -475,15 +479,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 7;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1p-3 && sx > -4.5 && sx < -4)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.0284e78599581p+2, -0x1.e78c1e9e43cfep-53,
 		  0x1.2ac17bfd6be92p-108 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { 0x1.aca5cf4921642p+4, 0x1.a46a2e0d8fdfdp-51 },
 		  { 0x1.44415cd813f8ep+1, 0x1.afdc2672876f4p-56 },
@@ -514,15 +519,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 7;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.08p-4 && sx > -5 && sx < -4.5)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.3f7577a6eeafdp+2, -0x1.5de5eab7f12cfp-53,
 		  0x1.4075f5e0494a2p-110 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { -0x1.d224a3ef9e41fp+6, -0x1.9be272a13bcb6p-48 },
 		  { 0x1.b533c678a3956p+2, -0x1.37da6a2b62e3cp-53 },
@@ -548,15 +554,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 7;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.1p-4 && sx > -5.5 && sx < -5)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.4086a57f0b6d9p+2, 0x1.95262b72ca9cap-55,
 		  0x1.bd98d5e0861aap-109 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { 0x1.ed72e0829ae02p+6, -0x1.fdc1859ae9c53p-50 },
 		  { 0x1.cecc32ec22f9bp+2, 0x1.b6ecc779b86fcp-53 },
@@ -582,15 +589,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 6;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.13p-3 && sx > -6 && sx < -5.5)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.7fe92f591f40dp+2, 0x1.7dd4ed62cbd32p-52,
 		  -0x1.2071c071a2146p-108 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { -0x1.661f6a43a5e12p+9, -0x1.0c437b83bc0ddp-45 },
 		  { 0x1.f79dcb794f26fp+5, -0x1.ada8018ade6efp-52 },
@@ -621,15 +629,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 6;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.15p-3 && sx > -6.5 && sx < -6)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.8016b25897c8dp+2, -0x1.27e0f49a4ba72p-54,
 		  0x1.72e1ab15a4d03p-110 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { 0x1.69de49e3af2aap+9, 0x1.954b690943afcp-47 },
 		  { 0x1.fce23484cfd1p+5, 0x1.8266e7580f08cp-49 },
@@ -660,15 +669,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 6;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.34p-3 && sx > -7.0 && sx < -6.5)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.bffcbf76b86fp+2, -0x1.853b29347b806p-57,
 		  0x1.0fa018051dd41p-111 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { -0x1.3abf7a5cea91bp+12, -0x1.8257b8abd02cep-42 },
 		  { 0x1.8349a2550422dp+9, -0x1.c6f2ef4105b99p-45 },
@@ -700,15 +710,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 6;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.145p-3 && sx > -7.5 && sx < -7)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.c0033fdedfe1fp+2, -0x1.20bb7d2324678p-52,
 		  -0x1.f5536678d69d3p-106 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { 0x1.3b407aa387bd1p+12, 0x1.da1e57343b1dbp-43 },
 		  { 0x1.83e85daafbad6p+8, -0x1.f37538d99bd29p-46 },
@@ -739,15 +750,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 6;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.76bp-3 && sx > -8 && sx < -7.5)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.ffff97f8159cfp+2, 0x1.e54f415a91586p-55,
 		  0x1.53a5d106f9a3ep-109 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { -0x1.3af76fe4c2fabp+15, -0x1.7cc92f0b999ep-40 },
 		  { 0x1.838e76caaf123p+12, 0x1.292e15f502d1fp-42 },
@@ -781,16 +793,17 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 6;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.76cp-3 && sx > -0x1.10f5c28f5c28fp+3
 	       && sx < -8)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.000034028b3f9p+3, 0x1.f60cb3cec1cedp-52,
 		  -0x1.ea26620d6b1cap-106 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { 0x1.3b088fed67718p+15, -0x1.505613ba29893p-39 },
 		  { 0x1.83a3893550edcp+12, 0x1.f52e3b240db3p-42 },
@@ -824,15 +837,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 6;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.99p-3 && sx > -9 && sx < -8.5)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.1ffffa3884bdp+3, 0x1.ff90c9d2ae925p-53,
 		  -0x1.30c0efef78c04p-107 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { -0x1.625edfc63db2fp+18, 0x1.da7fc3ed68f99p-37 },
 		  { 0x1.ea8c150480a7ap+15, 0x1.344e4cbf6d2a1p-39 },
@@ -867,15 +881,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 6;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.99p-3 && sx > -9.5 && sx < -9)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.200005c7768fbp+3, 0x1.b5b610ffb70d4p-54,
 		  0x1.deb7ad09ec5eap-108 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { 0x1.626120391944p+18, 0x1.7d5e8272ce41dp-38 },
 		  { 0x1.ea8f32fb7f586p+15, -0x1.345b1cc20d4a5p-39 },
@@ -910,15 +925,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 6;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.76bp-3 && sx > -10 && sx < -9.5)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.3fffff6c0d7cp+3, -0x1.197cea8c42d7dp-51,
 		  -0x1.7072c5a292198p-105 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { -0x1.baf7da5f3795dp+21, -0x1.16a79518c8367p-33 },
 		  { 0x1.7f3e8791fa0d2p+18, -0x1.2aec811c9609ep-36 },
@@ -952,15 +968,16 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 6;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
       else if (fabs (fh) < 0x1.76bp-3 && sx > -10.5 && sx < -10)
 	{
-	  static const double x0[]
+	  static const double x0_data[]
 	      = { 0x1.40000093f2777p+3, 0x1.927b45d95e154p-52,
 		  0x1.0780c21b6e452p-106 };
+	  const double *x0 = ptr_barrier (x0_data);
 	  static const double c[][2]
 	      = { { 0x1.baf825a0c63b2p+21, -0x1.20323f1015cdfp-35 },
 		  { 0x1.7f3ec8ae05f2ep+18, 0x1.2aec80d23ccb8p-36 },
@@ -994,8 +1011,8 @@ as_lgamma_accurate (double x)
 	  zl += x0[2];
 	  double sh = zh * sc, sl = zl * sc;
 	  int n = array_length (c), k = 6;
-	  fl = sh * polyd (sh, k, c + n - k);
-	  fh = polydd2 (sh, sl, n - k, c, &fl);
+	  fl = sh * polyd (sh, k, ptr_barrier (c) + n - k);
+	  fh = polydd2 (sh, sl, n - k, ptr_barrier (c), &fl);
 	  fh = muldd2 (zh, zl, fh, fl, &fl);
 	}
     }
@@ -1240,16 +1257,17 @@ __ieee754_lgamma_r (double x, int *signgamp)
 		  { 0x1.a51a6625307d3p-1, 0x1.18722054895e9p-56 },
 		  { -0x1.9a4d55beab2d7p-2, -0x1.74ded0474fe66p-63 },
 		  { 0x1.151322ac7d848p-2, 0x1.825b3df1d5722p-56 } };
-	  static const double q[]
+	  static const double q_data[]
 	      = { -0x1.a8b9c17aa5d3dp-3, 0x1.5b40cb100b9bfp-3,
 		  -0x1.2703a1e13bcbcp-3, 0x1.010b36b6afdc1p-3,
 		  -0x1.c8062dd09ec62p-4, 0x1.9a018c7345316p-4,
 		  -0x1.7578ea8068cc4p-4, 0x1.566b51c990008p-4 };
+	  const double *q = ptr_barrier (q_data);
 	  double z = x, z2 = z * z, z4 = z2 * z2;
 	  double q0 = q[0] + z * q[1], q2 = q[2] + z * q[3],
 		 q4 = q[4] + z * q[5], q6 = q[6] + z * q[7];
 	  fl = z * ((q0 + z2 * q2) + z4 * (q4 + z2 * q6));
-	  fh = polydddfst (z, 4, c0, &fl);
+	  fh = polydddfst (z, 4, ptr_barrier (c0), &fl);
 	  fh = mulddd2 (x, fh, fl, &fl);
 	  fh = sumdd (-lh, -ll, fh, fl, &fl);
 	  eps = 1.5e-22;
@@ -1302,13 +1320,15 @@ __ieee754_lgamma_r (double x, int *signgamp)
 	      // for other |x| use a simple product
 	      lh = mulddd2 (ax - 0.5, lh, ll, &ll);
 	    }
-	  static const double c[][2]
+	  static const double c_data[][2]
 	      = { { 0x1.acfe390c97d6ap-2, -0x1.1d9792ced423ap-58 },
 		  { 0x1.55555555554c1p-4, -0x1.0143af34001bdp-59 } };
-	  static const double q[]
+	  const double (*c)[2] = ptr_barrier (c_data);
+	  static const double q_data[]
 	      = { -0x1.6c16c1697de08p-9, 0x1.a019f47b230fdp-11,
 		  -0x1.380aab821e42ep-11, 0x1.b617d2c5b5b66p-11,
 		  -0x1.a7fd66a05ccfcp-10 };
+	  const double *q = ptr_barrier (q_data);
 	  lh = fastsum (lh, ll, c[0][0], c[0][1], &ll);
 	  if (ax < 0x1p100)
 	    {
@@ -1497,8 +1517,9 @@ double as_logd (double x, double *l)
   double r = r1[i1] * r2[i2];
   double tf = asdouble (t);
   double o = r * tf, dxl = fma (r, tf, -o), dxh = o - 1;
-  static const double c[] = { -0x1.fffffffffffd3p-2, 0x1.55555555543d5p-2,
-			      -0x1.000002bb2d74ep-2, 0x1.999a692c56e4ep-3 };
+  static const double c_data[] = { -0x1.fffffffffffd3p-2, 0x1.55555555543d5p-2,
+				   -0x1.000002bb2d74ep-2, 0x1.999a692c56e4ep-3 };
+  const double *c = ptr_barrier (c_data);
   double dx = fma (r, tf, -1), dx2 = dx * dx;
   double f = dx2 * ((c[0] + dx * c[1]) + dx2 * (c[2] + dx * c[3]));
   double lt = (l1[i1][1] + l2[i2][1]) + ed * 0x1.62e42fef8p-1;
@@ -1635,7 +1656,7 @@ as_logd_accurate (double x, double *l, double *l_)
   double r = r1[i1] * r2[i2];
   double tf = asdouble (t);
   double o = r * tf, dxl = fma (r, tf, -o), dxh = o - 1;
-  static const double c[][2]
+  static const double c_data[][2]
       = { { 0x1p+0, 0x1.a193d7f59d80ap-118 },
 	  { -0x1p-1, 0x1.8c7d7a8733406p-99 },
 	  { 0x1.5555555555555p-2, 0x1.55555554f571dp-56 },
@@ -1645,6 +1666,7 @@ as_logd_accurate (double x, double *l, double *l_)
 	  { 0x1.249249248dbdcp-3, -0x1.8aa032979ebedp-58 },
 	  { -0x1.000004e71581bp-3, 0x1.2e7f17d1c0e63p-57 },
 	  { 0x1.c71e5ec7051f6p-4, 0x1.217ec3dcb2f03p-58 } };
+  const double (*c)[2] = ptr_barrier (c_data);
   dxh = fasttwosum (dxh, dxl, &dxl);
   double fl = dxh * (c[6][0] + dxh * (c[7][0] + dxh * (c[8][0]))),
 	 fh = polydd2 (dxh, dxl, 6, c, &fl);
@@ -1743,10 +1765,13 @@ as_sinpipid (double x, double *l)
   int ky = ix, kx = 64 - ky;
   if (__glibc_unlikely (kx < 2))
     {
-      static const double c[2]
+      static const double c_data[2]
 	  = { -0x1.a51a6625307d3p+0, -0x1.16cc8f2044a4ap-55 };
-      static const double cl[] = { 0x1.9f9cb402bc42ap-1, -0x1.86a8e46ddf78dp-3,
-				   0x1.ac644e7aa33e6p-6 };
+      const double *c = ptr_barrier (c_data);
+      static const double cl_data[]
+	  = { 0x1.9f9cb402bc42ap-1, -0x1.86a8e46ddf78dp-3,
+	      0x1.ac644e7aa33e6p-6 };
+      const double *cl = ptr_barrier (cl_data);
       double z = 0.5 - ax, z2 = z * z, z2l = fma (z, z, -z2);
       double fl = z2 * (cl[0] + z2 * (cl[1] + z2 * (cl[2]))),
 	     fh = fasttwosum (c[0], fl, &fl), e;
@@ -1766,11 +1791,15 @@ as_sinpipid (double x, double *l)
   // sin(a_i + d) = s[i] + d*(c[i]*Q(d^2) - s[i]*d*P(d^2))
   // sin(a_i + d)/pi = s[i]/pi + d*(c[i]/pi*Q(d^2) - s[i]/pi*d*P(d^2))
 
-  static const double c[] = { -0x1.3bd3cc9be45dep-12, 0x1.03c1f081b5ac4p-26,
-			      -0x1.55d3c7e3bd8bfp-42, 0x1.e1f4826790653p-59 };
+  static const double c_data[]
+      = { -0x1.3bd3cc9be45dep-12, 0x1.03c1f081b5ac4p-26,
+	  -0x1.55d3c7e3bd8bfp-42, 0x1.e1f4826790653p-59 };
+  const double *c = ptr_barrier (c_data);
   double c0 = -0x1.692b66e3cf6e8p-66;
-  static const double s[] = { 0x1.921fb54442d18p-6, -0x1.4abbce625be53p-19,
-			      0x1.466bc67748efcp-34, -0x1.32d26e446373ap-50 };
+  static const double s_data[]
+      = { 0x1.921fb54442d18p-6, -0x1.4abbce625be53p-19,
+	  0x1.466bc67748efcp-34, -0x1.32d26e446373ap-50 };
+  const double *s = ptr_barrier (s_data);
   double s0 = 0x1.1a624b88c9448p-60;
 
   double P = d2 * (c[1] + d2 * (c[2] + d2 * c[3]));

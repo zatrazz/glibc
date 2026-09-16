@@ -78,7 +78,8 @@ as_exp_accurate (double x, double t, double th, double tl, double *l)
   double fl = dxh
 	      * (0x1.5555555555555p-5
 		 + dxh * (0x1.11111113e93e9p-7 + dxh * 0x1.6c16c169400a7p-10));
-  double fh = polydd_tanh (dxh, dxl, array_length (ch), ch, &fl);
+  double fh = polydd_tanh (dxh, dxl, array_length (ch), ptr_barrier (ch),
+			   &fl);
   fh = muldd_acc2 (dxh, dxl, fh, fl, &fl);
   fh = muldd_acc2 (th, tl, fh, fl, &fl);
   double zh = th + fh, zl = (th - zh) + fh;
@@ -169,8 +170,9 @@ __tanh (double x)
   int64_t i1 = (jt >> 27) & 0x3f, i0 = (jt >> 33) & 0x3f,
 	  ie = (int64_t) (jt << 13) >> MANTISSA_WIDTH;
   const double sp = asdouble ((uint64_t) (1023 + ie) << MANTISSA_WIDTH);
-  static const double ch[]
+  static const double ch_data[]
       = { 0x1p+1, 0x1p+1, 0x1.55555557e54ffp+0, 0x1.55555553a12f4p-1 };
+  const double *ch = ptr_barrier (ch_data);
   double t0h = T0[i0][1], t1h = T1[i1][1], th = t0h * t1h, tl;
   if (aix < UINT64_C(0x400d76c8b4395810))
     { /* |x| ~< 3.683 */
@@ -184,13 +186,14 @@ __tanh (double x)
 		 2^-1022 and rounding towards zero.  */
 	      return fma (x, -0x1p-55, x);
 	    }
-	  static const double c[] =
+	  static const double c_data[] =
 	    {
 	      -0x1.5555555555555p-2,  0x1.1111111110f33p-3,
 	      -0x1.ba1ba1b9b8ea6p-5,  0x1.664f4838e0a43p-6,
 	      -0x1.226e17d1bc09bp-7,  0x1.d6c64dfba2565p-9,
 	      -0x1.7bdd094d327afp-10, 0x1.1535ad0c31d0ep-11
 	    };
+	  const double *c = ptr_barrier (c_data);
 	  double x2 = x * x, x3 = x2 * x, x4 = x2 * x2, x8 = x4 * x4;
 	  double p1 = (c[4] + x2 * c[5]) + x4 * (c[6] + x2 * c[7]);
 	  double p0 = (c[0] + x2 * c[1]) + x4 * (c[2] + x2 * c[3]);

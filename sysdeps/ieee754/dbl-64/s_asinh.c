@@ -50,14 +50,15 @@ as_asinh_zero (double x, double x2h, double x2l)
 	  { 0x1.12ef3ceae4d12p-7, -0x1.ba9c13deb261fp-61 },
 	  { -0x1.df3bd104aa267p-8, -0x1.546da9bc5b32ap-62 },
 	  { 0x1.a685fc5de7a04p-8, 0x1.40d284a1d67f9p-62 } };
-  static const double cl[]
+  static const double cl_data[]
       = { -0x1.7828d553ec8p-8, 0x1.51712f7bee368p-8, -0x1.2e6d98527bcc6p-8,
 	  0x1.0095da47b392cp-8, -0x1.3b92d6368192cp-9 };
+  const double *cl = ptr_barrier (cl_data);
   double y2
       = x2h
 	* (cl[0]
 	   + x2h * (cl[1] + x2h * (cl[2] + x2h * (cl[3] + x2h * (cl[4])))));
-  double y1 = polydd (x2h, x2l, 12, ch, &y2);
+  double y1 = polydd (x2h, x2l, 12, ptr_barrier (ch), &y2);
 
   y1 = muldd_acc (y1, y2, x2h, x2l, &y2);
   y1 = mulddd (y1, y2, x, &y2);
@@ -102,21 +103,24 @@ __asinh (double x)
 	    { // |x| < 0x1p-12
 	      if (__glibc_unlikely (u < UINT64_C (0x3e5a000000000000)))
 		{ // |x| < 0x1.ap-26
-		  static const double cl[] = { -0x1.5555555555555p-3 };
+		  static const double cl_data[] = { -0x1.5555555555555p-3 };
+		  const double *cl = ptr_barrier (cl_data);
 		  sl = x3h * cl[0];
 		}
 	      else
 		{
-		  static const double cl[]
+		  static const double cl_data[]
 		      = { -0x1.5555555555555p-3, 0x1.3333327c57c6p-4 };
+		  const double *cl = ptr_barrier (cl_data);
 		  sl = x3h * (cl[0] + x2h * cl[1]);
 		}
 	    }
 	  else
 	    {
-	      static const double cl[]
+	      static const double cl_data[]
 		  = { -0x1.5555555555555p-3, 0x1.333333332f2ffp-4,
 		      -0x1.6db6d9a665159p-5, 0x1.f186866d775fp-6 };
+	      const double *cl = ptr_barrier (cl_data);
 	      sl = x3h * (cl[0] + x2h * (cl[1] + x2h * (cl[2] + x2h * cl[3])));
 	    }
 	}
@@ -127,11 +131,12 @@ __asinh (double x)
 	     This branch (0x1.3p-6 <= x < 0x1.bp-4) was tested exhaustively
 	     by Vincenzo Innocente (both with/without FMA).
 	     All found failures were added to asinh.wc.  */
-	  static const double cl[]
+	  static const double cl_data[]
 	      = { -0x1.5555555555555p-3, 0x1.333333333331p-4,
 		  -0x1.6db6db6da466cp-5, 0x1.f1c71c2ea7be4p-6,
 		  -0x1.6e8b651b09d72p-6, 0x1.1c309fc0e69c2p-6,
 		  -0x1.bab7833c1ep-7 };
+	  const double *cl = ptr_barrier (cl_data);
 	  double c1 = cl[1] + x2h * cl[2];
 	  double c3 = cl[3] + x2h * cl[4];
 	  double c5 = cl[5] + x2h * cl[6];
@@ -375,8 +380,9 @@ as_asinh_refine (double x, double zh, double zl, double a)
     { -0x1p-2, -0x1.932ce43199a8dp-110 },
     { 0x1.5555555555555p-3, 0x1.55540c15cf91fp-57 },
   };
-  static const double cl[3]
+  static const double cl_data[3]
       = { -0x1p-3, 0x1.9999999a0754fp-4, -0x1.55555555c3157p-4 };
+  const double *cl = ptr_barrier (cl_data);
   uint64_t t = asuint64 (zh);
 
   int ex = t >> 52, e = ex - 0x3ff + (zl == 0.0);
@@ -409,7 +415,7 @@ as_asinh_refine (double x, double zh, double zl, double a)
     }
   xh = adddd (xh, xl, sh, sl, &xl);
   sl = xh * (cl[0] + xh * (cl[1] + xh * cl[2]));
-  sh = polydd (xh, xl, 3, ch, &sl);
+  sh = polydd (xh, xl, 3, ptr_barrier (ch), &sl);
   sh = muldd_acc (xh, xl, sh, sl, &sl);
   sh = adddd (sh, sl, el1, el2, &sl);
   sh = adddd (sh, sl, L[1], L[2], &sl);
