@@ -55,10 +55,11 @@ as_acosh_one (double x, double sh, double sl)
 	  { -0x1.3fde50d0cb4b9p-16, 0x1.0335101403d9dp-72 },
 	  { 0x1.12ef3bf8a0a74p-17, 0x1.f9c6b51787043p-80 } };
 
-  static const double cl[]
+  static const double cl_data[]
       = { -0x1.df3b9d1296ea9p-19, 0x1.a681d7d2298ebp-20,
 	  -0x1.77ead7b1ca449p-21, 0x1.4edd2ddb3721fp-22,
 	  -0x1.1bf173531ee23p-23, 0x1.613229230e255p-25 };
+  const double *cl = ptr_barrier (cl_data);
 
   double y2
       = x
@@ -66,7 +67,7 @@ as_acosh_one (double x, double sh, double sl)
 	   + x
 		 * (cl[1]
 		    + x * (cl[2] + x * (cl[3] + x * (cl[4] + x * (cl[5]))))));
-  double y1 = polydd3 (x, 0, 10, ch, &y2);
+  double y1 = polydd3 (x, 0, 10, ptr_barrier (ch), &y2);
   y1 = mulddd (y1, y2, x, &y2);
   double y0 = fasttwosum (1, y1, &y1);
   y1 += y2;
@@ -105,11 +106,12 @@ __ieee754_acosh (double x)
       double iz = (-0.25) / z, zt = 2 * z;
       double sh = sqrt (zt),
 	     sl = fma (sh, sh, -zt) * (sh * iz);
-      static const double cl[] = {
+      static const double cl_data[] = {
 	-0x1.5555555555555p-4,	0x1.3333333332f95p-6,	-0x1.6db6db6d5534cp-8,
 	0x1.f1c71c1e04356p-10,	-0x1.6e8b8e3e40d58p-11, 0x1.1c4ba825ac4fep-12,
 	-0x1.c9045534e6d9ep-14, 0x1.71fedae26a76bp-15,	-0x1.f1f4f8cc65342p-17
       };
+      const double *cl = ptr_barrier (cl_data);
       double z2 = z * z, z4 = z2 * z2,
 	     ds = fma (
 		 sh * z,
@@ -146,9 +148,10 @@ __ieee754_acosh (double x)
     {
       /* 111.75 <= x < 738: this branch was tested exhaustively
 	 with/without FMA contraction */
-      static const double cl[]
+      static const double cl_data[]
 	  = { 0x1.5c4b6148816e2p-66, -0x1.000000000005cp-2,
 	      -0x1.7fffffebf3e6cp-4, -0x1.aab6691f2bae7p-5 };
+      const double *cl = ptr_barrier (cl_data);
       double z = 1 / (x * x);
       g = cl[0] + z * (cl[1] + z * (cl[2] + z * cl[3]));
       eps = 0x1.c3p-63;
@@ -157,9 +160,10 @@ __ieee754_acosh (double x)
     {
       /* 738 <= x < 32896: this branch was tested exhaustively
 	 with/without FMA contraction */
-      static const double cl[]
+      static const double cl_data[]
 	  = { -0x1.7f77c8429c6c6p-67, -0x1.ffffffffff214p-3,
 	      -0x1.8000268641bfep-4 };
+      const double *cl = ptr_barrier (cl_data);
       double z = 1 / (x * x);
       g = cl[0] + z * (cl[1] + z * cl[2]);
       eps = 0x1.9ap-63;
@@ -169,8 +173,9 @@ __ieee754_acosh (double x)
       // 32896 <= x < 0x1.ap+31
       /* this branch was tested exhaustively with/without FMA contraction
 	 only for 32896 <= x < 2^16. */
-      static const double cl[]
+      static const double cl_data[]
 	  = { 0x1.7a0ed2effdd1p-67, -0x1.000000017d048p-2 };
+      const double *cl = ptr_barrier (cl_data);
       double z = 1 / (x * x);
       g = cl[0] + z * cl[1];
       eps = 0x1.99p-63;
@@ -368,8 +373,9 @@ as_acosh_refine (double x, double a)
     { -0x1p-2, -0x1.932ce43199a8dp-110 },
     { 0x1.5555555555555p-3, 0x1.55540c15cf91fp-57 },
   };
-  static const double cl[3]
+  static const double cl_data[3]
       = { -0x1p-3, 0x1.9999999a0754fp-4, -0x1.55555555c3157p-4 };
+  const double *cl = ptr_barrier (cl_data);
   uint64_t ix = asuint64 (x);
   double zh, zl;
   int huge = 0; // exponent adjustment
@@ -441,7 +447,7 @@ as_acosh_refine (double x, double a)
     }
   xh = adddd2 (xh, xl, sh, sl, &xl);
   sl = xh * (cl[0] + xh * (cl[1] + xh * cl[2]));
-  sh = polydd3 (xh, xl, 3, ch, &sl);
+  sh = polydd3 (xh, xl, 3, ptr_barrier (ch), &sl);
   sh = muldd_acc2 (xh, xl, sh, sl, &sl);
   sh = adddd2 (sh, sl, el1, el2, &sl);
   sh = adddd2 (sh, sl, L[1], L[2], &sl);

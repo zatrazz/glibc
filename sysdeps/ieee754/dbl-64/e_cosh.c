@@ -74,7 +74,7 @@ as_exp_accurate (double x, double t, double th, double tl, double *l)
   double fl = dxh
 	      * (0x1.5555555555555p-5
 		 + dxh * (0x1.11111113e93e9p-7 + dxh * 0x1.6c16c169400a7p-10));
-  double fh = polydd_cosh (dxh, dxl, 3, ch, &fl);
+  double fh = polydd_cosh (dxh, dxl, 3, ptr_barrier (ch), &fl);
   fh = muldd2 (dxh, dxl, fh, fl, &fl);
   fh = muldd2 (th, tl, fh, fl, &fl);
   double zh = th + fh, zl = (th - zh) + fh;
@@ -154,11 +154,12 @@ __cosh (double x)
 	 q=1+x^2*fpminimax((cosh(x)-1)/x^2, [|0,2,4,6,8|], [|53...|], d,
 	 absolute);
       */
-      static const double c[] =
+      static const double c_data[] =
 	{
 	  0x1p-1, 0x1.5555555555554p-5, 0x1.6c16c16c1d0cp-10,
 	  0x1.a01a0075066b4p-16, 0x1.27faff8dcc1c8p-22
 	};
+      const double *c = ptr_barrier (c_data);
       double x2 = x * x, x4 = x2 * x2,
 	     p
 	     = x2
@@ -198,8 +199,9 @@ __cosh (double x)
   double th = t0h * t1h, tl = t0h * t1l + t1h * t0l + fma (t0h, t1h, -th);
   const double l2h = 0x1.62e42ffp-13, l2l = 0x1.718432a1b0e26p-47;
   double dx = (ax - l2h * t) + l2l * t, dx2 = dx * dx, mx = -dx;
-  static const double ch[]
+  static const double ch_data[]
       = { 0x1p+0, 0x1p-1, 0x1.5555555aaaaaep-3, 0x1.55555551c98cp-5 };
+  const double *ch = ptr_barrier (ch_data);
   double pp = dx * ((ch[0] + dx * ch[1]) + dx2 * (ch[2] + dx * ch[3]));
   double rh, rl;
   if (__glibc_unlikely (aix > UINT64_C(0x4014000000000000)))

@@ -99,11 +99,13 @@ __ieee754_atanh (double x)
        * for 0x1.d12ed0af1a27fp-27 <= x < 2^-24
        */
       double x2 = x * x;
-      static const double c[] = { 0x1.999999999999ap-3, 0x1.2492492492244p-3,
-				  0x1.c71c71c79715fp-4, 0x1.745d16f777723p-4,
-				  0x1.3b13ca4174634p-4, 0x1.110c9724989bdp-4,
-				  0x1.e2d17608a5b2ep-5, 0x1.a0b56308cba0bp-5,
-				  0x1.fb6341208ad2ep-5 };
+      static const double c_data[] =
+	{
+	  0x1.999999999999ap-3, 0x1.2492492492244p-3, 0x1.c71c71c79715fp-4,
+	  0x1.745d16f777723p-4, 0x1.3b13ca4174634p-4, 0x1.110c9724989bdp-4,
+	  0x1.e2d17608a5b2ep-5, 0x1.a0b56308cba0bp-5, 0x1.fb6341208ad2ep-5
+	};
+      const double *c = ptr_barrier (c_data);
       double dx2 = fma (x, x, -x2);
       double x4 = x2 * x2, x3 = x2 * x, x8 = x4 * x4;
       double dx3 = fma (x2, x, -x3) + dx2 * x;
@@ -128,9 +130,10 @@ __ieee754_atanh (double x)
 	     tl = fma (ph, iqh, -th)
 		  + (pl + ph * (fma (-qh, iqh, 1) - ql * iqh)) * iqh;
 
-  static const double c[]
+  static const double c_data[]
       = { -0x1p+0, 0x1.555555555553p+0, -0x1.fffffffffffap+0,
 	  0x1.99999e33a6366p+1, -0x1.555559ef9525fp+2 };
+  const double *c = ptr_barrier (c_data);
 
   uint64_t t = asuint64 (th);
   int ex = t >> 52, e = ex - 0x3ff;
@@ -194,8 +197,9 @@ as_atanh_database (double x, double f)
 static double
 as_atanh_refine (double x, double zh, double zl, double a)
 {
-  static const double cl[3]
+  static const double cl_data[3]
       = { -0x1p-3, 0x1.9999999a0754fp-4, -0x1.55555555c3157p-4 };
+  const double *cl = ptr_barrier (cl_data);
   uint64_t t = asuint64 (zh);
   int ex = t >> 52, e = ex - 0x3ff;
   t &= ~UINT64_C (0) >> 12;
