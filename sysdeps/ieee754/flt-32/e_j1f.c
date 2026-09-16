@@ -329,14 +329,14 @@ libm_alias_float (__j1, j1)
 #endif
 libm_alias_finite (__ieee754_j1f, __j1f)
 
-static const float U0[5] = {
+static const float U0_data[5] = {
  -1.9605709612e-01, /* 0xbe48c331 */
   5.0443872809e-02, /* 0x3d4e9e3c */
  -1.9125689287e-03, /* 0xbafaaf2a */
   2.3525259166e-05, /* 0x37c5581c */
  -9.1909917899e-08, /* 0xb3c56003 */
 };
-static const float V0[5] = {
+static const float V0_data[5] = {
   1.9916731864e-02, /* 0x3ca3286a */
   2.0255257550e-04, /* 0x3954644b */
   1.3560879779e-06, /* 0x35b602d4 */
@@ -563,6 +563,8 @@ __y1f(float x)
 {
 	float z, s,c,ss,cc,u,v;
 	int32_t hx,ix;
+	const float *U0 = ptr_barrier (U0_data);
+	const float *V0 = ptr_barrier (V0_data);
 
 	GET_FLOAT_WORD(hx,x);
 	ix = 0x7fffffff&hx;
@@ -718,10 +720,14 @@ ponef(float x)
 	GET_FLOAT_WORD(ix,x);
 	ix &= 0x7fffffff;
 	/* ix >= 0x40000000 for all calls to this function.  */
-	if(ix>=0x41000000)     {p = pr8; q= ps8;}
-	else if(ix>=0x40f71c58){p = pr5; q= ps5;}
-	else if(ix>=0x4036db68){p = pr3; q= ps3;}
-	else {p = pr2; q= ps2;}
+	if(ix>=0x41000000)
+	  {p = ptr_barrier (pr8); q= ptr_barrier (ps8);}
+	else if(ix>=0x40f71c58)
+	  {p = ptr_barrier (pr5); q= ptr_barrier (ps5);}
+	else if(ix>=0x4036db68)
+	  {p = ptr_barrier (pr3); q= ptr_barrier (ps3);}
+	else
+	  {p = ptr_barrier (pr2); q= ptr_barrier (ps2);}
 	z = one/(x*x);
 	r = p[0]+z*(p[1]+z*(p[2]+z*(p[3]+z*(p[4]+z*p[5]))));
 	s = one+z*(q[0]+z*(q[1]+z*(q[2]+z*(q[3]+z*q[4]))));
@@ -815,10 +821,14 @@ qonef(float x)
 	GET_FLOAT_WORD(ix,x);
 	ix &= 0x7fffffff;
 	/* ix >= 0x40000000 for all calls to this function.  */
-	if(ix>=0x41000000)     {p = qr8; q= qs8;} /* x >= 8  */
-	else if(ix>=0x40f71c58){p = qr5; q= qs5;} /* x >= 7.722209930e+00  */
-	else if(ix>=0x4036db68){p = qr3; q= qs3;} /* x >= 2.857141495e+00  */
-	else {p = qr2; q= qs2;}                   /* x >= 2  */
+	if(ix>=0x41000000) /* x >= 8  */
+	  {p = ptr_barrier (qr8); q= ptr_barrier (qs8);}
+	else if(ix>=0x40f71c58) /* x >= 7.722209930e+00  */
+	  {p = ptr_barrier (qr5); q= ptr_barrier (qs5);}
+	else if(ix>=0x4036db68) /* x >= 2.857141495e+00  */
+	  {p = ptr_barrier (qr3); q= ptr_barrier (qs3);}
+	else /* x >= 2  */
+	  {p = ptr_barrier (qr2); q= ptr_barrier (qs2);}
 	z = one/(x*x);
 	r = p[0]+z*(p[1]+z*(p[2]+z*(p[3]+z*(p[4]+z*p[5]))));
 	s = one+z*(q[0]+z*(q[1]+z*(q[2]+z*(q[3]+z*(q[4]+z*q[5])))));

@@ -62,6 +62,7 @@
 #include <math-barriers.h>
 #include <math_private.h>
 #include <libm-alias-finite.h>
+#include <math-ptr-barrier.h>
 
 static double pzero (double), qzero (double);
 
@@ -71,11 +72,12 @@ static const double
   invsqrtpi = 5.64189583547756279280e-01, /* 0x3FE20DD7, 0x50429B6D */
   tpi = 6.36619772367581382433e-01,     /* 0x3FE45F30, 0x6DC9C883 */
 /* R0/S0 on [0, 2.00] */
-  R[] = { 0.0, 0.0, 1.56249999999999947958e-02, /* 0x3F8FFFFF, 0xFFFFFFFD */
+  R_data[] = { 0.0, 0.0,
+	  1.56249999999999947958e-02, /* 0x3F8FFFFF, 0xFFFFFFFD */
 	  -1.89979294238854721751e-04, /* 0xBF28E6A5, 0xB61AC6E9 */
 	  1.82954049532700665670e-06, /* 0x3EBEB1D1, 0x0C503919 */
 	  -4.61832688532103189199e-09 }, /* 0xBE33D5E7, 0x73D63FCE */
-  S[] = { 0.0, 1.56191029464890010492e-02, /* 0x3F8FFCE8, 0x82C8C2A4 */
+  S_data[] = { 0.0, 1.56191029464890010492e-02, /* 0x3F8FFCE8, 0x82C8C2A4 */
 	  1.16926784663337450260e-04, /* 0x3F1EA6D2, 0xDD57DBF4 */
 	  5.13546550207318111446e-07, /* 0x3EA13B54, 0xCE84D5A9 */
 	  1.16614003333790000205e-09 }; /* 0x3E1408BC, 0xF4745D8F */
@@ -87,6 +89,8 @@ __ieee754_j0 (double x)
 {
   double z, s, c, ss, cc, r, u, v, r1, r2, s1, s2, z2, z4;
   int32_t hx, ix;
+  const double *R = ptr_barrier (R_data);
+  const double *S = ptr_barrier (S_data);
 
   GET_HIGH_WORD (hx, x);
   ix = hx & 0x7fffffff;
@@ -147,14 +151,14 @@ __ieee754_j0 (double x)
 libm_alias_finite (__ieee754_j0, __j0)
 
 static const double
-U[] = { -7.38042951086872317523e-02, /* 0xBFB2E4D6, 0x99CBD01F */
+U_data[] = { -7.38042951086872317523e-02, /* 0xBFB2E4D6, 0x99CBD01F */
 	 1.76666452509181115538e-01,  /* 0x3FC69D01, 0x9DE9E3FC */
 	-1.38185671945596898896e-02,  /* 0xBF8C4CE8, 0xB16CFA97 */
 	 3.47453432093683650238e-04,  /* 0x3F36C54D, 0x20B29B6B */
 	-3.81407053724364161125e-06,  /* 0xBECFFEA7, 0x73D25CAD */
 	 1.95590137035022920206e-08,  /* 0x3E550057, 0x3B4EABD4 */
 	-3.98205194132103398453e-11 }, /* 0xBDC5E43D, 0x693FB3C8 */
-V[] = { 1.27304834834123699328e-02,   /* 0x3F8A1270, 0x91C9C71A */
+V_data[] = { 1.27304834834123699328e-02,   /* 0x3F8A1270, 0x91C9C71A */
 	 7.60068627350353253702e-05,   /* 0x3F13ECBB, 0xF578C6C1 */
 	 2.59150851840457805467e-07,   /* 0x3E91642D, 0x7FF202FD */
 	 4.41110311332675467403e-10 }; /* 0x3DFE5018, 0x3BD6D9EF */
@@ -164,6 +168,8 @@ __ieee754_y0 (double x)
 {
   double z, s, c, ss, cc, u, v, z2, z4, z6, u1, u2, u3, v1, v2;
   int32_t hx, ix, lx;
+  const double *U = ptr_barrier (U_data);
+  const double *V = ptr_barrier (V_data);
 
   EXTRACT_WORDS (hx, lx, x);
   ix = 0x7fffffff & hx;
@@ -314,19 +320,19 @@ pzero (double x)
     }
   else if (ix >= 0x40200000)
     {
-      p = pR8; q = pS8;
+      p = ptr_barrier (pR8); q = ptr_barrier (pS8);
     }
   else if (ix >= 0x40122E8B)
     {
-      p = pR5; q = pS5;
+      p = ptr_barrier (pR5); q = ptr_barrier (pS5);
     }
   else if (ix >= 0x4006DB6D)
     {
-      p = pR3; q = pS3;
+      p = ptr_barrier (pR3); q = ptr_barrier (pS3);
     }
   else
     {
-      p = pR2; q = pS2;
+      p = ptr_barrier (pR2); q = ptr_barrier (pS2);
     }
   z = one / (x * x);
   r1 = p[0] + z * p[1]; z2 = z * z;
@@ -433,19 +439,19 @@ qzero (double x)
     }
   else if (ix >= 0x40200000)
     {
-      p = qR8; q = qS8;
+      p = ptr_barrier (qR8); q = ptr_barrier (qS8);
     }
   else if (ix >= 0x40122E8B)
     {
-      p = qR5; q = qS5;
+      p = ptr_barrier (qR5); q = ptr_barrier (qS5);
     }
   else if (ix >= 0x4006DB6D)
     {
-      p = qR3; q = qS3;
+      p = ptr_barrier (qR3); q = ptr_barrier (qS3);
     }
   else
     {
-      p = qR2; q = qS2;
+      p = ptr_barrier (qR2); q = ptr_barrier (qS2);
     }
   z = one / (x * x);
   r1 = p[0] + z * p[1]; z2 = z * z;
