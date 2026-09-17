@@ -37,7 +37,8 @@ extern struct ether_addr *ether_aton (const char *__asc) __THROW;
 extern struct ether_addr *ether_aton_r (const char *__asc,
 					struct ether_addr *__addr) __THROW;
 
-/* Map 48 bit Ethernet number ADDR to HOSTNAME.  */
+/* Map 48 bit Ethernet number ADDR to HOSTNAME, which must have room
+   for at least 1024 bytes.  */
 extern int ether_ntohost (char *__hostname, const struct ether_addr *__addr)
      __THROW;
 
@@ -48,6 +49,31 @@ extern int ether_hostton (const char *__hostname, struct ether_addr *__addr)
 /* Scan LINE and set ADDR and HOSTNAME.  */
 extern int ether_line (const char *__line, struct ether_addr *__addr,
 		       char *__hostname) __THROW;
+
+#if __USE_FORTIFY_LEVEL > 0 && defined __fortify_function
+extern int __REDIRECT_NTH (__ether_ntohost_alias,
+			   (char *__hostname, const struct ether_addr *__addr),
+			   ether_ntohost) __nonnull ((1, 2));
+__errordecl (__ether_ntohost_small_buffer,
+	     "ether_ntohost called with a buffer smaller than 1024 bytes");
+
+/* Reject at compile time a HOSTNAME buffer known to be smaller than
+   the 1024 bytes ether_ntohost may write.  */
+__fortify_function __attribute_overloadable__ __nonnull ((1, 2)) int
+__NTH (ether_ntohost (__fortify_clang_overload_arg (char *,, __hostname),
+		      const struct ether_addr *__addr))
+# if __fortify_use_clang
+     __fortify_clang_error (__fortify_clang_bos_static_lt (1024, __hostname),
+			    "ether_ntohost called with a buffer smaller than "
+			    "1024 bytes")
+# endif
+{
+  if (__builtin_constant_p (__glibc_objsize (__hostname))
+      && __glibc_objsize (__hostname) < 1024)
+    __ether_ntohost_small_buffer ();
+  return __ether_ntohost_alias (__hostname, __addr);
+}
+#endif
 
 __END_DECLS
 #endif /* Use misc.  */

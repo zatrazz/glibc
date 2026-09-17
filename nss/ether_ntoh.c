@@ -35,13 +35,12 @@ ether_ntohost (char *hostname, const struct ether_addr *addr)
   int no_more;
   enum nss_status status = NSS_STATUS_UNAVAIL;
   struct etherent etherent;
+  char buffer[1024];
 
   no_more = __nss_ethers_lookup2 (&nip, "getntohost_r", NULL, &fct);
 
   while (no_more == 0)
     {
-      char buffer[1024];
-
       status = ((lookup_function) fct) (addr, &etherent, buffer,
 					sizeof buffer, &errno);
 
