@@ -22,6 +22,7 @@
 #include <sysdep.h>
 #include <errno.h>
 #include <shlib-compat.h>
+#include <bits/wordsize.h>
 
 off64_t
 __lseek64 (int fd, off64_t offset, int whence)
@@ -30,7 +31,12 @@ __lseek64 (int fd, off64_t offset, int whence)
 # define __NR__llseek __NR_llseek
 #endif
 
-#ifdef __NR__llseek
+  /* The lseek syscall takes the offset as a kernel off_t, a long, so on
+     32-bit ABIs it can not carry a 64-bit offset and the _llseek syscall
+     is used instead.  On 64-bit ABIs lseek already takes the full offset,
+     so prefer it even where the ABI also provides _llseek (powerpc64 and
+     sparc64), where both syscalls are equivalent.  */
+#if defined __NR__llseek && __WORDSIZE == 32
   loff_t res;
   int rc = INLINE_SYSCALL_CALL (_llseek, fd,
 				(long) (((uint64_t) (offset)) >> 32),
