@@ -24,15 +24,18 @@
 extern const uint64_t __sinf_ipi[] attribute_hidden;
 #define IPI __sinf_ipi
 
-extern const double __sinf_b[] attribute_hidden;
-#define B __sinf_b
-extern const double __sinf_a[] attribute_hidden;
-#define A __sinf_a
-extern const double __sinf_tb[] attribute_hidden;
-#define TB __sinf_tb
-
-extern const double __cosf_tb[] attribute_hidden;
-#define TB_COSF __cosf_tb
+typedef struct
+{
+  double b[4];
+  double a[4];
+  double tb[32];
+  double tb_cosf[32];
+} sincosf_tables_t;
+extern const sincosf_tables_t __sincosf_tables attribute_hidden;
+#define B __sincosf_tables.b
+#define A __sincosf_tables.a
+#define TB __sincosf_tables.tb
+#define TB_COSF __sincosf_tables.tb_cosf
 
 typedef struct
 {

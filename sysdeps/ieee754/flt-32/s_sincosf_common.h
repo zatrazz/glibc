@@ -34,7 +34,7 @@ static inline double
 rltl0 (double x, int *q)
 {
   double idh = 0x1.45f306dc9c883p+2 * x, id = roundeven_finite (idh);
-  *q = asuint64 (0x1.8p52 + id);
+  *q = (int) id;
   return idh - id;
 }
 
@@ -44,7 +44,7 @@ rltl (float z, int *q)
   double x = z;
   double idl = -0x1.b1bbead603d8bp-29 * x, idh = 0x1.45f306ep+2 * x,
 	 id = roundeven_finite (idh);
-  *q = asuint64 (0x1.8p52 + id);
+  *q = (int) id;
   return (idh - id) + idl;
 }
 
