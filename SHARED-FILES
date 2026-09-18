@@ -307,6 +307,8 @@ core-math:
   sysdeps/ieee754/flt-32/s_atanpif.c
   # src/binary32/cbrt/cbrtf.c, revision f7c7408d
   sysdeps/ieee754/flt-32/s_cbrtf.c
+  # src/binary32/cos/cosf.c, revision ac1993d8
+  sysdeps/ieee754/flt-32/s_cosf.c
   # src/binary32/cospi/cospif.c, revision bbfabd99
   sysdeps/ieee754/flt-32/s_cospif.c
   # src/binary32/erfc/erfcf.c revision d0a2be20
@@ -353,8 +355,6 @@ arm-optimized-routines:
   sysdeps/ieee754/dbl-64/math_err.c
   # math/math_errf.c, revision 189dfef
   sysdeps/ieee754/flt-32/math_errf.c
-  # math/cosf.c, revision aec783d
-  sysdeps/ieee754/flt-32/s_cosf.c
   # math/exp2f.c, revision 712aa21
   sysdeps/ieee754/flt-32/e_exp2f.c
   # math/exp2f_data.c, revision 189dfef
