@@ -29,6 +29,7 @@ SOFTWARE.
 #include <libm-alias-float.h>
 #include "math_config.h"
 #include <math_uint128.h>
+#include <s_sincosf_common.h>
 #include <s_sincosf_data.h>
 
 #ifndef SECTION
@@ -40,74 +41,6 @@ SOFTWARE.
 #else
 # define SINCOSF_FUNC SINCOSF
 #endif
-
-static double __attribute__ ((noinline))
-rbig (uint32_t u, int *q)
-{
-  int e = (u >> 23) & 0xff, i;
-  uint64_t m = (u & (~0u >> 9)) | 1 << 23;
-  u128 p0 = u128_mul (u128_from_u64 (m), u128_from_u64 (IPI[0]));
-  u128 p1 = u128_mul (u128_from_u64 (m), u128_from_u64 (IPI[1]));
-  p1 = u128_add (p1, u128_rshift (p0, 64));
-  u128 p2 = u128_mul (u128_from_u64 (m), u128_from_u64 (IPI[2]));
-  p2 = u128_add (p2, u128_rshift (p1, 64));
-  u128 p3 = u128_mul (u128_from_u64 (m), u128_from_u64 (IPI[3]));
-  p3 = u128_add (p3, u128_rshift (p2, 64));
-  uint64_t p3h = u128_high (p3), p3l = u128_low (p3), p2l = u128_low (p2),
-	   p1l = u128_low (p1);
-  int64_t a;
-  int k = e - 124, s = k - 23;
-  /* in cr_sinf(), rbig() is called in the case 127+28 <= e < 0xff
-     thus 155 <= e <= 254, which yields 28 <= k <= 127 and 5 <= s <= 104 */
-  if (s < 64)
-    {
-      i = p3h << s | p3l >> (64 - s);
-      a = p3l << s | p2l >> (64 - s);
-    }
-  else if (s == 64)
-    {
-      i = p3l;
-      a = p2l;
-    }
-  else
-    { /* s > 64 */
-      i = p3l << (s - 64) | p2l >> (128 - s);
-      a = p2l << (s - 64) | p1l >> (128 - s);
-    }
-  int sgn = u;
-  sgn >>= 31;
-  int64_t sm = a >> 63;
-  i -= sm;
-  double z = (a ^ sgn) * 0x1p-64;
-  i = (i ^ sgn) - sgn;
-  *q = i;
-  return z;
-}
-
-static inline double
-rltl (float z, int *q)
-{
-  double x = z;
-  double idl = -0x1.b1bbead603d8bp-29 * x, idh = 0x1.45f306ep+2 * x,
-	 id = roundeven_finite (idh);
-  *q = asuint64 (0x1.8p52 + id);
-  return (idh - id) + idl;
-}
-
-static inline double
-rltl0 (double x, int *q)
-{
-  double idh = 0x1.45f306dc9c883p+2 * x, id = roundeven_finite (idh);
-  *q = asuint64 (0x1.8p52 + id);
-  return idh - id;
-}
-
-static inline float
-add_sign (float x, float rh, float rl)
-{
-  float sgn = copysignf (1.0f, x);
-  return sgn * rh + sgn * rl;
-}
 
 static void __attribute__ ((noinline))
 as_sincosf_database (float x, float *sout, float *cout)
@@ -141,7 +74,7 @@ as_sincosf_big (float x, float *sout, float *cout)
       return;
     }
   int ia;
-  double z = rbig (t, &ia);
+  double z = RBIG_SINCOSF (t, &ia);
   double z2 = z * z, z4 = z2 * z2;
   double aa = (A[0] + z2 * A[1]) + z4 * (A[2] + z2 * A[3]);
   double bb = (B[0] + z2 * B[1]) + z4 * (B[2] + z2 * B[3]);
