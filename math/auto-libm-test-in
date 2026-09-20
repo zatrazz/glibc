@@ -6417,6 +6417,10 @@ expm1 min
 expm1 -min
 expm1 min_subnorm
 expm1 -min_subnorm
+# hard-to-round cases for binary64
+expm1 0x1.df6defbeb1ab6p+5
+expm1 0x1.543a2e41dd309p+7
+expm1 0x1.44429c19e1ab7p+5
 
 fma 1.0 2.0 3.0
 fma 1.25 0.75 0.0625
