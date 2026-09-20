@@ -252,6 +252,24 @@ polydd3 (double xh, double xl, int n, const double c[][2], double *l)
   return ch;
 }
 
+/* Same as polydd, but with the multiplication normalized with fasttwosum
+   (see the muldd_acc2 comment above).  */
+static inline double
+polydd4 (double xh, double xl, int n, const double c[][2], double *l)
+{
+  int i = n - 1;
+  double ch = c[i][0] + *l, cl = ((c[i][0] - ch) + *l) + c[i][1];
+  while (--i >= 0)
+    {
+      ch = muldd_acc2 (xh, xl, ch, cl, &cl);
+      double th = ch + c[i][0], tl = (c[i][0] - th) + ch;
+      ch = th;
+      cl += tl + c[i][1];
+    }
+  *l = cl;
+  return ch;
+}
+
 static inline double
 polyddd (double x, int n, const double c[][2], double *l)
 {

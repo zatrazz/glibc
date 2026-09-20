@@ -30,65 +30,7 @@ SOFTWARE.
 #include <libm-alias-double.h>
 #include <math-barriers.h>
 #include "math_config.h"
-
-static inline double
-fasttwosum (double x, double y, double *e)
-{
-  double s = x + y, z = s - x;
-  *e = y - z;
-  return s;
-}
-
-static inline double
-fasttwosub (double x, double y, double *e)
-{
-  double s = x - y, z = x - s;
-  *e = z - y;
-  return s;
-}
-
-static inline double
-muldd_acc (double xh, double xl, double ch, double cl, double *l)
-{
-  double ahlh = ch * xl, alhh = cl * xh, ahhh = ch * xh,
-	 ahhl = fma (ch, xh, -ahhh);
-  ahhl += alhh + ahlh;
-  return fasttwosum (ahhh, ahhl, l);
-}
-
-static inline double
-mulddd (double xh, double xl, double ch, double *l)
-{
-  double ahlh = ch * xl, ahhh = ch * xh, ahhl = fma (ch, xh, -ahhh);
-  ahhl += ahlh;
-  ch = ahhh + ahhl;
-  *l = (ahhh - ch) + ahhl;
-  return ch;
-}
-
-static inline double
-fastsumddd (double xh, double xl, double ch, double *l)
-{
-  double tl, th = fasttwosum (xh, ch, &tl);
-  *l = xl + tl;
-  return th;
-}
-
-static inline double
-polydd (double xh, double xl, int n, const double c[][2], double *l)
-{
-  int i = n - 1;
-  double ch = c[i][0] + *l, cl = ((c[i][0] - ch) + *l) + c[i][1];
-  while (--i >= 0)
-    {
-      ch = muldd_acc (xh, xl, ch, cl, &cl);
-      double th = ch + c[i][0], tl = (c[i][0] - th) + ch;
-      ch = th;
-      cl += tl + c[i][1];
-    }
-  *l = cl;
-  return ch;
-}
+#include "ddcoremath.h"
 
 /* Hard-to-round cases, looked up when the rounding test of the accurate
    path fails.  F is the value computed so far, returned unchanged when X is
@@ -312,7 +254,7 @@ __tanpi (double x)
       double f = z3 * ((c[0] + z2 * c[1]) + z4 * (c[2] + z2 * c[3]));
       double eps = z3 * 0x1p-256 + copysign (0x1p-104, z);
       th = mulddd (ph, pl, z, &tl);
-      th = fastsumddd (th, tl, f, &tl);
+      th = fastsum (th, tl, f, 0, &tl);
       if (__glibc_unlikely (iq == 32))
 	{
 	  double ith = -1.0 / th;
@@ -325,7 +267,7 @@ __tanpi (double x)
 	  static const double s2[2] = { -1, 1 };
 	  nh *= s2[ms + 1];
 	  nl *= s2[ms + 1];
-	  double ml, mh = muldd_acc (th, tl, nh, nl, &ml), dm, dn;
+	  double ml, mh = muldd_acc2 (th, tl, nh, nl, &ml), dm, dn;
 	  mh = fasttwosub (1.0, mh, &dm);
 	  ml = dm - ml;
 	  nh = fasttwosum (nh, th, &dn);
@@ -356,7 +298,7 @@ __tanpi (double x)
       z2 = z * z;
       double dz2 = fma (z, z, -z2);
       tl = z2 * (cl[0] + z2 * (cl[1] + z2 * cl[2]));
-      th = polydd (z2, dz2, 5, ch, &tl);
+      th = polydd4 (z2, dz2, 5, ch, &tl);
       th = mulddd (th, tl, z, &tl);
       if (__glibc_unlikely (iq == 32))
 	{
@@ -370,7 +312,7 @@ __tanpi (double x)
 	  static const double s2[2] = { -1, 1 };
 	  nh *= s2[ms + 1];
 	  nl *= s2[ms + 1];
-	  double ml, mh = muldd_acc (th, tl, nh, nl, &ml), dm, dn;
+	  double ml, mh = muldd_acc2 (th, tl, nh, nl, &ml), dm, dn;
 	  mh = fasttwosub (1.0, mh, &dm);
 	  ml = dm - ml;
 	  nh = fasttwosum (nh, th, &dn);
@@ -429,7 +371,7 @@ __tanpi (double x)
 	  double x2 = x * x, x3 = x * x2;
 	  double f = x3 * (c2[0] + x2 * (c2[1] + x2 * c2[2]));
 	  double px1, px0 = mulddd (pi0, pi1, x, &px1);
-	  th = fastsumddd (px0, px1, f, &tl);
+	  th = fastsum (px0, px1, f, 0, &tl);
 	  double eps = x * (x2 * 0x1.1p-47 + 0x1p-101);
 	  double lb = th + (tl - eps), ub = th + (tl + eps);
 	  if (lb == ub)
@@ -448,8 +390,8 @@ __tanpi (double x)
 	  double dx2 = fma (x, x, -x2);
 	  double dx3 = fma (x2, x, -x3) + dx2 * x, dv;
 	  tl = x2 * (cl[0] + x2 * cl[1]);
-	  th = polydd (x2, dx2, 3, ch, &tl);
-	  th = muldd_acc (x3, dx3, th, tl, &tl);
+	  th = polydd4 (x2, dx2, 3, ch, &tl);
+	  th = muldd_acc2 (x3, dx3, th, tl, &tl);
 	  th = fasttwosum (px0, th, &dv);
 	  tl = tl + px1 + dv;
 	  th = fasttwosum (th, tl, &tl);

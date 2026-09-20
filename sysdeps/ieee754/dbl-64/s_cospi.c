@@ -29,50 +29,8 @@ SOFTWARE.
 #include <stdint.h>
 #include <libm-alias-double.h>
 #include "math_config.h"
+#include "ddcoremath.h"
 #include "s_sincospi_data.h"
-
-static inline double
-fasttwosum (double x, double y, double *e)
-{
-  double s = x + y, z = s - x;
-  *e = y - z;
-  return s;
-}
-
-static inline double
-muldd_acc (double xh, double xl, double ch, double cl, double *l)
-{
-  double ahlh = ch * xl, alhh = cl * xh, ahhh = ch * xh,
-	 ahhl = fma (ch, xh, -ahhh);
-  ahhl += alhh + ahlh;
-  return fasttwosum (ahhh, ahhl, l);
-}
-
-static inline double
-mulddd (double xh, double xl, double ch, double *l)
-{
-  double ahlh = ch * xl, ahhh = ch * xh, ahhl = fma (ch, xh, -ahhh);
-  ahhl += ahlh;
-  ch = ahhh + ahhl;
-  *l = (ahhh - ch) + ahhl;
-  return ch;
-}
-
-static inline double
-polydd (double xh, double xl, int n, const double c[][2], double *l)
-{
-  int i = n - 1;
-  double ch = c[i][0] + *l, cl = ((c[i][0] - ch) + *l) + c[i][1];
-  while (--i >= 0)
-    {
-      ch = muldd_acc (xh, xl, ch, cl, &cl);
-      double th = ch + c[i][0], tl = (c[i][0] - th) + ch;
-      ch = th;
-      cl += tl + c[i][1];
-    }
-  *l = cl;
-  return ch;
-}
 
 /* Accurate path for |x| <= 2^-12, where cospi(x) = 1 + O(x^2).  */
 static double
@@ -89,8 +47,8 @@ as_cospi_zero (double x)
       -0x1.55d3c7e3cbff9p+0, 0x1.e1f50604fa0ffp-3
     };
   double fl = x2 * (cl[0] + x2 * cl[1]);
-  double fh = polydd (x2, dx2, 2, ch, &fl);
-  fh = muldd_acc (x2, dx2, fh, fl, &fl);
+  double fh = polydd4 (x2, dx2, 2, ch, &fl);
+  fh = muldd_acc2 (x2, dx2, fh, fl, &fl);
   double y2, y1, y0 = fasttwosum (1, fh, &y1);
   y1 = fasttwosum (y1, fl, &y2);
   uint64_t t = asuint64 (y1);
@@ -123,15 +81,15 @@ as_sinpi_refine (int iq, double z)
       { 0x1.03c1f081b5ac4p-46, -0x1.32b33fda9113cp-100 }
     };
   double sll = -0x1.32d2cc920dcb4p-73 * x2;
-  double slh = polydd (x2, dx2, 3, sh, &sll);
+  double slh = polydd4 (x2, dx2, 3, sh, &sll);
   slh = mulddd (slh, sll, x * 0x1p-12, &sll);
   double cll = x2 * (-0x1.55d3c7e3cbff9p-72 + 0x1.e1f50604fa0ffp-99 * x2);
-  double clh = polydd (x2, dx2, 2, ch, &cll);
-  clh = muldd_acc (clh, cll, x2, dx2, &cll);
+  double clh = polydd4 (x2, dx2, 2, ch, &cll);
+  clh = muldd_acc2 (clh, cll, x2, dx2, &cll);
   double sbh, sbl, cbh, cbl;
   __sincospi_sincosn2 (iq, &sbh, &sbl, &cbh, &cbl);
-  double csl, csh = muldd_acc (clh, cll, sbh, sbl, &csl);
-  double scl, sch = muldd_acc (slh, sll, cbh, cbl, &scl);
+  double csl, csh = muldd_acc2 (clh, cll, sbh, sbl, &csl);
+  double scl, sch = muldd_acc2 (slh, sll, cbh, cbl, &scl);
   double tsl, tsh = fasttwosum (sch, csh, &tsl);
   tsl += csl + scl;
   double tsl2;
