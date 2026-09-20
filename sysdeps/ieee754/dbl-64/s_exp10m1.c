@@ -39,194 +39,6 @@ SOFTWARE.
 #define LN10L -0x1.f48ad494ea3e9p-53
 
 static inline void
-a_mul (double *hi, double *lo, double a, double b)
-{
-  *hi = a * b;
-  *lo = fma (a, b, -*hi);
-}
-
-// Multiply a double with a double double : a * (bh + bl)
-static inline void
-s_mul (double *hi, double *lo, double a, double bh, double bl)
-{
-  a_mul (hi, lo, a, bh); /* exact */
-  *lo = fma (a, bl, *lo);
-}
-
-// Returns (ah + al) * (bh + bl) - (al * bl)
-static inline void
-d_mul (double *hi, double *lo, double ah, double al, double bh, double bl)
-{
-  a_mul (hi, lo, ah, bh);
-  *lo = fma (ah, bl, *lo);
-  *lo = fma (al, bh, *lo);
-}
-
-// Add a + b, assuming |a| >= |b|
-static inline void
-fast_two_sum (double *hi, double *lo, double a, double b)
-{
-  double e;
-
-  *hi = a + b;
-  e = *hi - a; /* exact */
-  *lo = b - e; /* exact */
-}
-
-// Add a + (bh + bl), assuming |a| >= |bh|
-static inline void
-fast_sum (double *hi, double *lo, double a, double bh, double bl)
-{
-  fast_two_sum (hi, lo, a, bh);
-  /* |(a+bh)-(hi+lo)| <= 2^-105 |hi| and |lo| < ulp(hi) */
-  *lo += bl;
-  /* |(a+bh+bl)-(hi+lo)| <= 2^-105 |hi| + ulp(lo),
-     where |lo| <= ulp(hi) + |bl|. */
-}
-
-static const double Q_1[] = {
-  0x1p0,		/* degree 0 */
-  0x1p0,		/* degree 1 */
-  0x1p-1,		/* degree 2 */
-  0x1.5555555995d37p-3, /* degree 3 */
-  0x1.55555558489dcp-5	/* degree 4 */
-};
-
-// Approximation for the fast path of exp(z) for z=zh+zl,
-// with |z| < 0.000130273 < 2^-12.88 and |zl| < 2^-42.6
-// (assuming x^y does not overflow or underflow)
-static inline void
-q_1 (double *hi, double *lo, double zh, double zl)
-{
-  double z = zh + zl;
-  double q = fma (Q_1[4], zh, Q_1[3]);
-
-  q = fma (q, z, Q_1[2]);
-
-  fast_two_sum (hi, lo, Q_1[1], q * z);
-
-  d_mul (hi, lo, zh, zl, *hi, *lo);
-
-  fast_sum (hi, lo, Q_1[0], *hi, *lo);
-}
-
-/*
-  Approximation of exp(x), where x = xh + xl
-
-  exp(x) is approximated by hi + lo.
-
-  For the error analysis, we only consider the case where x^y does not
-  overflow or underflow. We get:
-
-  (hi + lo) / exp(xh + xl) = 1 + eps with |eps| < 2^-74.139
-
-  Assumes |xl/xh| < 2^-23.89 and |xl| < 2^-14.3486.
-
-  See analysis before the exp_1() call in cr_pow(), which proves
-  |rl| < 2^-23.89 |rh| (here xh=rh and xl=rl).
-
-  At output, we also have 0.99985 < hi+lo < 1.99995 and |lo/hi| < 2^-41.4.
-*/
-
-static inline void
-exp_1 (double *hi, double *lo, double xh, double xl)
-{
-#define INVLOG2 0x1.71547652b82fep+12 /* |INVLOG2-2^12/log(2)| < 2^-43.4 */
-  double k = roundeven_finite (xh * INVLOG2);
-
-  double kh, kl;
-#define LOG2H 0x1.62e42fefa39efp-13
-#define LOG2L 0x1.abc9e3b39803fp-68
-  s_mul (&kh, &kl, k, LOG2H, LOG2L);
-
-  double yh, yl;
-  fast_two_sum (&yh, &yl, xh - kh, xl);
-  yl -= kl;
-
-  int64_t K = k; /* Note: k is an integer, this is just a conversion. */
-  int64_t M = (K >> 12) + 0x3ff;
-  int64_t i2 = (K >> 6) & 0x3f;
-  int64_t i1 = K & 0x3f;
-
-  double t1h = __exp2m1_t1[i2][0], t1l = __exp2m1_t1[i2][1];
-  double t2h = __exp2m1_t2[i1][0], t2l = __exp2m1_t2[i1][1];
-  d_mul (hi, lo, t2h, t2l, t1h, t1l);
-
-  double qh, ql;
-  q_1 (&qh, &ql, yh, yl);
-
-  d_mul (hi, lo, *hi, *lo, qh, ql);
-
-  /* Scale by 2^k. Warning: for x near 1024, we can have k=2^22, thus
-     M = 2047, which encodes Inf */
-  if (__glibc_unlikely (M == 0x7ff))
-    {
-      *hi *= 2.0;
-      *lo *= 2.0;
-      M--;
-    }
-  double d = asdouble ((uint64_t) M << MANTISSA_WIDTH);
-  *hi *= d;
-  *lo *= d;
-}
-
-static const double Q_2[] = {
-  0x1p0,  // degree 0, Q_2[0]
-  0x1p0,  // degree 1, Q_2[1]
-  0x1p-1, // degree 2, Q_2[2]
-  0x1.5555555555555p-3,
-  0x1.55555555c4d26p-57, // degree 3, Q_2[3], Q_2[4]
-  0x1.5555555555555p-5,	 // degree 4, Q_2[5]
-  0x1.1111111111111p-7,	 // degree 5, Q_2[6]
-  0x1.6c16c3fbb4213p-10, // degree 6, Q_2[7]
-  0x1.a01a023ede0d7p-13, // degree 7, Q_2[8]
-};
-
-// Approximation for the accurate path of exp(z) for z=zh+zl,
-// with |z| < 0.000130273 < 2^-12.88 and |zl| < 2^-42.6
-// (assuming x^y does not overflow or underflow)
-static inline void
-q_2 (double *hi, double *lo, double zh, double zl)
-{
-  /* Let q[0]..q[7] be the coefficients of degree 0..7 of Q_2.
-     The ulp of q[7]*z^7 is at most 2^-155, thus we can compute q[7]*z^7
-     in double precision only.
-     The ulp of q[6]*z^6 is at most 2^-139, thus we can compute q[6]*z^6
-     in double precision only.
-     The ulp of q[5]*z^5 is at most 2^-124, thus we can compute q[5]*z^5
-     in double precision only. */
-  double z = zh + zl;
-  double q = fma (Q_2[8], zh, Q_2[7]);
-
-  q = fma (q, z, Q_2[6]);
-
-  q = fma (q, z, Q_2[5]);
-
-  // multiply q by z and add Q_2[3] + Q_2[4]
-  a_mul (hi, lo, q, z);
-  double t;
-  fast_two_sum (hi, &t, Q_2[3], *hi);
-  *lo += t + Q_2[4];
-
-  // multiply hi+lo by zh+zl and add Q_2[2]
-  d_mul (hi, lo, *hi, *lo, zh, zl);
-  fast_two_sum (hi, &t, Q_2[2], *hi);
-  *lo += t;
-
-  // multiply hi+lo by zh+zl and add Q_2[1]
-  d_mul (hi, lo, *hi, *lo, zh, zl);
-  fast_two_sum (hi, &t, Q_2[1], *hi);
-  *lo += t;
-
-  // multiply hi+lo by zh+zl and add Q_2[0]
-  d_mul (hi, lo, *hi, *lo, zh, zl);
-  fast_two_sum (hi, &t, Q_2[0], *hi);
-  *lo += t;
-}
-
-// returns a double-double approximation hi+lo of exp(x*log(2)) for |x| < 745
-
-static inline void
 exp_2 (double *hi, double *lo, double x)
 {
 
@@ -260,7 +72,7 @@ exp_2 (double *hi, double *lo, double x)
   d_mul (hi, lo, t2h, t2l, t1h, t1l);
 
   double qh, ql;
-  q_2 (&qh, &ql, yh, yl);
+  __exp2m1_q_2 (&qh, &ql, yh, yl);
 
   d_mul (hi, lo, *hi, *lo, qh, ql);
 
@@ -365,7 +177,7 @@ exp10m1_fast (double *h, double *l, double x, int tiny)
      Thus:
      |h+l - x*log(10)| <= |h+l - x*(LN10H+LN10L)| + |x|*|LN10H+LN10L-log(10)|
 			<= 2^-95 + 0x1.34413509f79fep+8*2^-106.3 < 2^-94.8 */
-  exp_1 (h, l, *h, *l);
+  __exp2m1_exp_1 (h, l, *h, *l);
   /* h_out + l_out = exp(h + l) * (1 + eps) with |eps| < 2^-74.139
 		   = exp(x*log(10) + eps0) * (1 + eps)
 		   with |eps0| < 2^-94.8 and |eps| < 2^-74.139

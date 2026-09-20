@@ -31,66 +31,7 @@ SOFTWARE.
 #include <math-barriers.h>
 #include <math-roundeven-finite.h>
 #include "math_config.h"
-
-static inline double
-fasttwosum (double x, double y, double *e)
-{
-  double s = x + y, z = s - x;
-  *e = y - z;
-  return s;
-}
-
-static inline double
-fastsum (double xh, double xl, double yh, double yl, double *e)
-{
-  double sl, sh = fasttwosum (xh, yh, &sl);
-  *e = (xl + yl) + sl;
-  return sh;
-}
-
-static inline double
-muldd (double xh, double xl, double ch, double cl, double *l)
-{
-  double ahhh = ch * xh;
-  *l = (ch * xl + cl * xh) + fma (ch, xh, -ahhh);
-  return ahhh;
-}
-
-static inline double
-mulddd (double xh, double xl, double c, double *l)
-{
-  double h = c * xh;
-  *l = c * xl + fma (c, xh, -h);
-  return h;
-}
-
-static inline double
-opolydd (double xh, double xl, int n, const double c[][2], double *l)
-{
-  int i = n - 1;
-  double ch = c[i][0], cl = c[i][1];
-  while (--i >= 0)
-    {
-      ch = muldd (xh, xl, ch, cl, &cl);
-      ch = fastsum (c[i][0], c[i][1], ch, cl, &cl);
-    }
-  *l = cl;
-  return ch;
-}
-
-static inline double
-opolyddd (double x, int n, const double c[][2], double *l)
-{
-  int i = n - 1;
-  double ch = fasttwosum (c[i][0], *l, l), cl = c[i][1] + *l;
-  while (--i >= 0)
-    {
-      ch = mulddd (ch, cl, x, &cl);
-      ch = fastsum (c[i][0], c[i][1], ch, cl, &cl);
-    }
-  *l = cl;
-  return ch;
-}
+#include "ddcoremath.h"
 
 static const double db[] = {
   0x1.e923c188ea79bp-4,	 0x1.1a0408712e00ap-2,	0x1.1c38132777b26p-2,
@@ -372,10 +313,10 @@ as_expm1_accurate (double x)
 			+ x
 			      * (cl[2]
 				 + x * (cl[3] + x * (cl[4] + x * (cl[5]))))));
-      double fh = opolyddd (x, 11, ch, &fl);
-      fh = mulddd (fh, fl, x, &fl);
-      fh = mulddd (fh, fl, x, &fl);
-      fh = mulddd (fh, fl, x, &fl);
+      double fh = polydddfst (x, 11, ch, &fl);
+      fh = mulddd3 (fh, fl, x, &fl);
+      fh = mulddd3 (fh, fl, x, &fl);
+      fh = mulddd3 (fh, fl, x, &fl);
       double hx = 0.5 * x, x2h = x * hx, x2l = fma (x, hx, -x2h);
       fh = fastsum (x2h, x2l, fh, fl, &fl);
       double v2, v0 = fasttwosum (x, fh, &v2), v1 = fasttwosum (v2, fl, &v2);
@@ -409,7 +350,7 @@ as_expm1_accurate (double x)
       int64_t jt = t, i0 = (jt >> 6) & 0x3f, i1 = jt & 0x3f, ie = jt >> 12;
       double t0h = t0[i0][1], t0l = t0[i0][0];
       double t1h = t1[i1][1], t1l = t1[i1][0];
-      double tl, th = muldd (t0h, t0l, t1h, t1l, &tl);
+      double tl, th = muldd2 (t0h, t0l, t1h, t1l, &tl);
 
       const double l2h = 0x1.62e42ffp-13, l2l = 0x1.718432a1b0e26p-47,
 		   l2ll = 0x1.9ff0342542fc3p-102;
@@ -417,9 +358,9 @@ as_expm1_accurate (double x)
 	     dxll = l2ll * t + fma (l2l, t, -dxl);
       double dxh = dx + dxl;
       dxl = (dx - dxh) + dxl + dxll;
-      double fl = 0, fh = opolydd (dxh, dxl, 7, ch, &fl);
-      fh = muldd (dxh, dxl, fh, fl, &fl);
-      fh = muldd (fh, fl, th, tl, &fl);
+      double fl = 0, fh = polydd2 (dxh, dxl, 7, ch, &fl);
+      fh = muldd2 (dxh, dxl, fh, fl, &fl);
+      fh = muldd2 (fh, fl, th, tl, &fl);
       fh = fastsum (th, tl, fh, fl, &fl);
       double off = asdouble ((uint64_t) (2048 + 1023 - ie) << MANTISSA_WIDTH);
       double e;
@@ -492,7 +433,7 @@ __expm1 (double x)
       double e0 = 0x1.ap-65, eps = z2 * e0 + 0x1p-104;
       double rl, rh = fasttwosum (th, fh, &rl);
       rl += tl + fl;
-      fh = muldd (th, tl, fh, fl, &fl);
+      fh = muldd2 (th, tl, fh, fl, &fl);
       fh = fastsum (rh, rl, fh, fl, &fl);
       double ub = fh + (fl + eps), lb = fh + (fl - eps);
       if (__glibc_unlikely (ub != lb))
@@ -532,7 +473,7 @@ __expm1 (double x)
       int64_t jt = t, i0 = (jt >> 6) & 0x3f, i1 = jt & 0x3f, ie = jt >> 12;
       double t0h = t0[i0][1], t0l = t0[i0][0];
       double t1h = t1[i1][1], t1l = t1[i1][0];
-      double tl, th = muldd (t0h, t0l, t1h, t1l, &tl);
+      double tl, th = muldd2 (t0h, t0l, t1h, t1l, &tl);
       const double l2h = 0x1.62e42ffp-13, l2l = 0x1.718432a1b0e26p-47;
       double dx = (x - l2h * t) + l2l * t, dx2 = dx * dx;
       static const double ch[]

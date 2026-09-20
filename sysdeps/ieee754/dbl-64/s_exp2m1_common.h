@@ -1,4 +1,4 @@
-/* Common data for the binary64 exp2m1 and exp10m1 implementations.
+/* Common code for the binary64 exp2m1 and exp10m1 implementations.
 
 Copyright (c) 2022-2025 Alexei Sibidanov, Paul Zimmermann, Tom Hubrecht and
 Claude-Pierre Jeannerod.
@@ -37,5 +37,59 @@ SOFTWARE.
    approximation error is bounded by 2^-107.  */
 extern const double __exp2m1_t1[64][2] attribute_hidden;
 extern const double __exp2m1_t2[64][2] attribute_hidden;
+
+/* Put in *HI + *LO a double-double approximation of exp(XH + XL), for the
+   fast path (relative error bounded by 2^-74.139) and for the accurate
+   path (bounded by 2^-113.218) respectively.  */
+extern void __exp2m1_exp_1 (double *__hi, double *__lo, double __xh,
+			    double __xl) attribute_hidden;
+extern void __exp2m1_q_2 (double *__hi, double *__lo, double __zh,
+			  double __zl) attribute_hidden;
+
+static inline void
+a_mul (double *hi, double *lo, double a, double b)
+{
+  *hi = a * b;
+  *lo = fma (a, b, -*hi);
+}
+
+// Multiply a double with a double double : a * (bh + bl)
+static inline void
+s_mul (double *hi, double *lo, double a, double bh, double bl)
+{
+  a_mul (hi, lo, a, bh); /* exact */
+  *lo = fma (a, bl, *lo);
+}
+
+// Returns (ah + al) * (bh + bl) - (al * bl)
+static inline void
+d_mul (double *hi, double *lo, double ah, double al, double bh, double bl)
+{
+  a_mul (hi, lo, ah, bh);
+  *lo = fma (ah, bl, *lo);
+  *lo = fma (al, bh, *lo);
+}
+
+// Add a + b, assuming |a| >= |b|
+static inline void
+fast_two_sum (double *hi, double *lo, double a, double b)
+{
+  double e;
+
+  *hi = a + b;
+  e = *hi - a; /* exact */
+  *lo = b - e; /* exact */
+}
+
+// Add a + (bh + bl), assuming |a| >= |bh|
+static inline void
+fast_sum (double *hi, double *lo, double a, double bh, double bl)
+{
+  fast_two_sum (hi, lo, a, bh);
+  /* |(a+bh)-(hi+lo)| <= 2^-105 |hi| and |lo| < ulp(hi) */
+  *lo += bl;
+  /* |(a+bh+bl)-(hi+lo)| <= 2^-105 |hi| + ulp(lo),
+     where |lo| <= ulp(hi) + |bl|. */
+}
 
 #endif
