@@ -9782,6 +9782,10 @@ sinpi 0x1.46949ap-5
 sinpi -0x1.45f3e53e1d707p-7
 sinpi 0x2.8bea50886e293398p-8
 sinpi -0x1.45f52c8be3999ba924f1f3e5a7b7p-8
+# hard-to-round cases for binary64
+sinpi -0x1.46fa11aab9917p-4
+sinpi -0x1.468d68d3836b8p-4
+sinpi -0x1.49bf39d5270ep-3
 
 sub 0 0
 sub 0 -0
