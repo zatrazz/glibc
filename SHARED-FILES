@@ -285,6 +285,8 @@ core-math:
   sysdeps/ieee754/dbl-64/s_erf.c
   # src/binary64/erfc/erfc.c, revision ac1993d8
   sysdeps/ieee754/dbl-64/s_erfc.c
+  # src/binary64/exp10m1/exp10m1.c, revision 8ea8ea35
+  sysdeps/ieee754/dbl-64/s_exp10m1.c
   # src/binary64/exp2m1/exp2m1.c, revision 8ea8ea35
   sysdeps/ieee754/dbl-64/s_exp2m1.c
   # src/binary64/expm1/expm1.c, revision 8ea8ea35
