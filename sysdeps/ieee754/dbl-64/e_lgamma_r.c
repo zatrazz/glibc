@@ -1349,7 +1349,7 @@ __ieee754_lgamma_r (double x, int *signgamp)
 	      z = ax - 2;
 	      fh = mulddd2 (z, fh, fl, &fl);
 	    }
-	  eps = fabs (fh) * 8.3e-20 + 1e-24;
+	  eps = fabs (fh) * 8.7e-20 + 1e-24;
 	}
       if (t >> 63)
 	{ // x<0 so use reflection formula
@@ -1359,7 +1359,7 @@ __ieee754_lgamma_r (double x, int *signgamp)
 	  ll += sl / sh;
 	  fh = -sumdd (fh, fl, lh, ll, &fl);
 	  fl = -fl;
-	  eps += fabs (lh) * 4e-22;
+	  eps += fabs (lh) * 8e-22;
 	  int64_t k = fx;
 	  *signgamp = 1 - 2 * (k & 1);
 	}
