@@ -10233,6 +10233,10 @@ tanpi 0x1.eb90dep-2
 tanpi -0x1.fae7d0ef22d4ep-2
 tanpi -0x3.a8c5dc49265fd13p+0
 tanpi -0x1.a8c117800f4a648c213cd0b6db1fp+0
+# hard-to-round cases for binary64
+tanpi 0x1.f60646b1fc4fap-3
+tanpi 0x1.53f1b59c5087p-1
+tanpi -0x1.54085d202020dp-2
 
 tgamma 0.5
 tgamma -0.5
