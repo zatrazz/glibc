@@ -286,6 +286,7 @@ core-math:
   # src/binary64/erfc/erfc.c, revision ac1993d8
   sysdeps/ieee754/dbl-64/s_erfc.c
   # src/binary64/sinpi/sinpi.c, revision cd0b9d90
+  sysdeps/ieee754/dbl-64/s_sincospi_data.c
   sysdeps/ieee754/dbl-64/s_sinpi.c
   # src/binary64/tanh/tanh.c, revision dbd377a9
   sysdeps/ieee754/dbl-64/s_tanh.c
