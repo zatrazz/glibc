@@ -374,6 +374,7 @@ type-double-routines := \
   s_erf_common \
   s_erf_data \
   s_erfc_data \
+  s_exp2m1_common \
   s_sincospi_data \
   sincostab \
   # type-double-routines
