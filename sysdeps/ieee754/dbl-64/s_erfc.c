@@ -43,6 +43,7 @@ SOFTWARE.
 */
 
 #include <array_length.h>
+#include <fenv.h>
 #include <math.h>
 #include <stdint.h>
 #include <errno.h>
@@ -256,6 +257,8 @@ exp_accurate (double *h, double *l, int *e, double xh, double xl)
 static double
 erfc_asympt_fast (double *h, double *l, double x)
 {
+  /* Whether underflow was already raised on entry.  */
+  int underflow = __fetestexcept (FE_UNDERFLOW);
   /* for x >= 0x1.9db1bb14e15cap+4, erfc(x) < 2^-970, and we might encounter
      underflow issues in the computation of l, thus we delegate this case
      to the accurate path */
@@ -370,6 +373,13 @@ erfc_asympt_fast (double *h, double *l, double x)
      (1+2^-71.804)*(1+2^-74.139)*(1+2^-97.9)*(1+2^-67.184)*(1+2^-80)-1
      < 2^-67.115
   */
+
+  /* erfc underflows iff x >= 0x1.a8b12fc6e4892p+4, whatever the rounding
+     mode; below that any underflow raised above is spurious.  */
+  if (underflow == 0 && x < 0x1.a8b12fc6e4892p+4
+      && __fetestexcept (FE_UNDERFLOW))
+    __feclearexcept (FE_UNDERFLOW);
+
   // avoid a spurious underflow in 0x1.d9p-68 * h
   if (*h >= 0x1.151b9a3fdd5c9p-955)
     return 0x1.d9p-68 * *h; /* 2^-67.115 < 0x1.d9p-68 */
