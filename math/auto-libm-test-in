@@ -6331,6 +6331,10 @@ exp2m1 0x9.1217d12087d76b2ca347683e4b5p-4
 exp2m1 0x8.80db492a604297e1a3816aeec568p-4
 exp2m1 0x8.872e307510a80e501665a37c218p-4
 exp2m1 0x9.10b9251f0cc9bdc81d6ab13bb74p-4
+# hard-to-round cases for binary64
+exp2m1 -0x1.8a8bd8b30351fp-2
+exp2m1 0x1.f7a02b3b57352p-1
+exp2m1 0x1.7fb98f2683a2bp-1
 
 expm1 0
 expm1 -0
