@@ -5169,6 +5169,9 @@ cospi 0x1.ae1126p-2
 cospi -0x1.1a0a2fa299b92p+6
 cospi 0x7.ae7df669ffba0068p-4
 cospi -0x2.5845a017ae769ea1c20e04c7e47cp+28
+# hard-to-round cases for binary64
+cospi -0x1.a9fd919a751f6p+0
+cospi -0x1.5894d8dd39c78p-2
 
 cosh 0
 cosh -0

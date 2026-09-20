@@ -279,6 +279,8 @@ core-math:
   sysdeps/ieee754/dbl-64/s_asinh.c
   # src/binary64/cbrt/cbrt.c, revision 2863c7f2
   sysdeps/ieee754/dbl-64/s_cbrt.c
+  # src/binary64/cospi/cospi.c, revision 4fc89d57
+  sysdeps/ieee754/dbl-64/s_cospi.c
   # src/binary64/erf/erf.c, revision 384ed01d
   sysdeps/ieee754/dbl-64/s_erf.c
   # src/binary64/erfc/erfc.c, revision ac1993d8
