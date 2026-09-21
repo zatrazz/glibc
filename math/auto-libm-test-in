@@ -9383,6 +9383,7 @@ rsqrt 0x1.fffffffffffe3p+1023
 rsqrt 0x1.fffffffffffdfp+1023
 rsqrt 0x1.fffffffffffdbp+1023
 rsqrt 0x1.fffffffffffd7p+1023
+rsqrt 0x1.0000000000001p+1022
 rsqrt 0x1.0000000000003p-1022
 rsqrt 0x1.0000000000007p-1022
 rsqrt 0x1.000000000000bp-1022

@@ -10,7 +10,8 @@ Version 2.45
 Major new features:
 
 * Additional optimized and correctly rounded mathematical functions have
-  been imported from the CORE-MATH project, in particular cbrt.
+  been imported from the CORE-MATH project, in particular cbrt and rsqrt
+  for both float and double format.
 
 Deprecated and removed features, and other changes affecting compatibility:
 
