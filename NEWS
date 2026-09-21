@@ -9,7 +9,8 @@ Version 2.45
 
 Major new features:
 
-  [Add new features here]
+* The rsqrt and rsqrtf functions are now correctly rounded in all rounding
+  modes.  The rsqrt implementation is imported from the CORE-MATH project.
 
 Deprecated and removed features, and other changes affecting compatibility:
 

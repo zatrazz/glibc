@@ -17,6 +17,8 @@ CFLAGS-s_erfc.c += -fexcess-precision=standard
 CFLAGS-s_erf_common.c += -fexcess-precision=standard
 CFLAGS-s_fma.c += -fexcess-precision=standard
 CFLAGS-s_fmaf.c += -fexcess-precision=standard
+CFLAGS-s_rsqrt.c += -fexcess-precision=standard \
+		    -DI386_EXCESS_PRECISION_STANDARD
 CFLAGS-s_tanh.c += -fexcess-precision=standard
 endif
 
