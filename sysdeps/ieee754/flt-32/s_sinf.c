@@ -68,9 +68,11 @@ as_sinf_big (float x)
   int ia;
   double z = RBIG_SINCOSF (t, &ia);
   double z2 = z * z, z4 = z2 * z2;
-  double aa = (A[0] + z2 * A[1]) + z4 * (A[2] + z2 * A[3]);
-  double bb = (B[0] + z2 * B[1]) + z4 * (B[2] + z2 * B[3]);
-  double s0 = TB[ia & 31], c0 = TB[(ia + 8u) & 31];
+  double aa = (A (0) + z2 * A (1)) + z4 * (A (2) + z2 * A (3));
+  double bb = (B (0) + z2 * B (1)) + z4 * (B (2) + z2 * B (3));
+  /* CS[(ia + 24) & 31] = { sin(ia*pi/16), cos(ia*pi/16) }.  */
+  unsigned int k = (ia + 24u) & 31;
+  double s0 = CS[k][0], c0 = CS[k][1];
   double r = s0 + z * (aa * c0 - bb * (z * s0));
   return r;
 }
@@ -119,9 +121,11 @@ SINF_FUNC (float x)
       z = rltl (z0, &ia);
     }
   double z2 = z * z, z4 = z2 * z2;
-  double aa = (A[0] + z2 * A[1]) + z4 * (A[2] + z2 * A[3]);
-  double bb = (B[0] + z2 * B[1]) + z4 * (B[2] + z2 * B[3]);
-  double s0 = TB[ia & 31], c0 = TB[(ia + 8) & 31];
+  double aa = (A (0) + z2 * A (1)) + z4 * (A (2) + z2 * A (3));
+  double bb = (B (0) + z2 * B (1)) + z4 * (B (2) + z2 * B (3));
+  /* CS[(ia + 24) & 31] = { sin(ia*pi/16), cos(ia*pi/16) }.  */
+  unsigned int k = (ia + 24u) & 31;
+  double s0 = CS[k][0], c0 = CS[k][1];
   double r = s0 + aa * (z * c0) - bb * (z2 * s0);
   return r;
 }
