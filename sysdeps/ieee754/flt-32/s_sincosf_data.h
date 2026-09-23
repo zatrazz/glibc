@@ -24,18 +24,31 @@
 extern const uint64_t __sinf_ipi[] attribute_hidden;
 #define IPI __sinf_ipi
 
+/* Two doubles, the sine and the cosine in sincosf; the arithmetic on it
+   is the same in every lane, so the compiler either vectorizes it or
+   emits the two scalar computations.  */
+typedef double sincosf_v2df_t __attribute__ ((__vector_size__ (16)));
+
 typedef struct
 {
   double b[4];
   double a[4];
   double tb[32];
   double tb_cosf[32];
+  /* For sincosf: { a[k], b[k] }, and rows of the pairs { c, -s } and
+     { -s, -c } with s = tb[k] and c = tb[k + 8] the sine and cosine of
+     k*pi/16 (the table is antisymmetric, -s = tb[k + 16] and
+     -c = tb[k + 24]).  */
+  sincosf_v2df_t ab[4];
+  sincosf_v2df_t tbr[32][2];
 } sincosf_tables_t;
 extern const sincosf_tables_t __sincosf_tables attribute_hidden;
 #define B __sincosf_tables.b
 #define A __sincosf_tables.a
 #define TB __sincosf_tables.tb
 #define TB_COSF __sincosf_tables.tb_cosf
+#define AB __sincosf_tables.ab
+#define TBR __sincosf_tables.tbr
 
 typedef struct
 {

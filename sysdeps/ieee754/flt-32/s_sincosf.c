@@ -133,15 +133,25 @@ SINCOSF_FUNC (float x, float *sout, float *cout)
       z = rltl (z0, &ia);
     }
   double z2 = z * z, z4 = z2 * z2;
-  double aa = (A[0] + z2 * A[1]) + z4 * (A[2] + z2 * A[3]);
-  double bb = (B[0] + z2 * B[1]) + z4 * (B[2] + z2 * B[3]);
-  aa *= z;
-  bb *= z2;
-  double s0 = TB[ia & 31], c0 = TB[(ia + 8) & 31];
-  double rs = s0 + (aa * c0 - bb * s0);
-  double rc = c0 - (aa * s0 + bb * c0);
-  *sout = rs;
-  *cout = rc;
+  /* The sine and the cosine are evaluated together, lane 0 and lane 1
+     of the vectors, as
+       sin = s0 + (aa * c0 - bb * s0)
+       cos = c0 - (aa * s0 + bb * c0)
+     with { aa, bb } = q, m = { c0, -s0 } and w = { -s0, -c0 } from the
+     row TBR[ia]: t = aa * m + bb * w and r = t - w.
+     Each lane performs the operations of the scalar formula, the cosine
+     up to exact negations, so the results do not depend on whether the
+     compiler uses vector instructions.  Fusing aa * m with the addition
+     is a plain fused multiply-add, available in vector form wherever a
+     scalar one is.  */
+  sincosf_v2df_t p = (AB[0] + z2 * AB[1]) + z4 * (AB[2] + z2 * AB[3]);
+  sincosf_v2df_t q = p * (sincosf_v2df_t) { z, z2 };
+  const sincosf_v2df_t *row = TBR[ia & 31];
+  sincosf_v2df_t m = row[0], w = row[1];
+  sincosf_v2df_t t = q[0] * m + q[1] * w;
+  sincosf_v2df_t r = t - w;
+  *sout = r[0];
+  *cout = r[1];
 }
 
 #ifndef SINCOSF
