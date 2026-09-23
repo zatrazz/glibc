@@ -24,18 +24,21 @@
 extern const uint64_t __sinf_ipi[] attribute_hidden;
 #define IPI __sinf_ipi
 
+typedef double sincosf_v2df_t __attribute__ ((__vector_size__ (16)));
+
 typedef struct
 {
-  double b[4];
-  double a[4];
-  double tb[32];
-  double tb_cosf[32];
+  /* { cos(k*pi/16), -sin(k*pi/16) }, with the first 8 entries repeated
+     at the end so CS[(i & 31) + 8] needs no wrap around.  */
+  sincosf_v2df_t cs[40];
+  /* The coefficients { a[k], b[k] } of the two polynomials in z^2.  */
+  sincosf_v2df_t ab[4];
 } sincosf_tables_t;
 extern const sincosf_tables_t __sincosf_tables attribute_hidden;
-#define B __sincosf_tables.b
-#define A __sincosf_tables.a
-#define TB __sincosf_tables.tb
-#define TB_COSF __sincosf_tables.tb_cosf
+#define AB __sincosf_tables.ab
+#define A(k) AB[k][0]
+#define B(k) AB[k][1]
+#define CS __sincosf_tables.cs
 
 typedef struct
 {

@@ -59,9 +59,9 @@ as_cosf_big (float x)
   int ia;
   double z = RBIG_SINCOSF (t, &ia);
   double z2 = z * z, z4 = z2 * z2;
-  double aa = (A[0] + z2 * A[1]) + z4 * (A[2] + z2 * A[3]);
-  double bb = (B[0] + z2 * B[1]) + z4 * (B[2] + z2 * B[3]);
-  double s0 = TB_COSF[(ia + 8u) & 31], c0 = TB_COSF[ia & 31];
+  double aa = (A (0) + z2 * A (1)) + z4 * (A (2) + z2 * A (3));
+  double bb = (B (0) + z2 * B (1)) + z4 * (B (2) + z2 * B (3));
+  double c0 = CS[ia & 31][0], s0 = CS[ia & 31][1];
   double r = c0 + z * (aa * s0 - bb * (z * c0));
   uint32_t tr = asuint64 (r);
   uint64_t tail = (tr + 6) & (~UINT64_C(0) >> 36);
@@ -109,9 +109,9 @@ COSF_FUNC (float x)
       z = rltl (z0, &ia);
     }
   double z2 = z * z, z4 = z2 * z2;
-  double aa = (A[0] + z2 * A[1]) + z4 * (A[2] + z2 * A[3]);
-  double bb = (B[0] + z2 * B[1]) + z4 * (B[2] + z2 * B[3]);
-  double c0 = TB_COSF[ia & 31], s0 = TB_COSF[(ia + 8) & 31];
+  double aa = (A (0) + z2 * A (1)) + z4 * (A (2) + z2 * A (3));
+  double bb = (B (0) + z2 * B (1)) + z4 * (B (2) + z2 * B (3));
+  double c0 = CS[ia & 31][0], s0 = CS[ia & 31][1];
   double r = c0 + aa * (z * s0) - bb * (z2 * c0);
   return r;
 }
