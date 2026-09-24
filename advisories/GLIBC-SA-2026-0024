@@ -1,0 +1,22 @@
+posix: Fix double-free after allocation failure in regcomp
+
+The regcomp function in the GNU C Library versions from 2.4 to 2.44 is
+subject to a double free / use-after-free if some previous allocation
+fails.  When one of the arrays growing the internal NFA node table
+(re_dfa_add_node) or the bracket range table (build_range_exp) is
+reallocated to a new address but a subsequent reallocation of a paired
+array fails, the stale pointers to the blocks already released by
+realloc are left in place and freed again during cleanup.  The failure
+can be triggered by a malloc failure or by using an interposed malloc
+that injects random malloc failures.  The double free can allow buffer
+manipulation depending on how the regex is constructed.  This issue
+affects all architectures and ABIs supported by the GNU C Library.
+
+This is a sibling of CVE-2025-8058 (GLIBC-SA-2025-0005), whose fix
+addressed the bracket-expression parsing path only.
+
+CVE-Id: CVE-TBD
+Public-Date: 2026-09-24
+Vulnerable-Commit: 963d8d782fc98fb6dc3a66f0068795f9920c269d (2.3.3-1596)
+Reported-by: Tristan <TristanInSec@gmail.com>
+CVSS: CVSS:3.1/AV:L/AC:H/PR:L/UI:N/S:U/C:L/I:L/A:L - 4.5
