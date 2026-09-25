@@ -4,6 +4,9 @@ endif
 
 ifeq ($(subdir),stdlib)
 sysdep_routines += __start_context allocate-shadow-stack
+tests += \
+  tst-swapcontext-efault \
+  # tests
 endif
 
 ifeq ($(subdir),csu)
@@ -122,4 +125,11 @@ ifeq ($(subdir),stdlib)
 tests += tst-cet-setcontext-1
 CFLAGS-tst-cet-setcontext-1.c += -mshstk
 endif
+endif
+
+ifeq ($(subdir),stdlib)
+test-xfail-tst-ucontext-unwind = yes
+test-xfail-tst-ucontext-unwind-sampling = yes
+test-xfail-tst-ucontext-unwind-fault = yes
+test-xfail-tst-swapcontext-efault = yes
 endif

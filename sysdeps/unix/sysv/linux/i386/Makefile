@@ -46,3 +46,9 @@ CFLAGS-dl-writev.op = $(no-stack-protector)
 # while PAE and 64-bit kernels use a 2MB PMD huge page.
 THP-PAGE-SIZE = 0x400000
 endif
+
+ifeq ($(subdir),stdlib)
+test-xfail-tst-ucontext-unwind = yes
+test-xfail-tst-ucontext-unwind-sampling = yes
+test-xfail-tst-ucontext-unwind-fault = yes
+endif

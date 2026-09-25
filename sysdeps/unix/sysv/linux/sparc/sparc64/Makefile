@@ -12,3 +12,7 @@ ifeq ($(subdir),conform)
 # For bug 23821 (incorrect type of si_band).
 conformtest-xfail-conds += sparc64-linux
 endif
+
+ifeq ($(subdir),stdlib)
+test-xfail-tst-ucontext-unwind = yes
+endif

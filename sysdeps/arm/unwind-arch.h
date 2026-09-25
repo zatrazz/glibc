@@ -32,8 +32,10 @@
   assert (local.ptr__Unwind_VRS_Get != NULL);                 \
   PTR_MANGLE (local.ptr__Unwind_VRS_Get);
 
+#ifndef _ISOMAC
 /* This is used by the _Unwind_Resume assembler implementation to
    obtain the address to jump to.  */
 void *__unwind_link_get_resume (void) attribute_hidden;
+#endif
 
 #endif /* _ARCH_UNWIND_LINK_H */

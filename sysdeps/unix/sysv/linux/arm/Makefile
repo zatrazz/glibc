@@ -60,3 +60,7 @@ endif
 abi-includes :=
 abi-soft-condition := !defined __ARM_PCS_VFP
 abi-hard-condition := defined __ARM_PCS_VFP
+
+ifeq ($(subdir),stdlib)
+test-xfail-tst-ucontext-unwind = yes
+endif

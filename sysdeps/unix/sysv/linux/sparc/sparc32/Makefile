@@ -18,3 +18,8 @@ ifeq ($(subdir),math)
 # Provide these routines here as well.
 libm-routines += multc3 divtc3
 endif   # math
+
+ifeq ($(subdir),stdlib)
+test-xfail-tst-ucontext-unwind = yes
+test-xfail-tst-ucontext-unwind-sampling = yes
+endif

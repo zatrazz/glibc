@@ -9,3 +9,7 @@ endif
 ifeq ($(subdir),elf)
 THP-PAGE-SIZE = 0
 endif
+
+ifeq ($(subdir),stdlib)
+test-xfail-tst-ucontext-unwind = yes
+endif

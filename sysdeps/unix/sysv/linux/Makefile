@@ -430,6 +430,22 @@ tst-rseq-disable-static-TUNABLES += glibc.pthread.rseq=0
 
 endif # $(subdir) == misc
 
+ifeq ($(subdir),stdlib)
+tests += \
+  tst-ucontext-unwind \
+  tst-ucontext-unwind-sampling \
+  # tests
+
+# Every frame must stay on the stack.
+CFLAGS-tst-ucontext-unwind.c += -fasynchronous-unwind-tables \
+  -fno-optimize-sibling-calls
+CFLAGS-tst-ucontext-unwind-sampling.c += -fasynchronous-unwind-tables \
+  -fno-optimize-sibling-calls
+LDFLAGS-tst-ucontext-unwind = $(LDFLAGS-rdynamic)
+# No lazy binding frames in the samples.
+LDFLAGS-tst-ucontext-unwind-sampling = $(LDFLAGS-rdynamic) -Wl,-z,now
+endif # $(subdir) == stdlib
+
 ifeq ($(subdir),termios)
 sysdep_headers += \
   bits/termios-c_cc.h \

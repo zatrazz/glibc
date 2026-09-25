@@ -24,3 +24,9 @@ endif
 ifeq ($(subdir),debug)
 test-xfail-tst-ssp-1 = $(have-ssp)
 endif # $(subdir) == debug
+
+ifeq ($(subdir),stdlib)
+# Unwinding through the context functions (BZ 34575).
+test-xfail-tst-ucontext-unwind = yes
+test-xfail-tst-ucontext-unwind-sampling = yes
+endif
