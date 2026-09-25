@@ -33,6 +33,9 @@
 
 ENTRY(__setcontext)
 	save	%sp, -112, %sp
+	cfi_def_cfa_register(%fp)
+	cfi_window_save
+	cfi_register(%o7, %i7)
 
 	mov	SIG_SETMASK, %o0
 	add	%i0, UC_SIGMASK, %o1
@@ -85,6 +88,9 @@ ENTRY(__setcontext)
 	ld	[%i0 + UC_MCONTEXT + MC_GREGS + GREG_O4], %i4
 	ld	[%i0 + UC_MCONTEXT + MC_GREGS + GREG_O5], %i5
 	ld	[%i0 + UC_MCONTEXT + MC_GREGS + GREG_O6], %i6
+	/* The frame is the new context's from here on, without the return
+	   address: mark it outermost.  */
+	cfi_undefined(%o7)
 	restore
 	ld	[%o0 + UC_MCONTEXT + MC_GREGS + GREG_O7], %o7
 	ld	[%o0 + UC_MCONTEXT + MC_GREGS + GREG_PC], %g1
@@ -94,18 +100,9 @@ END(__setcontext)
 
 weak_alias (__setcontext, setcontext)
 
-/* We add an NOP here to separate between __setcontext/__startcontext. The
-   wanted behavior that happens is: when unwinding from a function called
-   inside a makecontext() context, FDE lookup will use '&__startcontext - 1',
-   then returns NULL for no FDE found, and immediately ends the unwind, in
-   a normal fashion.
-
-   If this NOP word does not exist, FDE lookup just repeatedly finds
-   __setcontext's FDE in an infinite loop, due to the convention of using
-   'address - 1' for FDE lookup. Modifying/deleting the below
-   __startcontext's FDE has no help on this.  */
-
-	nop
+/* The FDE lookup for a function called inside a makecontext() context
+   uses '&__start_context - 1'.  Cover it with a NOP in the
+   __start_context FDE, which marks the outermost frame.  */
 
 /* This is the helper code which gets called if a function which is
    registered with 'makecontext' returns.  In this case we have to
@@ -113,7 +110,13 @@ weak_alias (__setcontext, setcontext)
    'makecontext' manipulated at the time of the 'makecontext' call.
    If the pointer is NULL the process must terminate.  */
 
-ENTRY(__start_context)
+	.globl	C_SYMBOL_NAME(__start_context)
+	.type	C_SYMBOL_NAME(__start_context),@function
+	.align	4
+	cfi_startproc
+	cfi_undefined(%o7)
+	nop
+C_LABEL(__start_context)
 	ld	[%sp + (16 * 4)], %g1
 	cmp	%g1, 0
 	be,a	1f

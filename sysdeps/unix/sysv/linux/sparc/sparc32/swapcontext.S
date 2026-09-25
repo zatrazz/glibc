@@ -35,6 +35,9 @@
 
 ENTRY(__swapcontext)
 	save	%sp, -112, %sp
+	cfi_def_cfa_register(%fp)
+	cfi_window_save
+	cfi_register(%o7, %i7)
 	ta	ST_FLUSH_WINDOWS
 	st	%g0, [%i0 + UC_MCONTEXT + MC_GREGS + GREG_PSR]
 	add	%i7, 8, %o0
@@ -107,6 +110,9 @@ ENTRY(__swapcontext)
 	ld	[%i0 + UC_MCONTEXT + MC_GREGS + GREG_O4], %i4
 	ld	[%i0 + UC_MCONTEXT + MC_GREGS + GREG_O5], %i5
 	ld	[%i0 + UC_MCONTEXT + MC_GREGS + GREG_O6], %i6
+	/* The frame is the new context's from here on, without the return
+	   address: mark it outermost.  */
+	cfi_undefined(%o7)
 	restore
 	ld	[%o0 + UC_MCONTEXT + MC_GREGS + GREG_O7], %o7
 	ld	[%o0 + UC_MCONTEXT + MC_GREGS + GREG_PC], %g1
