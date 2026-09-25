@@ -43,23 +43,25 @@ LEAF (__setcontext)
 
 	bltz	a0, 99f
 
-	cfi_def_cfa (t0, 0)
+	/* The unwinder sees the new context through t0 from here on.  */
+	cfi_remember_state
+	CONTEXT_CFI (t0)
 
 #ifndef __riscv_float_abi_soft
 	lw	t1, MCONTEXT_FSR(t0)
 
-	RESTORE_FP_REG_CFI (fs0,   8, t0)
-	RESTORE_FP_REG_CFI (fs1,   9, t0)
-	RESTORE_FP_REG_CFI (fs2,  18, t0)
-	RESTORE_FP_REG_CFI (fs3,  19, t0)
-	RESTORE_FP_REG_CFI (fs4,  20, t0)
-	RESTORE_FP_REG_CFI (fs5,  21, t0)
-	RESTORE_FP_REG_CFI (fs6,  22, t0)
-	RESTORE_FP_REG_CFI (fs7,  23, t0)
-	RESTORE_FP_REG_CFI (fs8,  24, t0)
-	RESTORE_FP_REG_CFI (fs9,  25, t0)
-	RESTORE_FP_REG_CFI (fs10, 26, t0)
-	RESTORE_FP_REG_CFI (fs11, 27, t0)
+	RESTORE_FP_REG (fs0,   8, t0)
+	RESTORE_FP_REG (fs1,   9, t0)
+	RESTORE_FP_REG (fs2,  18, t0)
+	RESTORE_FP_REG (fs3,  19, t0)
+	RESTORE_FP_REG (fs4,  20, t0)
+	RESTORE_FP_REG (fs5,  21, t0)
+	RESTORE_FP_REG (fs6,  22, t0)
+	RESTORE_FP_REG (fs7,  23, t0)
+	RESTORE_FP_REG (fs8,  24, t0)
+	RESTORE_FP_REG (fs9,  25, t0)
+	RESTORE_FP_REG (fs10, 26, t0)
+	RESTORE_FP_REG (fs11, 27, t0)
 
 	fssr	t1
 #endif /* __riscv_float_abi_soft */
@@ -67,10 +69,10 @@ LEAF (__setcontext)
 	/* Note the contents of argument registers will be random
 	   unless makecontext() has been called.  */
 	RESTORE_INT_REG     (t1,   0, t0)
-	RESTORE_INT_REG_CFI (ra,   1, t0)
+	RESTORE_INT_REG (ra,   1, t0)
 	RESTORE_INT_REG     (sp,   2, t0)
-	RESTORE_INT_REG_CFI (s0,   8, t0)
-	RESTORE_INT_REG_CFI (s1,   9, t0)
+	RESTORE_INT_REG (s0,   8, t0)
+	RESTORE_INT_REG (s1,   9, t0)
 	RESTORE_INT_REG     (a0,  10, t0)
 	RESTORE_INT_REG     (a1,  11, t0)
 	RESTORE_INT_REG     (a2,  12, t0)
@@ -79,19 +81,20 @@ LEAF (__setcontext)
 	RESTORE_INT_REG     (a5,  15, t0)
 	RESTORE_INT_REG     (a6,  16, t0)
 	RESTORE_INT_REG     (a7,  17, t0)
-	RESTORE_INT_REG_CFI (s2,  18, t0)
-	RESTORE_INT_REG_CFI (s3,  19, t0)
-	RESTORE_INT_REG_CFI (s4,  20, t0)
-	RESTORE_INT_REG_CFI (s5,  21, t0)
-	RESTORE_INT_REG_CFI (s6,  22, t0)
-	RESTORE_INT_REG_CFI (s7,  23, t0)
-	RESTORE_INT_REG_CFI (s8,  24, t0)
-	RESTORE_INT_REG_CFI (s9,  25, t0)
-	RESTORE_INT_REG_CFI (s10, 26, t0)
-	RESTORE_INT_REG_CFI (s11, 27, t0)
+	RESTORE_INT_REG (s2,  18, t0)
+	RESTORE_INT_REG (s3,  19, t0)
+	RESTORE_INT_REG (s4,  20, t0)
+	RESTORE_INT_REG (s5,  21, t0)
+	RESTORE_INT_REG (s6,  22, t0)
+	RESTORE_INT_REG (s7,  23, t0)
+	RESTORE_INT_REG (s8,  24, t0)
+	RESTORE_INT_REG (s9,  25, t0)
+	RESTORE_INT_REG (s10, 26, t0)
+	RESTORE_INT_REG (s11, 27, t0)
 
 	jr	t1
 
+	cfi_restore_state
 99:	tail	__syscall_error
 
 END (__setcontext)
