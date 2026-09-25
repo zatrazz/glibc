@@ -31,6 +31,7 @@
 LEAF (__setcontext)
 
 	ADDI		sp, sp, -16
+	cfi_adjust_cfa_offset (16)
 	REG_S		a0, sp, 0	/* Save ucp to stack */
 
 /* rt_sigprocmask (SIG_SETMASK, &ucp->uc_sigmask, NULL, _NSIG8) */
@@ -46,7 +47,9 @@ LEAF (__setcontext)
 	blt		a0, $r0, 99f
 
 	REG_L		t0, sp, 0	/* Load ucp to t0 */
-	cfi_def_cfa (12, 0)
+	/* The unwinder sees the new context through t0 from here on.  */
+	cfi_remember_state
+	CONTEXT_CFI (12)
 
 /* Note the contents of argument registers will be random
    unless makecontext() has been called.  */
@@ -75,8 +78,10 @@ LEAF (__setcontext)
 	REG_L		t1, t0, MCONTEXT_PC
 	jirl		$r0,t1,0
 
+	cfi_restore_state
 99:
 	ADDI		sp, sp, 16
+	cfi_adjust_cfa_offset (-16)
 	b		__syscall_error
 
 PSEUDO_END (__setcontext)
