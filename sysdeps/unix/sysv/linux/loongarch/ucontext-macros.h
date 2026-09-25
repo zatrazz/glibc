@@ -31,4 +31,14 @@
 #define RESTORE_INT_REG(name, num, base) \
   REG_L name, base, ((num) * 8 + MCONTEXT_GREGS)
 
+/* Describe the context whose address is in BASE to the unwinder.  */
+#define INT_REG_CFI(regno, num) \
+  cfi_offset (regno, (num) * 8 + MCONTEXT_GREGS)
+#define CONTEXT_CFI(base)						\
+  cfi_def_cfa (base, 0);						\
+  INT_REG_CFI (1, 1); INT_REG_CFI (3, 3); INT_REG_CFI (22, 22);	\
+  INT_REG_CFI (23, 23); INT_REG_CFI (24, 24); INT_REG_CFI (25, 25);	\
+  INT_REG_CFI (26, 26); INT_REG_CFI (27, 27); INT_REG_CFI (28, 28);	\
+  INT_REG_CFI (29, 29); INT_REG_CFI (30, 30); INT_REG_CFI (31, 31)
+
 #endif /* _LINUX_LOONGARCH_UCONTEXT_MACROS_H */

@@ -23,6 +23,7 @@
 LEAF (__swapcontext)
 	ori		a2, sp, 0		/* Save sp to a2 */
 	ADDI		sp, sp, -16
+	cfi_adjust_cfa_offset (16)
 	REG_S		a1, sp, 0
 	ori		t0, a1, 0
 
@@ -57,6 +58,9 @@ LEAF (__swapcontext)
 	blt		a0, zero, 99f
 
 	REG_L		t0, sp, 0		/* Load a1 to t0 */
+	/* The unwinder sees the new context through t0 from here on.  */
+	cfi_remember_state
+	CONTEXT_CFI (12)
 
 /* Note the contents of argument registers will be random
    unless makecontext() has been called.  */
@@ -85,9 +89,10 @@ LEAF (__swapcontext)
 	REG_L		t1, t0, MCONTEXT_PC
 	jirl		$r0, t1, 0
 
-
+	cfi_restore_state
 99:
 	ADDI		sp, sp, 16
+	cfi_adjust_cfa_offset (-16)
 	b		__syscall_error
 
 PSEUDO_END (__swapcontext)
