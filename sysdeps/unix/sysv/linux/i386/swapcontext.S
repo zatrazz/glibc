@@ -53,12 +53,16 @@ ENTRY(__swapcontext)
 
 	/* Save the current signal mask and install the new one.  */
 	pushl	%ebx
+	cfi_adjust_cfa_offset (4)
+	cfi_rel_offset (ebx, 0)
 	leal	oSIGMASK(%eax), %edx
 	leal	oSIGMASK(%ecx), %ecx
 	movl	$SIG_SETMASK, %ebx
 	movl	$__NR_sigprocmask, %eax
 	ENTER_KERNEL
 	popl	%ebx
+	cfi_adjust_cfa_offset (-4)
+	cfi_restore (ebx)
 	cmpl	$-4095, %eax		/* Check %eax for error.  */
 	jae	SYSCALL_ERROR_LABEL	/* Jump to error handler if error.  */
 
@@ -78,7 +82,16 @@ ENTRY(__swapcontext)
 	/* Fetch the address to return to.  */
 	movl	oEIP(%eax), %ecx
 
-	/* Load the new stack pointer.  */
+	/* Load the new stack pointer.  Until EAX is cleared the unwinder
+	   sees the new context through it.  */
+	cfi_remember_state
+	cfi_def_cfa (eax, 0)
+	cfi_offset (edi, oEDI)
+	cfi_offset (esi, oESI)
+	cfi_offset (ebp, oEBP)
+	cfi_offset (ebx, oEBX)
+	cfi_offset (esp, oESP)
+	cfi_offset (eip, oEIP)
 	movl	oESP(%eax), %esp
 
 	/* Push the return address on the new stack so we can return there.  */
@@ -89,6 +102,7 @@ ENTRY(__swapcontext)
 	movl	oESI(%eax), %esi
 	movl	oEBP(%eax), %ebp
 	movl	oEBX(%eax), %ebx
+	cfi_restore_state
 
 	/* All done, return 0 for success.  */
 	xorl	%eax, %eax
