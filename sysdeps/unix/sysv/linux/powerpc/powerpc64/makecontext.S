@@ -135,12 +135,13 @@ L(noparms):
      code trick to get the address of our cleanup function into the link
      register.  Do not add any code between here and L(exitcode).
      Use this conditional form of branch and link to avoid destroying
-     the cpu link stack used to predict blr return addresses.  */
-  bcl	20,31,L(gotexitcodeaddr);
-
-  /* End FDE now, because while executing on the context's stack
-     the unwind info would be wrong otherwise.  */
+     the cpu link stack used to predict blr return addresses.
+     The unwinder looks up L(exitcode) - 1: mark the bcl and the exit code
+     as the outermost frame.  */
   cfi_endproc
+  cfi_startproc
+  cfi_undefined (lr)
+  bcl	20,31,L(gotexitcodeaddr);
 
 	/* This is the helper code which gets called if a function which
 	   is registered with 'makecontext' returns.  In this case we
@@ -171,6 +172,7 @@ L(do_exit):
 	b    L(do_exit)
 
   /* Re-establish FDE for the rest of the actual makecontext routine.  */
+  cfi_endproc
   cfi_startproc
   cfi_offset (lr, FRAME_LR_SAVE)
   cfi_adjust_cfa_offset (128)
@@ -183,6 +185,7 @@ L(gotexitcodeaddr):
   std   r0,(SIGCONTEXT_GP_REGS+(PT_LNK*8))(r3)
   ld    r0,128+FRAME_LR_SAVE(r1)
   addi  r1,r1,128
+  cfi_adjust_cfa_offset (-128)
   mtlr  r0
 #ifdef __ROP_PROTECT__
   hashchk  r0,FRAME_ROP_SAVE(r1)

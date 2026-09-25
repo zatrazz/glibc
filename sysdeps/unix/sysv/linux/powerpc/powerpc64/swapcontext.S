@@ -23,6 +23,7 @@
 #define __ASSEMBLY__
 #include <asm/ptrace.h>
 #include "ucontext_i.h"
+#include "ucontext-cfi.h"
 #include <asm/errno.h>
 
 	.section	".toc","aw"
@@ -152,6 +153,9 @@ ENTRY(__novec_swapcontext)
   cmpdi  r3,0
   bne   L(nv_error_exit)
 
+  /* From here on the unwinder sees the new context through r31.  */
+  CONTEXT_CFI (r31)
+
   ld	r8,.LC__dl_hwcap@toc(r2)
 # ifdef SHARED
 /* Load _rtld-global._dl_hwcap.  */
@@ -268,11 +272,18 @@ ENTRY(__novec_swapcontext)
   mtctr r0
   ld   r0,(SIGCONTEXT_GP_REGS+(PT_R0*8))(r31)
   ld   r31,(SIGCONTEXT_GP_REGS+(PT_R31*8))(r31)
+  /* r31 no longer points to the context, start over with the new
+     context registers.  */
+  cfi_endproc
+  cfi_startproc
   bctr
+
+  FRAME_CFI
 
 L(nv_error_exit):
   ld    r0,128+FRAME_LR_SAVE(r1)
   addi  r1,r1,128
+  cfi_adjust_cfa_offset (-128)
   mtlr  r0
 #ifdef __ROP_PROTECT__
   hashchk  r0,FRAME_ROP_SAVE(r1)
@@ -515,6 +526,9 @@ L(has_no_vec):
   cmpdi  r3,0
   bne   L(error_exit)
 
+  /* From here on the unwinder sees the new context through r31.  */
+  CONTEXT_CFI (r31)
+
   ld    r8,.LC__dl_hwcap@toc(r2)
   ld    r10,(SIGCONTEXT_V_REGS_PTR)(r31)
 # ifdef SHARED
@@ -734,11 +748,18 @@ L(has_no_vec2):
   mtctr r0
   ld   r0,(SIGCONTEXT_GP_REGS+(PT_R0*8))(r31)
   ld   r31,(SIGCONTEXT_GP_REGS+(PT_R31*8))(r31)
+  /* r31 no longer points to the context, start over with the new
+     context registers.  */
+  cfi_endproc
+  cfi_startproc
   bctr
+
+  FRAME_CFI
 
 L(error_exit):
   ld    r0,128+FRAME_LR_SAVE(r1)
   addi  r1,r1,128
+  cfi_adjust_cfa_offset (-128)
   mtlr  r0
 #ifdef __ROP_PROTECT__
   hashchk  r0,FRAME_ROP_SAVE(r1)
