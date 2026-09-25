@@ -22,6 +22,7 @@
 #include <sys/regdef.h>
 
 #include "ucontext_i.h"
+#include "ucontext-cfi.h"
 
 /* int swapcontext (ucontext_t *oucp, const ucontext_t *ucp) */
 
@@ -140,6 +141,9 @@ NESTED (__swapcontext, FRAMESZ, ra)
 	bnez	a3, 99f
 
 	REG_L	v0, A1OFF(sp)
+	/* The unwinder sees the new context through v0.  */
+	cfi_remember_state
+	CONTEXT_CFI (2)
 
 #ifdef __mips_hard_float
 # if _MIPS_SIM == _ABI64
@@ -194,10 +198,12 @@ NESTED (__swapcontext, FRAMESZ, ra)
 	REG_L	fp, (MCONTEXT_GREGOFF + 30 * MCONTEXT_GREGSZ + MCONTEXT_GREGS)(v0)
 	REG_L	ra, (MCONTEXT_GREGOFF + 31 * MCONTEXT_GREGSZ + MCONTEXT_GREGS)(v0)
 	REG_L	t9, (MCONTEXT_GREGOFF + MCONTEXT_PC)(v0)
+	CONTEXT_REGS_CFI
 
 	move	v0, zero
 	jr	t9
 
+	cfi_restore_state
 99:
 #ifdef __PIC__
 	PTR_LA	t9, JUMPTARGET (__syscall_error)
