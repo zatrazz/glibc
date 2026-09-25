@@ -32,6 +32,9 @@
 
 ENTRY(__getcontext)
 	save	%sp, -112, %sp
+	cfi_def_cfa_register(%fp)
+	cfi_window_save
+	cfi_register(%o7, %i7)
 	st	%g0, [%i0 + UC_MCONTEXT + MC_GREGS + GREG_PSR]
 
 	/* In reality, we only use the GREG_PC value when setting
