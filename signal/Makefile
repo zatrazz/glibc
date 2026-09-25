@@ -67,6 +67,8 @@ tests := \
 include ../Rules
 
 CFLAGS-raise.c += -fasynchronous-unwind-tables
+# Some context functions call it, and unwinding goes through it.
+CFLAGS-sigprocmask.c += -fasynchronous-unwind-tables
 CFLAGS-sigpause.c += -fexceptions
 CFLAGS-sigsuspend.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-sigtimedwait.c += -fexceptions -fasynchronous-unwind-tables
