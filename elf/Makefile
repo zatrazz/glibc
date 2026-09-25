@@ -406,6 +406,7 @@ tests += \
   tst-align \
   tst-align2 \
   tst-align3 \
+  tst-audit-plt-flags \
   tst-audit-symbind-dlsym \
   tst-audit-symbind-flags \
   tst-audit-tlsdesc \
@@ -913,6 +914,7 @@ modules-names += \
   tst-alignmod3 \
   tst-array2dep \
   tst-array5dep \
+  tst-audit-plt-flags-mod \
   tst-audit-symbind-dlsym-mod \
   tst-audit-symbind-flags-mod \
   tst-audit-tlsdesc-mod1 \
@@ -950,6 +952,8 @@ modules-names += \
   tst-auditmanymod7 \
   tst-auditmanymod8 \
   tst-auditmanymod9 \
+  tst-auditmod-plt-flags-a \
+  tst-auditmod-plt-flags-b \
   tst-auditmod-symbind-dlsym-a \
   tst-auditmod-symbind-dlsym-b \
   tst-auditmod-symbind-flags-a \
@@ -2883,6 +2887,12 @@ $(objpfx)tst-audit-symbind-flags.out: \
   $(objpfx)tst-auditmod-symbind-flags-a.so \
   $(objpfx)tst-auditmod-symbind-flags-b.so
 LDFLAGS-tst-audit-symbind-flags = -Wl,-z,lazy
+
+$(objpfx)tst-audit-plt-flags: $(objpfx)tst-audit-plt-flags-mod.so
+$(objpfx)tst-audit-plt-flags.out: \
+  $(objpfx)tst-auditmod-plt-flags-a.so \
+  $(objpfx)tst-auditmod-plt-flags-b.so
+LDFLAGS-tst-audit-plt-flags = -Wl,-z,lazy
 
 # tst-sonamemove links against an older implementation of the library.
 LDFLAGS-tst-sonamemove-linkmod1.so = \

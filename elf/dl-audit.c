@@ -241,10 +241,11 @@ _dl_audit_symbind (struct link_map *l, struct reloc_result *reloc_result,
 	    }
 
 	  /* Remember the results for every audit library and store a summary
-	     in the first two bits.  */
-	  enterexit &= flags & (LA_SYMB_NOPLTENTER | LA_SYMB_NOPLTEXIT);
-	  enterexit |= ((flags & (LA_SYMB_NOPLTENTER | LA_SYMB_NOPLTEXIT))
-			<< ((cnt + 1) * 2));
+	     in the first two bits, without clearing the bits of the previous
+	     auditors.  */
+	  unsigned int noplt = flags & (LA_SYMB_NOPLTENTER | LA_SYMB_NOPLTEXIT);
+	  enterexit &= noplt | ~(LA_SYMB_NOPLTENTER | LA_SYMB_NOPLTEXIT);
+	  enterexit |= noplt << ((cnt + 1) * 2);
 	}
       else
 	/* If the bind flags say this auditor is not interested, set the bits
@@ -375,7 +376,7 @@ _dl_audit_pltexit (struct link_map *l, ElfW(Word) reloc_arg,
     {
       if (afct->ARCH_LA_PLTEXIT != NULL
 	  && (reloc_result->enterexit
-	      & (LA_SYMB_NOPLTEXIT >> (2 * cnt))) == 0)
+	      & (LA_SYMB_NOPLTEXIT << (2 * (cnt + 1)))) == 0)
 	{
 	  struct auditstate *l_state = link_map_audit_state (l, cnt);
 	  struct auditstate *bound_state

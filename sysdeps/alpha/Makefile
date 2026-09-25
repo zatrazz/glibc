@@ -69,6 +69,10 @@ CFLAGS-s_isnan.c += -fno-builtin-isnanf
 test-xfail-test-float32x-float64-div = yes
 endif
 
+ifeq ($(subdir),elf)
+test-xfail-tst-audit-plt-flags = yes
+endif
+
 # Build everything with full IEEE math support, and with dynamic rounding;
 # there are a number of math routines that are defined to work with the
 # "current" rounding mode, and it's easiest to set this with all of them.
