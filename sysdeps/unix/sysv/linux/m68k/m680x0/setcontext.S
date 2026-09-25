@@ -41,6 +41,7 @@ ENTRY(__setcontext)
 	trap	#0
 	cmp.l	#-4095, %d0		/* Check %d0 for error.  */
 	jcs	0f
+	cfi_remember_state
 	move.l	(%sp)+, %d2
 	cfi_adjust_cfa_offset (-4)
 	cfi_restore (d2)
@@ -49,7 +50,8 @@ ENTRY(__setcontext)
 	cfi_restore (d3)
 	jra	SYSCALL_ERROR_LABEL	/* Jump to error handler if error.  */
 
-0:	/* Load the new stack pointer.  */
+0:	cfi_restore_state
+	/* Load the new stack pointer.  */
 	move.l	oSP(%a0), %sp
 	cfi_def_cfa (%a0, 0)
 	cfi_offset (%d2, oGREGS+2*4)
@@ -69,6 +71,7 @@ ENTRY(__setcontext)
 	cfi_offset (%fp5, oFP2+3*12)
 	cfi_offset (%fp6, oFP2+4*12)
 	cfi_offset (%fp7, oFP2+5*12)
+	cfi_offset (%sp, oSP)
 	cfi_offset (%pc, oPC)
 
 	/* Load the values of all the preserved registers (except SP).  */
@@ -84,6 +87,7 @@ ENTRY(__setcontext)
 	/* End FDE here, we fall into another context.  */
 	cfi_endproc
 	cfi_startproc
+	cfi_def_cfa (%sp, 0)
 	cfi_register (%pc, %a1)
 
 	jmp	(%a1)

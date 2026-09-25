@@ -37,6 +37,7 @@ ENTRY(__swapcontext)
 	cfi_offset (%d2, oGREGS+2*4)
 	cfi_offset (%d3, oGREGS+3*4)
 	cfi_offset (%a2, oGREGS+10*4)
+	cfi_offset (%sp, oSP)
 	cfi_offset (%pc, oPC)
 
 	/* Load address of the context data structure we have to load.  */
@@ -81,6 +82,7 @@ ENTRY(__swapcontext)
 	cfi_offset (%fp5, oFP2+3*12)
 	cfi_offset (%fp6, oFP2+4*12)
 	cfi_offset (%fp7, oFP2+5*12)
+	cfi_offset (%sp, oSP)
 	cfi_offset (%pc, oPC)
 
 	/* Load the values of all the preserved registers (except SP).  */
@@ -98,6 +100,7 @@ ENTRY(__swapcontext)
 	/* End FDE here, we fall into another context.  */
 	cfi_endproc
 	cfi_startproc
+	cfi_def_cfa (%sp, 0)
 	cfi_register (%pc, %a0)
 
 	jmp	(%a0)

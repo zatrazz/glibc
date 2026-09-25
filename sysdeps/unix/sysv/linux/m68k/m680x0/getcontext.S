@@ -36,6 +36,7 @@ ENTRY(__getcontext)
 	cfi_def_cfa (%a0, 0)
 	cfi_offset (%d2, oGREGS+2*4)
 	cfi_offset (%d3, oGREGS+3*4)
+	cfi_offset (%sp, oSP)
 	cfi_offset (%pc, oPC)
 
 	/* Save the current signal mask.  */
@@ -51,6 +52,7 @@ ENTRY(__getcontext)
 	move.l	oGREGS+3*4(%a0), %d3
 	cfi_restore (%d3)
 	cfi_def_cfa (%sp, 4)
+	cfi_restore (%sp)
 	cfi_offset (%pc, -4)
 	cmp.l	#-4095, %d0		/* Check %d0 for error.  */
 	jcc	SYSCALL_ERROR_LABEL	/* Jump to error handler.  */
