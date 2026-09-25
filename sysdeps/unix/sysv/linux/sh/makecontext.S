@@ -96,8 +96,13 @@ ENTRY(__makecontext)
 #endif
 	cfi_endproc
 
+	/* The exit code is the outermost frame, and the unwinder looks up
+	   its address minus one.  */
 	.align	5
 	cfi_startproc
+	cfi_undefined (pr)
+	nop
+	.align	2
 .Lexitcode:
 #ifdef PIC
 	mov.l	r12, @-r15
@@ -113,7 +118,6 @@ ENTRY(__makecontext)
 	mov.l	.Lsetcontext, r1
 	sts.l	pr, @-r15
 	cfi_adjust_cfa_offset (4)
-	cfi_rel_offset (pr, 0)
 #ifdef PIC
 	bsrf	r1
 .LPCS0:
@@ -125,7 +129,6 @@ ENTRY(__makecontext)
         /* Restore to keep CFI/CFA balanced.  */
 	lds.l	@r15+, pr
 	cfi_adjust_cfa_offset (-4)
-	cfi_restore (pr)
 	/* If this returns (which can happen if the syscall fails) we'll exit
 	   the program with the return error value (-1).  */
 	mov	r0, r4
