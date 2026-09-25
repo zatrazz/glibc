@@ -54,14 +54,6 @@ ENTRY(__swapcontext)
 	movq	%rcx, oRIP(%rdi)
 	leaq	8(%rsp), %rcx		/* Exclude the return address.  */
 	movq	%rcx, oRSP(%rdi)
-	cfi_def_cfa (%rdi, oRIP)
-	cfi_offset (%rbx, oRBX-oRIP)
-	cfi_offset (%rbp, oRBP-oRIP)
-	cfi_offset (%r12, oR12-oRIP)
-	cfi_offset (%r13, oR13-oRIP)
-	cfi_offset (%r14, oR14-oRIP)
-	cfi_offset (%r15, oR15-oRIP)
-	cfi_offset (%rip, 0)
 
 	/* We have separate floating-point register content memory on the
 	   stack.  We use the __fpregs_mem block in the context.  Set the
@@ -73,10 +65,11 @@ ENTRY(__swapcontext)
 	stmxcsr oMXCSR(%rdi)
 
 
-	/* The syscall destroys some registers, save them.  */
-	movq	%rsi, %r12
+	/* The syscall destroys some registers, save them.  Use R8 and R9,
+	   which it preserves, since a callee-saved register would need to be
+	   restored on the error path.  */
+	movq	%rsi, %r8
 	movq	%rdi, %r9
-	cfi_def_cfa (%r9, oRIP)
 
 	/* Save the current signal mask and install the new one with
 	   rt_sigprocmask (SIG_BLOCK, newset, oldset,_NSIG/8).  */
@@ -92,8 +85,7 @@ ENTRY(__swapcontext)
 	/* Restore destroyed register into RDX. The choice is arbitrary,
 	   but leaving RDI and RSI available for use later can avoid
 	   shuffling values.  */
-	movq	%r12, %rdx
-	cfi_def_cfa (%rdx, oRIP)
+	movq	%r8, %rdx
 
 	/* Restore the floating-point context.  Not the registers, only the
 	   rest.  */
@@ -101,7 +93,17 @@ ENTRY(__swapcontext)
 	fldenv	(%rcx)
 	ldmxcsr oMXCSR(%rdx)
 
-	/* Load the new stack pointer and the preserved registers.  */
+	/* Load the new stack pointer and the preserved registers.  From
+	   here on the unwinder sees the context being activated.  */
+	cfi_def_cfa (%rdx, 0)
+	cfi_offset (%rbx, oRBX)
+	cfi_offset (%rbp, oRBP)
+	cfi_offset (%r12, oR12)
+	cfi_offset (%r13, oR13)
+	cfi_offset (%r14, oR14)
+	cfi_offset (%r15, oR15)
+	cfi_offset (%rsp, oRSP)
+	cfi_offset (%rip, oRIP)
 	movq	oRSP(%rdx), %rsp
 	movq	oRBX(%rdx), %rbx
 	movq	oRBP(%rdx), %rbp
@@ -109,17 +111,12 @@ ENTRY(__swapcontext)
 	movq	oR13(%rdx), %r13
 	movq	oR14(%rdx), %r14
 	movq	oR15(%rdx), %r15
-	cfi_restore (%rbx)
-	cfi_restore (%rbp)
-	cfi_restore (%r12)
-	cfi_restore (%r13)
-	cfi_restore (%r14)
-	cfi_restore (%r15)
 
 #if SHSTK_ENABLED
 	/* Check if shadow stack is enabled.  */
 	testl	$X86_FEATURE_1_SHSTK, %fs:FEATURE_1_OFFSET
 	jz	L(no_shstk)
+	cfi_remember_state
 
 	xorl	%eax, %eax
 	cmpq	%fs:SSP_BASE_OFFSET, %rax
@@ -207,6 +204,17 @@ L(skip_unwind_shadow_stack):
 
 	/* Get the return address set with getcontext.  */
 	movq	oRIP(%rdx), %r10
+
+	/* RDX is clobbered next: describe the new context by its registers,
+	   with the return address in R10.  */
+	cfi_def_cfa (%rsp, 0)
+	cfi_restore (%rbx)
+	cfi_restore (%rbp)
+	cfi_restore (%r12)
+	cfi_restore (%r13)
+	cfi_restore (%r14)
+	cfi_restore (%r15)
+	cfi_restore (%rsp)
 	cfi_register (%rip, %r10)
 
 	/* Setup finally %rdx.  */
@@ -222,21 +230,23 @@ L(skip_unwind_shadow_stack):
 	jne	L(jmp)
 	/* Return to the new context if return address valid.  */
 	pushq	%r10
+	cfi_adjust_cfa_offset (8)
+	cfi_offset (%rip, -8)
 	ret
 
 L(jmp):
+	cfi_adjust_cfa_offset (-8)
+	cfi_register (%rip, %r10)
 	/* Jump to the new context directly.  */
 	jmp	*%r10
-	cfi_offset (%rip, 0)
 
 L(no_shstk):
+	cfi_restore_state
 #endif
 	/* The following ret should return to the address set with
 	getcontext.  Therefore push the address on the stack.  */
 	movq	oRIP(%rdx), %rcx
 	pushq	%rcx
-	cfi_def_cfa (%rsp, 8)
-	cfi_offset (%rip, -8)
 
 	/* Setup registers used for passing args.  */
 	movq	oRDI(%rdx), %rdi
@@ -247,6 +257,10 @@ L(no_shstk):
 
 	/* Setup finally %rdx.  */
 	movq	oRDX(%rdx), %rdx
+
+	/* End FDE here, we fall into another context.  */
+	cfi_endproc
+	cfi_startproc
 
 	/* Clear rax to indicate success.  */
 	xorl	%eax, %eax
