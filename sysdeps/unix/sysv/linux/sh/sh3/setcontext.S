@@ -19,6 +19,7 @@
 #include <sysdep.h>
 
 #include "ucontext_i.h"
+#include "ucontext-cfi.h"
 
 /*  int __setcontext (const ucontext_t *uc);  */
 
@@ -26,6 +27,7 @@
 	.align  5
 ENTRY(__setcontext)
 
+	SAVE_R8
 	mov	r4, r8
 
 	/* sigprocmask (SIG_SETMASK, &uc->uc_sigmask, NULL).  */
@@ -41,6 +43,8 @@ ENTRY(__setcontext)
 	not	r1, r1			// r1=0 means r0 = -1 to -4095
 	tst	r1, r1			// i.e. error in linux
 	bf	.Lsetcontext_restore
+	cfi_remember_state
+	RESTORE_R8
 .Lsyscall_error:
 	SYSCALL_ERROR_HANDLER
 .Lpseudo_end:
@@ -48,6 +52,9 @@ ENTRY(__setcontext)
 	 nop
 
 .Lsetcontext_restore:
+	cfi_restore_state
+	/* The unwinder sees the new context through r8, then r0.  */
+	CONTEXT_CFI (r8)
 	mov	r8, r0
 	add	#(oPC), r0
 	mov.l	@r0+, r2
@@ -73,13 +80,10 @@ ENTRY(__setcontext)
 	mov.l	@r0+, r15
 
 	mov	r8, r0
+	cfi_def_cfa_register (r0)
 	mov.l	@(oR0,r0), r1
 	mov.l	r1, @-r15
-	cfi_adjust_cfa_offset(4)
-	cfi_rel_offset (r1, 0)
 	mov.l	r2, @-r15
-	cfi_adjust_cfa_offset(4)
-	cfi_rel_offset (r2, 0)
 
 	mov.l	@(oR1,r0), r1
 	mov.l	@(oR2,r0), r2
@@ -90,7 +94,7 @@ ENTRY(__setcontext)
 	mov.l	@(oR7,r0), r7
 	mov.l	@(oR8,r0), r8
 	mov.l	@r15+, r0
-	cfi_adjust_cfa_offset(-4)
+	CONTEXT_REGS_CFI (4)
 	jmp	@r0
 	 mov.l	@r15+, r0
 
