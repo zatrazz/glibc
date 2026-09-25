@@ -26,9 +26,17 @@
      __STARTCONTEXT_FUNC_NAME
  */
 
+#include "ucontext-cfi.h"
+
 /* int setcontext (const ucontext_t *ucp) */
 	.text
 ENTRY(__CONTEXT_FUNC_NAME)
+	/* Keep the caller r30 on the stack: it holds ucp across the
+	   system calls.  */
+	l.addi	r1, r1, -4
+	cfi_adjust_cfa_offset (4)
+	l.sw	0(r1), r30
+	cfi_rel_offset (30, 0)
 	l.ori	r30, r3, 0
 
 	/* Restore signal mask.  */
@@ -46,6 +54,10 @@ ENTRY(__CONTEXT_FUNC_NAME)
 	l.sfgeui r11, 0xf001
 	l.bf	1f
 	 l.nop
+
+	/* The unwinder sees the new context through r30.  */
+	cfi_remember_state
+	CONTEXT_CFI
 #ifdef __CONTEXT_ENABLE_FPCSR
 # ifdef __or1k_hard_float__
 	/* Restore the floating point state.  */
@@ -77,26 +89,31 @@ ENTRY(__CONTEXT_FUNC_NAME)
 	l.lwz	r26, (UCONTEXT_MCONTEXT + 26*4)(r30)
 	l.lwz	r28, (UCONTEXT_MCONTEXT + 28*4)(r30)
 	l.lwz	r30, (UCONTEXT_MCONTEXT + 30*4)(r30)
+	CONTEXT_REGS_CFI
 
 	l.jr	r11
 	 l.ori	r11, r0, 0
 
-1:	l.j	__syscall_error
+	cfi_restore_state
+1:	l.lwz	r30, 0(r1)
+	cfi_restore (30)
+	l.addi	r1, r1, 4
+	cfi_adjust_cfa_offset (-4)
+	l.j	__syscall_error
 	 l.ori	r3, r11, 0
 
 END (__CONTEXT_FUNC_NAME)
 
-	/* We add a NOP here because when the unwinder is looking for the
-	   enclosing function of the link register (r9) address FDE lookup will
-	   use '$r9 - 1' finding setcontext which is wrong.  This is because in
-	   makecontext we have set r9 to the start of &__startcontext.
-
-	   If this NOP did not exist the unwinder would repeatedly find
-	   __setcontext's FDE in an infinite loop.  Modifying/deleting the below
-	   __startcontext's FDE has no help on this.  */
+	/* makecontext sets r9 to __startcontext, and the unwinder looks up
+	   r9 - 1: cover it with a NOP in the __startcontext FDE, which
+	   marks the outermost frame.  */
+	.globl	C_SYMBOL_NAME(__STARTCONTEXT_FUNC_NAME)
+	.type	C_SYMBOL_NAME(__STARTCONTEXT_FUNC_NAME),@function
+	.align	4
+	cfi_startproc
+	cfi_undefined (9)
 	l.nop
-
-ENTRY(__STARTCONTEXT_FUNC_NAME)
+C_LABEL(__STARTCONTEXT_FUNC_NAME)
 
 	l.ori	r3, r14, 0
 	l.sfeq	r3, r0
