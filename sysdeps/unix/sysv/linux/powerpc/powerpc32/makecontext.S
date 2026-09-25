@@ -94,7 +94,11 @@ ENTRY(__makecontext)
 
 	blr
 
+	/* The exit code is the outermost frame, and the unwinder looks up
+	   its address minus one.  */
 	cfi_endproc
+	cfi_startproc
+	cfi_undefined (lr)
 	nop
 /*
  * If the function returns, it comes here.  We put ucp->uc_link in
@@ -107,8 +111,6 @@ L(exitcode):
 	bl	__setcontext@local
 4:	bl	HIDDEN_JUMPTARGET(exit)
 	b	4b
-
-	cfi_startproc
 END(__makecontext)
 
 versioned_symbol (libc, __makecontext, makecontext, GLIBC_2_3_4)
@@ -188,7 +190,11 @@ ENTRY(__novec_makecontext)
 
 	blr
 
+	/* The exit code is the outermost frame, and the unwinder looks up
+	   its address minus one.  */
 	cfi_endproc
+	cfi_startproc
+	cfi_undefined (lr)
 	nop
 /*
  * If the function returns, it comes here.  We put ucp->uc_link in
@@ -201,8 +207,6 @@ L(novec_exitcode):
 	bl	__novec_setcontext@local
 4:	bl	HIDDEN_JUMPTARGET(exit)
 	b	4b
-
-	cfi_startproc
 END(__novec_makecontext)
 	.previous
 
