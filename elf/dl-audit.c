@@ -211,7 +211,7 @@ _dl_audit_symbind (struct link_map *l, struct reloc_result *reloc_result,
 
   const char *strtab2 = (const void *) D_PTR (result, l_info[DT_STRTAB]);
 
-  unsigned int flags = 0;
+  unsigned int altvalue = 0;
   struct audit_ifaces *afct = GLRO(dl_audit);
   uintptr_t new_value = (uintptr_t) sym.st_value;
   for (unsigned int cnt = 0; cnt < GLRO(dl_naudit); ++cnt)
@@ -222,17 +222,19 @@ _dl_audit_symbind (struct link_map *l, struct reloc_result *reloc_result,
       if ((l_state->bindflags & LA_FLG_BINDFROM) != 0
 	  && (result_state->bindflags & LA_FLG_BINDTO) != 0)
 	{
+	  /* Only LA_SYMB_ALTVALUE is carried over from previous auditors.  */
+	  unsigned int flags = altvalue;
+	  if (for_jmp_slot)
+	    flags |= LA_SYMB_NOPLTENTER | LA_SYMB_NOPLTEXIT;
 	  if (afct->symbind != NULL)
 	    {
-	      flags |= for_jmp_slot ? LA_SYMB_NOPLTENTER | LA_SYMB_NOPLTEXIT
-				    : 0;
 	      new_value = afct->symbind (&sym, boundndx,
 					 &l_state->cookie,
 					 &result_state->cookie, &flags,
 					 strtab2 + defsym->st_name);
 	      if (new_value != (uintptr_t) sym.st_value)
 		{
-		  flags |= LA_SYMB_ALTVALUE;
+		  altvalue = LA_SYMB_ALTVALUE;
 		  sym.st_value = for_jmp_slot
 		    ? DL_FIXUP_BINDNOW_ADDR_VALUE (new_value) : new_value;
 		}
@@ -255,10 +257,10 @@ _dl_audit_symbind (struct link_map *l, struct reloc_result *reloc_result,
   if (!for_jmp_slot)
     {
       reloc_result->enterexit = enterexit;
-      reloc_result->flags = flags;
+      reloc_result->flags = altvalue;
     }
 
-  if (flags & LA_SYMB_ALTVALUE)
+  if (altvalue != 0)
     DL_FIXUP_BINDNOW_RELOC (l, reloc, value, new_value, sym.st_value, lazy);
 }
 
@@ -288,7 +290,7 @@ _dl_audit_pltenter (struct link_map *l, struct reloc_result *reloc_result,
   const char *symname = strtab + sym.st_name;
 
   /* Keep track of overwritten addresses.  */
-  unsigned int flags = reloc_result->flags;
+  unsigned int altvalue = reloc_result->flags;
 
   struct audit_ifaces *afct = GLRO(dl_audit);
   for (unsigned int cnt = 0; cnt < GLRO(dl_naudit); ++cnt)
@@ -301,13 +303,18 @@ _dl_audit_pltenter (struct link_map *l, struct reloc_result *reloc_result,
 	  struct auditstate *l_state = link_map_audit_state (l, cnt);
 	  struct auditstate *bound_state
 	    = link_map_audit_state (reloc_result->bound, cnt);
+	  /* Each auditor only sees its own LA_SYMB_NOPLTENTER and
+	     LA_SYMB_NOPLTEXIT.  */
+	  unsigned int flags = altvalue
+	    | ((reloc_result->enterexit >> (2 * (cnt + 1)))
+	       & (LA_SYMB_NOPLTENTER | LA_SYMB_NOPLTEXIT));
 	  uintptr_t new_value
 	    = afct->ARCH_LA_PLTENTER (&sym, reloc_result->boundndx,
 				      &l_state->cookie, &bound_state->cookie,
 				      regs, &flags, symname, &new_framesize);
 	  if (new_value != (uintptr_t) sym.st_value)
 	    {
-	      flags |= LA_SYMB_ALTVALUE;
+	      altvalue = LA_SYMB_ALTVALUE;
 	      sym.st_value = new_value;
 	    }
 

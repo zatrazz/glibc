@@ -407,6 +407,7 @@ tests += \
   tst-align2 \
   tst-align3 \
   tst-audit-symbind-dlsym \
+  tst-audit-symbind-flags \
   tst-audit-tlsdesc \
   tst-audit-tlsdesc-dlopen \
   tst-audit-tlsdesc-dlopen2 \
@@ -913,6 +914,7 @@ modules-names += \
   tst-array2dep \
   tst-array5dep \
   tst-audit-symbind-dlsym-mod \
+  tst-audit-symbind-flags-mod \
   tst-audit-tlsdesc-mod1 \
   tst-audit-tlsdesc-mod2 \
   tst-audit11mod1 \
@@ -950,6 +952,8 @@ modules-names += \
   tst-auditmanymod9 \
   tst-auditmod-symbind-dlsym-a \
   tst-auditmod-symbind-dlsym-b \
+  tst-auditmod-symbind-flags-a \
+  tst-auditmod-symbind-flags-b \
   tst-auditmod-tlsdesc  \
   tst-auditmod-tlsdesc2 \
   tst-auditmod1 \
@@ -2873,6 +2877,12 @@ $(objpfx)tst-audit-symbind-dlsym.out: \
   $(objpfx)tst-auditmod-symbind-dlsym-b.so
 tst-audit-symbind-dlsym-ENV = \
   LD_AUDIT=$(objpfx)tst-auditmod-symbind-dlsym-a.so:$(objpfx)tst-auditmod-symbind-dlsym-b.so
+
+$(objpfx)tst-audit-symbind-flags: $(objpfx)tst-audit-symbind-flags-mod.so
+$(objpfx)tst-audit-symbind-flags.out: \
+  $(objpfx)tst-auditmod-symbind-flags-a.so \
+  $(objpfx)tst-auditmod-symbind-flags-b.so
+LDFLAGS-tst-audit-symbind-flags = -Wl,-z,lazy
 
 # tst-sonamemove links against an older implementation of the library.
 LDFLAGS-tst-sonamemove-linkmod1.so = \

@@ -35,6 +35,7 @@ test-xfail-tst-audit24c = yes
 test-xfail-tst-audit24d = yes
 test-xfail-tst-audit25a = yes
 test-xfail-tst-audit25b = yes
+test-xfail-tst-audit-symbind-flags = yes
 
 ifneq ($(o32-fpabi),)
 tests += tst-abi-interlink
