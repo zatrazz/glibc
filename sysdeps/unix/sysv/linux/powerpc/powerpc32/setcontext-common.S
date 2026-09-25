@@ -26,6 +26,8 @@
    Any architecture that implements the Vector unit is assumed to also
    implement the floating unit.  */
 
+#include "ucontext-cfi.h"
+
 /* Stack frame offsets.  */
 #define _FRAME_BACKCHAIN	0
 #define _FRAME_LR_SAVE		4
@@ -54,6 +56,12 @@ ENTRY(__CONTEXT_FUNC_NAME)
 	bl	__sigprocmask@local
 	cmpwi	r3,0
 	bne	3f	/* L(error_exit) */
+
+	/* From here on the unwinder sees the new context through r31.  */
+	CONTEXT_CFI (r31)
+#ifdef __CONTEXT_ENABLE_FPRS
+	CONTEXT_FPR_CFI
+#endif
 
 #ifdef PIC
 	mflr    r8
@@ -267,13 +275,21 @@ ENTRY(__CONTEXT_FUNC_NAME)
 	lwz	r29,_UC_GREGS+(PT_R29*4)(r31)
 	lwz	r30,_UC_GREGS+(PT_R30*4)(r31)
 	lwz	r31,_UC_GREGS+(PT_R31*4)(r31)
+	/* r31 no longer points to the context, start over with the new
+	   context registers.  */
+	cfi_endproc
+	cfi_startproc
 
 	bctr
 
+	cfi_adjust_cfa_offset (16)
+	cfi_offset (lr, _FRAME_LR_SAVE)
+	cfi_offset (r31, -4)
 3: /* L(error_exit): */
 	lwz	r31,12(r1)
 	lwz	r0,20(r1)
 	addi	r1,r1,16
+	cfi_adjust_cfa_offset (-16)
 	mtlr	r0
 	blr
 

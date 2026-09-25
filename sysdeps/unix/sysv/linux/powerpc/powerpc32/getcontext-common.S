@@ -26,6 +26,8 @@
    Any architecture that implements the Vector unit is assumed to also
    implement the floating unit.  */
 
+#include "ucontext-cfi.h"
+
 /* Stack frame offsets.  */
 #define _FRAME_BACKCHAIN	0
 #define _FRAME_LR_SAVE		4
@@ -275,6 +277,7 @@ ENTRY(__CONTEXT_FUNC_NAME)
 
 	lwz	r0,_FRAME_LR_SAVE+16(r1)
 	addi	r1,r1,16
+	cfi_adjust_cfa_offset (-16)
 	mtlr	r0
 	blr
 END(__CONTEXT_FUNC_NAME)
