@@ -22,6 +22,10 @@
 	.text
 ENTRY(__swapcontext)
 
+	/* Save rp in the frame marker, the calls below clobber it.  */
+	stw %rp,-20(%sp)
+	.cfi_offset 2, -20
+
 	/* Copy rp to ret0 (r28).  */
 	copy %rp,%ret0
 
@@ -37,35 +41,35 @@ ENTRY(__swapcontext)
 	   on reactivation.  */
 	copy %r26,%ret1
 
-	/* Pop frame.  */
-	ldo -64(%sp),%sp
-	.cfi_def_cfa_offset 0
-
 	/* Load return pointer from oR28.  */
 	ldw oR28(%ret1),%rp
 
 	/* Return if error.  */
 	or,= %r0,%ret0,%r0
-	bv,n %r0(%rp)
+	b,n .Lreturn
 
 	/* Load sc_sar flag.  */
 	ldb oSAR(%ret1),%r20
 
 	/* Return if oucp context has been reactivated.  */
 	or,= %r0,%r20,%r0
-	bv,n %r0(%rp)
+	b,n .Lreturn
 
 	/* Mark sc_sar flag.  */
 	ldi 1,%r20
 	stb %r20,oSAR(%ret1)
 
-	/* Activate the machine context in ucp.  */
+	/* Activate the machine context in ucp.  Keep the frame, so
+	   __setcontext does not overwrite our rp slot.  */
 	bl __setcontext,%rp
 	ldw oR25(%ret1),%r26
 
 	/* Load return pointer.  */
 	ldw oR28(%ret1),%rp
-	bv,n %r0(%rp)
+.Lreturn:
+	/* Return and pop the frame.  */
+	bv %r0(%rp)
+	ldo -64(%sp),%sp
 
 END(__swapcontext)
 

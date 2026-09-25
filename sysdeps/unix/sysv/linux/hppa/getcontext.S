@@ -25,6 +25,18 @@
 	/* Can not use ENTRY(__getcontext_ret) here.  */
 	.type	__getcontext_ret, @function
 	.hidden	__getcontext_ret
+	/* setcontext enters it with the context in r26, where the caller
+	   registers are.  The FDE covers the address before it, which is
+	   what the unwinder looks up.  */
+	cfi_startproc
+	.cfi_def_cfa 26, 0
+	.cfi_offset 2, oR0
+	.cfi_offset 3, oR3
+	.cfi_offset 4, oR4
+	.cfi_offset 5, oR5
+	.cfi_offset 6, oR6
+	.cfi_offset 30, oR30
+	nop
 __getcontext_ret:
 	.proc
 	.callinfo FRAME=0,NO_CALLS
@@ -45,6 +57,7 @@ __getcontext_ret:
 	bv	0(%rp)
 	copy	%r0, %ret0
 	.procend
+	cfi_endproc
 	.size	__getcontext_ret, .-__getcontext_ret
 
 

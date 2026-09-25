@@ -49,6 +49,30 @@ ENTRY(__setcontext)
 
 	comib,<>,n 0,%ret0,.Lerror
 
+	/* From here on the unwinder sees the new context through r3.  */
+	.cfi_def_cfa 3, 0
+	.cfi_offset 2, oR2
+	.cfi_offset 3, oR3
+	.cfi_offset 4, oR4
+	.cfi_offset 5, oR5
+	.cfi_offset 6, oR6
+	.cfi_offset 7, oR7
+	.cfi_offset 8, oR8
+	.cfi_offset 9, oR9
+	.cfi_offset 10, oR10
+	.cfi_offset 11, oR11
+	.cfi_offset 12, oR12
+	.cfi_offset 13, oR13
+	.cfi_offset 14, oR14
+	.cfi_offset 15, oR15
+	.cfi_offset 16, oR16
+	.cfi_offset 17, oR17
+	.cfi_offset 18, oR18
+	.cfi_offset 19, oR19
+	.cfi_offset 26, oR26
+	.cfi_offset 27, oR27
+	.cfi_offset 30, oR30
+
 	/* Save %sp, %dp.  */
 	copy	%sp, %r4
 	copy	%dp, %r5
@@ -134,12 +158,20 @@ ENTRY(__setcontext)
 	   a call to makecontext to synchronize ss_sp into the machine
 	   context.  */
 
-	/* Call external function.  */
+	/* Call external function, which returns to .Lexit.  */
 	copy	%r2, %r22
 	bl	$$dyncall, %r31
-	copy	%r31, %r2
+	ldo	.Lexit - .Lret(%r31), %r2
+.Lret:
 
-	/* We return here. Get new ucp in %r3, reload %sp.  */
+	/* A makecontext function returns here, the outermost frame of its
+	   context.  The unwinder looks up the address before .Lexit.  */
+	cfi_endproc
+	cfi_startproc
+	.cfi_undefined 2
+	nop
+.Lexit:
+	/* Get new ucp in %r3, reload %sp.  */
 	ldw	oUC_LINK(%r3), %r3
 	copy	%r4, %sp
 	copy	%r5, %dp
@@ -153,7 +185,15 @@ ENTRY(__setcontext)
 	bl	HIDDEN_JUMPTARGET(exit), %r2
 	ldi	0, %r26
 
-
+	cfi_endproc
+	cfi_startproc
+	.cfi_offset 2, -20
+	.cfi_def_cfa_offset -64
+	.cfi_offset 3, 0
+#ifdef PIC
+	.cfi_offset 19, 32
+#endif
+	.cfi_offset 29, 4
 .Lerror:
 	/* Epilogue */
 	ldw	-84(%r30), %r2
