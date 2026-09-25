@@ -141,6 +141,7 @@ ENTRY(__novec_getcontext)
 
   ld    r0,128+FRAME_LR_SAVE(r1)
   addi  r1,r1,128
+  cfi_adjust_cfa_offset (-128)
   mtlr  r0
 #ifdef __ROP_PROTECT__
   hashchk  r0,FRAME_ROP_SAVE(r1)
@@ -385,6 +386,7 @@ L(has_no_vec):
 
   ld    r0,128+FRAME_LR_SAVE(r1)
   addi  r1,r1,128
+  cfi_adjust_cfa_offset (-128)
   mtlr  r0
 #ifdef __ROP_PROTECT__
   hashchk  r0,FRAME_ROP_SAVE(r1)
