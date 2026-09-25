@@ -226,6 +226,8 @@ CFLAGS-unwind-forcedunwind.c += -fexceptions -fasynchronous-unwind-tables
 # The following three functions must be async-cancel safe.
 CFLAGS-pthread_cancel.c += -fexceptions -fasynchronous-unwind-tables
 CFLAGS-pthread_setcancelstate.c += -fexceptions -fasynchronous-unwind-tables
+# Called from __sigprocmask, see signal/Makefile.
+CFLAGS-pthread_sigmask.c += -fasynchronous-unwind-tables
 CFLAGS-pthread_setcanceltype.c += -fexceptions -fasynchronous-unwind-tables
 
 # These are internal functions which similar functionality as setcancelstate
