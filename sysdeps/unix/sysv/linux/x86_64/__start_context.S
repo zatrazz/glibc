@@ -34,6 +34,7 @@ ENTRY(__push___start_context)
 	rdsspq	%rcx
 	/* Save the original stack pointer.  */
 	movq	%rsp, %rdx
+	cfi_def_cfa_register (%rdx)
 	/* Load the top of the new stack into RSI.  */
 	movq 	oRSP(%rdi), %rsi
 	/* Add 8 bytes to RSI since CALL will push the 8-byte return
@@ -50,10 +51,15 @@ ENTRY(__push___start_context)
 	saveprevssp
 
 	/* Push the address of "jmp __start_context" onto the new stack
-	   as well as the new shadow stack.  */
+	   as well as the new shadow stack.  It is the return address of the
+	   context function: mark it outermost, including the CALL since
+	   unwinders look up the return address minus one.  */
+	cfi_remember_state
+	cfi_undefined (rip)
 	call	1f
 	jmp	__start_context
 1:
+	cfi_restore_state
 
 	/* Use the restore stoken to restore the original shadow stack.  */
 	rstorssp -8(%rcx)
@@ -63,6 +69,7 @@ ENTRY(__push___start_context)
 
 	/* Restore the original stack.  */
 	mov	%rdx, %rsp
+	cfi_def_cfa_register (%rsp)
 	ret
 END(__push___start_context)
 #endif
@@ -74,9 +81,17 @@ END(__push___start_context)
    If the pointer is NULL the process must terminate.  */
 
 
-ENTRY(__start_context)
-	/* Mark as outermost frame.  */
+/* __start_context is the return address of the context function (unless
+   the shadow stack is enabled).  Unwinders look up the return address
+   minus one, so the outermost frame FDE starts before the entry point.  */
+	.globl C_SYMBOL_NAME(__start_context)
+	.type C_SYMBOL_NAME(__start_context), @function
+	cfi_startproc
 	cfi_undefined (rip)
+	nop
+	.p2align 4
+C_LABEL(__start_context)
+	_CET_ENDBR
 	/* This removes the parameters passed to the function given to
 	   'makecontext' from the stack.  RBX contains the address
 	   on the stack pointer for the next context.  */

@@ -83,6 +83,7 @@ ENTRY(__setcontext)
 	/* Check if shadow stack is enabled.  */
 	testl	$X86_FEATURE_1_SHSTK, %fs:FEATURE_1_OFFSET
 	jz	L(no_shstk)
+	cfi_remember_state
 
 	/* If the base of the target shadow stack is the same as the
 	   base of the current shadow stack, we unwind the shadow
@@ -149,6 +150,18 @@ L(skip_unwind_shadow_stack):
 	/* Get the return address set with getcontext.  */
 	movq	oRIP(%rdx), %r10
 
+	/* RDX is clobbered next: describe the new context by its registers,
+	   with the return address in R10.  */
+	cfi_def_cfa (%rsp, 0)
+	cfi_restore (%rbx)
+	cfi_restore (%rbp)
+	cfi_restore (%r12)
+	cfi_restore (%r13)
+	cfi_restore (%r14)
+	cfi_restore (%r15)
+	cfi_restore (%rsp)
+	cfi_register (%rip, %r10)
+
 	/* Setup finally %rdx.  */
 	movq	oRDX(%rdx), %rdx
 
@@ -162,13 +175,18 @@ L(skip_unwind_shadow_stack):
 	jne	L(jmp)
 	/* Return to the new context if return address valid.  */
 	pushq	%r10
+	cfi_adjust_cfa_offset (8)
+	cfi_offset (%rip, -8)
 	ret
 
 L(jmp):
+	cfi_adjust_cfa_offset (-8)
+	cfi_register (%rip, %r10)
 	/* Jump to the new context directly.  */
 	jmp	*%r10
 
 L(no_shstk):
+	cfi_restore_state
 #endif
 	/* The following ret should return to the address set with
 	getcontext.  Therefore push the address on the stack.  */

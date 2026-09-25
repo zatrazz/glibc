@@ -4,6 +4,9 @@ endif
 
 ifeq ($(subdir),stdlib)
 sysdep_routines += __start_context allocate-shadow-stack
+tests += \
+  tst-swapcontext-efault \
+  # tests
 endif
 
 ifeq ($(subdir),csu)
