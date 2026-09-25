@@ -165,12 +165,12 @@ _dl_audit_symbind_alt (struct link_map *l, const ElfW(Sym) *ref, void **value,
 	      altvalue = LA_SYMB_ALTVALUE;
 	      sym.st_value = new_value;
 	    }
-
-	  afct = afct->next;
 	}
 
-      *value = (void *) sym.st_value;
+      afct = afct->next;
     }
+
+  *value = (void *) sym.st_value;
 }
 rtld_hidden_def (_dl_audit_symbind_alt)
 

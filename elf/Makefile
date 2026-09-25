@@ -406,6 +406,7 @@ tests += \
   tst-align \
   tst-align2 \
   tst-align3 \
+  tst-audit-symbind-dlsym \
   tst-audit-tlsdesc \
   tst-audit-tlsdesc-dlopen \
   tst-audit-tlsdesc-dlopen2 \
@@ -911,6 +912,7 @@ modules-names += \
   tst-alignmod3 \
   tst-array2dep \
   tst-array5dep \
+  tst-audit-symbind-dlsym-mod \
   tst-audit-tlsdesc-mod1 \
   tst-audit-tlsdesc-mod2 \
   tst-audit11mod1 \
@@ -946,6 +948,8 @@ modules-names += \
   tst-auditmanymod7 \
   tst-auditmanymod8 \
   tst-auditmanymod9 \
+  tst-auditmod-symbind-dlsym-a \
+  tst-auditmod-symbind-dlsym-b \
   tst-auditmod-tlsdesc  \
   tst-auditmod-tlsdesc2 \
   tst-auditmod1 \
@@ -2862,6 +2866,13 @@ tst-audit25b-ARGS = -- $(host-test-program-cmd)
 $(objpfx)tst-audit28.out: $(objpfx)tst-auditmod28.so
 $(objpfx)tst-auditmod28.so: $(libsupport)
 tst-audit28-ENV = LD_AUDIT=$(objpfx)tst-auditmod28.so
+
+$(objpfx)tst-audit-symbind-dlsym.out: \
+  $(objpfx)tst-audit-symbind-dlsym-mod.so \
+  $(objpfx)tst-auditmod-symbind-dlsym-a.so \
+  $(objpfx)tst-auditmod-symbind-dlsym-b.so
+tst-audit-symbind-dlsym-ENV = \
+  LD_AUDIT=$(objpfx)tst-auditmod-symbind-dlsym-a.so:$(objpfx)tst-auditmod-symbind-dlsym-b.so
 
 # tst-sonamemove links against an older implementation of the library.
 LDFLAGS-tst-sonamemove-linkmod1.so = \
