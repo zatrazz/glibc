@@ -18,14 +18,14 @@
 #include <sysdep.h>
 #include <rtld-global-offsets.h>
 
-#include "ucontext_i.h"
+#include "ucontext-unwind.h"
 
 	.syntax unified
 	.text
 
 /* int getcontext (ucontext_t *ucp) */
 
-ENTRY(__getcontext)
+EHABI_ENTRY(__getcontext)
 	/* No need to save r0-r3, d0-d7, or d16-d31.  */
 	add	r1, r0, #MCONTEXT_ARM_R4
 	stmia   r1, {r4-r11}
@@ -39,8 +39,13 @@ ENTRY(__getcontext)
 	mov     r2, #0
 	str     r2, [r0, #MCONTEXT_ARM_R0]
 
-	/* Save ucontext_t * across the next call.  */
+	/* Save ucontext_t * across the next call.  The caller registers
+	   are in it from here on.  */
+	EHABI_REGION
+	EHABI_CONTEXT (4, 0)
 	mov	r4, r0
+	cfi_remember_state
+	CFI_CONTEXT (r4, 0)
 
 	/* __sigprocmask(SIG_BLOCK, NULL, &(ucontext->uc_sigmask)) */
 	mov     r0, #SIG_BLOCK
@@ -94,11 +99,14 @@ ENTRY(__getcontext)
 
 	/* Restore the clobbered R4 and LR.  */
 	ldr	r14, [r4, #MCONTEXT_ARM_LR]
+	EHABI_REGION
 	ldr	r4, [r4, #MCONTEXT_ARM_R4]
+	cfi_restore_state
 
 	mov	r0, #0
 
 	DO_RET(r14)
+	eabi_fnend
 
 END(__getcontext)
 
