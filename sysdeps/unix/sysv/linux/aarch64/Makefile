@@ -403,9 +403,3 @@ endif
 
 abi-lp64-condition := !defined __AARCH64EB__
 abi-lp64_be-condition := defined __AARCH64EB__
-
-ifeq ($(subdir),stdlib)
-# Unwinding through the context functions (BZ 34575).
-test-xfail-tst-ucontext-unwind = yes
-test-xfail-tst-ucontext-unwind-sampling = yes
-endif

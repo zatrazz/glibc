@@ -33,12 +33,15 @@ ENTRY(__swapcontext)
 	stp	xzr, x30, [x0, oX0 +  0 * SZREG]
 
 	/* With GCS, swapcontext calls are followed by BTI J, otherwise
-	   we have to be compatible with old BTI enabled binaries.  */
+	   we have to be compatible with old BTI enabled binaries.  The
+	   resume address goes in x10 so x30 keeps the return address
+	   for the unwinder.  */
 	mov	x16, 1 /* _CHKFEAT_GCS */
 	CHKFEAT_X16
+	mov	x10, x30
 	tbz	x16, 0, L(skip_x30_redirect)
 	/* Arrange the oucp context to return to 2f.  */
-	adr	x30, 2f
+	adr	x10, 2f
 L(skip_x30_redirect):
 
 	stp	x18, x19, [x0, oX0 + 18 * SZREG]
@@ -47,8 +50,8 @@ L(skip_x30_redirect):
 	stp	x24, x25, [x0, oX0 + 24 * SZREG]
 	stp	x26, x27, [x0, oX0 + 26 * SZREG]
 	stp	x28, x29, [x0, oX0 + 28 * SZREG]
-	str     x30,      [x0, oX0 + 30 * SZREG]
-	str     x30,      [x0, oPC]
+	str     x10,      [x0, oX0 + 30 * SZREG]
+	str     x10,      [x0, oPC]
 	mov	x2, sp
 	str     x2,       [x0, oSP]
 
@@ -116,11 +119,16 @@ L(gcs_done):
 	b	JUMPTARGET (__setcontext)
 1:
 	b	C_SYMBOL_NAME(__syscall_error)
+	/* The return address is in x1 at 2f, and the nop covers the
+	   unwinder lookup of 2f - 1.  */
+	cfi_register (x30, x1)
+	nop
 2:
 	/* The oucp context is restored here via an indirect branch,
 	   x1 must be restored too which has the real return address.  */
 	bti	j
 	mov	x30, x1
+	cfi_restore (x30)
 	RET
 PSEUDO_END (__swapcontext)
 weak_alias (__swapcontext, swapcontext)

@@ -50,9 +50,12 @@ ENTRY (__setcontext)
 1:
 	/* Clear ZA state of SME.  */
 	CALL_LIBC_ARM_ZA_DISABLE
-	/* Restore the general purpose registers.  */
+	/* Restore the general purpose registers.  Until x0 is reloaded
+	   the unwinder sees the new context through it.  */
 	mov	x0, x9
+	cfi_remember_state
 	cfi_def_cfa (x0, 0)
+	cfi_offset (x1, oX0 + 1 * SZREG)
 	cfi_offset (x18, oX0 + 18 * SZREG)
 	cfi_offset (x19, oX0 + 19 * SZREG)
 	cfi_offset (x20, oX0 + 20 * SZREG)
@@ -66,6 +69,7 @@ ENTRY (__setcontext)
 	cfi_offset (x28, oX0 + 28 * SZREG)
 	cfi_offset (x29, oX0 + 29 * SZREG)
 	cfi_offset (x30, oX0 + 30 * SZREG)
+	cfi_offset (sp, oSP)
 
 	cfi_offset ( d8, oV0 + 8 * SZVREG)
 	cfi_offset ( d9, oV0 + 9 * SZVREG)
@@ -157,6 +161,7 @@ L(gcs_done):
 	ldp	x4, x5, [x0, oX0 + 4 * SZREG]
 	ldp	x6, x7, [x0, oX0 + 6 * SZREG]
 	ldp	x0, x1, [x0, oX0 + 0 * SZREG]
+	cfi_restore_state
 	/* Jump to the new pc value.  */
 	br	x16
 PSEUDO_END (__setcontext)
