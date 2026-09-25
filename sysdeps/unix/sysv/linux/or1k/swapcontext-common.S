@@ -25,6 +25,8 @@
      __CONTEXT_SIGMASK_OFFSET
  */
 
+#include "ucontext-cfi.h"
+
 /* int swapcontext (ucontext_t *oucp, const ucontext_t *ucp) */
 	.text
 ENTRY(__CONTEXT_FUNC_NAME)
@@ -61,6 +63,12 @@ ENTRY(__CONTEXT_FUNC_NAME)
 	l.sw	(MCONTEXT_FPCSR)(r3), r0
 # endif /* __or1k_hard_float__ */
 #endif /* __CONTEXT_ENABLE_FPCSR */
+	/* Keep the caller r30 on the stack: it holds ucp across the
+	   system calls.  */
+	l.addi	r1, r1, -4
+	cfi_adjust_cfa_offset (4)
+	l.sw	0(r1), r30
+	cfi_rel_offset (30, 0)
 	/* Store ucp to non-argument syscall preserved register.  */
 	l.ori	r30, r4, 0
 
@@ -98,6 +106,10 @@ ENTRY(__CONTEXT_FUNC_NAME)
 	l.bf	1f
 	 l.nop
 
+	/* The unwinder sees the new context through r30.  */
+	cfi_remember_state
+	CONTEXT_CFI
+
 #ifdef __CONTEXT_ENABLE_FPCSR
 # ifdef __or1k_hard_float__
 	/* Restore the floating point state.  */
@@ -129,11 +141,17 @@ ENTRY(__CONTEXT_FUNC_NAME)
 	l.lwz	r26, (UCONTEXT_MCONTEXT + 26*4)(r30)
 	l.lwz	r28, (UCONTEXT_MCONTEXT + 28*4)(r30)
 	l.lwz	r30, (UCONTEXT_MCONTEXT + 30*4)(r30)
+	CONTEXT_REGS_CFI
 
 	l.jr	r11
 	 l.ori	r11, r0, 0
 
-1:	l.j	__syscall_error
+	cfi_restore_state
+1:	l.lwz	r30, 0(r1)
+	cfi_restore (30)
+	l.addi	r1, r1, 4
+	cfi_adjust_cfa_offset (-4)
+	l.j	__syscall_error
 	 l.ori	r3, r11, 0
 
 END (__CONTEXT_FUNC_NAME)

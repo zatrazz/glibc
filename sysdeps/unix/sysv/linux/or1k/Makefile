@@ -9,8 +9,3 @@ endif
 ifeq ($(subdir),elf)
 THP-PAGE-SIZE = 0
 endif
-
-ifeq ($(subdir),stdlib)
-# Unwinding through the context functions (BZ 34575).
-test-xfail-tst-ucontext-unwind = yes
-endif
