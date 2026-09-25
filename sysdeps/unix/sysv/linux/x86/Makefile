@@ -14,3 +14,13 @@ endif
 ifeq ($(subdir),setjmp)
 tests += tst-saved_mask-1
 endif
+
+ifeq ($(subdir),stdlib)
+tests-internal += \
+  tst-ucontext-unwind-fault \
+  # tests-internal
+
+CFLAGS-tst-ucontext-unwind-fault.c += -fasynchronous-unwind-tables \
+  -fno-optimize-sibling-calls
+LDFLAGS-tst-ucontext-unwind-fault = $(LDFLAGS-rdynamic)
+endif
