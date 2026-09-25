@@ -34,12 +34,20 @@ __swapcontext (ucontext_t *oucp, const ucontext_t *ucp)
   return 0;
 }
 
+/* A reactivated oucp resumes here in the __swapcontext frame.  */
 asm ("							\n\
 	.text						\n\
 	.type	__swapcontext_ret, #function		\n\
+	.cfi_startproc					\n\
+	.cfi_remember_state				\n\
+	.cfi_def_cfa_register %fp			\n\
+	.cfi_window_save				\n\
+	.cfi_register %o7, %i7				\n\
 __swapcontext_ret:					\n\
 	return	%i7 + 8					\n\
+	.cfi_restore_state				\n\
 	 clr	%o0					\n\
+	.cfi_endproc					\n\
 	.size	__swapcontext_ret, .-__swapcontext_ret	\n\
      ");
 
