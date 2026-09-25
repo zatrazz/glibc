@@ -64,6 +64,8 @@ ENTRY(__setcontext)
 	cfi_offset (esi, oESI)
 	cfi_offset (ebp, oEBP)
 	cfi_offset (ebx, oEBX)
+	cfi_offset (esp, oESP)
+	cfi_offset (eip, oEIP)
 	movl	oESP(%eax), %esp
 
 	/* Push the return address on the new stack so we can return there.  */
