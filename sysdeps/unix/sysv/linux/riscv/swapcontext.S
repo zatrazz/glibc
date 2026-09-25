@@ -70,6 +70,10 @@ LEAF (__swapcontext)
 
 	bltz	a0, 99f
 
+	/* The unwinder sees the new context through t0 from here on.  */
+	cfi_remember_state
+	CONTEXT_CFI (t0)
+
 #ifndef __riscv_float_abi_soft
 	lw	t1, MCONTEXT_FSR(t0)
 
@@ -117,7 +121,7 @@ LEAF (__swapcontext)
 
 	jr	t1
 
-
+	cfi_restore_state
 99:	tail	__syscall_error
 
 PSEUDO_END (__swapcontext)
