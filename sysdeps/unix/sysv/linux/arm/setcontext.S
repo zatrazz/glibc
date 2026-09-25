@@ -20,14 +20,21 @@
 #include <sysdep.h>
 #include <rtld-global-offsets.h>
 
-#include "ucontext_i.h"
+#include "ucontext-unwind.h"
 
 	.syntax unified
 	.text
 
 /* int setcontext (const ucontext_t *ucp) */
 
-ENTRY(__setcontext)
+EHABI_ENTRY(__setcontext)
+	/* Keep the return address for the unwinder.  */
+	EHABI_REGION
+	push	{r4, lr}
+	cfi_adjust_cfa_offset (8)
+	cfi_rel_offset (r4, 0)
+	cfi_rel_offset (lr, 4)
+	eabi_save ({r4, lr})
 	mov	r4, r0
 	add	r0, r0, #UCONTEXT_REGSPACE
 
@@ -74,12 +81,21 @@ ENTRY(__setcontext)
 	mov	r2, #0
 	bl	PLTJMP(__sigprocmask)
 
-	/* Loading r0-r3 makes makecontext easier.  */
+	/* Loading r0-r3 makes makecontext easier.  From here on the
+	   unwinder sees the new context through R14.  */
+	EHABI_REGION
+	EHABI_CONTEXT (14, MCONTEXT_ARM_R0)
 	add     r14, r4, #MCONTEXT_ARM_R0
+	CFI_CONTEXT (r14, MCONTEXT_ARM_R0)
 	ldmia   r14, {r0-r12}
 	ldr     r13, [r14, #(MCONTEXT_ARM_SP - MCONTEXT_ARM_R0)]
+	EHABI_REGION
+	/* vsp = r14 - 4 (the saved SP), pop SP and LR.  */
+	.unwind_raw 0, 0x9e, 0x40, 0x86, 0x00
 	add     r14, r14, #(MCONTEXT_ARM_LR - MCONTEXT_ARM_R0)
+	cfi_def_cfa_offset (0)
 	ldmia   r14, {r14, pc}
+	eabi_fnend
 
 END(setcontext)
 weak_alias(__setcontext, setcontext)
@@ -88,11 +104,15 @@ weak_alias(__setcontext, setcontext)
 	   context in R4 or fall through to exit().  */
 	/* Unwind descriptors are looked up based on PC - 2, so we have to
 	   make sure to mark the instruction preceding the __startcontext
-	   label as .cantunwind.  */
+	   label as .cantunwind, and likewise for DWARF with PC - 1.  */
 	.fnstart
 	.cantunwind
+	.globl	C_SYMBOL_NAME(__startcontext)
+	.type	C_SYMBOL_NAME(__startcontext),%function
+	cfi_startproc
+	cfi_undefined (lr)
 	nop
-ENTRY(__startcontext)
+C_LABEL(__startcontext)
 	movs    r0, r4
 	bne     PLTJMP(__setcontext)
 

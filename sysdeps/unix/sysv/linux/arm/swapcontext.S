@@ -17,27 +17,30 @@
 
 #include <sysdep.h>
 
-#include "ucontext_i.h"
+#include "ucontext-unwind.h"
 
 	.syntax unified
 	.text
 
 /* int swapcontext (ucontext_t *oucp, const ucontext_t *ucp) */
 
-ENTRY(swapcontext)
+EHABI_ENTRY(swapcontext)
 
 	/* Have getcontext() do most of the work then fix up
 	   LR afterwards.  Save R3 to keep the stack aligned.  */
+	EHABI_REGION
 	push	{r0,r1,r3,r14}
 	cfi_adjust_cfa_offset (16)
 	cfi_rel_offset (r0,0)
 	cfi_rel_offset (r1,4)
 	cfi_rel_offset (r3,8)
 	cfi_rel_offset (r14,12)
+	eabi_save ({r0, r1, r3, lr})
 
 	bl	__getcontext
-	mov	r4, r0
+	mov	r2, r0
 
+	EHABI_REGION
 	pop	{r0,r1,r3,r14}
 	cfi_adjust_cfa_offset (-16)
 	cfi_restore (r0)
@@ -46,9 +49,9 @@ ENTRY(swapcontext)
 	cfi_restore (r14)
 
 	/* Exit if getcontext() failed.  */
-	cmp 	r4, #0
+	cmp 	r2, #0
 	itt	ne
-	movne	r0, r4
+	movne	r0, r2
 	RETINSTR(ne, r14)
 
 	/* Fix up LR and the PC.  */
@@ -59,5 +62,6 @@ ENTRY(swapcontext)
 	/* And swap using swapcontext().  */
 	mov	r0, r1
 	b	__setcontext
+	eabi_fnend
 
 END(swapcontext)
