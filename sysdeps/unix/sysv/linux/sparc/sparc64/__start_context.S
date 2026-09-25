@@ -25,7 +25,15 @@
    'makecontext' manipulated at the time of the 'makecontext' call.
    If the pointer is NULL the process must terminate.  */
 
-ENTRY(__start_context)
+/* The function called returns to it, so the FDE, which marks the
+   outermost frame, covers the address before it.  */
+	.globl	C_SYMBOL_NAME(__start_context)
+	.type	C_SYMBOL_NAME(__start_context),@function
+	.align	4
+	cfi_startproc
+	cfi_undefined(%o7)
+	nop
+C_LABEL(__start_context)
 	brz,pn	%i0, 1f
 	 mov	1, %o1
 	call	__setcontext
