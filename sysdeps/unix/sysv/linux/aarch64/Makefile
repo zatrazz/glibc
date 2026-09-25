@@ -403,8 +403,3 @@ endif
 
 abi-lp64-condition := !defined __AARCH64EB__
 abi-lp64_be-condition := defined __AARCH64EB__
-
-ifeq ($(subdir),stdlib)
-test-xfail-tst-ucontext-unwind = yes
-test-xfail-tst-ucontext-unwind-sampling = yes
-endif
