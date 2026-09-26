@@ -29,10 +29,6 @@ $(objpfx)tst-audit27: $(objpfx)tst-audit27mod.so \
 $(objpfx)tst-audit27mod.so: $(libsupport)
 LDFLAGS-tst-audit27 += -Wl,-z,lazy
 tst-audit27-ENV = LD_AUDIT=$(objpfx)tst-auditmod27.so
-
-ifeq (yes,$(have-test-bti))
-test-xfail-tst-audit-plt-flags = yes
-endif
 endif
 
 ifeq ($(subdir),elf)
