@@ -161,8 +161,9 @@ _dl_runtime_profile_new:
 	bic	$18, 15, $18
 	subq	$30, $18, $30
 
-	/* Save the call destination around memcpy.  */
-	stq	$0, 14*8($30)
+	/* Save the call destination around memcpy, in the fixed frame
+	   since the new argument frame is overwritten by the copy.  */
+	stq	$0, 14*8($15)
 
 	/* Copy the stack arguments into place.  */
 	lda	$16, 0($30)
@@ -171,7 +172,7 @@ _dl_runtime_profile_new:
 	ldgp	$29, 0($26)
 
 	/* Reload the argument registers.  */
-	ldq	$27, 14*8($30)
+	ldq	$27, 14*8($15)
 	ldq	$16, 2*8($15)
 	ldq	$17, 3*8($15)
 	ldq	$18, 4*8($15)
@@ -198,6 +199,12 @@ _dl_runtime_profile_new:
 	stt	$f0, 18*8($15)
 	stt	$f1, 19*8($15)
 	bsr	$26, _dl_audit_pltexit	!samegp
+
+	/* Reload the return values, which la_pltexit may change.  */
+	ldq	$0, 16*8($15)
+	ldq	$1, 17*8($15)
+	ldt	$f0, 18*8($15)
+	ldt	$f1, 19*8($15)
 
 	mov	$15, $30
 	cfi_def_cfa_register (30)
@@ -494,8 +501,9 @@ _dl_runtime_profile_old:
 	bic	$18, 15, $18
 	subq	$30, $18, $30
 
-	/* Save the call destination around memcpy.  */
-	stq	$0, 46*8($30)
+	/* Save the call destination around memcpy, in the fixed frame
+	   since the new argument frame is overwritten by the copy.  */
+	stq	$0, 46*8($15)
 
 	/* Copy the stack arguments into place.  */
 	lda	$16, 0($30)
@@ -504,7 +512,7 @@ _dl_runtime_profile_old:
 	ldgp	$29, 0($26)
 
 	/* Reload the argument registers.  */
-	ldq	$27, 46*8($30)
+	ldq	$27, 46*8($15)
 	ldq	$16, 2*8($15)
 	ldq	$17, 3*8($15)
 	ldq	$18, 4*8($15)
@@ -531,6 +539,12 @@ _dl_runtime_profile_old:
 	stt	$f0, 48*8($15)
 	stt	$f1, 49*8($15)
 	bsr	$26, _dl_audit_pltexit	!samegp
+
+	/* Reload the return values, which la_pltexit may change.  */
+	ldq	$0, 46*8($15)
+	ldq	$1, 47*8($15)
+	ldt	$f0, 48*8($15)
+	ldt	$f1, 49*8($15)
 
 	mov	$15, $30
 	cfi_def_cfa_register (30)
