@@ -181,10 +181,9 @@ _dl_runtime_profile:
 	stw	%r21,-32(%sp)	/* PIC register value */
 
 	/* Create La_hppa_retval */
-	/* -140, lrv_r28
-           -136, lrv_r29
-           -132, 4 byte pad
-           -128, lr_fr4 (8 bytes) */
+	/* -144, lrv_r28
+           -140, lrv_r29
+           -136, lr_fr4 (8 bytes) */
 
 	/* Create save space for _dl_profile_fixup arguments
 	   -120, Saved reloc offset
@@ -248,7 +247,7 @@ _dl_runtime_profile:
 
 	/* *framesizep is >= 0 if we have to run pltexit */
 	ldw	-112(%sp),%r28
-	cmpb,>>=,N %r0,%r28,L(cpe)
+	cmpb,<=,N %r0,%r28,L(cpe)
 
 	/* Adjust sp, and restore function result address*/
 	ldwm	-192(%sp),%r28
@@ -269,27 +268,32 @@ L(cpe):
 	   guess how much extra frame we need, and how much frame to
 	   copy forward. */
 
-	/* Round to nearest multiple of 64 */
+	/* Round up to a multiple of 64 */
 	addi	63, %r28, %r28
-	depi	0, 27, 6, %r28
+	depi	0, 31, 6, %r28
 
-	/* Calculate start of stack copy */
+	/* The stack grows up, so the stack arguments are the framesize
+	   bytes below the entry sp.  */
 	ldo	-192(%sp),%r2
 
 	/* Increate the stack by *framesizep */
-	copy	%sp, %r1
 	add	%sp, %r28, %sp
-	/* Save stack pointer */
-	stw	%r1, -4(%sp)
 
-	/* Single byte copy of previous stack onto newly allocated stack */
+	/* Single byte copy of the bytes below the entry sp to below the
+	   new sp, using a negative index from both.  */
+	cmpb,=,n %r0,%r28,2f
+	sub	%r0,%r28,%r28
 1:	ldb	%r28(%r2), %r1
 	add	%r28, %sp, %r26
 	stb	%r1, 0(%r26)
-	addi,<	-1,%r28,%r28
+	addi,>=	1,%r28,%r28
 	b,n	1b
 
-	/* Restore r28 and r27 and r2 already points at -192(%sp) */
+	/* Save stack pointer, after the copy that overwrites -4(%sp) */
+2:	ldo	192(%r2),%r1
+	stw	%r1, -4(%sp)
+
+	/* Restore r28 and r26, r2 still points at the entry sp */
 	ldw	0(%r2),%r28
 	ldw	84(%r2),%r26
 
@@ -305,26 +309,27 @@ L(cont):
 	ldw	-116(%sp), %r26		/* (1) got[1] == struct link_map */
 	ldw	-120(%sp), %r25		/* (2) reloc offsets */
 	ldo	-56(%sp), %r24		/* (3) *La_hppa_regs */
-	ldo	-124(%sp), %r23		/* (4) *La_hppa_retval */
+	ldo	-144(%sp), %r23		/* (4) *La_hppa_retval */
 
 	/* Fill *La_hppa_retval */
-	stw	%r28,-140(%sp)
-	stw	%r29,-136(%sp)
-	ldo	-128(%sp), %r1
+	stw	%r28,-144(%sp)
+	stw	%r29,-140(%sp)
+	ldo	-136(%sp), %r1
 	fstd	%fr4,0(%r1)
 
-	/* Call _dl_audit_pltexit */
+	/* Call _dl_audit_pltexit, the called function may have changed
+	   the ltp.  */
 	bl	_dl_audit_pltexit,%rp
-	nop
+	ldw	-32(%sp),%r19
 
 	/* Restore *La_hppa_retval */
-	ldw	-140(%sp), %r28
-	ldw	-136(%sp), %r29
-	ldo	-128(%sp), %r1
+	ldw	-144(%sp), %r28
+	ldw	-140(%sp), %r29
+	ldo	-136(%sp), %r1
 	fldd	0(%r1), %fr4
 
 	/* Unwind the stack */
-	ldo	192(%sp),%sp
+	ldo	-192(%sp),%sp
 	/* Restore callers rp */
         ldw -20(%sp),%rp
 	/* Return */
