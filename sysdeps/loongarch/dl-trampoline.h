@@ -164,6 +164,11 @@ ENTRY (_dl_runtime_profile)
 
 	or	fp, sp, zero
 
+	/* The la_pltexit path returns through lr_ra.  */
+	REG_S	ra, fp, OFFSET_RG + DL_OFFSET_RG_RA
+	ADDI	t2, fp, SF_SIZE
+	REG_S	t2, fp, OFFSET_RG + DL_OFFSET_RG_SP
+
 	REG_S	a0, fp, OFFSET_RG + DL_OFFSET_RG_A0 + 0*SZREG
 	REG_S	a1, fp, OFFSET_RG + DL_OFFSET_RG_A0 + 1*SZREG
 	REG_S	a2, fp, OFFSET_RG + DL_OFFSET_RG_A0 + 2*SZREG
@@ -323,18 +328,18 @@ ENTRY (_dl_runtime_profile)
 
 	jirl	ra, t6, 0
 
-	REG_S	a0, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_A0
-	REG_S	a1, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_A0 + SZREG
+	REG_S	a0, fp, OFFSET_RV + DL_OFFSET_RV_A0
+	REG_S	a1, fp, OFFSET_RV + DL_OFFSET_RV_A0 + SZREG
 
 #ifdef USE_LASX
-	xvst	xr0, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_VEC0
-	xvst	xr1, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_VEC0 + SZXREG
+	xvst	xr0, fp, OFFSET_RV + DL_OFFSET_RV_VEC0
+	xvst	xr1, fp, OFFSET_RV + DL_OFFSET_RV_VEC0 + SZXREG
 #elif defined USE_LSX
-	vst	vr0, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_VEC0
-	vst	vr1, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_VEC0 + SZVREG
+	vst	vr0, fp, OFFSET_RV + DL_OFFSET_RV_VEC0
+	vst	vr1, fp, OFFSET_RV + DL_OFFSET_RV_VEC0 + SZVREG
 #elif !defined __loongarch_soft_float
-	FREG_S	fa0, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_VEC0
-	FREG_S	fa1, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_VEC0 + SZFREG
+	FREG_S	fa0, fp, OFFSET_RV + DL_OFFSET_RV_VEC0
+	FREG_S	fa1, fp, OFFSET_RV + DL_OFFSET_RV_VEC0 + SZFREG
 #endif
 
 	/* Setup call to pltexit.  */
@@ -349,21 +354,21 @@ ENTRY (_dl_runtime_profile)
 	REG_L	a1, fp, OFFSET_RV + DL_OFFSET_RV_A0 + SZREG
 
 #ifdef USE_LASX
-	xvld	xr0, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_VEC0
-	xvld	xr1, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_VEC0 + SZXREG
+	xvld	xr0, fp, OFFSET_RV + DL_OFFSET_RV_VEC0
+	xvld	xr1, fp, OFFSET_RV + DL_OFFSET_RV_VEC0 + SZXREG
 #elif defined USE_LSX
-	vld	vr0, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_VEC0
-	vld	vr1, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_VEC0 + SZVREG
+	vld	vr0, fp, OFFSET_RV + DL_OFFSET_RV_VEC0
+	vld	vr1, fp, OFFSET_RV + DL_OFFSET_RV_VEC0 + SZVREG
 #elif !defined __loongarch_soft_float
-	FREG_L	fa0, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_VEC0
-	FREG_L	fa1, fp, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_VEC0 + SZFREG
+	FREG_L	fa0, fp, OFFSET_RV + DL_OFFSET_RV_VEC0
+	FREG_L	fa1, fp, OFFSET_RV + DL_OFFSET_RV_VEC0 + SZFREG
 #endif
 
 	/* RA from within La_loongarch_reg.  */
 	REG_L   ra, fp, OFFSET_RG + DL_OFFSET_RG_RA
 	or	sp, fp, zero
+	REG_L	fp, sp, SZREG
 	ADDI	sp, sp, SF_SIZE
-	REG_S   fp, fp, SZREG
 
 	jirl	zero, ra, 0
 

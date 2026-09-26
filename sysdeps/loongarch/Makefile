@@ -22,8 +22,6 @@ gen-as-const-headers += \
 
 CFLAGS-tst-tunables-seal.c += -DTST_SEAL_TUNABLE_NAME=hwcaps
 tst-tunables-seal-TUNABLES += glibc.cpu.hwcaps=-LASX
-
-test-xfail-tst-audit-plt-flags = yes
 endif
 
 ifeq ($(subdir),csu)
