@@ -127,6 +127,11 @@ ENTRY (_dl_runtime_profile)
 
   mv fp, sp
 
+  # The la_pltexit path returns through lr_ra.
+  REG_S ra, OFFSET_RG + DL_OFFSET_RG_RA(fp)
+  addi t2, fp, SF_SIZE
+  REG_S t2, OFFSET_RG + DL_OFFSET_RG_SP(fp)
+
   REG_S a0, OFFSET_RG + DL_OFFSET_RG_A0 + 0*SZREG(fp)
   REG_S a1, OFFSET_RG + DL_OFFSET_RG_A0 + 1*SZREG(fp)
   REG_S a2, OFFSET_RG + DL_OFFSET_RG_A0 + 2*SZREG(fp)
@@ -231,12 +236,12 @@ ENTRY (_dl_runtime_profile)
 #endif
   jalr t4
 
-  REG_S a0, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_A0(fp)
-  REG_S a1, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_A0 + SZREG(fp)
+  REG_S a0, OFFSET_RV + DL_OFFSET_RV_A0(fp)
+  REG_S a1, OFFSET_RV + DL_OFFSET_RV_A0 + SZREG(fp)
 
 #ifndef __riscv_float_abi_soft
-  FREG_S fa0, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_FA0(fp)
-  FREG_S fa1, OFFSET_SAVED_CALL_A0 + DL_OFFSET_RV_FA0 + SZFREG(fp)
+  FREG_S fa0, OFFSET_RV + DL_OFFSET_RV_FA0(fp)
+  FREG_S fa1, OFFSET_RV + DL_OFFSET_RV_FA0 + SZFREG(fp)
 #endif
 
   # Setup call to pltexit.
@@ -258,8 +263,8 @@ ENTRY (_dl_runtime_profile)
   # RA from within La_riscv_reg.
   REG_L ra, OFFSET_RG + DL_OFFSET_RG_RA(fp)
   mv sp, fp
-  ADDI sp, sp, SF_SIZE
-  REG_S fp, SZREG(fp)
+  REG_L fp, SZREG(sp)
+  addi sp, sp, SF_SIZE
 
   jr ra
 
