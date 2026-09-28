@@ -39,6 +39,7 @@
 #include <clone_internal.h>
 #include <futex-internal.h>
 #include <getrandom-internal.h>
+#include <unwind-link.h>
 
 #include <shlib-compat.h>
 
@@ -669,6 +670,15 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
       /* __libc_single_threaded can be accessed through copy relocations, so
 	 it requires to update the external copy.  */
       __libc_single_threaded = 0;
+
+      /* Load the unwinder used by pthread_exit and pthread_cancel while
+	 the process is still single-threaded.  Loading it on first use
+	 may fail if the process has restricted its resources in the
+	 meantime (file descriptor limits or seccomp filters), or if the
+	 installed library was replaced by one that requires a newer
+	 glibc.  A failure here is ignored, and the load is retried on
+	 first use.  */
+      (void) __libc_unwind_link_get ();
     }
 
   const struct pthread_attr *iattr = (struct pthread_attr *) attr;

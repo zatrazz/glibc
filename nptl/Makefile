@@ -475,6 +475,7 @@ ifeq ($(build-shared),yes)
 tests += \
   tst-audit-threads \
   tst-compat-forwarder \
+  tst-pthread-unwind-preload \
   # tests
 tests-internal += \
   tst-stackguard1 \
