@@ -173,9 +173,15 @@ ___pthread_mutex_trylock (pthread_mutex_t *mutex)
 	      /* The CAS above returned the previous value of the lock, so
 		 oldval == 0 means that we acquired it.  Release it again;
 		 the caller must not end up owning a mutex after an
-		 ENOTRECOVERABLE failure (bug 27458).  */
-	      if (oldval == 0)
-		lll_unlock (mutex->__data.__lock,
+		 ENOTRECOVERABLE failure (bug 27458).  A thread blocking in
+		 pthread_mutex_lock meanwhile may have set FUTEX_WAITERS, so
+		 release it as __pthread_mutex_unlock_full does (see
+		 __pthread_mutex_lock_full for why lll_unlock cannot be
+		 used).  */
+	      if (oldval == 0
+		  && (atomic_exchange_release (&mutex->__data.__lock, 0)
+		      & FUTEX_WAITERS) != 0)
+		futex_wake ((unsigned int *) &mutex->__data.__lock, 1,
 			    PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
 	      /* FIXME This violates the mutex destruction requirements.  See
 		 __pthread_mutex_unlock_full.  */
