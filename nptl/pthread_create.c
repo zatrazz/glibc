@@ -92,6 +92,9 @@ late_init (void)
 			 NULL, __NSIG_BYTES);
 }
 
+/* Set by the first pthread_create call, which runs late_init.  */
+static bool late_init_done;
+
 /* Code to allocate and deallocate a stack.  */
 #include "allocatestack.c"
 
@@ -653,9 +656,14 @@ __pthread_create_2_1 (pthread_t *newthread, const pthread_attr_t *attr,
   size_t stacksize = 0;
 
   /* Avoid a data race in the multi-threaded case, and call the
-     deferred initialization only once.  */
-  if (__libc_single_threaded_internal)
+     deferred initialization only once.  __libc_single_threaded_internal
+     cannot be used for this check because pthread_cancel clears it
+     on a self-cancel, before any thread is created.  Inner libcs
+     (from dlmopen) do not run the initialization because it installs
+     process-wide signal handlers.  */
+  if (__libc_initial && !late_init_done)
     {
+      late_init_done = true;
       late_init ();
       __libc_single_threaded_internal = 0;
       /* __libc_single_threaded can be accessed through copy relocations, so

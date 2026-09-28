@@ -272,6 +272,8 @@ tests = \
   tst-attr2 \
   tst-attr3 \
   tst-attr4 \
+  tst-cancel-self-create \
+  tst-cancel-self-create-static \
   tst-cancel4_1 \
   tst-cancel4_2 \
   tst-cancel7 \
@@ -553,6 +555,7 @@ link-libc-static := $(common-objpfx)libc.a $(static-gnulib) \
 		    $(common-objpfx)libc.a
 
 tests-static += \
+  tst-cancel-self-create-static \
   tst-cancel24-static \
   tst-mutex8-static \
   tst-mutexpi8-static \
