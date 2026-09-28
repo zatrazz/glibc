@@ -170,7 +170,11 @@ ___pthread_mutex_trylock (pthread_mutex_t *mutex)
 	    {
 	      /* This mutex is now not recoverable.  */
 	      mutex->__data.__count = 0;
-	      if (oldval == id)
+	      /* The CAS above returned the previous value of the lock, so
+		 oldval == 0 means that we acquired it.  Release it again;
+		 the caller must not end up owning a mutex after an
+		 ENOTRECOVERABLE failure (bug 27458).  */
+	      if (oldval == 0)
 		lll_unlock (mutex->__data.__lock,
 			    PTHREAD_ROBUST_MUTEX_PSHARED (mutex));
 	      /* FIXME This violates the mutex destruction requirements.  See
