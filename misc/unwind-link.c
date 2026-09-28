@@ -56,10 +56,7 @@ __libc_unwind_link_get (void)
      unwinding.  */
   void *local_libgcc_handle = __libc_dlopen (UNWIND_SONAME);
   if (local_libgcc_handle == NULL)
-    {
-      __libc_lock_unlock (lock);
-      return NULL;
-    }
+    return NULL;
 
   struct unwind_link local;
   local.ptr__Unwind_Backtrace
