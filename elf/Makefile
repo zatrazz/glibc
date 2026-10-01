@@ -222,6 +222,7 @@ ldconfig-modules := \
   cache \
   chroot_canon \
   ldconfig-parse \
+  preloadconf \
   readlib \
   static-stubs \
   stringtable \
@@ -312,6 +313,7 @@ tests-container := \
   tst-dl-cache-old-format \
   tst-ldconfig-bad-aux-cache \
   tst-ldconfig-ld_so_conf-update \
+  tst-ldconfig-preload \
   # tests-container
 
 ifeq (no,$(build-hardcoded-path-in-tests))
@@ -3072,9 +3074,10 @@ LDFLAGS-tst-dlopen-nodelete-reloc-mod17.so = -Wl,--no-as-needed
 $(objpfx)tst-ldconfig-ld_so_conf-update.out: $(objpfx)tst-ldconfig-ld-mod.so
 
 $(objpfx)tst-dl-cache-long-path: $(shared-thread-library)
-# Both cache tests reuse the trivial module already built for tst-dl-path-buf.
+# These cache tests reuse the trivial module already built for tst-dl-path-buf.
 $(objpfx)tst-dl-cache-long-path.out: $(objpfx)tst-dl-path-buf-mod.so
 $(objpfx)tst-dl-cache-old-format.out: $(objpfx)tst-dl-path-buf-mod.so
+$(objpfx)tst-ldconfig-preload.out: $(objpfx)tst-dl-path-buf-mod.so
 
 LDFLAGS-tst-dst-needed-leaf-mod.so = \
   -Wl,-soname,\$$ORIGIN/\$$ORIGIN/\$$ORIGIN/\$$ORIGIN/\$$ORIGIN/leaf.so

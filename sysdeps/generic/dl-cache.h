@@ -226,6 +226,16 @@ enum cache_extension_tag
       size must be a multiple of 8.  */
    cache_extension_tag_tunables,
 
+   /* System-wide preload list, replacing /etc/ld.so.preload.  A
+      uint32_t count followed by count uint32_t values, which are
+      indices into the string table.  Each string is one object name,
+      stored as written in the ldconfig input file, and the objects
+      are preloaded in array order.
+
+      For this section, 4-byte alignment is required, and the section
+      size must be 4 * (count + 1).  */
+   cache_extension_tag_preload,
+
    /* Total number of known cache extension tags.  */
    cache_extension_count
   };
@@ -311,6 +321,21 @@ cache_extension_verify (struct cache_extension_all_loaded *loaded)
 	tun->base = NULL;
 	tun->size = 0;
 	tun->flags = 0;
+      }
+  }
+  {
+    /* Section must hold at least the count, it must be aligned at 4
+       bytes, and the size must match the count.  */
+    struct cache_extension_loaded *pre
+      = &loaded->sections[cache_extension_tag_preload];
+    if (pre->size < sizeof (uint32_t)
+	|| ((uintptr_t) pre->base % 4) != 0
+	|| (pre->size % 4) != 0
+	|| pre->size / 4 - 1 != *(const uint32_t *) pre->base)
+      {
+	pre->base = NULL;
+	pre->size = 0;
+	pre->flags = 0;
       }
   }
 }

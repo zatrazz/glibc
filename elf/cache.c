@@ -37,6 +37,7 @@
 #include <version.h>
 #include <stringtable.h>
 #include <tunconf.h>
+#include <preloadconf.h>
 
 /* Used to store library names, paths, and other strings.  */
 static struct stringtable strings;
@@ -345,6 +346,13 @@ print_extensions (struct cache_extension_all_loaded *ext,
 	  printf (")]\n");
 	}
     }
+  if (ext->sections[cache_extension_tag_preload].base != NULL)
+    {
+      const uint32_t *pre = ext->sections[cache_extension_tag_preload].base;
+      printf (_("preload count %u\n"), pre[0]);
+      for (uint32_t i = 0; i < pre[0]; ++i)
+	printf ("  [%u] %s\n", i, cache_data + pre[i + 1]);
+    }
 }
 
 /* Print the whole cache file, if a file contains the new cache format
@@ -499,114 +507,117 @@ compare (const struct cache_entry *e1, const struct cache_entry *e2)
   return res;
 }
 
-/* Size of the cache extension directory.  All tags are assumed to be
-   present.  */
-enum
-  {
-   cache_extension_size = (offsetof (struct cache_extension, sections)
-			   + (cache_extension_count
-			      * sizeof (struct cache_extension_section)))
-  };
+/* One section of the cache extension data, before layout.  */
+struct extension_section
+{
+  uint32_t tag;
+  uint32_t align;
+  const void *data;
+  uint32_t size;
+};
 
 /* Write the cache extensions to FD.  The string table is shifted by
    STRING_TABLE_OFFSET.  The extension directory is assumed to be
-   located at CACHE_EXTENSION_OFFSET.  assign_glibc_hwcaps_indices
-   must have been called.  */
+   located at CACHE_EXTENSION_OFFSET, and each section's data follows
+   the directory in table order, padded to the section's alignment.
+   assign_glibc_hwcaps_indices must have been called.  */
 static void
 write_extensions (int fd, uint32_t str_offset,
 		  uint32_t cache_extension_offset)
 {
   assert ((cache_extension_offset % 4) == 0);
 
-  /* The length and contents of the glibc-hwcaps section.  */
-  uint32_t hwcaps_count = glibc_hwcaps_count ();
-  uint32_t hwcaps_offset = cache_extension_offset + cache_extension_size;
-  uint32_t hwcaps_size = hwcaps_count * sizeof (uint32_t);
-  uint32_t *hwcaps_array = xmalloc (hwcaps_size);
-  for (struct glibc_hwcaps_subdirectory *p = hwcaps; p != NULL; p = p->next)
-    if (p->used)
-      hwcaps_array[p->section_index] = str_offset + p->name->offset;
-
-  struct tunable_header_cached *tunable_data;
-  size_t tunable_size;
-  size_t tunable_aligner = 0;
-
-  tunable_data = get_tunconf_ext (str_offset);
-
-  if (tunable_data == NULL)
-    {
-      /* There is no section for tunables data.  */
-      hwcaps_offset  -= sizeof (struct cache_extension_section);
-    }
-
-  /* This is the offset of the generator string.  */
-  uint32_t generator_offset = hwcaps_offset;
-  if (hwcaps_count == 0)
-    /* There is no section for the hwcaps subdirectories.  */
-    generator_offset -= sizeof (struct cache_extension_section);
-  else
-    /* The string table indices for the hwcaps subdirectories shift
-       the generator string backwards.  */
-    generator_offset += hwcaps_size;
-
-  struct cache_extension *ext = xmalloc (cache_extension_size);
-  ext->magic = cache_extension_magic;
-
-  /* Extension index current being filled.  */
-  size_t xid = 0;
+  struct extension_section sections[cache_extension_count];
+  size_t nsections = 0;
 
   const char *generator
     = "ldconfig " PKGVERSION RELEASE " release version " VERSION;
-  ext->sections[xid].tag = cache_extension_tag_generator;
-  ext->sections[xid].flags = 0;
-  ext->sections[xid].offset = generator_offset;
-  ext->sections[xid].size = strlen (generator);
+  sections[nsections++] = (struct extension_section)
+    {
+      .tag = cache_extension_tag_generator,
+      .align = 1,
+      .data = generator,
+      .size = strlen (generator),
+    };
 
+  /* The length and contents of the glibc-hwcaps section.  */
+  uint32_t hwcaps_count = glibc_hwcaps_count ();
+  uint32_t *hwcaps_array = NULL;
   if (hwcaps_count > 0)
     {
-      ++xid;
-      ext->sections[xid].tag = cache_extension_tag_glibc_hwcaps;
-      ext->sections[xid].flags = 0;
-      ext->sections[xid].offset = hwcaps_offset;
-      ext->sections[xid].size = hwcaps_size;
+      hwcaps_array = xmalloc (hwcaps_count * sizeof (uint32_t));
+      for (struct glibc_hwcaps_subdirectory *p = hwcaps; p != NULL;
+	   p = p->next)
+	if (p->used)
+	  hwcaps_array[p->section_index] = str_offset + p->name->offset;
+      sections[nsections++] = (struct extension_section)
+	{
+	  .tag = cache_extension_tag_glibc_hwcaps,
+	  .align = 4,
+	  .data = hwcaps_array,
+	  .size = hwcaps_count * sizeof (uint32_t),
+	};
     }
 
+  struct tunable_header_cached *tunable_data = get_tunconf_ext (str_offset);
   if (tunable_data != NULL)
-    {
-      uint32_t tunable_offset_ua;
-      uint32_t tunable_offset;
+    sections[nsections++] = (struct extension_section)
+      {
+	.tag = cache_extension_tag_tunables,
+	.align = 8,
+	.data = tunable_data,
+	.size = TUNCONF_SIZE (tunable_data),
+      };
 
-      tunable_size = TUNCONF_SIZE (tunable_data);
-      tunable_offset_ua = generator_offset + strlen (generator);
-      tunable_offset = ALIGN_UP (tunable_offset_ua, 8);
-      tunable_aligner = tunable_offset - tunable_offset_ua;
+  size_t preload_size;
+  uint32_t *preload_data = get_preloadconf_ext (str_offset, &preload_size);
+  if (preload_data != NULL)
+    sections[nsections++] = (struct extension_section)
+      {
+	.tag = cache_extension_tag_preload,
+	.align = 4,
+	.data = preload_data,
+	.size = preload_size,
+      };
 
-      ++xid;
-      ext->sections[xid].tag = cache_extension_tag_tunables;
-      ext->sections[xid].flags = 0;
-      ext->sections[xid].offset = tunable_offset;
-      ext->sections[xid].size = tunable_size;
-    }
-
-  ++xid;
-  ext->count = xid;
-  assert (xid <= cache_extension_count);
+  assert (nsections <= cache_extension_count);
 
   size_t ext_size = (offsetof (struct cache_extension, sections)
-		     + xid * sizeof (struct cache_extension_section));
-  if (write (fd, ext, ext_size) != ext_size
-      || write (fd, hwcaps_array, hwcaps_size) != hwcaps_size
-      || write (fd, generator, strlen (generator)) != strlen (generator))
-    error (EXIT_FAILURE, errno, _("Writing of cache extension data failed"));
+		     + nsections * sizeof (struct cache_extension_section));
+  struct cache_extension *ext = xmalloc (ext_size);
+  ext->magic = cache_extension_magic;
+  ext->count = nsections;
 
-  if (tunable_data)
+  uint32_t offset = cache_extension_offset + ext_size;
+  for (size_t i = 0; i < nsections; ++i)
     {
-      if (write (fd, "        ", tunable_aligner) != tunable_aligner
-	  || write (fd, tunable_data, tunable_size) != tunable_size)
-	error (EXIT_FAILURE, errno, _("Writing of cache tunable data failed"));
-      free (tunable_data);
+      offset = ALIGN_UP (offset, sections[i].align);
+      ext->sections[i].tag = sections[i].tag;
+      ext->sections[i].flags = 0;
+      ext->sections[i].offset = offset;
+      ext->sections[i].size = sections[i].size;
+      offset += sections[i].size;
     }
 
+  if (write (fd, ext, ext_size) != ext_size)
+    error (EXIT_FAILURE, errno, _("Writing of cache extension data failed"));
+
+  uint32_t pos = cache_extension_offset + ext_size;
+  for (size_t i = 0; i < nsections; ++i)
+    {
+      static const char zero[8];
+      size_t pad = ext->sections[i].offset - pos;
+      assert (pad < sizeof (zero));
+      if (write (fd, zero, pad) != pad
+	  || write (fd, sections[i].data, sections[i].size)
+	     != sections[i].size)
+	error (EXIT_FAILURE, errno,
+	       _("Writing of cache extension data failed"));
+      pos = ext->sections[i].offset + sections[i].size;
+    }
+
+  free (preload_data);
+  free (tunable_data);
   free (hwcaps_array);
   free (ext);
 }

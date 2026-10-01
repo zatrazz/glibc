@@ -674,3 +674,54 @@ _dl_load_cache_tunables (const char **data)
 
   return thc;
 }
+
+#ifdef SHARED
+/* Return the system-wide preload list from the cache as a sequence of
+   NUL-terminated names, ending with an empty name, or NULL if the
+   cache has no valid preload section.  The result is a copy since
+   preloading an object may reload the cache (see
+   _dl_load_cache_lookup).  */
+char *
+_dl_load_cache_preload (void)
+{
+  if (_dl_check_ldsocache_needs_loading ())
+    _dl_maybe_load_ldsocache ();
+
+  if (cache_new == NULL)
+    return NULL;
+
+  struct cache_extension_all_loaded ext;
+  if (!cache_extension_load (cache_new, cache, cachesize, &ext))
+    return NULL;
+
+  const uint32_t *pre = ext.sections[cache_extension_tag_preload].base;
+  if (pre == NULL || pre[0] == 0)
+    return NULL;
+
+  /* String offsets are relative to CACHE_NEW, which need not be the
+     start of the mapping.  */
+  const char *strtab = (const char *) cache_new;
+  size_t strtab_size = (const char *) cache + cachesize - strtab;
+
+  size_t total = 1;
+  for (uint32_t i = 1; i <= pre[0]; ++i)
+    {
+      if (pre[i] >= strtab_size)
+	return NULL;
+      size_t len = __strnlen (strtab + pre[i], strtab_size - pre[i]);
+      if (len == strtab_size - pre[i])
+	/* Not NUL-terminated within the mapping.  */
+	return NULL;
+      total += len + 1;
+    }
+
+  char *result = malloc (total);
+  if (result == NULL)
+    return NULL;
+  char *p = result;
+  for (uint32_t i = 1; i <= pre[0]; ++i)
+    p = __stpcpy (p, strtab + pre[i]) + 1;
+  *p = '\0';
+  return result;
+}
+#endif

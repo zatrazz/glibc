@@ -1151,6 +1151,11 @@ const struct r_strlenpair *_dl_important_hwcaps (const char *prepend,
    or null if none is found.  Caller must free returned string.  */
 extern char *_dl_load_cache_lookup (const char *name) attribute_hidden;
 
+/* Return the system-wide preload list stored in the cache, as a
+   sequence of NUL-terminated names ending with an empty name, or
+   NULL if there is none.  The caller owns the returned buffer.  */
+extern char *_dl_load_cache_preload (void) attribute_hidden;
+
 /* System-dependent function to read a file's whole contents in the
    most convenient manner available.  *SIZEP gets the size of the
    file.  On error MAP_FAILED is returned.  */

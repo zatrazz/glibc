@@ -16,6 +16,7 @@ Dynamic linkers are sometimes called @dfn{dynamic loaders}.
 * Dynamic Linker Invocation::   Explicit invocation of the dynamic linker.
 * Dynamic Linker Environment Variables:: Environment variables that control the
                                           dynamic linker.
+* System-wide Preloading::      Shared objects loaded into every program.
 * Dynamic Linker Introspection::    Interfaces for querying mapping information.
 * Indirect Functions::          Selecting function implementations at load time.
 * Dynamic Linker Hardening::    Avoiding unexpected issues with dynamic linking.
@@ -420,6 +421,64 @@ file specified by its value, with the process ID appended. For example, if
 written to a file named @file{/tmp/glibc.debug.12345}, where @code{12345} is
 the process ID.
 @end table
+
+@node System-wide Preloading
+@section System-wide Preloading
+@cindex System-wide Preloading
+@cindex /etc/ld.so.preload
+
+In addition to the @env{LD_PRELOAD} environment variable, shared
+objects may be preloaded into every dynamically linked program by
+listing them in the file @file{/etc/ld.so.preload}.  The objects are
+loaded after the main program and before its dependencies, in the
+order in which they are listed, and after the objects specified by
+@env{LD_PRELOAD}.  Unlike @env{LD_PRELOAD}, the list is also used for
+programs that run with elevated privileges (such as SUID programs).
+
+The file contains names of shared objects separated by white space or
+@samp{:}.  Text from @samp{#} to the end of the line is a comment.  A
+name is either a file name containing a @samp{/}, or a name that is
+looked up in the usual library search path.  Dynamic string tokens
+such as @code{$LIB} and @code{$PLATFORM} are expanded.
+
+@example
+# Loaded into every program.
+/usr/lib64/libmonitor.so
+libtrace.so
+@end example
+
+On systems that use @command{ldconfig}, such as GNU/Linux, the dynamic
+linker does not read @file{/etc/ld.so.preload} itself.  Instead,
+@command{ldconfig} (with whatever options you normally use) reads the
+list and stores it as an extension in @file{/etc/ld.so.cache}, which
+the dynamic linker already reads at startup.  Changes to
+@file{/etc/ld.so.preload} take effect for programs started after
+@command{ldconfig} has been run; they are not applied by just editing
+the file, and removing the file without running @command{ldconfig} does
+not stop the objects from being preloaded.  The @option{-P} option of
+@command{ldconfig} specifies a different file to read the list from.
+The @option{--inhibit-cache} option of the dynamic linker does not
+disable the preload list.
+
+In this case, @file{/etc/ld.so.preload} also supports the same
+``include @var{file}'' syntax as @file{ld.so.conf}.  The argument is a
+glob pattern, and a relative pattern is interpreted relative to the
+directory containing the including file.  The included entries are
+placed where the directive appears.  The files matched by a pattern are
+read in the order of their names, sorted byte-wise independently of the
+current locale, which determines the order of their entries (for
+example, for symbol interposition).  For example, the following
+directive reads the list from all files in a drop-in directory:
+
+@example
+include /etc/ld.so.preload.d/*.conf
+@end example
+
+A shared object that cannot be loaded is reported and ignored.
+
+@strong{Portability Note:} Storing the preload list in
+@file{/etc/ld.so.cache} and the format of that file are not part of the
+stable library interfaces and may change between releases.
 
 @node Dynamic Linker Introspection
 @section Dynamic Linker Introspection

@@ -12,7 +12,22 @@ Major new features:
 * Additional optimized and correctly rounded mathematical functions have
   been imported from the CORE-MATH project, in particular cbrt.
 
+* On systems that use ldconfig, the system-wide preload list in
+  /etc/ld.so.preload is now stored by ldconfig in /etc/ld.so.cache, so
+  the dynamic linker no longer accesses /etc/ld.so.preload at every
+  program startup.  The file now also supports the "include" directive
+  of ld.so.conf, and the new ldconfig option -P selects a different
+  file.
+
 Deprecated and removed features, and other changes affecting compatibility:
+
+* On systems that use ldconfig, the dynamic linker no longer reads
+  /etc/ld.so.preload.  Changes to the file, including its removal, only
+  take effect after ldconfig is run.  A cache written by an older
+  ldconfig has no preload list, so ldconfig must be run after upgrading
+  for the objects in /etc/ld.so.preload to be preloaded.  The
+  --inhibit-cache option of the dynamic linker does not disable the
+  preload list.
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir
   functions, added in glibc 2.44 as header redirects to the _np variants, are

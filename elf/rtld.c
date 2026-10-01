@@ -1345,8 +1345,10 @@ dl_main (const ElfW(Phdr) *phdr,
 	 ElfW(auxv_t) *auxv)
 {
   struct link_map *main_map;
+#ifndef USE_LDCONFIG
   size_t file_size;
   char *file;
+#endif
   unsigned int i;
   bool rtld_is_main = false;
   void *tcbp = NULL;
@@ -1810,8 +1812,9 @@ dl_main (const ElfW(Phdr) *phdr,
   _dl_audit_activity_map (main_map, LA_ACT_ADD);
 
   /* We have two ways to specify objects to preload: via environment
-     variable and via the file /etc/ld.so.preload.  The latter can also
-     be used when security is enabled.  */
+     variable and via the file /etc/ld.so.preload (compiled into
+     ld.so.cache by ldconfig if USE_LDCONFIG).  The latter can also be
+     used when security is enabled.  */
   assert (*first_preload == NULL);
   struct link_map **preloads = NULL;
   unsigned int npreloads = 0;
@@ -1834,6 +1837,26 @@ dl_main (const ElfW(Phdr) *phdr,
       rtld_timer_accum (&load_time, start);
     }
 
+#ifdef USE_LDCONFIG
+  /* The system-wide preload list is compiled by ldconfig from
+     /etc/ld.so.preload into ld.so.cache, which is already mapped for
+     the system-wide tunables, so no extra file access is needed.  It
+     is used even if --inhibit-cache is given.  */
+  {
+    char *list = _dl_load_cache_preload ();
+    if (__glibc_unlikely (list != NULL))
+      {
+	RTLD_TIMING_VAR (start);
+	rtld_timer_start (&start);
+
+	for (char *p = list; *p != '\0'; p += strlen (p) + 1)
+	  npreloads += do_preload (p, main_map, LD_SO_CACHE);
+
+	rtld_timer_accum (&load_time, start);
+	free (list);
+      }
+  }
+#else
   /* There usually is no ld.so.preload file, it should only be used
      for emergencies and testing.  So the open call etc should usually
      fail.  Using access() on a non-existing file is faster than using
@@ -1916,6 +1939,7 @@ dl_main (const ElfW(Phdr) *phdr,
 	  __munmap (file, file_size);
 	}
     }
+#endif
 
   if (__glibc_unlikely (*first_preload != NULL))
     {
