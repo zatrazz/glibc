@@ -132,30 +132,47 @@
 # define __SYSCALL_CANCEL7_ARCH_ARG7
 #endif
 
-#define __SYSCALL_CANCEL0(name)						\
-  syscall_cancel (0, 0, 0, 0, 0, 0, __SYSCALL_CANCEL7_ARG __NR_##name)
-#define __SYSCALL_CANCEL1(name, a1)					\
-  syscall_cancel (__SSC (a1), 0, 0, 0, 0, 0,				\
-		  __SYSCALL_CANCEL7_ARG __NR_##name)
-#define __SYSCALL_CANCEL2(name, a1, a2) \
-  syscall_cancel (__SSC (a1), __SSC (a2), 0, 0, 0, 0,			\
-		  __SYSCALL_CANCEL7_ARG __NR_##name)
-#define __SYSCALL_CANCEL3(name, a1, a2, a3) \
-  syscall_cancel (__SSC (a1), __SSC (a2), __SSC (a3), 0, 0, 0,	\
-		  __SYSCALL_CANCEL7_ARG __NR_##name)
-#define __SYSCALL_CANCEL4(name, a1, a2, a3, a4) \
-  syscall_cancel (__SSC (a1), __SSC (a2), __SSC (a3),			\
-		  __SSC(a4), 0, 0, __SYSCALL_CANCEL7_ARG __NR_##name)
-#define __SYSCALL_CANCEL5(name, a1, a2, a3, a4, a5) \
-  syscall_cancel (__SSC (a1), __SSC (a2), __SSC (a3), __SSC(a4),	\
-		  __SSC (a5), 0, __SYSCALL_CANCEL7_ARG __NR_##name)
-#define __SYSCALL_CANCEL6(name, a1, a2, a3, a4, a5, a6) \
-  syscall_cancel (__SSC (a1), __SSC (a2), __SSC (a3), __SSC (a4),	\
-		  __SSC (a5), __SSC (a6), __SYSCALL_CANCEL7_ARG	\
-		  __NR_##name)
-#define __SYSCALL_CANCEL7(name, a1, a2, a3, a4, a5, a6, a7)		\
-  syscall_cancel (__SSC (a1), __SSC (a2), __SSC (a3), __SSC (a4),	\
-		  __SSC (a5), __SSC (a6), __SSC (a7), __NR_##name)
+/* Each __INTERNAL_SYSCALL_CANCELn passes the direct syscall, which uses
+   only the arguments it takes, along with all the arguments (unused ones
+   set to 0) for the cancellable __syscall_cancel_arch call.  The direct
+   syscall refers to the __sc_aN local copies of the arguments declared by
+   __INTERNAL_SYSCALL_CANCEL_IMPL.  */
+#define __INTERNAL_SYSCALL_CANCEL0(name)				\
+  __INTERNAL_SYSCALL_CANCEL_IMPL (INTERNAL_SYSCALL (name, 0),		\
+				  __NR_##name, 0, 0, 0, 0, 0, 0, 0)
+#define __INTERNAL_SYSCALL_CANCEL1(name, a1)				\
+  __INTERNAL_SYSCALL_CANCEL_IMPL (INTERNAL_SYSCALL (name, 1, __sc_a1),	\
+				  __NR_##name, a1, 0, 0, 0, 0, 0, 0)
+#define __INTERNAL_SYSCALL_CANCEL2(name, a1, a2)			\
+  __INTERNAL_SYSCALL_CANCEL_IMPL (INTERNAL_SYSCALL (name, 2, __sc_a1,	\
+						    __sc_a2),		\
+				  __NR_##name, a1, a2, 0, 0, 0, 0, 0)
+#define __INTERNAL_SYSCALL_CANCEL3(name, a1, a2, a3)			\
+  __INTERNAL_SYSCALL_CANCEL_IMPL (INTERNAL_SYSCALL (name, 3, __sc_a1,	\
+						    __sc_a2, __sc_a3),	\
+				  __NR_##name, a1, a2, a3, 0, 0, 0, 0)
+#define __INTERNAL_SYSCALL_CANCEL4(name, a1, a2, a3, a4)		\
+  __INTERNAL_SYSCALL_CANCEL_IMPL (INTERNAL_SYSCALL (name, 4, __sc_a1,	\
+						    __sc_a2, __sc_a3,	\
+						    __sc_a4),		\
+				  __NR_##name, a1, a2, a3, a4, 0, 0, 0)
+#define __INTERNAL_SYSCALL_CANCEL5(name, a1, a2, a3, a4, a5)		\
+  __INTERNAL_SYSCALL_CANCEL_IMPL (INTERNAL_SYSCALL (name, 5, __sc_a1,	\
+						    __sc_a2, __sc_a3,	\
+						    __sc_a4, __sc_a5),	\
+				  __NR_##name, a1, a2, a3, a4, a5, 0, 0)
+#define __INTERNAL_SYSCALL_CANCEL6(name, a1, a2, a3, a4, a5, a6)	\
+  __INTERNAL_SYSCALL_CANCEL_IMPL (INTERNAL_SYSCALL (name, 6, __sc_a1,	\
+						    __sc_a2, __sc_a3,	\
+						    __sc_a4, __sc_a5,	\
+						    __sc_a6),		\
+				  __NR_##name, a1, a2, a3, a4, a5, a6, 0)
+#define __INTERNAL_SYSCALL_CANCEL7(name, a1, a2, a3, a4, a5, a6, a7)	\
+  __INTERNAL_SYSCALL_CANCEL_IMPL (INTERNAL_SYSCALL (name, 7, __sc_a1,	\
+						    __sc_a2, __sc_a3,	\
+						    __sc_a4, __sc_a5,	\
+						    __sc_a6, __sc_a7),	\
+				  __NR_##name, a1, a2, a3, a4, a5, a6, a7)
 
 #define __SYSCALL_CANCEL_NARGS_X(a,b,c,d,e,f,g,h,n,...) n
 #define __SYSCALL_CANCEL_NARGS(...) \
@@ -165,46 +182,17 @@
 #define __SYSCALL_CANCEL_DISP(b,...) \
   __SYSCALL_CANCEL_CONCAT (b,__SYSCALL_CANCEL_NARGS(__VA_ARGS__))(__VA_ARGS__)
 
-/* Issue a cancellable syscall defined by the first argument plus any other
-   argument required.  If an error occurs, the macro returns -1 and sets
-   errno accordingly.  */
-#define __SYSCALL_CANCEL_CALL(...) \
-  __SYSCALL_CANCEL_DISP (__SYSCALL_CANCEL, __VA_ARGS__)
-
-#define __INTERNAL_SYSCALL_CANCEL0(name)				\
-  internal_syscall_cancel (0, 0, 0, 0, 0, 0, __SYSCALL_CANCEL7_ARG	\
-			     __NR_##name)
-#define __INTERNAL_SYSCALL_CANCEL1(name, a1)				\
-  internal_syscall_cancel (__SSC (a1), 0, 0, 0, 0, 0,			\
-			   __SYSCALL_CANCEL7_ARG __NR_##name)
-#define __INTERNAL_SYSCALL_CANCEL2(name, a1, a2)			\
-  internal_syscall_cancel (__SSC (a1), __SSC (a2), 0, 0, 0, 0,	\
-			   __SYSCALL_CANCEL7_ARG __NR_##name)
-#define __INTERNAL_SYSCALL_CANCEL3(name, a1, a2, a3)			\
-  internal_syscall_cancel (__SSC (a1), __SSC (a2), __SSC (a3), 0,	\
-			   0, 0, __SYSCALL_CANCEL7_ARG __NR_##name)
-#define __INTERNAL_SYSCALL_CANCEL4(name, a1, a2, a3, a4)		\
-  internal_syscall_cancel (__SSC (a1), __SSC (a2), __SSC (a3),	\
-			   __SSC(a4), 0, 0,				\
-			   __SYSCALL_CANCEL7_ARG __NR_##name)
-#define __INTERNAL_SYSCALL_CANCEL5(name, a1, a2, a3, a4, a5)		\
-  internal_syscall_cancel (__SSC (a1), __SSC (a2), __SSC (a3),	\
-			   __SSC(a4), __SSC (a5), 0,			\
-			   __SYSCALL_CANCEL7_ARG __NR_##name)
-#define __INTERNAL_SYSCALL_CANCEL6(name, a1, a2, a3, a4, a5, a6)	\
-  internal_syscall_cancel (__SSC (a1), __SSC (a2), __SSC (a3),	\
-			   __SSC (a4), __SSC (a5), __SSC (a6),	\
-			   __SYSCALL_CANCEL7_ARG __NR_##name)
-#define __INTERNAL_SYSCALL_CANCEL7(name, a1, a2, a3, a4, a5, a6, a7) \
-  internal_syscall_cancel (__SSC (a1), __SSC (a2), __SSC (a3),     \
-			   __SSC (a4), __SSC (a5), __SSC (a6),     \
-			   __SSC (a7), __NR_##name)
-
 /* Issue a cancellable syscall defined by syscall number NAME plus any other
    argument required.  If an error occurs its value is returned as a negative
    number unmodified and errno is not set.  */
 #define __INTERNAL_SYSCALL_CANCEL_CALL(...) \
   __SYSCALL_CANCEL_DISP (__INTERNAL_SYSCALL_CANCEL, __VA_ARGS__)
+
+/* Issue a cancellable syscall defined by the first argument plus any other
+   argument required.  If an error occurs, the macro returns -1 and sets
+   errno accordingly.  */
+#define __SYSCALL_CANCEL_CALL(...) \
+  syscall_cancel_ret (__INTERNAL_SYSCALL_CANCEL_CALL (__VA_ARGS__))
 
 #if IS_IN (rtld)
 /* The loader does not need to handle thread cancellation, use direct

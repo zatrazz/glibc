@@ -436,10 +436,13 @@ cancel_async_enabled (int value)
   return (value & CANCELTYPE_BITMASK) != 0;
 }
 
+/* Return true if cancellation is disabled or the thread is exiting, in
+   which case a cancellable syscall can be issued directly.  Both are
+   tested with a single mask.  */
 static inline bool
-cancel_exiting (int value)
+cancel_disabled_or_exiting (int value)
 {
-  return (value & EXITING_BITMASK) != 0;
+  return (value & (CANCELSTATE_BITMASK | EXITING_BITMASK)) != 0;
 }
 
 static inline bool

@@ -283,6 +283,8 @@ extern long int __syscall_cancel_arch (volatile int *, __syscall_arg_t nr,
 
 extern _Noreturn void __syscall_do_cancel (void) attribute_hidden;
 
+extern long int __syscall_cancel_error (long int err) attribute_hidden __COLD;
+
 
 /* Internal prototypes.  */
 

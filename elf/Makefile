@@ -1609,6 +1609,7 @@ rtld-stubbed-symbols = \
   __libc_assert_fail \
   __libc_single_threaded_internal \
   __syscall_cancel_arch \
+  __syscall_cancel_error \
   __syscall_do_cancel \
   calloc \
   free \

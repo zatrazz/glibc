@@ -15,6 +15,7 @@
    License along with the GNU C Library; if not, see
    <https://www.gnu.org/licenses/>.  */
 
+#include <errno.h>
 #include <setjmp.h>
 #include <stdlib.h>
 #include "pthreadP.h"
@@ -47,4 +48,12 @@ __syscall_do_cancel (void)
     }
 
   __do_cancel (PTHREAD_CANCELED);
+}
+
+/* Called by the SYSCALL_CANCEL wrappers on syscall failure.  */
+long int
+__syscall_cancel_error (long int err)
+{
+  __set_errno (-err);
+  return -1;
 }
