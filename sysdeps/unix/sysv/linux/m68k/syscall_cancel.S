@@ -48,8 +48,9 @@ __syscall_cancel_arch_start:
 	move.l	20(%sp),%a0
 	move.l	(%a0),%d0
 #ifdef __mcoldfire__
+	/* TCB_CANCELED_BIT is the CCR negative flag.  */
 	move.w	%d0,%ccr
-	jeq	1f
+	jmi	1f
 #else
 	btst	#TCB_CANCELED_BIT,%d0
 	jne 	1f
