@@ -33,7 +33,7 @@ ENTRY (__syscall_cancel_arch)
 	.globl __syscall_cancel_arch_start
 __syscall_cancel_arch_start:
 	ld_s	r12,[r0]
-	bbit1	r12, TCB_CANCELED_BITMASK, 1f
+	bbit1	r12, TCB_CANCELED_BIT, 1f
 	mov_s	r8, r1
 	mov_s	r0, r2
 	mov_s	r1, r3
