@@ -42,8 +42,8 @@ __syscall_cancel_arch_start:
 	addk	r6,r8,r0
 	addk	r7,r9,r0
 	addk	r8,r10,r0
-	lwi	r9,r1,56
-	lwi	r10,r1,60
+	lwi	r9,r1,28
+	lwi	r10,r1,32
 	brki	r14,8
 
 	.globl __syscall_cancel_arch_end
