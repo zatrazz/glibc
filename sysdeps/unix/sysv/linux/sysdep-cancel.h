@@ -41,9 +41,9 @@ syscall_cancel_arch (__syscall_arg_t a1, __syscall_arg_t a2,
 		     __SYSCALL_CANCEL7_ARCH_ARG_DEF, __syscall_arg_t nr,
 		     struct pthread *pd)
 {
-  long int result = __syscall_cancel_arch (&pd->cancelhandling, nr, a1, a2,
-					   a3, a4, a5, a6
-					   __SYSCALL_CANCEL7_ARCH_ARG7);
+  long int result = __syscall_cancel_arch (a1, a2, a3, a4, a5, a6
+					   __SYSCALL_CANCEL7_ARCH_ARG7, nr,
+					   &pd->cancelhandling);
 
   /* If the cancellable syscall was interrupted by SIGCANCEL and it has no
      side-effect, cancel the thread if cancellation is enabled.

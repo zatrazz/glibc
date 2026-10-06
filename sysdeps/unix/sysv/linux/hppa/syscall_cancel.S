@@ -19,14 +19,14 @@
 #include <sysdep.h>
 #include <descr-const.h>
 
-/* long int __syscall_cancel_arch (int *cancelhandling,
-				   long int nr,
-				   long int arg1,
+/* long int __syscall_cancel_arch (long int arg1,
 				   long int arg2,
 				   long int arg3,
 				   long int arg4,
 				   long int arg5,
-				   long int arg6)  */
+				   long int arg6,
+				   long int nr,
+				   int *cancelhandling)  */
 
 	.text
 ENTRY(__syscall_cancel_arch)
@@ -34,19 +34,7 @@ ENTRY(__syscall_cancel_arch)
 	ldo	128(%r30),%r30
 	cfi_def_cfa_offset (-128)
 	cfi_offset (2, -20)
-	ldw	-180(%r30),%r28
-	copy	%r26,%r20
-	stw	%r28,-108(%r30)
-	ldw	-184(%r30),%r28
-	copy	%r24,%r26
-	stw	%r28,-112(%r30)
-	ldw	-188(%r30),%r28
-	stw	%r28,-116(%r30)
-	ldw	-192(%r30),%r28
 	stw	%r4,-104(%r30)
-	stw	%r28,-120(%r30)
-	copy	%r25,%r28
-	copy	%r23,%r25
 #ifdef __PIC__
 	stw	%r19,-32(%r30)
 #endif
@@ -54,18 +42,22 @@ ENTRY(__syscall_cancel_arch)
 
 	.global __syscall_cancel_arch_start
 __syscall_cancel_arch_start:
+	/* arg1 to arg4 are already in place (%r26 to %r23), the remaining
+	   ones are at the caller stack argument area (-52 to -64).  */
+	ldw	-192(%r30),%r20
 	ldw	0(%r20),%r20
 	bb,<	%r20,31-TCB_CANCELED_BIT,1f
-	ldw	-120(%r30),%r21
-	ldw	-116(%r30),%r22
-	ldw	-112(%r30),%r23
-	ldw	-108(%r30),%r24
+	ldw	-180(%r30),%r22
+	ldw	-184(%r30),%r21
+	ldw	-188(%r30),%r28
 	copy	%r19, %r4
 	ble	0x100(%sr2, %r0)
 
 	.global __syscall_cancel_arch_end
 __syscall_cancel_arch_end:
 
+	/* On a syscall restart the kernel executes the ble again and only
+	   accepts ldi, nop, or copy to %r20 in its delay slot.  */
 	copy	%r28,%r20
 	copy	%r4,%r19
 

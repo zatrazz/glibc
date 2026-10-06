@@ -19,14 +19,14 @@
 #include <sysdep.h>
 #include <descr-const.h>
 
-/* long int [r3] __syscall_cancel_arch (int *cancelhandling [r3],
-					long int nr   [r4],
-					long int arg1 [r5],
-					long int arg2 [r6],
-					long int arg3 [r7],
-					long int arg4 [r8],
-					long int arg5 [r9],
-					long int arg6 [r10])  */
+/* long int [r3] __syscall_cancel_arch (long int arg1 [r3],
+					long int arg2 [r4],
+					long int arg3 [r5],
+					long int arg4 [r6],
+					long int arg5 [r7],
+					long int arg6 [r8],
+					long int nr   [r9],
+					int *cancelhandling [r10])  */
 
 ENTRY (__syscall_cancel_arch)
 
@@ -35,19 +35,13 @@ __syscall_cancel_arch_start:
 
 	/* if (*cancelhandling & CANCELED_BITMASK)
 	     __syscall_do_cancel()  */
-	lwz     r0,0(r3)
+	lwz     r0,0(r10)
 	andi.   r0,r0,TCB_CANCELED_BITMASK
 	bne     1f
 
-	/* Issue a 6 argument syscall, the nr [r4] being the syscall
-	   number.  */
-	mr      r0,r4
-	mr      r3,r5
-	mr      r4,r6
-	mr      r5,r7
-	mr      r6,r8
-	mr      r7,r9
-	mr      r8,r10
+	/* Issue a 6 argument syscall, the arguments are already in place
+	   and nr [r9] is the syscall number.  */
+	mr      r0,r9
 
 #if defined(USE_PPC_SVC) && defined(__powerpc64__)
 	CHECK_SCV_SUPPORT r9 0f

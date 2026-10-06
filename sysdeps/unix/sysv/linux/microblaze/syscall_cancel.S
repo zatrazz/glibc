@@ -19,31 +19,27 @@
 #include <sysdep.h>
 #include <descr-const.h>
 
-/* long int __syscall_cancel_arch (int *cancelhandling,
-				   long int nr,
-				   long int arg1,
+/* long int __syscall_cancel_arch (long int arg1,
 				   long int arg2,
 				   long int arg3,
 				   long int arg4,
 				   long int arg5,
-				   long int arg6)  */
+				   long int arg6,
+				   long int nr,
+				   int *cancelhandling)  */
 
 ENTRY (__syscall_cancel_arch)
 
 	.globl __syscall_cancel_arch_start
 __syscall_cancel_arch_start:
 
-	lwi	r3,r5,0
+	lwi	r3,r1,32
+	lwi	r3,r3,0
 	andi	r3,r3,TCB_CANCELED_BITMASK
 	bneid	r3,1f
-	addk	r12,r6,r0
+	lwi	r12,r1,28
 
-	addk	r5,r7,r0
-	addk	r6,r8,r0
-	addk	r7,r9,r0
-	addk	r8,r10,r0
-	lwi	r9,r1,28
-	lwi	r10,r1,32
+	/* The arguments are already in place (r5 to r10).  */
 	brki	r14,8
 
 	.globl __syscall_cancel_arch_end

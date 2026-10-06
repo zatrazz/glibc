@@ -19,14 +19,14 @@
 #include <sysdep.h>
 #include <descr-const.h>
 
-/* long int [rax] __syscall_cancel_arch (volatile int *cancelhandling [%rdi],
-					 __syscall_arg_t nr   [%rsi],
-					 __syscall_arg_t arg1 [%rdx],
-					 __syscall_arg_t arg2 [%rcx],
-					 __syscall_arg_t arg3 [%r8],
-					 __syscall_arg_t arg4 [%r9],
-					 __syscall_arg_t arg5 [SP+8],
-					 __syscall_arg_t arg6 [SP+16])  */
+/* long int [rax] __syscall_cancel_arch (__syscall_arg_t arg1 [%rdi],
+					 __syscall_arg_t arg2 [%rsi],
+					 __syscall_arg_t arg3 [%rdx],
+					 __syscall_arg_t arg4 [%rcx],
+					 __syscall_arg_t arg5 [%r8],
+					 __syscall_arg_t arg6 [%r9],
+					 __syscall_arg_t nr   [SP+8],
+					 volatile int *cancelhandling [SP+16])  */
 
 ENTRY (__syscall_cancel_arch)
 	.globl __syscall_cancel_arch_start
@@ -34,21 +34,14 @@ __syscall_cancel_arch_start:
 
 	/* if (*cancelhandling & CANCELED_BITMASK)
 	     __syscall_do_cancel()  */
-	mov    (%rdi),%eax
-	testb  $TCB_CANCELED_BITMASK, (%rdi)
-	jne    __syscall_do_cancel
+	LP_OP(mov) 16(%rsp), %RAX_LP
+	testb	$TCB_CANCELED_BITMASK, (%rax)
+	jne	__syscall_do_cancel
 
-	/* Issue a 6 argument syscall, the nr [%rax] being the syscall
-	   number.  */
-	mov    %rdi,%r11
-	mov    %rsi,%rax
-	mov    %rdx,%rdi
-	mov    %rcx,%rsi
-	mov    %r8,%rdx
-	mov    %r9,%r10
-	mov    8(%rsp),%r8
-	mov    16(%rsp),%r9
-	mov    %r11,8(%rsp)
+	/* Issue a 6 argument syscall, the arguments are already in place
+	   except for arg4 that the kernel expects in %r10.  */
+	mov	%rcx, %r10
+	mov	8(%rsp), %rax
 	syscall
 
 	.globl __syscall_cancel_arch_end

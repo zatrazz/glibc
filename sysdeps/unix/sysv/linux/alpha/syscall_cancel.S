@@ -19,14 +19,14 @@
 #include <sysdep.h>
 #include <descr-const.h>
 
-/* long int __syscall_cancel_arch (int *ch,
-				   __syscall_arg_t nr,
-				   __syscall_arg_t arg1,
+/* long int __syscall_cancel_arch (__syscall_arg_t arg1,
 				   __syscall_arg_t arg2,
 				   __syscall_arg_t arg3,
 				   __syscall_arg_t arg4,
 				   __syscall_arg_t arg5,
-				   __syscall_arg_t arg6)  */
+				   __syscall_arg_t arg6,
+				   __syscall_arg_t nr,
+				   int *ch)  */
 
 	.set noreorder
 	.set noat
@@ -39,24 +39,19 @@ ENTRY (__syscall_cancel_arch)
 	lda	gp, 0(gp)
 	lda	sp, -16(sp)
 	cfi_def_cfa_offset (16)
-	mov	a1, v0
 	stq	ra, 0(sp)
 	cfi_offset (26, -16)
 	.prologue 1
 
 	.global	__syscall_cancel_arch_start
 __syscall_cancel_arch_start:
-	ldl	t0, 0(a0)
-	addl	zero, t0, t0
+	ldq	t0, 24(sp)
+	ldl	t0, 0(t0)
 	/* if (*ch & CANCELED_BITMASK)  */
 	and	t0, TCB_CANCELED_BITMASK, t0
 	bne	t0, 1f
-	mov	a2, a0
-	mov	a3, a1
-	mov	a4, a2
-	ldq	a4, 16(sp)
-	mov	a5, a3
-	ldq	a5, 24(sp)
+	/* The arguments are already in place (a0 to a5).  */
+	ldq	v0, 16(sp)
 	.set	macro
 	callsys
 	.set	nomacro

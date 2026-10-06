@@ -19,42 +19,34 @@
 #include <sysdep.h>
 #include <descr-const.h>
 
-/* long int __syscall_cancel_arch (int *cancelhandling,
-				   long int nr,
-				   long int arg1,
+/* long int __syscall_cancel_arch (long int arg1,
 				   long int arg2,
 				   long int arg3,
 				   long int arg4,
 				   long int arg5,
-				   long int arg6)  */
+				   long int arg6,
+				   long int nr,
+				   int *cancelhandling)
+
+   The arguments are already in place (%o0 to %o5), so there is no need
+   for a register window.  */
 
 ENTRY (__syscall_cancel_arch)
-	save	%sp, -96, %sp
-
-	cfi_window_save
-	cfi_register (%o7, %i7)
-	cfi_def_cfa_register (%fp)
 
 	.globl __syscall_cancel_arch_start
 __syscall_cancel_arch_start:
 
 	/* if (*cancelhandling & CANCELED_BITMASK)
 	     __syscall_do_cancel()  */
-	ld	[%i0], %g2
+	ld	[%sp + 96], %g2
+	ld	[%g2], %g2
 	andcc	%g2, TCB_CANCELED_BITMASK, %g0
 #ifdef __sparcv9
 	bne,pn	%icc, 2f
 #else
 	bne	2f
 #endif
-	/* Issue a 6 argument syscall.  */
-	 mov	%i2, %o0
-	mov	%i3, %o1
-	mov	%i4, %o2
-	mov	%i5, %o3
-	ld	[%fp+92], %o4
-	ld	[%fp+96], %o5
-	 mov	%i1, %g1
+	 ld	[%sp + 92], %g1
 	ta	0x10
 
 	.globl __syscall_cancel_arch_end
@@ -63,18 +55,13 @@ __syscall_cancel_arch_end:
 	 nop
 	sub	%g0, %o0, %o0
 1:
-	mov	%o0, %i0
-#ifdef __sparcv9
-	return	%i7+8
+	retl
 	 nop
-#else
-	jmp	%i7+8
-	 restore
-#endif
 
 2:
+	/* Tail call, keep %o7 as the return address for unwinding.  */
+	mov	%o7, %g1
 	call	__syscall_do_cancel, 0
-	 nop
-	nop
+	 mov	%g1, %o7
 
 END (__syscall_cancel_arch)

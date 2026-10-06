@@ -19,14 +19,14 @@
 #include <sysdep.h>
 #include <descr-const.h>
 
-/* long int __syscall_cancel_arch (int *cancelhandling,
-				   __syscall_arg_t nr,
-				   __syscall_arg_t arg1,
+/* long int __syscall_cancel_arch (__syscall_arg_t arg1,
 				   __syscall_arg_t arg2,
 				   __syscall_arg_t arg3,
 				   __syscall_arg_t arg4,
 				   __syscall_arg_t arg5,
-				   __syscall_arg_t arg6)  */
+				   __syscall_arg_t arg6,
+				   __syscall_arg_t nr,
+				   int *cancelhandling)  */
 
 #ifdef SHARED
 	.option pic
@@ -38,19 +38,13 @@ ENTRY (__syscall_cancel_arch)
 
 	.globl __syscall_cancel_arch_start
 __syscall_cancel_arch_start:
-	lw	t1, 0(a0)
+	lw	t1, 0(a7)
 	/* if (*ch & CANCELED_BITMASK)  */
 	andi	t1, t1, TCB_CANCELED_BITMASK
 	bne	t1, zero, 1f
 
-	mv	t3, a1
-	mv	a0, a2
-	mv	a1, a3
-	mv	a2, a4
-	mv	a3, a5
-	mv	a4, a6
-	mv	a5, a7
-	mv	a7, t3
+	/* The arguments are already in place.  */
+	mv	a7, a6
 	scall
 
 	.globl __syscall_cancel_arch_end

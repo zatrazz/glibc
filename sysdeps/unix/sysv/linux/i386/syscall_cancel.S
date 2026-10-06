@@ -19,14 +19,14 @@
 #include <sysdep.h>
 #include <descr-const.h>
 
-/* long int [eax] __syscall_cancel_arch (int *cancelhandling [SP],
-					 long int nr   [SP+4],
-					 long int arg1 [SP+8],
-					 long int arg2 [SP+12],
-					 long int arg3 [SP+16],
-					 long int arg4 [SP+20],
-					 long int arg5 [SP+24],
-					 long int arg6 [SP+28])  */
+/* long int [eax] __syscall_cancel_arch (long int arg1 [SP],
+					 long int arg2 [SP+4],
+					 long int arg3 [SP+8],
+					 long int arg4 [SP+12],
+					 long int arg5 [SP+16],
+					 long int arg6 [SP+20],
+					 long int nr   [SP+24],
+					 int *cancelhandling [SP+28])  */
 
 ENTRY (__syscall_cancel_arch)
 	pushl %ebp
@@ -47,19 +47,19 @@ __syscall_cancel_arch_start:
 
 	/* if (*cancelhandling & CANCELED_BITMASK)
 	     __syscall_do_cancel()  */
-	movl	20(%esp), %eax
+	movl	48(%esp), %eax
 	testb	$TCB_CANCELED_BITMASK, (%eax)
 	jne     1f
 
 	/* Issue a 6 argument syscall, the nr [%eax] being the syscall
 	   number.  */
-	movl    24(%esp), %eax
-	movl    28(%esp), %ebx
-	movl    32(%esp), %ecx
-	movl    36(%esp), %edx
-	movl    40(%esp), %esi
-	movl    44(%esp), %edi
-	movl    48(%esp), %ebp
+	movl    20(%esp), %ebx
+	movl    24(%esp), %ecx
+	movl    28(%esp), %edx
+	movl    32(%esp), %esi
+	movl    36(%esp), %edi
+	movl    40(%esp), %ebp
+	movl    44(%esp), %eax
 
 	/* We can not use the vDSO helper for syscall (__kernel_vsyscall)
 	   because the returned PC from kernel will point to the vDSO page

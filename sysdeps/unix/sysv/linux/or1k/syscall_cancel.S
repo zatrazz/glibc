@@ -19,6 +19,15 @@
 #include <sysdep.h>
 #include <descr-const.h>
 
+/* long int __syscall_cancel_arch (__syscall_arg_t arg1,
+				   __syscall_arg_t arg2,
+				   __syscall_arg_t arg3,
+				   __syscall_arg_t arg4,
+				   __syscall_arg_t arg5,
+				   __syscall_arg_t arg6,
+				   __syscall_arg_t nr,
+				   int *cancelhandling)  */
+
 ENTRY (__syscall_cancel_arch)
 	l.addi	r1, r1, -4
 	cfi_def_cfa_offset (4)
@@ -30,20 +39,14 @@ __syscall_cancel_arch_start:
 
 	/* if (*cancelhandling & CANCELED_BITMASK)
 	     __syscall_do_cancel()  */
-	l.movhi	r19, hi(0)
-	l.lwz	r17, 0(r3)
-	l.andi	r17, r17, 8
-	l.sfeq	r17, r19
-	l.bnf	1f
+	l.lwz	r17, 8(r1)
+	l.lwz	r17, 0(r17)
+	l.andi	r17, r17, TCB_CANCELED_BITMASK
+	l.sfnei	r17, 0
+	l.bf	1f
+	 l.lwz	r11, 4(r1)
 
-	/* Issue a 6 argument syscall.  */
-	l.or	r11, r4, r4
-	l.or	r3, r5, r5
-	l.or	r4, r6, r6
-	l.or	r5, r7, r7
-	l.or	r6, r8, r8
-	l.lwz	r7, 4(r1)
-	l.lwz	r8, 8(r1)
+	/* Issue a 6 argument syscall, the arguments are already in place.  */
 	l.sys	1
 	 l.nop
 

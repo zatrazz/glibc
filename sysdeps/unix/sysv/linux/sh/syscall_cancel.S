@@ -19,14 +19,20 @@
 #include <sysdep.h>
 #include <descr-const.h>
 
-/* long int __syscall_cancel_arch (int *cancelhandling,
-				   long int nr,
-				   long int arg1,
+/* long int __syscall_cancel_arch (long int arg1,
 				   long int arg2,
 				   long int arg3,
 				   long int arg4,
 				   long int arg5,
-				   long int arg6)  */
+				   long int arg6,
+				   long int nr,
+				   int *cancelhandling)  */
+
+#ifdef SHARED
+# define STACK_ARGS 8
+#else
+# define STACK_ARGS 4
+#endif
 
 ENTRY (__syscall_cancel_arch)
 
@@ -51,25 +57,15 @@ __syscall_cancel_arch_start:
 
 	/* if (*cancelhandling & CANCELED_BITMASK)
 	     __syscall_do_cancel()  */
-	mov.l	@r4,r0
+	mov.l	@(STACK_ARGS+12,r15),r1
+	mov.l	@r1,r0
 	tst	#TCB_CANCELED_BITMASK,r0
-	bf/s	1f
+	bf	1f
 
-	/* Issue a 6 argument syscall.  */
-	mov	r5,r3
-	mov	r6,r4
-	mov	r7,r5
-#ifdef SHARED
-	mov.l	@(8,r15),r6
-	mov.l	@(12,r15),r7
-	mov.l	@(16,r15),r0
-	mov.l	@(20,r15),r1
-#else
-	mov.l	@(4,r15),r6
-	mov.l	@(8,r15),r7
-	mov.l	@(12,r15),r0
-	mov.l	@(16,r15),r1
-#endif
+	/* Issue a 6 argument syscall, arg1 to arg4 are already in place.  */
+	mov.l	@(STACK_ARGS+8,r15),r3
+	mov.l	@(STACK_ARGS+0,r15),r0
+	mov.l	@(STACK_ARGS+4,r15),r1
 	trapa	#0x16
 
 	.globl __syscall_cancel_arch_end

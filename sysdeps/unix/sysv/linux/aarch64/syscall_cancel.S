@@ -19,14 +19,14 @@
 #include <sysdep.h>
 #include <descr-const.h>
 
-/* long int [x0] __syscall_cancel_arch (int *cancelhandling [x0],
-					long int nr   [x1],
-					long int arg1 [x2],
-					long int arg2 [x3],
-					long int arg3 [x4],
-					long int arg4 [x5],
-					long int arg5 [x6],
-					long int arg6 [x7])  */
+/* long int [x0] __syscall_cancel_arch (long int arg1 [x0],
+					long int arg2 [x1],
+					long int arg3 [x2],
+					long int arg4 [x3],
+					long int arg5 [x4],
+					long int arg6 [x5],
+					long int nr   [x6],
+					int *cancelhandling [x7])  */
 
 ENTRY (__syscall_cancel_arch)
 
@@ -35,18 +35,12 @@ __syscall_cancel_arch_start:
 
 	/* if (*cancelhandling & CANCELED_BITMASK)
 	     __syscall_do_cancel()  */
-	ldr	w0, [x0]
-	tbnz    w0, TCB_CANCELED_BIT, 1f
+	ldr	w8, [x7]
+	tbnz    w8, TCB_CANCELED_BIT, 1f
 
-	/* Issue a 6 argument syscall, the nr [x1] being the syscall
-	   number.  */
-	mov	x8, x1
-	mov	x0, x2
-	mov	x1, x3
-	mov	x2, x4
-	mov	x3, x5
-	mov	x4, x6
-	mov	x5, x7
+	/* Issue a 6 argument syscall, the arguments are already in
+	   place and nr [x6] is the syscall number.  */
+	mov	x8, x6
 	svc	0x0
 
 	.globl __syscall_cancel_arch_end

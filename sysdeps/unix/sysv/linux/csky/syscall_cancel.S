@@ -19,20 +19,24 @@
 #include <sysdep.h>
 #include <descr-const.h>
 
-/* long int __syscall_cancel_arch (int *cancelhandling,
-				   __syscall_arg_t nr,
-				   __syscall_arg_t arg1,
+/* long int __syscall_cancel_arch (__syscall_arg_t arg1,
 				   __syscall_arg_t arg2,
 				   __syscall_arg_t arg3,
 				   __syscall_arg_t arg4,
 				   __syscall_arg_t arg5,
-				   __syscall_arg_t arg6)  */
+				   __syscall_arg_t arg6,
+				   __syscall_arg_t nr,
+				   int *cancelhandling)  */
 
 #ifdef SHARED
 # define STACK_ADJ 4
 #else
 # define STACK_ADJ 0
 #endif
+
+/* Offset of the stack arguments (arg5, arg6, nr, and cancelhandling)
+   after the register save area.  */
+#define STACK_ARGS (16 + STACK_ADJ)
 
 ENTRY (__syscall_cancel_arch)
 	subi	sp, sp, 16 + STACK_ADJ
@@ -51,41 +55,26 @@ ENTRY (__syscall_cancel_arch)
 #ifdef SHARED
 	addu	gb, gb, t1
 #endif
-	subi	sp, sp, 16
-	cfi_def_cfa_offset (32 + STACK_ADJ)
 	cfi_offset (lr, -( 4 + STACK_ADJ))
 	cfi_offset (l3, -( 8 + STACK_ADJ))
 	cfi_offset (l1, -(12 + STACK_ADJ))
 	cfi_offset (l0, -(16 + STACK_ADJ))
 
-	mov	l3, a1
-	mov	a1, a3
-	ld.w	a3, (sp, 32 + STACK_ADJ)
-	st.w	a3, (sp, 0)
-	ld.w	a3, (sp, 36 + STACK_ADJ)
-	st.w	a3, (sp, 4)
-	ld.w	a3, (sp, 40 + STACK_ADJ)
-	st.w	a3, (sp, 8)
-	ld.w	a3, (sp, 44 + STACK_ADJ)
-	st.w	a3, (sp, 12)
-
 	.globl __syscall_cancel_arch_start
 __syscall_cancel_arch_start:
-	ld.w	t0, (a0, 0)
+	ld.w	t0, (sp, STACK_ARGS + 12)
+	ld.w	t0, (t0, 0)
 	andi	t0, t0, TCB_CANCELED_BITMASK
 	jbnez	t0, 2f
-	mov	a0, a2
-	ld.w	a3, (sp, 4)
-	ld.w	a2, (sp, 0)
-	ld.w	l0, (sp, 8)
-	ld.w	l1, (sp, 12)
+	/* arg1 to arg4 are already in place.  */
+	ld.w	l0, (sp, STACK_ARGS + 0)
+	ld.w	l1, (sp, STACK_ARGS + 4)
+	ld.w	l3, (sp, STACK_ARGS + 8)
 	trap	0
 
 	.globl __syscall_cancel_arch_end
 __syscall_cancel_arch_end:
-	addi	sp, sp, 16
 	cfi_remember_state
-	cfi_def_cfa_offset (16 + STACK_ADJ)
 #ifdef SHARED
 	ld.w	gb, (sp, 16)
 	cfi_restore (gb)

@@ -20,55 +20,41 @@
 #include <sys/asm.h>
 #include <descr-const.h>
 
-/* long int __syscall_cancel_arch (int *cancelhandling,
-				   __syscall_arg_t nr,
-				   __syscall_arg_t arg1,
+/* long int __syscall_cancel_arch (__syscall_arg_t arg1,
 				   __syscall_arg_t arg2,
 				   __syscall_arg_t arg3,
 				   __syscall_arg_t arg4,
 				   __syscall_arg_t arg5,
 				   __syscall_arg_t arg6,
-				   __syscall_arg_t arg7)  */
+				   __syscall_arg_t nr,
+				   int *cancelhandling)  */
 
-#define FRAME_SIZE 32
+#define FRAME_SIZE 16
 
 	.text
 NESTED (__syscall_cancel_arch, FRAME_SIZE, ra)
-	.mask	0x90010000, -SZREG
+	.mask	0x90000000, -SZREG
 	.fmask	0x00000000, 0
 	LONG_ADDIU	sp, sp, -FRAME_SIZE
 	cfi_def_cfa_offset (FRAME_SIZE)
-	sd		gp, 16(sp)
+	sd		gp, 0(sp)
 	cfi_offset (gp, -16)
 	lui		gp, %hi(%neg(%gp_rel(__syscall_cancel_arch)))
 	LONG_ADDU	gp, gp, t9
-	sd		ra, 24(sp)
-	sd		s0, 8(sp)
+	sd		ra, 8(sp)
 	cfi_offset (ra, -8)
-	cfi_offset (s0, -24)
 	LONG_ADDIU	gp, gp, %lo(%neg(%gp_rel(__syscall_cancel_arch)))
 
 	.global __syscall_cancel_arch_start
 __syscall_cancel_arch_start:
 
-	lw		v0, 0(a0)
+	lw		v0, 0(a7)
 	andi		v0, v0, TCB_CANCELED_BITMASK
-	.set noreorder
-	.set nomacro
 	bne		v0, zero, 2f
-	move		s0, a1
-	.set macro
-	.set reorder
 
-	move		a0, a2
-	move		a1, a3
-	move		a2, a4
-	move		a3, a5
-	move		a4, a6
-	move		a5, a7
-
+	/* The arguments are already in place (a0 to a5).  */
 	.set noreorder
-	move		v0, s0
+	move		v0, a6
 	syscall
 	.set reorder
 
@@ -87,9 +73,8 @@ __syscall_cancel_arch_end:
 	.set reorder
 
 1:
-	ld		ra, 24(sp)
-	ld		gp, 16(sp)
-	ld		s0, 8(sp)
+	ld		ra, 8(sp)
+	ld		gp, 0(sp)
 
 	.set	noreorder
 	.set	nomacro
@@ -100,7 +85,6 @@ __syscall_cancel_arch_end:
 
 	cfi_remember_state
 	cfi_def_cfa_offset (0)
-	cfi_restore (s0)
 	cfi_restore (gp)
 	cfi_restore (ra)
 	.align	3
