@@ -98,7 +98,7 @@ __syscall_cancel_arch_end:
 	cfi_restore (l1)
 	ld.w	l0, (sp, 0)
 	cfi_restore (l0)
-	addi	sp, sp, 16
+	addi	sp, sp, 16 + STACK_ADJ
 	cfi_def_cfa_offset (0)
 	rts
 
