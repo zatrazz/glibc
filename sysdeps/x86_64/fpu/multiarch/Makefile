@@ -11,6 +11,7 @@ CFLAGS-e_sinh-fma.c = -mfma -mavx2
 CFLAGS-s_atan-fma.c = -mfma -mavx2
 CFLAGS-s_expm1-fma.c = -mfma -mavx2
 CFLAGS-s_log1p-fma.c = -mfma -mavx2
+CFLAGS-s_rsqrt-fma.c = -mfma -mavx2
 CFLAGS-s_sin-fma.c = -mfma -mavx2
 CFLAGS-s_tan-fma.c = -mfma -mavx2
 CFLAGS-s_tanh-fma.c = -mfma -mavx2
@@ -105,6 +106,7 @@ libm-sysdep_routines += \
   s_rintf-sse4_1 \
   s_roundeven-sse4_1 \
   s_roundevenf-sse4_1 \
+  s_rsqrt-fma \
   s_sin-avx \
   s_sin-fma \
   s_sincos-avx \

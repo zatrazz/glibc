@@ -94,6 +94,11 @@ as_rsqrt_refine (double rf, double a)
   return asdouble (ir);
 }
 
+#ifndef SECTION
+# define SECTION
+#endif
+
+SECTION
 double
 __rsqrt (double x)
 {
@@ -138,4 +143,6 @@ __rsqrt (double x)
     rf = as_rsqrt_refine (rf, x);
   return rf;
 }
+#ifndef __rsqrt
 libm_alias_double (__rsqrt, rsqrt)
+#endif
