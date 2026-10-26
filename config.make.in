@@ -54,6 +54,7 @@ enable-werror = @enable_werror@
 
 have-z-execstack = @libc_cv_z_execstack@
 have-no-error-execstack = @libc_cv_test_no_error_execstack@
+have-no-error-rwx-segments = @libc_cv_test_no_error_rwx_segments@
 have-protected-data = @libc_cv_protected_data@
 have-insert = @libc_cv_insert@
 have-glob-dat-reloc = @libc_cv_has_glob_dat@

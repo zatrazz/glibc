@@ -19,6 +19,10 @@ Major new features:
 * A new tunable, glibc.rtld.textrel, can be set to 0 to make the dynamic
   loader refuse to load programs and shared objects with text relocations.
 
+* A new tunable, glibc.rtld.wx_segments, can be set to 0 to make the
+  dynamic loader refuse to load programs and shared objects with a loadable
+  segment that is both writable and executable.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

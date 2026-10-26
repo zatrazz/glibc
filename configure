@@ -657,6 +657,7 @@ libc_cv_has_glob_dat
 libc_cv_fpie
 libc_cv_test_static_pie
 libc_cv_z_execstack
+libc_cv_test_no_error_rwx_segments
 libc_cv_test_no_error_execstack
 ASFLAGS_config
 libc_cv_cc_with_libunwind
@@ -7156,6 +7157,43 @@ if test $libc_linker_feature = yes; then
   libc_cv_test_no_error_execstack=yes
 else
   libc_cv_test_no_error_execstack=no
+fi
+CC="$saved_CC"
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_linker_feature" >&5
+printf "%s\n" "$libc_linker_feature" >&6; }
+
+
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking for linker that supports --no-error-rwx-segments" >&5
+printf %s "checking for linker that supports --no-error-rwx-segments... " >&6; }
+libc_linker_feature=no
+cat > conftest.c <<EOF
+int _start (void) { return 42; }
+EOF
+saved_CC="$CC"
+CC="$TEST_CC"
+if { ac_try='${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
+		  -Wl,--no-error-rwx-segments -nostdlib -nostartfiles
+		  -fPIC -shared -o conftest.so conftest.c
+		  1>&5'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }
+then
+  if ${CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp -Wl,--no-error-rwx-segments -nostdlib \
+      -nostartfiles -fPIC -shared -o conftest.so conftest.c 2>&1 \
+      | grep "warning: --no-error-rwx-segments ignored" > /dev/null 2>&1; then
+    true
+  else
+    libc_linker_feature=yes
+  fi
+fi
+rm -f conftest*
+if test $libc_linker_feature = yes; then
+  libc_cv_test_no_error_rwx_segments=yes
+else
+  libc_cv_test_no_error_rwx_segments=no
 fi
 CC="$saved_CC"
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_linker_feature" >&5

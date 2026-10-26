@@ -1268,6 +1268,14 @@ Fatal glibc error: non-PIE executable is not allowed\n");
       && TUNABLE_GET (glibc, rtld, textrel, int32_t, NULL) == 0)
     _dl_fatal_printf ("\
 Fatal glibc error: text relocations are not allowed\n");
+
+  if (TUNABLE_GET (glibc, rtld, wx_segments, int32_t, NULL) == 0)
+    for (const ElfW(Phdr) *ph = main_map->l_phdr;
+	 ph < &main_map->l_phdr[main_map->l_phnum]; ++ph)
+      if (ph->p_type == PT_LOAD
+	  && (ph->p_flags & (PF_W | PF_X)) == (PF_W | PF_X))
+	_dl_fatal_printf ("\
+Fatal glibc error: writable and executable segments are not allowed\n");
 }
 
 /* Set up the program header information for the dynamic linker

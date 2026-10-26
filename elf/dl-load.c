@@ -979,6 +979,13 @@ _dl_map_object_scan_phdrs (struct dl_pt_load_iterator *it,
 		*errvalp = 0;
 		return N_("ELF load command address/offset not page-aligned");
 	      }
+	    if (__glibc_unlikely ((ph->p_flags & (PF_W | PF_X))
+				  == (PF_W | PF_X))
+		&& TUNABLE_GET (glibc, rtld, wx_segments, int32_t, NULL) == 0)
+	      {
+		*errvalp = 0;
+		return N_("writable and executable segments are not allowed");
+	      }
 	    ElfW(Addr) mapstart = ALIGN_DOWN (ph->p_vaddr, it->pagesize);
 	    ElfW(Addr) mapend = ALIGN_UP (ph->p_vaddr + ph->p_filesz,
 					  it->pagesize);

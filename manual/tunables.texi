@@ -512,6 +512,20 @@ The default value of this tunable is @samp{1}, which allows text
 relocations.
 @end deftp
 
+@deftp Tunable glibc.rtld.wx_segments
+Setting the @code{glibc.rtld.wx_segments} tunable to @code{0} makes the
+dynamic loader refuse to load programs and shared objects with a loadable
+segment (@code{PT_LOAD}) that is both writable and executable.  The main
+program fails to start, and @code{dlopen} of such a shared object fails.
+
+Some ABIs, such as HPPA and SPARC, place the procedure linkage table in a
+writable and executable segment, so this setting prevents every
+dynamically linked program from running on them.
+
+The default value of this tunable is @samp{1}, which allows writable and
+executable segments.
+@end deftp
+
 @node POSIX Thread Tunables
 @section POSIX Thread Tunables
 @cindex pthread mutex tunables

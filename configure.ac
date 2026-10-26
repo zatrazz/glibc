@@ -1322,6 +1322,12 @@ LIBC_TEST_LINKER_FEATURE([--no-error-execstack], [-Wl,--no-error-execstack],
 		    [libc_cv_test_no_error_execstack=yes], [libc_cv_test_no_error_execstack=no])
 AC_SUBST(libc_cv_test_no_error_execstack)
 
+LIBC_TEST_LINKER_FEATURE([--no-error-rwx-segments],
+		    [-Wl,--no-error-rwx-segments],
+		    [libc_cv_test_no_error_rwx_segments=yes],
+		    [libc_cv_test_no_error_rwx_segments=no])
+AC_SUBST(libc_cv_test_no_error_rwx_segments)
+
 LIBC_LINKER_FEATURE([-z execstack], [-Wl,-z,execstack],
 		    [libc_cv_z_execstack=yes], [libc_cv_z_execstack=no])
 AC_SUBST(libc_cv_z_execstack)

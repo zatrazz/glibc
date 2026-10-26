@@ -125,6 +125,12 @@ glibc {
       maxval: 1
       default: 1
     }
+    wx_segments {
+      type: INT_32
+      minval: 0
+      maxval: 1
+      default: 1
+    }
   }
 
   mem {

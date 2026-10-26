@@ -681,6 +681,12 @@ modules-names += \
   tst-rtld-textrel-mod \
   # modules-names
 endif
+tests += \
+  tst-rtld-wx-segments \
+  # tests
+modules-names += \
+  tst-rtld-wx-segments-mod \
+  # modules-names
 ifeq ($(have-dt-relr),yes)
 tests += \
   tst-relr \
@@ -2304,6 +2310,11 @@ LDFLAGS-tst-rtld-textrel-mod.so += -Wl,-z,notext
 $(objpfx)tst-rtld-textrel.out: $(objpfx)tst-rtld-textrel-mod.so
 $(objpfx)tst-rtld-textrel-default.out: $(objpfx)tst-rtld-textrel-mod.so
 tst-rtld-textrel-TUNABLES = glibc.rtld.textrel=0
+
+$(objpfx)tst-rtld-wx-segments.out: $(objpfx)tst-rtld-wx-segments-mod.so
+ifeq ($(have-no-error-rwx-segments),yes)
+LDFLAGS-tst-rtld-wx-segments-mod.so += -Wl,--no-error-rwx-segments
+endif
 
 LDFLAGS-tst-array2 = -Wl,--no-as-needed
 LDFLAGS-tst-array5 = -Wl,--no-as-needed
