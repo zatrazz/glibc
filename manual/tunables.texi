@@ -476,6 +476,30 @@ can be worked around by setting the tunable to @code{2}, where the stack is
 always executable.
 @end deftp
 
+@deftp Tunable glibc.rtld.require_pie
+The @code{glibc.rtld.require_pie} tunable can be used to require that the
+main program is a position-independent executable (PIE), so that it is
+loaded at a randomized address when address space layout randomization is
+enabled.  Setting the value to @code{1} makes the dynamic loader refuse to
+start a position-dependent (@code{ET_EXEC}) executable with an error
+message, both when it is loaded by the kernel and when it is started by
+invoking the dynamic loader directly.
+
+The check is based on the ELF type of the program, not on the address it
+was loaded at.  A position-independent executable is still loaded at a
+fixed address if address space layout randomization is disabled, for
+instance with the @code{kernel.randomize_va_space} sysctl set to @samp{0}
+or with @command{setarch -R} (the kernel ignores the latter for
+set-user-ID and set-group-ID programs).
+
+The check is done by the dynamic loader, so it does not apply to
+statically linked programs (static programs do not read
+@file{/etc/tunables.conf}).
+
+The default value of this tunable is @samp{0}, which allows
+position-dependent executables.
+@end deftp
+
 @node POSIX Thread Tunables
 @section POSIX Thread Tunables
 @cindex pthread mutex tunables

@@ -113,6 +113,12 @@ glibc {
       maxval: 2
       default: 1
     }
+    require_pie {
+      type: INT_32
+      minval: 0
+      maxval: 1
+      default: 0
+    }
   }
 
   mem {

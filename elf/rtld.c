@@ -1228,6 +1228,43 @@ rtld_setup_main_map (struct link_map *main_map)
   return has_interp;
 }
 
+/* Return true if the main program MAIN_MAP is a PIE executable (ET_DYN).  The
+   kernel does not report the ELF type of the program, but an ET_EXEC object
+   is always loaded at its link-time address.  */
+static bool
+rtld_main_map_is_pie (const struct link_map *main_map)
+{
+  if (main_map->l_addr != 0)
+    return true;
+
+  /* A PIE loaded at its link-time address can only be told apart by its ELF
+     header, which is mapped by the PT_LOAD segment at file offset 0.  If
+     there is no such segment, or it is not readable (execute-only), treat
+     the program as position-dependent, since it is loaded at its link-time
+     address anyway.  */
+  for (const ElfW(Phdr) *ph = main_map->l_phdr;
+       ph < &main_map->l_phdr[main_map->l_phnum]; ++ph)
+    if (ph->p_type == PT_LOAD && ph->p_offset == 0
+	&& ph->p_filesz >= sizeof (ElfW(Ehdr))
+	&& (ph->p_flags & PF_R) != 0)
+      {
+	const ElfW(Ehdr) *ehdr = (const ElfW(Ehdr) *) ph->p_vaddr;
+	return memcmp (ehdr->e_ident, ELFMAG, SELFMAG) == 0
+	       && ehdr->e_type == ET_DYN;
+      }
+
+  return false;
+}
+
+static void
+rtld_check_main_map (const struct link_map *main_map)
+{
+  if (TUNABLE_GET (glibc, rtld, require_pie, int32_t, NULL) != 0
+      && !rtld_main_map_is_pie (main_map))
+    _dl_fatal_printf ("\
+Fatal glibc error: non-PIE executable is not allowed\n");
+}
+
 /* Set up the program header information for the dynamic linker
    itself.  It can be accessed via _r_debug and dl_iterate_phdr
    callbacks, and it is used by _dl_find_object.  */
@@ -1712,6 +1749,8 @@ dl_main (const ElfW(Phdr) *phdr,
       /* Set up our cache of pointers into the hash table.  */
       _dl_setup_hash (main_map);
     }
+
+  rtld_check_main_map (main_map);
 
   if (__glibc_unlikely (state.mode == rtld_mode_verify))
     {

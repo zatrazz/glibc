@@ -656,6 +656,22 @@ tests-special += \
   # tests-special
 endif
 endif
+tests += \
+  tst-rtld-require-pie-nopie \
+  # tests
+ifeq ($(have-fpie),yes)
+tests += \
+  tst-rtld-require-pie \
+  # tests
+tests-pie += \
+  tst-rtld-require-pie \
+  # tests-pie
+endif
+ifeq ($(run-built-tests),yes)
+tests-special += \
+  $(objpfx)tst-rtld-require-pie-nopie-deny.out \
+  # tests-special
+endif
 ifeq ($(have-dt-relr),yes)
 tests += \
   tst-relr \
@@ -2257,6 +2273,23 @@ $(objpfx)tst-execstack-prog-static-noexecstack.out: $(objpfx)tst-execstack-prog-
 	  && grep -q '^status: 127$$' $@; \
 	  $(evaluate-test)
 endif
+
+CFLAGS-tst-rtld-require-pie.c += $(pie-ccflag)
+tst-rtld-require-pie-TUNABLES = glibc.rtld.require_pie=1
+CFLAGS-tst-rtld-require-pie-nopie.c += $(no-pie-ccflag)
+CRT-tst-rtld-require-pie-nopie := $(csu-objpfx)crt1.o
+tst-rtld-require-pie-nopie-no-pie = yes
+
+$(objpfx)tst-rtld-require-pie-nopie-deny.out: \
+  $(objpfx)tst-rtld-require-pie-nopie
+	$(test-program-cmd-before-env) \
+		$(run-program-env) \
+		GLIBC_TUNABLES=glibc.rtld.require_pie=1 \
+		$(test-program-cmd-after-env) $< \
+		> $@ 2>&1; echo "status: $$?" >> $@; \
+	grep -q '^Fatal glibc error: non-PIE executable is not allowed$$' $@ \
+	  && grep -q '^status: 127$$' $@; \
+	  $(evaluate-test)
 
 LDFLAGS-tst-array2 = -Wl,--no-as-needed
 LDFLAGS-tst-array5 = -Wl,--no-as-needed

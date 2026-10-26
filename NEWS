@@ -12,6 +12,10 @@ Major new features:
 * Additional optimized and correctly rounded mathematical functions have
   been imported from the CORE-MATH project, in particular cbrt.
 
+* A new tunable, glibc.rtld.require_pie, makes the dynamic loader refuse to
+  start position-dependent (non-PIE) executables.  It can be enforced
+  system-wide with a nonoverridable entry in /etc/tunables.conf.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir
