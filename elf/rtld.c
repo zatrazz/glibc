@@ -1276,6 +1276,12 @@ Fatal glibc error: text relocations are not allowed\n");
 	  && (ph->p_flags & (PF_W | PF_X)) == (PF_W | PF_X))
 	_dl_fatal_printf ("\
 Fatal glibc error: writable and executable segments are not allowed\n");
+
+  int32_t relro = TUNABLE_GET (glibc, rtld, relro, int32_t, NULL);
+  if (relro > 0 && main_map->l_relro_size == 0)
+    _dl_fatal_printf ("Fatal glibc error: RELRO is required\n");
+  if (relro > 1 && main_map->l_info[DT_BIND_NOW] == NULL)
+    _dl_fatal_printf ("Fatal glibc error: full RELRO is required\n");
 }
 
 /* Set up the program header information for the dynamic linker

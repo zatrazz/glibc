@@ -1326,6 +1326,20 @@ _dl_map_object_from_fd (const char *name, const char *origname, int fd,
       goto lose;
     }
 
+  /* The GOT entries used by the PLT are only covered by RELRO if the
+     object was linked for immediate binding.  */
+  int32_t relro = TUNABLE_GET (glibc, rtld, relro, int32_t, NULL);
+  if (__glibc_unlikely (relro > 0) && l->l_relro_size == 0)
+    {
+      errstring = N_("RELRO is required");
+      goto lose;
+    }
+  if (__glibc_unlikely (relro > 1) && l->l_info[DT_BIND_NOW] == NULL)
+    {
+      errstring = N_("full RELRO is required");
+      goto lose;
+    }
+
   if (l->l_phdr == NULL)
     {
       /* The program header is not contained in any of the segments.

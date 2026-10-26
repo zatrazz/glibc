@@ -557,6 +557,28 @@ The default value of this tunable is @samp{1}, which uses empty and
 relative entries.
 @end deftp
 
+@deftp Tunable glibc.rtld.relro
+Programs and shared objects linked with @option{-z relro} have a
+@code{PT_GNU_RELRO} segment, which the dynamic loader makes read-only once
+the object is relocated.  The entries of the global offset table used by
+the procedure linkage table are only covered if the object is also linked
+with @option{-z now} (``full RELRO''), since lazy binding needs to update
+them.  The @code{glibc.rtld.bind_now} tunable does not change this.
+
+Setting the @code{glibc.rtld.relro} tunable to @code{1} makes the dynamic
+loader refuse to load programs and shared objects without a
+@code{PT_GNU_RELRO} segment, and setting it to @code{2} also refuses those
+that are not linked for immediate binding (with the @code{DF_BIND_NOW} or
+@code{DF_1_NOW} flags).  The main program fails to start, and
+@code{dlopen} of such a shared object fails.  Note that @theglibc{} only
+builds its own shared objects for immediate binding when configured with
+@option{--enable-bind-now}; otherwise the value @code{2} prevents every
+dynamically linked program from running.
+
+The default value of this tunable is @samp{0}, which does not require
+RELRO.
+@end deftp
+
 @node POSIX Thread Tunables
 @section POSIX Thread Tunables
 @cindex pthread mutex tunables

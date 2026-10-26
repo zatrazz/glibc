@@ -31,6 +31,10 @@ Major new features:
   dynamic loader ignore empty and relative DT_RPATH and DT_RUNPATH
   entries, which are resolved against the current working directory.
 
+* A new tunable, glibc.rtld.relro, makes the dynamic loader refuse to load
+  programs and shared objects without RELRO (1), or without RELRO and
+  immediate binding (2).
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

@@ -687,14 +687,28 @@ tests += \
   tst-rtld-bind-now-profile \
   tst-rtld-relative-rpath \
   tst-rtld-relative-rpath-default \
+  tst-rtld-relro \
+  tst-rtld-relro-default \
+  tst-rtld-relro-full \
+  tst-rtld-relro-lazy \
+  tst-rtld-relro-norelro \
   tst-rtld-wx-segments \
   # tests
 modules-names += \
   tst-rtld-bind-now-mod \
   tst-rtld-relative-rpath-lib \
   tst-rtld-relative-rpath-mod \
+  tst-rtld-relro-mod-lazy \
+  tst-rtld-relro-mod-norelro \
+  tst-rtld-relro-mod-now \
   tst-rtld-wx-segments-mod \
   # modules-names
+ifeq ($(run-built-tests),yes)
+tests-special += \
+  $(objpfx)tst-rtld-relro-lazy-deny.out \
+  $(objpfx)tst-rtld-relro-norelro-deny.out \
+  # tests-special
+endif
 ifeq ($(have-dt-relr),yes)
 tests += \
   tst-relr \
@@ -2341,6 +2355,40 @@ $(objpfx)tst-rtld-relative-rpath.out: \
 $(objpfx)tst-rtld-relative-rpath-default.out: \
   $(objpfx)tst-rtld-relative-rpath-mod.so $(objpfx)tst-rtld-relative-rpath-lib.so
 tst-rtld-relative-rpath-TUNABLES = glibc.rtld.relative_rpath=0
+
+LDFLAGS-tst-rtld-relro-mod-lazy.so += -Wl,-z,relro,-z,lazy
+LDFLAGS-tst-rtld-relro-mod-norelro.so += -Wl,-z,norelro,-z,lazy
+LDFLAGS-tst-rtld-relro-mod-now.so += -Wl,-z,relro,-z,now
+tst-rtld-relro-modules = \
+  $(patsubst %,$(objpfx)tst-rtld-relro-mod-%.so,lazy norelro now)
+$(objpfx)tst-rtld-relro.out: $(tst-rtld-relro-modules)
+$(objpfx)tst-rtld-relro-default.out: $(tst-rtld-relro-modules)
+$(objpfx)tst-rtld-relro-full.out: $(tst-rtld-relro-modules)
+tst-rtld-relro-TUNABLES = glibc.rtld.relro=1
+LDFLAGS-tst-rtld-relro-full += -Wl,-z,now
+LDFLAGS-tst-rtld-relro-lazy += -Wl,-z,lazy
+# $(relro-LDFLAGS) comes after LDFLAGS-*, but before LDLIBS-*.
+LDLIBS-tst-rtld-relro-norelro = -Wl,-z,norelro,-z,lazy
+
+$(objpfx)tst-rtld-relro-lazy-deny.out: $(objpfx)tst-rtld-relro-lazy
+	$(test-program-cmd-before-env) \
+		$(run-program-env) \
+		GLIBC_TUNABLES=glibc.rtld.relro=2 \
+		$(test-program-cmd-after-env) $< \
+		> $@ 2>&1; echo "status: $$?" >> $@; \
+	grep -q ': full RELRO is required$$' $@ \
+	  && grep -q '^status: 127$$' $@; \
+	  $(evaluate-test)
+
+$(objpfx)tst-rtld-relro-norelro-deny.out: $(objpfx)tst-rtld-relro-norelro
+	$(test-program-cmd-before-env) \
+		$(run-program-env) \
+		GLIBC_TUNABLES=glibc.rtld.relro=1 \
+		$(test-program-cmd-after-env) $< \
+		> $@ 2>&1; echo "status: $$?" >> $@; \
+	grep -q ': RELRO is required$$' $@ \
+	  && grep -q '^status: 127$$' $@; \
+	  $(evaluate-test)
 
 LDFLAGS-tst-array2 = -Wl,--no-as-needed
 LDFLAGS-tst-array5 = -Wl,--no-as-needed
