@@ -542,6 +542,21 @@ The default value of this tunable is @samp{0}, which enables lazy
 binding unless the object was linked with @option{-z now}.
 @end deftp
 
+@deftp Tunable glibc.rtld.relative_rpath
+The @code{DT_RPATH} and @code{DT_RUNPATH} search paths of a program or
+shared object may contain empty entries, or relative directories after
+the expansion of dynamic string tokens such as @code{$ORIGIN}.  The
+dynamic loader resolves these against the current working directory of
+the process, so shared objects can be loaded from a directory under the
+control of whoever starts the program.  Setting the
+@code{glibc.rtld.relative_rpath} tunable to @code{0} makes the dynamic
+loader ignore such entries.  The @env{LD_LIBRARY_PATH} environment
+variable is not affected.
+
+The default value of this tunable is @samp{1}, which uses empty and
+relative entries.
+@end deftp
+
 @node POSIX Thread Tunables
 @section POSIX Thread Tunables
 @cindex pthread mutex tunables

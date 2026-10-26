@@ -392,11 +392,14 @@ struct r_search_path_struct __rtld_search_dirs attribute_relro;
 static size_t max_dirnamelen;
 
 /* Tokenize RPATH (in place) and populate RESULT with one entry per non-empty
-   directory.  Returns false if a per-entry allocation fails, leaving the
-   caller responsible for signaling any error.  */
+   directory.  If ALLOW_RELATIVE is false, skip the empty and relative
+   entries, which are resolved against the current working directory.  Returns
+   false if a per-entry allocation fails, leaving the caller responsible for
+   signaling any error.  */
 static bool
 fillin_rpath (char *rpath, struct r_search_path_elem **result, const char *sep,
-	      const char *what, const char *where, struct link_map *l)
+	      const char *what, const char *where, struct link_map *l,
+	      bool allow_relative)
 {
   char *cp;
   size_t nelems = 0;
@@ -420,7 +423,7 @@ fillin_rpath (char *rpath, struct r_search_path_elem **result, const char *sep,
 	  /* Compute the length after dynamic string token expansion and
 	     ignore empty paths.  */
 	  len = strlen (cp);
-	  if (len == 0)
+	  if (len == 0 || (!allow_relative && cp[0] != '/'))
 	    {
 	      free (to_free);
 	      continue;
@@ -434,6 +437,8 @@ fillin_rpath (char *rpath, struct r_search_path_elem **result, const char *sep,
 	  if (len > 0 && cp[len - 1] != '/')
 	    cp[len++] = '/';
 	}
+      else if (!allow_relative)
+	continue;
 
       /* See if this directory is already known.  */
       for (dirp = GL(dl_all_dirs); dirp != NULL; dirp = dirp->next)
@@ -583,7 +588,9 @@ decompose_rpath (struct r_search_path_struct *sps,
       _dl_signal_error (ENOMEM, NULL, NULL, errstring);
     }
 
-  if (!fillin_rpath (copy, result, ":", what, where, l))
+  if (!fillin_rpath (copy, result, ":", what, where, l,
+		     TUNABLE_GET (glibc, rtld, relative_rpath, int32_t,
+				  NULL) != 0))
     {
       free (copy);
       free (result);
@@ -788,7 +795,7 @@ _dl_init_paths (const char *llp, const char *source,
       char *llp_tmp = memcpy (scratch.data, llp, llp_len + 1);
 
       bool ok = fillin_rpath (llp_tmp, __rtld_env_path_list.dirs, ":;",
-			      source, NULL, l);
+			      source, NULL, l, true);
 
       dl_scratch_buffer_free (&scratch);
 

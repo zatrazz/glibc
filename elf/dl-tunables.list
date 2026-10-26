@@ -137,6 +137,12 @@ glibc {
       maxval: 1
       default: 0
     }
+    relative_rpath {
+      type: INT_32
+      minval: 0
+      maxval: 1
+      default: 1
+    }
   }
 
   mem {

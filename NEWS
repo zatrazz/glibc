@@ -27,6 +27,10 @@ Major new features:
   LD_BIND_NOW environment variable.  When set in /etc/tunables.conf, it
   also applies to AT_SECURE processes.
 
+* A new tunable, glibc.rtld.relative_rpath, can be set to 0 to make the
+  dynamic loader ignore empty and relative DT_RPATH and DT_RUNPATH
+  entries, which are resolved against the current working directory.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

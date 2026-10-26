@@ -685,10 +685,14 @@ tests += \
   tst-rtld-bind-now \
   tst-rtld-bind-now-default \
   tst-rtld-bind-now-profile \
+  tst-rtld-relative-rpath \
+  tst-rtld-relative-rpath-default \
   tst-rtld-wx-segments \
   # tests
 modules-names += \
   tst-rtld-bind-now-mod \
+  tst-rtld-relative-rpath-lib \
+  tst-rtld-relative-rpath-mod \
   tst-rtld-wx-segments-mod \
   # modules-names
 ifeq ($(have-dt-relr),yes)
@@ -2329,6 +2333,14 @@ tst-rtld-bind-now-TUNABLES = glibc.rtld.bind_now=1
 tst-rtld-bind-now-profile-TUNABLES = glibc.rtld.bind_now=1
 tst-rtld-bind-now-profile-ENV = \
   LD_PROFILE=tst-rtld-bind-now-mod.so LD_PROFILE_OUTPUT=$(objpfx)
+
+LDFLAGS-tst-rtld-relative-rpath-mod.so += \
+  -Wl,--enable-new-dtags,-rpath,tst-rtld-relative-rpath-dir::/nonexistent
+$(objpfx)tst-rtld-relative-rpath.out: \
+  $(objpfx)tst-rtld-relative-rpath-mod.so $(objpfx)tst-rtld-relative-rpath-lib.so
+$(objpfx)tst-rtld-relative-rpath-default.out: \
+  $(objpfx)tst-rtld-relative-rpath-mod.so $(objpfx)tst-rtld-relative-rpath-lib.so
+tst-rtld-relative-rpath-TUNABLES = glibc.rtld.relative_rpath=0
 
 LDFLAGS-tst-array2 = -Wl,--no-as-needed
 LDFLAGS-tst-array5 = -Wl,--no-as-needed
