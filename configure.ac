@@ -811,6 +811,23 @@ fi
 rm -f conftest*])
 AC_SUBST(libc_cv_textrel_ifunc)
 
+# Check if the test compiler and linker can create a shared object with a
+# text relocation.
+AC_CACHE_CHECK([whether the test linker supports text relocations],
+	       libc_cv_test_textrel, [dnl
+cat > conftest.c <<EOF
+static const __UINTPTR_TYPE__ address __attribute__ ((used, section (".text")))
+  = (__UINTPTR_TYPE__) &address;
+EOF
+libc_cv_test_textrel=no
+if AC_TRY_COMMAND([${TEST_CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
+		  -nostdlib -nostartfiles -fPIC -shared -Wl,-z,notext
+		  -o conftest.so conftest.c]); then
+  libc_cv_test_textrel=yes
+fi
+rm -f conftest*])
+AC_SUBST(libc_cv_test_textrel)
+
 # Check if CC supports attribute retain as it is used in attribute_used_retain macro.
 AC_CACHE_CHECK([for GNU attribute retain support],
 	       libc_cv_gnu_retain, [dnl

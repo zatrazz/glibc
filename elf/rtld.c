@@ -1263,6 +1263,11 @@ rtld_check_main_map (const struct link_map *main_map)
       && !rtld_main_map_is_pie (main_map))
     _dl_fatal_printf ("\
 Fatal glibc error: non-PIE executable is not allowed\n");
+
+  if (__glibc_unlikely (main_map->l_info[DT_TEXTREL] != NULL)
+      && TUNABLE_GET (glibc, rtld, textrel, int32_t, NULL) == 0)
+    _dl_fatal_printf ("\
+Fatal glibc error: text relocations are not allowed\n");
 }
 
 /* Set up the program header information for the dynamic linker

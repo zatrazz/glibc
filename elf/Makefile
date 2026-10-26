@@ -672,6 +672,15 @@ tests-special += \
   $(objpfx)tst-rtld-require-pie-nopie-deny.out \
   # tests-special
 endif
+ifeq (yes,$(have-test-textrel))
+tests += \
+  tst-rtld-textrel \
+  tst-rtld-textrel-default \
+  # tests
+modules-names += \
+  tst-rtld-textrel-mod \
+  # modules-names
+endif
 ifeq ($(have-dt-relr),yes)
 tests += \
   tst-relr \
@@ -2290,6 +2299,11 @@ $(objpfx)tst-rtld-require-pie-nopie-deny.out: \
 	grep -q '^Fatal glibc error: non-PIE executable is not allowed$$' $@ \
 	  && grep -q '^status: 127$$' $@; \
 	  $(evaluate-test)
+
+LDFLAGS-tst-rtld-textrel-mod.so += -Wl,-z,notext
+$(objpfx)tst-rtld-textrel.out: $(objpfx)tst-rtld-textrel-mod.so
+$(objpfx)tst-rtld-textrel-default.out: $(objpfx)tst-rtld-textrel-mod.so
+tst-rtld-textrel-TUNABLES = glibc.rtld.textrel=0
 
 LDFLAGS-tst-array2 = -Wl,--no-as-needed
 LDFLAGS-tst-array5 = -Wl,--no-as-needed

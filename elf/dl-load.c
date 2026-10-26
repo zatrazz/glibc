@@ -1305,6 +1305,13 @@ _dl_map_object_from_fd (const char *name, const char *origname, int fd,
       goto lose;
     }
 
+  if (__glibc_unlikely (l->l_info[DT_TEXTREL] != NULL)
+      && TUNABLE_GET (glibc, rtld, textrel, int32_t, NULL) == 0)
+    {
+      errstring = N_("text relocations are not allowed");
+      goto lose;
+    }
+
   if (l->l_phdr == NULL)
     {
       /* The program header is not contained in any of the segments.

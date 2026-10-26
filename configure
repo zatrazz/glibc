@@ -673,6 +673,7 @@ SYSINCLUDES
 sysnames
 submachine
 multi_arch
+libc_cv_test_textrel
 libc_cv_textrel_ifunc
 no_stack_protector
 stack_protector
@@ -6353,6 +6354,36 @@ esac
 fi
 { printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_textrel_ifunc" >&5
 printf "%s\n" "$libc_cv_textrel_ifunc" >&6; }
+
+
+# Check if the test compiler and linker can create a shared object with a
+# text relocation.
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: checking whether the test linker supports text relocations" >&5
+printf %s "checking whether the test linker supports text relocations... " >&6; }
+if test ${libc_cv_test_textrel+y}
+then :
+  printf %s "(cached) " >&6
+else case e in #(
+  e) cat > conftest.c <<EOF
+static const __UINTPTR_TYPE__ address __attribute__ ((used, section (".text")))
+  = (__UINTPTR_TYPE__) &address;
+EOF
+libc_cv_test_textrel=no
+if { ac_try='${TEST_CC-cc} $CFLAGS $CPPFLAGS $LDFLAGS $no_ssp
+		  -nostdlib -nostartfiles -fPIC -shared -Wl,-z,notext
+		  -o conftest.so conftest.c'
+  { { eval echo "\"\$as_me\":${as_lineno-$LINENO}: \"$ac_try\""; } >&5
+  (eval $ac_try) 2>&5
+  ac_status=$?
+  printf "%s\n" "$as_me:${as_lineno-$LINENO}: \$? = $ac_status" >&5
+  test $ac_status = 0; }; }; then
+  libc_cv_test_textrel=yes
+fi
+rm -f conftest* ;;
+esac
+fi
+{ printf "%s\n" "$as_me:${as_lineno-$LINENO}: result: $libc_cv_test_textrel" >&5
+printf "%s\n" "$libc_cv_test_textrel" >&6; }
 
 
 # Check if CC supports attribute retain as it is used in attribute_used_retain macro.

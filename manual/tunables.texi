@@ -500,6 +500,18 @@ The default value of this tunable is @samp{0}, which allows
 position-dependent executables.
 @end deftp
 
+@deftp Tunable glibc.rtld.textrel
+Objects with text relocations (@code{DT_TEXTREL}) require the dynamic
+loader to make their read-only segments, which usually include code,
+writable while they are relocated.  Setting the
+@code{glibc.rtld.textrel} tunable to @code{0} makes the dynamic loader
+refuse to load such objects: the main program fails to start, and
+@code{dlopen} of such a shared object fails.
+
+The default value of this tunable is @samp{1}, which allows text
+relocations.
+@end deftp
+
 @node POSIX Thread Tunables
 @section POSIX Thread Tunables
 @cindex pthread mutex tunables
