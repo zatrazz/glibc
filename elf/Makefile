@@ -709,6 +709,29 @@ tests-special += \
   $(objpfx)tst-rtld-relro-norelro-deny.out \
   # tests-special
 endif
+# The helpers must be PIE, since the test sets glibc.rtld.require_pie.
+ifeq ($(have-fpie),yes)
+tests-container += \
+  tst-rtld-hardening-conf \
+  # tests-container
+tst-rtld-hardening-conf-helpers = \
+  tst-rtld-hardening-conf-helper \
+  tst-rtld-hardening-conf-helper-norelro \
+  tst-rtld-hardening-conf-helper-wx \
+  # tst-rtld-hardening-conf-helpers
+ifeq (yes,$(have-textrel_ifunc))
+tst-rtld-hardening-conf-helpers += \
+  tst-rtld-hardening-conf-helper-textrel \
+  # tst-rtld-hardening-conf-helpers
+endif
+ifeq (yes,$(have-z-execstack))
+tst-rtld-hardening-conf-helpers += \
+  tst-rtld-hardening-conf-helper-execstack \
+  # tst-rtld-hardening-conf-helpers
+endif
+test-srcs += $(tst-rtld-hardening-conf-helpers)
+tests-pie += $(tst-rtld-hardening-conf-helpers)
+endif
 ifeq ($(have-dt-relr),yes)
 tests += \
   tst-relr \
@@ -2348,6 +2371,28 @@ tst-rtld-bind-now-profile-TUNABLES = glibc.rtld.bind_now=1
 tst-rtld-bind-now-profile-ENV = \
   LD_PROFILE=tst-rtld-bind-now-mod.so LD_PROFILE_OUTPUT=$(objpfx)
 
+CFLAGS-tst-rtld-hardening-conf.c += \
+  -DTEXTREL_SUPPORTED=$(if $(filter yes,$(have-textrel_ifunc)),1,0) \
+  -DEXECSTACK_SUPPORTED=$(if $(filter yes,$(have-z-execstack)),1,0)
+CFLAGS-tst-rtld-hardening-conf-helper.c += $(pie-ccflag)
+CFLAGS-tst-rtld-hardening-conf-helper-execstack.c += $(pie-ccflag)
+CFLAGS-tst-rtld-hardening-conf-helper-textrel.c += $(pie-ccflag)
+CFLAGS-tst-rtld-hardening-conf-helper-wx.c += $(pie-ccflag)
+LDFLAGS-tst-rtld-hardening-conf-helper-execstack += -Wl,-z,execstack
+ifeq ($(have-no-error-execstack),yes)
+LDFLAGS-tst-rtld-hardening-conf-helper-execstack += -Wl,--no-error-execstack
+endif
+LDFLAGS-tst-rtld-hardening-conf-helper-textrel += -Wl,-z,notext
+ifeq ($(have-no-error-rwx-segments),yes)
+LDFLAGS-tst-rtld-hardening-conf-helper-wx += -Wl,--no-error-rwx-segments
+endif
+$(objpfx)tst-rtld-hardening-conf.out: \
+  $(tst-rtld-hardening-conf-helpers:%=$(objpfx)%) \
+  $(objpfx)tst-rtld-require-pie-nopie \
+  $(objpfx)tst-rtld-bind-now-mod.so \
+  $(objpfx)tst-rtld-wx-segments-mod.so \
+  $(if $(filter yes,$(have-textrel_ifunc)),$(objpfx)tst-rtld-textrel-mod.so)
+
 LDFLAGS-tst-rtld-relative-rpath-mod.so += \
   -Wl,--enable-new-dtags,-rpath,tst-rtld-relative-rpath-dir::/nonexistent
 $(objpfx)tst-rtld-relative-rpath.out: \
@@ -2369,6 +2414,9 @@ LDFLAGS-tst-rtld-relro-full += -Wl,-z,now
 LDFLAGS-tst-rtld-relro-lazy += -Wl,-z,lazy
 # $(relro-LDFLAGS) comes after LDFLAGS-*, but before LDLIBS-*.
 LDLIBS-tst-rtld-relro-norelro = -Wl,-z,norelro,-z,lazy
+CFLAGS-tst-rtld-hardening-conf-helper-norelro.c += $(pie-ccflag)
+LDLIBS-tst-rtld-hardening-conf-helper-norelro = -Wl,-z,norelro
+$(objpfx)tst-rtld-hardening-conf.out: $(objpfx)tst-rtld-relro-mod-norelro.so
 
 $(objpfx)tst-rtld-relro-lazy-deny.out: $(objpfx)tst-rtld-relro-lazy
 	$(test-program-cmd-before-env) \
