@@ -526,6 +526,22 @@ The default value of this tunable is @samp{1}, which allows writable and
 executable segments.
 @end deftp
 
+@deftp Tunable glibc.rtld.bind_now
+Setting the @code{glibc.rtld.bind_now} tunable to @code{1} has the same
+effect as setting the @env{LD_BIND_NOW} environment variable (the dynamic
+loader resolves all symbols when a program or shared object is loaded,
+instead of on the first call).  The lazy binding trampoline is then not
+installed, and unresolved symbols are reported at load time.  Unlike
+@env{LD_BIND_NOW}, which is ignored for @code{AT_SECURE} processes, the
+tunable can be applied to them through @file{/etc/tunables.conf}
+(@pxref{System-wide Tunables}).  Profiling with @env{LD_PROFILE} requires
+lazy binding, so the dynamic loader ignores @env{LD_PROFILE} when the
+tunable is set.
+
+The default value of this tunable is @samp{0}, which enables lazy
+binding unless the object was linked with @option{-z now}.
+@end deftp
+
 @node POSIX Thread Tunables
 @section POSIX Thread Tunables
 @cindex pthread mutex tunables

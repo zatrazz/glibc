@@ -682,9 +682,13 @@ modules-names += \
   # modules-names
 endif
 tests += \
+  tst-rtld-bind-now \
+  tst-rtld-bind-now-default \
+  tst-rtld-bind-now-profile \
   tst-rtld-wx-segments \
   # tests
 modules-names += \
+  tst-rtld-bind-now-mod \
   tst-rtld-wx-segments-mod \
   # modules-names
 ifeq ($(have-dt-relr),yes)
@@ -2315,6 +2319,16 @@ $(objpfx)tst-rtld-wx-segments.out: $(objpfx)tst-rtld-wx-segments-mod.so
 ifeq ($(have-no-error-rwx-segments),yes)
 LDFLAGS-tst-rtld-wx-segments-mod.so += -Wl,--no-error-rwx-segments
 endif
+
+LDFLAGS-tst-rtld-bind-now-mod.so += -Wl,-z,lazy
+tst-rtld-bind-now-mod.so-no-z-defs = yes
+$(objpfx)tst-rtld-bind-now.out: $(objpfx)tst-rtld-bind-now-mod.so
+$(objpfx)tst-rtld-bind-now-default.out: $(objpfx)tst-rtld-bind-now-mod.so
+$(objpfx)tst-rtld-bind-now-profile.out: $(objpfx)tst-rtld-bind-now-mod.so
+tst-rtld-bind-now-TUNABLES = glibc.rtld.bind_now=1
+tst-rtld-bind-now-profile-TUNABLES = glibc.rtld.bind_now=1
+tst-rtld-bind-now-profile-ENV = \
+  LD_PROFILE=tst-rtld-bind-now-mod.so LD_PROFILE_OUTPUT=$(objpfx)
 
 LDFLAGS-tst-array2 = -Wl,--no-as-needed
 LDFLAGS-tst-array5 = -Wl,--no-as-needed

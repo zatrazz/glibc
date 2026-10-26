@@ -23,6 +23,10 @@ Major new features:
   dynamic loader refuse to load programs and shared objects with a loadable
   segment that is both writable and executable.
 
+* A new tunable, glibc.rtld.bind_now, disables lazy binding like the
+  LD_BIND_NOW environment variable.  When set in /etc/tunables.conf, it
+  also applies to AT_SECURE processes.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

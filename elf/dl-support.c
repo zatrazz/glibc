@@ -306,7 +306,8 @@ _dl_non_dynamic_init (void)
   /* Remember the last search directory added at startup.  */
   _dl_init_all_dirs = GL(dl_all_dirs);
 
-  _dl_lazy = *(getenv ("LD_BIND_NOW") ?: "") == '\0';
+  _dl_lazy = *(getenv ("LD_BIND_NOW") ?: "") == '\0'
+	     && TUNABLE_GET (glibc, rtld, bind_now, int32_t, NULL) == 0;
 
   _dl_bind_not = *(getenv ("LD_BIND_NOT") ?: "") != '\0';
 

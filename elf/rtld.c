@@ -1410,6 +1410,21 @@ dl_main (const ElfW(Phdr) *phdr,
   /* Process the environment variable which control the behaviour.  */
   skip_env = process_envvars (&state);
 
+  /* The tunable has the same effect as LD_BIND_NOW, but it also applies
+     to AT_SECURE processes, for which process_envvars ignores it.  */
+  if (TUNABLE_GET (glibc, rtld, bind_now, int32_t, NULL) != 0)
+    {
+      GLRO(dl_lazy) = 0;
+      /* Profiling requires lazy binding, so LD_PROFILE would override the
+	 tunable.  */
+      if (GLRO(dl_profile) != NULL)
+	{
+	  _dl_error_printf ("\
+warning: LD_PROFILE ignored because glibc.rtld.bind_now is set\n");
+	  GLRO(dl_profile) = NULL;
+	}
+    }
+
 #ifndef HAVE_INLINED_SYSCALLS
   /* Set up a flag which tells we are just starting.  */
   _dl_starting_up = 1;
