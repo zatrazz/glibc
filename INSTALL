@@ -273,7 +273,9 @@ passed to 'configure'.  For example:
      Library.  If not provided, 'LEVEL' defaults to highest possible
      value supported by the build compiler.
 
-     Default is to disable fortification.
+     Fortification is enabled by default, at the highest level supported
+     by the build compiler.  Use '--disable-fortify-source' to disable
+     it.
 
 '--enable-sframe'
      Experimental option supported by some architectures, where the GNU

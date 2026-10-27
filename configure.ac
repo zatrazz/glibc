@@ -402,12 +402,13 @@ AC_ARG_ENABLE([scv],
 
 AS_IF([[test "$use_scv" != "no"]],[AC_DEFINE(USE_PPC_SCV)])
 
-dnl Build glibc with _FORTIFY_SOURCE
+dnl Build glibc with _FORTIFY_SOURCE, by default at the highest level
+dnl supported by the compiler.
 AC_ARG_ENABLE(fortify-source,
               AS_HELP_STRING([--enable-fortify-source@<:@=1|2|3@:>@],
-                             [Use -D_FORTIFY_SOURCE=[1|2|3] to control code hardening, defaults to highest possible value supported by the build compiler.]),
+                             [Use -D_FORTIFY_SOURCE=[1|2|3] to control code hardening, defaults to highest possible value supported by the build compiler. @<:@default=yes@:>@]),
               [enable_fortify_source=$enableval],
-              [enable_fortify_source=no])
+              [enable_fortify_source=yes])
 case "$enable_fortify_source" in
 1|2|3|no|yes) ;;
 *) AC_MSG_ERROR([Not a valid argument for --enable-fortify-source: "$enable_fortify_source"]);;

@@ -1500,7 +1500,7 @@ Optional Features:
   --enable-fortify-source[=1|2|3]
                           Use -D_FORTIFY_SOURCE=[1|2|3] to control code
                           hardening, defaults to highest possible value
-                          supported by the build compiler.
+                          supported by the build compiler. [default=yes]
   --enable-sframe         Enable building with SFrame support [default=no]
 
 Optional Packages:
@@ -4836,7 +4836,7 @@ if test ${enable_fortify_source+y}
 then :
   enableval=$enable_fortify_source; enable_fortify_source=$enableval
 else case e in #(
-  e) enable_fortify_source=no ;;
+  e) enable_fortify_source=yes ;;
 esac
 fi
 

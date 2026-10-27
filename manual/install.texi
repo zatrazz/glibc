@@ -303,7 +303,8 @@ Use -D_FORTIFY_SOURCE=@option{LEVEL} to control hardening in the GNU C Library.
 If not provided, @option{LEVEL} defaults to highest possible value supported by
 the build compiler.
 
-Default is to disable fortification.
+Fortification is enabled by default, at the highest level supported by the
+build compiler.  Use @option{--disable-fortify-source} to disable it.
 
 @item --enable-sframe
 Experimental option supported by some architectures, where @theglibc{}

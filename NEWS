@@ -59,6 +59,11 @@ Changes to build and runtime requirements:
   --enable-stack-protector=strong.  Use --disable-stack-protector to build
   without stack protection.
 
+* The GNU C Library is now built with _FORTIFY_SOURCE by default, at the
+  highest level supported by the compiler, as if configured with
+  --enable-fortify-source.  Use --disable-fortify-source to build without
+  fortification.
+
 Security related changes:
 
 The following CVEs were fixed in this release, details of which can be
