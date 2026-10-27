@@ -183,7 +183,9 @@ passed to 'configure'.  For example:
      '-fstack-protector-strong' or '-fstack-protector-all' options to
      detect stack overruns.  Only the dynamic linker and a small number
      of routines called directly from assembler are excluded from this
-     protection.
+     protection.  The default is '-fstack-protector-strong' if the
+     compiler supports it; use '--disable-stack-protector' to build
+     without stack protection.
 
 '--disable-bind-now'
      By default, the installed shared objects and programs are linked

@@ -213,7 +213,9 @@ transliteration modules) using the GCC @option{-fstack-protector},
 @option{-fstack-protector-strong} or @option{-fstack-protector-all}
 options to detect stack overruns.  Only the dynamic linker and a small
 number of routines called directly from assembler are excluded from this
-protection.
+protection.  The default is @option{-fstack-protector-strong} if the
+compiler supports it; use @option{--disable-stack-protector} to build
+without stack protection.
 
 @item --disable-bind-now
 By default, the installed shared objects and programs are linked with

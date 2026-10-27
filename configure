@@ -1476,7 +1476,7 @@ Optional Features:
   --disable-bind-now      use lazy relocations in DSOs [default=no]
   --enable-stack-protector=[yes|no|all|strong]
                           Use -fstack-protector[-all|-strong] to detect glibc
-                          buffer overflows
+                          buffer overflows [default=strong if supported]
   --disable-force-install don't force installation of files from this package,
                           even if they are older than the installed files
   --enable-maintainer-mode
@@ -4604,12 +4604,12 @@ if test ${enable_stack_protector+y}
 then :
   enableval=$enable_stack_protector; enable_stack_protector=$enableval
 else case e in #(
-  e) enable_stack_protector=no ;;
+  e) enable_stack_protector= ;;
 esac
 fi
 
 case "$enable_stack_protector" in
-all|yes|no|strong) ;;
+all|yes|no|strong|"") ;;
 *) as_fn_error $? "Not a valid argument for --enable-stack-protector: \"$enable_stack_protector\"" "$LINENO" 5;;
 esac
 
@@ -6208,6 +6208,13 @@ if test "$libc_cv_test_ssp" = yes; then
 
 fi
 
+if test -z "$enable_stack_protector"; then
+  if test "$libc_cv_ssp_strong" = yes; then
+    enable_stack_protector=strong
+  else
+    enable_stack_protector=no
+  fi
+fi
 
 if test "$enable_stack_protector" = yes && test "$libc_cv_ssp" = yes; then
   stack_protector="-fstack-protector"

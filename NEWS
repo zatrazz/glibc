@@ -54,6 +54,11 @@ Changes to build and runtime requirements:
   global offset table is read-only after relocation.  Use
   --disable-bind-now to restore lazy binding.
 
+* The GNU C Library is now built with -fstack-protector-strong by default
+  if the compiler supports it, as if configured with
+  --enable-stack-protector=strong.  Use --disable-stack-protector to build
+  without stack protection.
+
 Security related changes:
 
 The following CVEs were fixed in this release, details of which can be

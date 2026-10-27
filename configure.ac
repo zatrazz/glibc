@@ -261,14 +261,15 @@ if test "x$bindnow" = xyes; then
 fi
 
 dnl Build glibc with -fstack-protector, -fstack-protector-all, or
-dnl -fstack-protector-strong.
+dnl -fstack-protector-strong.  The default, set once the compiler is
+dnl checked, is -fstack-protector-strong if it is supported.
 AC_ARG_ENABLE([stack-protector],
 	      AS_HELP_STRING([--enable-stack-protector=@<:@yes|no|all|strong@:>@],
-			     [Use -fstack-protector[-all|-strong] to detect glibc buffer overflows]),
+			     [Use -fstack-protector[-all|-strong] to detect glibc buffer overflows @<:@default=strong if supported@:>@]),
 	      [enable_stack_protector=$enableval],
-	      [enable_stack_protector=no])
+	      [enable_stack_protector=])
 case "$enable_stack_protector" in
-all|yes|no|strong) ;;
+all|yes|no|strong|"") ;;
 *) AC_MSG_ERROR([Not a valid argument for --enable-stack-protector: "$enable_stack_protector"]);;
 esac
 
@@ -693,6 +694,13 @@ if test "$libc_cv_test_ssp" = yes; then
   AC_DEFINE(HAVE_TEST_CC_NO_STACK_PROTECTOR)
 fi
 
+if test -z "$enable_stack_protector"; then
+  if test "$libc_cv_ssp_strong" = yes; then
+    enable_stack_protector=strong
+  else
+    enable_stack_protector=no
+  fi
+fi
 
 if test "$enable_stack_protector" = yes && test "$libc_cv_ssp" = yes; then
   stack_protector="-fstack-protector"
