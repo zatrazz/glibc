@@ -284,6 +284,9 @@
 /* Define if using the IEEE 754-2008 NaN encoding on the MIPS target.  */
 #undef HAVE_MIPS_NAN2008
 
+/* Define if glibc is built with an executable stack on MIPS Linux.  */
+#undef MIPS_FORCE_EXECSTACK
+
 /* The PowerPC64 ELFv2 ABI is being used.  */
 #undef HAVE_ELFV2_ABI
 

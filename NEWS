@@ -35,6 +35,12 @@ Major new features:
   programs and shared objects without RELRO (1), or without RELRO and
   immediate binding (2).
 
+* A new tunable, glibc.rtld.hardened, sets glibc.rtld.require_pie,
+  glibc.rtld.execstack, glibc.rtld.textrel, glibc.rtld.wx_segments,
+  glibc.rtld.bind_now, glibc.rtld.relative_rpath, and glibc.rtld.relro to
+  their hardened values, where the ABI supports it.  The individual
+  tunables can still be set explicitly.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

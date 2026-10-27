@@ -542,6 +542,8 @@ libc_mips_has_gnustack=$libc_cv_as_noexecstack
 
 if test $libc_cv_mips_force_execstack = yes; then
   libc_mips_has_gnustack=no
+  printf "%s\n" "#define MIPS_FORCE_EXECSTACK 1" >>confdefs.h
+
   { printf "%s\n" "$as_me:${as_lineno-$LINENO}: WARNING: forcing executable stack for pre-4.8.0 Linux kernels" >&5
 printf "%s\n" "$as_me: WARNING: forcing executable stack for pre-4.8.0 Linux kernels" >&2;}
 fi

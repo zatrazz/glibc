@@ -579,6 +579,40 @@ The default value of this tunable is @samp{0}, which does not require
 RELRO.
 @end deftp
 
+@deftp Tunable glibc.rtld.hardened
+Setting the @code{glibc.rtld.hardened} tunable to @code{1} sets the
+following tunables, unless they are set explicitly:
+
+@example
+glibc.rtld.require_pie=1
+glibc.rtld.execstack=0
+glibc.rtld.textrel=0
+glibc.rtld.wx_segments=0
+glibc.rtld.bind_now=1
+glibc.rtld.relative_rpath=0
+glibc.rtld.relro=1
+@end example
+
+@code{glibc.rtld.wx_segments} is not set on ABIs that place the procedure
+linkage table in a writable and executable segment (HPPA and SPARC), and
+@code{glibc.rtld.execstack} is not set if @theglibc{} itself requires an
+executable stack (MIPS, when built for kernels older than 4.8).
+
+The explicit value of an individual tunable takes precedence.  If
+@code{glibc.rtld.hardened} is nonoverridable in @file{/etc/tunables.conf}
+(@pxref{System-wide Tunables}), the tunables it sets are nonoverridable
+too, so exceptions can only be made in @file{/etc/tunables.conf} itself,
+for instance with a filter:
+
+@example
+-*glibc.rtld.hardened=1
+[proc:/opt/legacy/bin/program]
+*glibc.rtld.require_pie=0
+@end example
+
+The default value of this tunable is @samp{0}.
+@end deftp
+
 @node POSIX Thread Tunables
 @section POSIX Thread Tunables
 @cindex pthread mutex tunables

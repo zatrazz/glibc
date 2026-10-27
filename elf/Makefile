@@ -731,6 +731,15 @@ tst-rtld-hardening-conf-helpers += \
 endif
 test-srcs += $(tst-rtld-hardening-conf-helpers)
 tests-pie += $(tst-rtld-hardening-conf-helpers)
+# glibc.rtld.hardened sets glibc.rtld.require_pie.
+tests-internal += \
+  tst-tunables-hardened \
+  tst-tunables-hardened-override \
+  # tests-internal
+tests-pie += \
+  tst-tunables-hardened \
+  tst-tunables-hardened-override \
+  # tests-pie
 endif
 ifeq ($(have-dt-relr),yes)
 tests += \
@@ -2437,6 +2446,12 @@ $(objpfx)tst-rtld-relro-norelro-deny.out: $(objpfx)tst-rtld-relro-norelro
 	grep -q ': RELRO is required$$' $@ \
 	  && grep -q '^status: 127$$' $@; \
 	  $(evaluate-test)
+
+CFLAGS-tst-tunables-hardened.c += $(pie-ccflag)
+CFLAGS-tst-tunables-hardened-override.c += $(pie-ccflag)
+tst-tunables-hardened-TUNABLES = glibc.rtld.hardened=1
+tst-tunables-hardened-override-TUNABLES = \
+  glibc.rtld.hardened=1 glibc.rtld.textrel=1 glibc.rtld.relro=0
 
 LDFLAGS-tst-array2 = -Wl,--no-as-needed
 LDFLAGS-tst-array5 = -Wl,--no-as-needed

@@ -17,6 +17,7 @@
    <https://www.gnu.org/licenses/>.  */
 
 #include <array_length.h>
+#include <dl-hardened.h>
 #include <link.h>
 #include <stdbool.h>
 #include <stdio.h>
@@ -127,8 +128,24 @@ check_program (const char *program, const char *module, int status,
 static bool check_wx;
 static bool check_execstack;
 
-/* Write the settings to /etc/tunables.conf and run ldconfig to add them
-   to the cache.  */
+/* Write CONTENTS to /etc/tunables.conf and run ldconfig to add it to the
+   cache.  */
+static void
+write_tunables_conf (const char *contents)
+{
+  char *conf = xasprintf ("%s/tunables.conf", support_sysconfdir_prefix);
+  FILE *fp = xfopen (conf, "w");
+  TEST_VERIFY_EXIT (fputs (contents, fp) >= 0);
+  xfclose (fp);
+  free (conf);
+
+  struct support_capture_subprocess result
+    = support_capture_subprocess (run_ldconfig, NULL);
+  support_capture_subprocess_check (&result, "ldconfig", 0, sc_allow_none);
+  support_capture_subprocess_free (&result);
+}
+
+/* Write the individual settings to /etc/tunables.conf.  */
 static void
 do_prepare (int argc, char **argv)
 {
@@ -141,35 +158,32 @@ do_prepare (int argc, char **argv)
   check_wx = counts.wx == 0;
   check_execstack = EXECSTACK_SUPPORTED && counts.execstack == 0;
 
-  /* Non-overridable settings that also apply to AT_SECURE processes.  */
-  char *conf = xasprintf ("%s/tunables.conf", support_sysconfdir_prefix);
-  FILE *fp = xfopen (conf, "w");
-  TEST_VERIFY_EXIT (fputs ("-*glibc.rtld.require_pie=1\n"
-			   "-*glibc.rtld.textrel=0\n"
-			   "-*glibc.rtld.bind_now=1\n"
-			   "-*glibc.rtld.relro=1\n", fp) >= 0);
-  if (check_wx)
-    TEST_VERIFY_EXIT (fputs ("-*glibc.rtld.wx_segments=0\n", fp) >= 0);
-  if (check_execstack)
-    TEST_VERIFY_EXIT (fputs ("-*glibc.rtld.execstack=0\n", fp) >= 0);
-  xfclose (fp);
-  free (conf);
-
   xmkdirp ("/var/cache/ldconfig", 0777);
-  struct support_capture_subprocess result
-    = support_capture_subprocess (run_ldconfig, NULL);
-  support_capture_subprocess_check (&result, "ldconfig", 0, sc_allow_none);
-  support_capture_subprocess_free (&result);
+
+  /* Non-overridable settings that also apply to AT_SECURE processes.  */
+  char *conf = xasprintf ("-*glibc.rtld.require_pie=1\n"
+			  "-*glibc.rtld.textrel=0\n"
+			  "-*glibc.rtld.bind_now=1\n"
+			  "-*glibc.rtld.relro=1\n"
+			  "%s%s",
+			  check_wx ? "-*glibc.rtld.wx_segments=0\n" : "",
+			  check_execstack ? "-*glibc.rtld.execstack=0\n" : "");
+  write_tunables_conf (conf);
+  free (conf);
 }
 
-static int
-do_test (void)
+/* Check that the settings in /etc/tunables.conf reject the programs and
+   shared objects, unless TEXTREL_EXCEPTION allows the program with text
+   relocations.  WX and EXECSTACK tell whether glibc.rtld.wx_segments and
+   glibc.rtld.execstack are set.  */
+static void
+check_programs (bool wx, bool execstack, bool textrel_exception)
 {
   /* The environment can not override the settings, and setting
      glibc.rtld.enable_secure runs the programs as AT_SECURE.  */
   static const char *const tunables[] =
     {
-      "glibc.rtld.require_pie=0:glibc.rtld.textrel=1"
+      "glibc.rtld.hardened=0:glibc.rtld.require_pie=0:glibc.rtld.textrel=1"
       ":glibc.rtld.wx_segments=1:glibc.rtld.bind_now=0"
       ":glibc.rtld.execstack=1:glibc.rtld.relro=0",
       "glibc.rtld.enable_secure=1",
@@ -189,14 +203,18 @@ do_test (void)
 		     "undefined symbol: tst_rtld_bind_now_undefined");
 
 #if TEXTREL_SUPPORTED
-      check_program ("tst-rtld-hardening-conf-helper-textrel", NULL, 127,
-		     "Fatal glibc error: text relocations are not allowed");
+      if (textrel_exception)
+	check_program ("tst-rtld-hardening-conf-helper-textrel", NULL, 0,
+		       NULL);
+      else
+	check_program ("tst-rtld-hardening-conf-helper-textrel", NULL, 127,
+		       "Fatal glibc error: text relocations are not allowed");
       check_program ("tst-rtld-hardening-conf-helper",
 		     "tst-rtld-textrel-mod.so", 1,
 		     "text relocations are not allowed");
 #endif
 
-      if (check_wx)
+      if (wx)
 	{
 	  check_program ("tst-rtld-hardening-conf-helper-wx", NULL, 127,
 			 "Fatal glibc error: writable and executable segments"
@@ -206,7 +224,7 @@ do_test (void)
 			 "writable and executable segments are not allowed");
 	}
 
-      if (check_execstack)
+      if (execstack)
 	check_program ("tst-rtld-hardening-conf-helper-execstack", NULL, 127,
 		       "Fatal glibc error: executable stack is not allowed");
 
@@ -216,6 +234,24 @@ do_test (void)
 		     "tst-rtld-relro-mod-norelro.so", 1,
 		     ": RELRO is required");
     }
+}
+
+static int
+do_test (void)
+{
+  check_programs (check_wx, check_execstack, false);
+
+  /* The same settings through glibc.rtld.hardened, with an exception for
+     the program with text relocations, which the environment can not
+     make.  The environment can not relax an overridable setting either,
+     and an invalid setting does not disable the hardened value.  */
+  write_tunables_conf ("-*glibc.rtld.hardened=1\n"
+		       "*glibc.rtld.bind_now=1\n"
+		       "-*glibc.rtld.relro=7\n"
+		       "[proc:tst-rtld-hardening-conf-helper-textrel]\n"
+		       "*glibc.rtld.textrel=1\n");
+  check_programs (check_wx && !DL_HARDENED_SKIP_WX_SEGMENTS,
+		  check_execstack && !DL_HARDENED_SKIP_EXECSTACK, true);
 
   return 0;
 }

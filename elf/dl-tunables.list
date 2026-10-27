@@ -149,6 +149,12 @@ glibc {
       maxval: 2
       default: 0
     }
+    hardened {
+      type: INT_32
+      minval: 0
+      maxval: 1
+      default: 0
+    }
   }
 
   mem {

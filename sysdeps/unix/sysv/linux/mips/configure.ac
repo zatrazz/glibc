@@ -161,6 +161,7 @@ libc_mips_has_gnustack=$libc_cv_as_noexecstack
 
 if test $libc_cv_mips_force_execstack = yes; then
   libc_mips_has_gnustack=no
+  AC_DEFINE(MIPS_FORCE_EXECSTACK)
   AC_MSG_WARN([forcing executable stack for pre-4.8.0 Linux kernels])
 fi
 

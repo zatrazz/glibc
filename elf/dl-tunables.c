@@ -33,6 +33,7 @@
 #include <array_length.h>
 #include <dl-minimal-malloc.h>
 #include <dl-symbol-redir-ifunc.h>
+#include <dl-hardened.h>
 #include <hugepages.h>
 
 #define TUNABLES_INTERNAL 1
@@ -316,6 +317,56 @@ parse_tunables (const char *valstring)
     }
 }
 
+/* The tunables set by glibc.rtld.hardened, with their values.  */
+static const struct
+{
+  tunable_id_t id;
+  tunable_num_t value;
+} hardened_tunables[] =
+  {
+    { TUNABLE_ENUM_NAME (glibc, rtld, require_pie), 1 },
+#if !DL_HARDENED_SKIP_EXECSTACK
+    { TUNABLE_ENUM_NAME (glibc, rtld, execstack), 0 },
+#endif
+    { TUNABLE_ENUM_NAME (glibc, rtld, textrel), 0 },
+#if !DL_HARDENED_SKIP_WX_SEGMENTS
+    { TUNABLE_ENUM_NAME (glibc, rtld, wx_segments), 0 },
+#endif
+    { TUNABLE_ENUM_NAME (glibc, rtld, bind_now), 1 },
+    { TUNABLE_ENUM_NAME (glibc, rtld, relative_rpath), 0 },
+    { TUNABLE_ENUM_NAME (glibc, rtld, relro), 1 },
+  };
+
+/* If glibc.rtld.hardened is set, set the tunables in HARDENED_TUNABLES that
+   were not set explicitly.  A nonoverridable glibc.rtld.hardened in the
+   system-wide tunables also prevents the environment from changing them,
+   including the ones that were set explicitly.  */
+static void
+tunables_init_hardened (void)
+{
+  const tunable_t *hardened
+    = &tunable_list[TUNABLE_ENUM_NAME (glibc, rtld, hardened)];
+  if (hardened->val.numval == 0)
+    return;
+
+  for (size_t i = 0; i < array_length (hardened_tunables); i++)
+    {
+      tunable_t *cur = &tunable_list[hardened_tunables[i].id];
+      bool locked = cur->locked;
+
+      /* A nonoverridable system-wide setting with an invalid value locks
+	 the tunable without setting it, so unlock it to set the value.  */
+      if (!cur->initialized)
+	{
+	  tunable_val_t val = { .numval = hardened_tunables[i].value };
+	  cur->locked = false;
+	  do_tunable_update_val (cur, &val, NULL, NULL);
+	}
+
+      cur->locked = locked || hardened->locked;
+    }
+}
+
 /* Initialize the tunables list from the environment.  For now we only use the
    ENV_ALIAS to find values.  Later we will also use the tunable names to find
    values.  */
@@ -480,9 +531,14 @@ __tunables_init (char **envp, char **argv)
     }
 #endif /* defined(SHARED) && defined (USE_LDCONFIG) */
 
+  /* The tunables set by a nonoverridable glibc.rtld.hardened must be locked
+     before the environment is parsed.  */
+  if (tunable_list[TUNABLE_ENUM_NAME (glibc, rtld, hardened)].locked)
+    tunables_init_hardened ();
+
   /* Ignore tunables for AT_SECURE programs.  */
   if (__libc_enable_secure)
-    return;
+    goto out;
 
   enum { tunable_num_env_alias = array_length (tunable_env_alias_list) };
   struct tunable_toset_t tunables_env_alias[tunable_num_env_alias] = {};
@@ -519,7 +575,7 @@ __tunables_init (char **envp, char **argv)
   /* Check if glibc.rtld.enable_secure was set and skip over the environment
      variables aliases.  */
   if (__libc_enable_secure)
-    return;
+    goto out;
 
   for (int i = 0; i < tunable_num_env_alias; i++)
     {
@@ -537,6 +593,9 @@ __tunables_init (char **envp, char **argv)
 			       tunables_env_alias[i].len))
 	parse_tunable_print_error (&tunables_env_alias[i]);
     }
+
+ out:
+  tunables_init_hardened ();
 }
 
 void
