@@ -570,10 +570,10 @@ loader refuse to load programs and shared objects without a
 @code{PT_GNU_RELRO} segment, and setting it to @code{2} also refuses those
 that are not linked for immediate binding (with the @code{DF_BIND_NOW} or
 @code{DF_1_NOW} flags).  The main program fails to start, and
-@code{dlopen} of such a shared object fails.  Note that @theglibc{} only
-builds its own shared objects for immediate binding when configured with
-@option{--enable-bind-now}; otherwise the value @code{2} prevents every
-dynamically linked program from running.
+@code{dlopen} of such a shared object fails.  Note that @theglibc{} does
+not build its own shared objects for immediate binding when configured
+with @option{--disable-bind-now}, and the value @code{2} then prevents
+every dynamically linked program from running.
 
 The default value of this tunable is @samp{0}, which does not require
 RELRO.

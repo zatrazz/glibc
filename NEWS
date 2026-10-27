@@ -49,7 +49,10 @@ Deprecated and removed features, and other changes affecting compatibility:
 
 Changes to build and runtime requirements:
 
-  [Add changes to build and runtime requirements here]
+* The --enable-bind-now configure option is now the default, so the
+  installed shared objects and programs are linked with -z now and their
+  global offset table is read-only after relocation.  Use
+  --disable-bind-now to restore lazy binding.
 
 Security related changes:
 

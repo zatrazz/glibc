@@ -185,11 +185,13 @@ passed to 'configure'.  For example:
      of routines called directly from assembler are excluded from this
      protection.
 
-'--enable-bind-now'
-     Disable lazy binding for installed shared objects and programs.
-     This provides additional security hardening because it enables full
-     RELRO and a read-only global offset table (GOT), at the cost of
-     slightly increased program load times.
+'--disable-bind-now'
+     By default, the installed shared objects and programs are linked
+     with '-z now', which disables lazy binding.  This provides
+     additional security hardening because it enables full RELRO and a
+     read-only global offset table (GOT), at the cost of slightly
+     increased program load times.  This option enables lazy binding for
+     them instead.
 
 '--enable-pt_chown'
      The file 'pt_chown' is a helper binary for 'grantpt' (see

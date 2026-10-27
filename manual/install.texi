@@ -215,11 +215,12 @@ options to detect stack overruns.  Only the dynamic linker and a small
 number of routines called directly from assembler are excluded from this
 protection.
 
-@item --enable-bind-now
-Disable lazy binding for installed shared objects and programs.  This
-provides additional security hardening because it enables full RELRO
-and a read-only global offset table (GOT), at the cost of slightly
-increased program load times.
+@item --disable-bind-now
+By default, the installed shared objects and programs are linked with
+@option{-z now}, which disables lazy binding.  This provides additional
+security hardening because it enables full RELRO and a read-only global
+offset table (GOT), at the cost of slightly increased program load
+times.  This option enables lazy binding for them instead.
 
 @pindex pt_chown
 @findex grantpt

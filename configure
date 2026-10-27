@@ -1473,7 +1473,7 @@ Optional Features:
                           hardcode newly built glibc path in tests
                           [default=no]
   --disable-hidden-plt    do not hide internal function calls to avoid PLT
-  --enable-bind-now       disable lazy relocations in DSOs
+  --disable-bind-now      use lazy relocations in DSOs [default=no]
   --enable-stack-protector=[yes|no|all|strong]
                           Use -fstack-protector[-all|-strong] to detect glibc
                           buffer overflows
@@ -4589,7 +4589,7 @@ if test ${enable_bind_now+y}
 then :
   enableval=$enable_bind_now; bindnow=$enableval
 else case e in #(
-  e) bindnow=no ;;
+  e) bindnow=yes ;;
 esac
 fi
 

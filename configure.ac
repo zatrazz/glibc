@@ -251,10 +251,10 @@ if test "x$hidden" = xno; then
 fi
 
 AC_ARG_ENABLE([bind-now],
-	      AS_HELP_STRING([--enable-bind-now],
-			     [disable lazy relocations in DSOs]),
+	      AS_HELP_STRING([--disable-bind-now],
+			     [use lazy relocations in DSOs @<:@default=no@:>@]),
 	      [bindnow=$enableval],
-	      [bindnow=no])
+	      [bindnow=yes])
 AC_SUBST(bindnow)
 if test "x$bindnow" = xyes; then
   AC_DEFINE(BIND_NOW)
