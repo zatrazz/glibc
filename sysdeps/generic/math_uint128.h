@@ -20,6 +20,7 @@
 #define _MATH_INT128_H
 
 #include <stdbool.h>
+#include <stdint.h>
 
 /* Limited support for internal 128 bit integer, used on some math
    implementations.  It uses compiler builtin type if supported, otherwise
@@ -31,6 +32,7 @@
    - u128_from_u64:  create a 128 bit number from a 64 bit one.
    - u128_from_hl:   create a 128 bit number from two 64 bit numbers.
    - u128_mul:       multiply two 128 bit numbers.
+   - u128_mul64:     multiply two 64 bit numbers into a 128 bit one.
    - u128_add:       add two 128 bit numbers.
    - u128_sub:       subtract two 128 bit numbers.
    - u128_neg:       negate a 128 bit number.
@@ -172,5 +174,10 @@ static inline u128 u128_mul (u128 x, u128 y)
    }
 }
 #endif /* __SIZEOF_INT128__ */
+
+static inline u128 u128_mul64 (uint64_t x, uint64_t y)
+{
+  return u128_mul (u128_from_u64 (x), u128_from_u64 (y));
+}
 
 #endif
