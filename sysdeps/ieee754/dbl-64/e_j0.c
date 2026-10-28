@@ -61,7 +61,16 @@
 #include <math.h>
 #include <math-barriers.h>
 #include <math_private.h>
+#include <fenv_private.h>
 #include <libm-alias-finite.h>
+
+static inline void
+sincos_rn (double x, double *s, double *c, double *c2)
+{
+  SET_RESTORE_ROUND (FE_TONEAREST);
+  __sincos (x, s, c);
+  *c2 = fabs (x) < 0x1p1023 ? __cos (x + x) : 0.0;
+}
 
 static double pzero (double), qzero (double);
 
@@ -95,12 +104,12 @@ __ieee754_j0 (double x)
   x = fabs (x);
   if (ix >= 0x40000000)         /* |x| >= 2.0 */
     {
-      __sincos (x, &s, &c);
+      sincos_rn (x, &s, &c, &z);
       ss = s - c;
       cc = s + c;
       if (ix < 0x7fe00000)           /* make sure x+x not overflow */
 	{
-	  z = -__cos (x + x);
+	  z = -z;
 	  if ((s * c) < zero)
 	    cc = z / ss;
 	  else
@@ -186,7 +195,7 @@ __ieee754_y0 (double x)
 		 *              sin(x) +- cos(x) = -cos(2x)/(sin(x) -+ cos(x))
 		 * to compute the worse one.
 		 */
-      __sincos (x, &s, &c);
+      sincos_rn (x, &s, &c, &z);
       ss = s - c;
       cc = s + c;
       /*
@@ -195,7 +204,7 @@ __ieee754_y0 (double x)
        */
       if (ix < 0x7fe00000)           /* make sure x+x not overflow */
 	{
-	  z = -__cos (x + x);
+	  z = -z;
 	  if ((s * c) < zero)
 	    cc = z / ss;
 	  else

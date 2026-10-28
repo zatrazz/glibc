@@ -63,8 +63,17 @@
 #include <math.h>
 #include <math-narrow-eval.h>
 #include <math_private.h>
+#include <fenv_private.h>
 #include <math-underflow.h>
 #include <libm-alias-finite.h>
+
+static inline void
+sincos_rn (double x, double *s, double *c, double *c2)
+{
+  SET_RESTORE_ROUND (FE_TONEAREST);
+  __sincos (x, s, c);
+  *c2 = fabs (x) < 0x1p1023 ? __cos (x + x) : 0.0;
+}
 
 static double pone (double), qone (double);
 
@@ -99,12 +108,11 @@ __ieee754_j1 (double x)
   y = fabs (x);
   if (ix >= 0x40000000)         /* |x| >= 2.0 */
     {
-      __sincos (y, &s, &c);
+      sincos_rn (y, &s, &c, &z);
       ss = -s - c;
       cc = s - c;
       if (ix < 0x7fe00000)           /* make sure y+y not overflow */
 	{
-	  z = __cos (y + y);
 	  if ((s * c) > zero)
 	    cc = z / ss;
 	  else
@@ -183,12 +191,11 @@ __ieee754_y1 (double x)
     return zero / (zero * x);
   if (ix >= 0x40000000)         /* |x| >= 2.0 */
     {
-      __sincos (x, &s, &c);
+      sincos_rn (x, &s, &c, &z);
       ss = -s - c;
       cc = s - c;
       if (ix < 0x7fe00000)           /* make sure x+x not overflow */
 	{
-	  z = __cos (x + x);
 	  if ((s * c) > zero)
 	    cc = z / ss;
 	  else
