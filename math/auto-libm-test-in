@@ -5073,6 +5073,32 @@ cos 0x1.69eab0985179bp+246
 cos 0x1.8577cec54ab8p+47
 cos 0x1.dbd58768f97p+45
 cos 0x1.0e826ceb0c5cp+46
+# The following are hard-to-round cases from the CORE-MATH project
+# (src/binary64/cos/cos.wc and the exceptional cases of cos.c), which
+# exercise the accurate paths of the correctly-rounded cos, along with the
+# path boundaries.
+cos 0x1.6a09e667f3c81p-27
+cos 0x1.795409a59b8b8p-17
+cos 0x1.885f91db4b475p-8
+cos 0x1.7b6a549badf39p+1
+cos 0x1.7899ab796c33bp+11
+cos 0x1.7847c17fc5868p+21
+cos 0x1.7d893d039a806p+30
+cos 0x1.7a5dc3df660d9p+31
+cos 0x1.7f6dd85b0dc73p+196
+cos 0x1.80b0fe296d798p+362
+cos 0x1.872381ea073d5p+527
+cos 0x1.86b8b10115829p+692
+cos 0x1.8621534995a31p+858
+cos 0x1.819f191ae1ac2p+1023
+cos 0x1.8000000000009p-23
+cos 0x1.8000000000024p-22
+cos 0x1.800000000009p-21
+cos 0x1.20000000000f3p-20
+cos 0x1.fffffffffffffp-28
+cos 0x1p-27
+cos 0x1.fffffffffffffp+30
+cos 0x1p+31
 
 cospi 0
 cospi -0

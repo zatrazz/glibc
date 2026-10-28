@@ -35,6 +35,18 @@ double: 0
 Function: "atanh_upward":
 double: 0
 
+Function: "cos":
+double: 0
+
+Function: "cos_downward":
+double: 0
+
+Function: "cos_towardzero":
+double: 0
+
+Function: "cos_upward":
+double: 0
+
 Function: "cosh":
 double: 0
 
