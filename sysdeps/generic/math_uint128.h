@@ -36,6 +36,7 @@
    - u128_neg:       negate a 128 bit number.
    - u128_lshift:    left shift a number.
    - u128_rshift:    right shift a number.
+   - u128_lt:        return whether a number is less than another.
  */
 
 #if defined __BITINT_MAXWIDTH__ && __BITINT_MAXWIDTH__ >= 128
@@ -58,6 +59,7 @@ typedef unsigned __int128 u128;
 # define u128_sub(__x, __y)     (__x) - (__y)
 # define u128_lshift(__x, __y)  (__x) << (__y)
 # define u128_rshift(__x, __y)  (__x) >> (__y)
+# define u128_lt(__x, __y)      ((__x) < (__y))
 #else
 typedef struct
 {
@@ -111,6 +113,11 @@ static inline u128 u128_rshift (u128 x, unsigned int n)
     case 64 ...127: return (u128) { .high = 0, .low = x.high >> (n - 64) };
     default:        return (u128) { .high = 0, .low = 0 };
     }
+}
+
+static inline bool u128_lt (u128 x, u128 y)
+{
+  return x.high < y.high || (x.high == y.high && x.low < y.low);
 }
 
 static inline u128 u128_mul (u128 x, u128 y)

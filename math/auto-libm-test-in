@@ -9509,6 +9509,36 @@ sin 0x1.4c96c11134d36p+578
 sin 0x1.69eab0985179bp+246
 sin 0x1.2419db13f80ap+50
 sin 0x1.0e826ceb0c5cp+47
+# The following are hard-to-round cases from the CORE-MATH project
+# (src/binary64/sin/sin.wc), which exercise the accurate paths of the
+# correctly-rounded sin, along with the path boundaries.
+sin 0x1.d12ed0af199d9p-26
+sin 0x1.8000000000043p-24
+sin 0x1.8000000000013p-23
+sin 0x1.8000000000014p-22
+sin 0x1.7fd55096d3435p-20
+sin 0x1.7e41fab9a91e6p-18
+sin 0x1.8070fb30b215ep-17
+sin 0x1.8134c0616cd19p-16
+sin 0x1.7c9e67c15ca0ap-8
+sin 0x1.7f02a650bdce1p-1
+sin 0x1.7f9f2a25bcd71p+7
+sin 0x1.7effa0d570d3fp+15
+sin 0x1.802adf9f95f17p+22
+sin 0x1.7ef0a65233598p+30
+sin 0x1.832fb2782b7e8p+31
+sin 0x1.83a466d251491p+196
+sin 0x1.7dc09d20d8593p+362
+sin 0x1.832ca331294dbp+527
+sin 0x1.7ab8ac335df9cp+692
+sin 0x1.835e6040e6746p+858
+sin 0x1.7bbbfbd4ae9b8p+1023
+sin 0x1.fffffffffffffp-27
+sin 0x1p-26
+sin 0x1.fffffffffffffp-17
+sin 0x1p-16
+sin 0x1.fffffffffffffp+30
+sin 0x1p+31
 sin max
 sin -max
 sin min
