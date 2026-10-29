@@ -1,256 +1,306 @@
-/* Compute sine and cosine of argument.
-   Copyright (C) 1997-2026 Free Software Foundation, Inc.
-   This file is part of the GNU C Library.
+/* Correctly-rounded sincos function for binary64 value.
 
-   The GNU C Library is free software; you can redistribute it and/or
-   modify it under the terms of the GNU Lesser General Public
-   License as published by the Free Software Foundation; either
-   version 2.1 of the License, or (at your option) any later version.
+Copyright (c) 2026 Alexei Sibidanov <sibid@uvic.ca> and Paul Zimmermann.
 
-   The GNU C Library is distributed in the hope that it will be useful,
-   but WITHOUT ANY WARRANTY; without even the implied warranty of
-   MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
-   Lesser General Public License for more details.
+The original version of this file was copied from the CORE-MATH
+project (file src/binary64/sincos/sincos.c, revision 05075c2c).
 
-   You should have received a copy of the GNU Lesser General Public
-   License along with the GNU C Library; if not, see
-   <https://www.gnu.org/licenses/>.  */
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-#include <errno.h>
-#include <float.h>
-#include "endian.h"
-#include "mydefs.h"
-#include "usncs.h"
-#include <math.h>
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-#include <math_private.h>
-#include <fenv_private.h>
-#include <math-underflow.h>
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
+*/
+
+/* References:
+   [1] Handbook of Floating-Point Arithmetic (2nd edition),
+   Muller, Jean-Michel and Brunie, Nicolas and de Dinechin, Florent and
+   Jeannerod, Claude-Pierre and Joldes, Mioara and Lefèvre, Vincent and
+   Melquiond, Guillaume and Revol, Nathalie and Torres, Serge,
+   Birkhäuser, 2018.
+   [2] Computing hard-to-round cases of sin, cos, tan in double precision,
+   Vincent Lefèvre, Tue Ly, Paul Zimmermann,
+   ARITH 2026 - 33rd IEEE International Symposium on Computer Arithmetic,
+   2026.  */
+
 #include <libm-alias-double.h>
+#include <math.h>
+#include <math_uint128.h>
+#include <stddef.h>
+#include <stdint.h>
+#include <ddcoremath.h>
+#include "math_config.h"
+#include "s_sin_common.h"
 
 #ifndef SECTION
 # define SECTION
 #endif
 
-/* Helper macros to compute sin of the input values.  */
-#define POLYNOMIAL2(xx) ((((s5 * (xx) + s4) * (xx) + s3) * (xx) + s2) * (xx))
-
-#define POLYNOMIAL(xx) (POLYNOMIAL2 (xx) + s1)
-
-/* The computed polynomial is a variation of the Taylor series expansion for
-   sin(x):
-
-   x - x^3/3! + x^5/5! - x^7/7! + x^9/9! - x^11/11! - dx*x^2/2 + dx
-
-   The constants s1, s2, s3, etc. are pre-computed values of 1/3!, 1/5! and so
-   on.  The result is returned to LHS.  */
-#define TAYLOR_SIN(xx, x, dx) \
-({									      \
-  double t = ((POLYNOMIAL (xx)  * (x) - 0.5 * (dx))  * (xx) + (dx));	      \
-  double res = (x) + t;							      \
-  res;									      \
-})
-
-#define SINCOS_TABLE_LOOKUP(u, sn, ssn, cs, ccs) \
-({									      \
-  int4 k = u.i[LOW_HALF] << 2;						      \
-  sn = __sincostab.x[k];						      \
-  ssn = __sincostab.x[k + 1];						      \
-  cs = __sincostab.x[k + 2];						      \
-  ccs = __sincostab.x[k + 3];						      \
-})
-
-extern const union
+/* Accurate path for |x| >= 2^-16: compute the sine in *S if S is not NULL,
+   and the cosine in *C if C is not NULL.  */
+static void __attribute__ ((noinline, cold))
+sincos_large_accurate (double x, double *s, double *c)
 {
-  int4 i[880];
-  double x[440];
-} __sincostab attribute_hidden;
+  u128 r;
+  int neg;
+  uint64_t k = reduce_large_acc (&r, &neg, x);
 
-static const double
-  sn3 = -1.66666666666664880952546298448555E-01,
-  sn5 = 8.33333214285722277379541354343671E-03,
-  cs2 = 4.99999999999999999999950396842453E-01,
-  cs4 = -4.16666666666664434524222570944589E-02,
-  cs6 = 1.38888874007937613028114285595617E-03;
+  /* Replace r by 8*r.  */
+  r = u128_lshift (r, 3);
+  u128 u2 = mhUU (r, r), u4 = mhUU (u2, u2);
+  u128 u2h = u128_rshift (u2, 64);
 
-/* Given a number partitioned into X and DX, this function computes the cosine
-   of the number by combining the sin and cos of X (as computed by a variation
-   of the Taylor series) with the values looked up from the sin/cos table to
-   get the result.  */
-static __always_inline double
-do_cos (double x, double dx)
-{
-  mynumber u;
+  /* x/(2*pi) mod 1 = k/2^13 + r + eps with |r| <= 2^-14 and
+     0 <= eps < 2^-127.999 then
+       sin(x) ~ sin(pi*k/2^12 + 2*pi*r)
+	      ~ sin(pi*k/2^12)*cos(2*pi*r) + cos(pi*k/2^12)*sin(2*pi*r)
+     Write k = 2^12*s + 2^6*i1 + i2 and t1=pi*i1/2^6, t2 = pi*i2/2^12
+     then sin(pi*k/2^12) = (-1)^s*[sin(t1)*cos(t2)+cos(t1)*sin(t2)]
+     and  cos(pi*k/2^12) = (-1)^s*[cos(t1)*cos(t2)-sin(t1)*sin(t2)].  */
+  int sbit = (x > 0) ? 0 : 1;
+  int cbit = (k >> 12) & 1;
+  sbit ^= cbit;
+  int i1 = (k >> 6) & 0x3f, i2 = k & 0x3f;
 
-  if (x < 0)
-    dx = -dx;
+  /* Approximate |sin(z)| in s1u/2^128, using sin(pi-x) = sin(x).  */
+  u128 s1 = u128_load ((i1 <= 32) ? S1u[i1] : S1u[64 - i1]);
+  /* Since cos(x) = sin(x+pi/2), |C1u[i1]| = |S1u[(i1+32) mod 64]|.  */
+  u128 c1 = u128_load ((i1 <= 32) ? S1u[32 - i1] : S1u[i1 - 32]);
+  u128 s1u = mhUU (s1, u128_load (C2u[i2]));
+  u128 t = mhUU (c1, u128_load (S2u[i2]));
+  /* s1u/2^128 approximates sin(t1)*cos(t2), and t/2^128 approximates (up
+     to sign) sin(t2)*cos(t1), thus s1u +/- t approximates sin(z=t1+t2), but
+     since sin(z) >= 0 (0 <= z < pi), s1u +/- t >= 0.  */
+  s1u = (i1 < 32) ? u128_add (s1u, t) : u128_sub (s1u, t);
 
-  u.x = big + fabs (x);
-  x = fabs (x) - (u.x - big) + dx;
+  /* Approximate cos(z) in c1u/2^128.  */
+  u128 c1u = mhUU (c1, u128_load (C2u[i2]));
+  t = mhUU (s1, u128_load (S2u[i2]));
+  c1u = (i1 < 32) ? u128_sub (c1u, t) : u128_add (c1u, t);
 
-  double xx, s, sn, ssn, c, cs, ccs, cor;
-  xx = x * x;
-  s = x + x * xx * (sn3 + xx * sn5);
-  c = xx * (cs2 + xx * (cs4 + xx * cs6));
-  SINCOS_TABLE_LOOKUP (u, sn, ssn, cs, ccs);
-  cor = (ccs - s * ssn - cs * c) - sn * s;
-  return cs + cor;
+  /* Sr/2^128 approximates |sin(2*pi*r)| and Cr/2^128 approximates
+     cos(2*pi*r).  */
+  u128 Sr = evalPS (r, u2, u2h, u4);
+  u128 Cr = evalPC (u2, u2h, u4);
+
+  if (s != NULL)
+    {
+      /* Now combine: sin(x) ~ s1*C + c1*S.  */
+      u128 a = mhUU (s1u, Cr);
+      u128 b = mhUU (c1u, Sr);
+
+      /* a/2^128 approximates sin(z)*cos(r) which is always >= 0, while
+	 b/2^128 approximates cos(z)*sin(r), where cos(z) > 0 for i1 < 32,
+	 and cos(z) <= 0 for i1 >= 32, and sign(r) has the sign of r.  */
+      if ((i1 < 32) ^ neg)
+	/* cos(z) * r > 0.  */
+	a = u128_add (a, b);
+      else if (u128_lt (a, b))
+	{
+	  a = u128_sub (b, a);
+	  sbit ^= 1;
+	}
+      else
+	a = u128_sub (a, b);
+      *s = u128_tod (a, sbit);
+    }
+  if (c != NULL)
+    {
+      /* Now combine: cos(x) ~ c1*C - s1*S.  */
+      u128 a = mhUU (c1u, Cr);
+      u128 b = mhUU (s1u, Sr);
+
+      /* a/2^128 approximates cos(z)*cos(r) where cos(z) > 0 for i1 < 32,
+	 and cos(z) <= 0 for i1 >= 32; b/2^128 approximates sin(z)*sin(r),
+	 which has the sign of r.  */
+      if ((i1 >= 32) ^ neg)
+	/* cos(z) * r < 0.  */
+	a = u128_add (a, b);
+      else if (!u128_lt (b, a))
+	{
+	  a = u128_sub (b, a);
+	  cbit ^= 1;
+	}
+      else
+	a = u128_sub (a, b);
+      /* If i1 >= 32, cos(z) <= 0 thus the signs should be exchanged.  */
+      double ret = u128_tod (a, cbit ^ (i1 >= 32));
+      uint64_t d = u128_low (a) + 5;
+      *c = (d <= 3) ? cos_exceptions (x, ret) : ret;
+    }
 }
 
-/* Given a number partitioned into X and DX, this function computes the sine of
-   the number by combining the sin and cos of X (as computed by a variation of
-   the Taylor series) with the values looked up from the sin/cos table to get
-   the result.  */
-static __always_inline double
-do_sin (double x, double dx)
+/* Fast path for 2^-27 <= |x| < 2^31, where sbit is the sign bit of x (0
+   for x > 0, 1 for x < 0).  See the proof of correctness in sin.pdf.  */
+static inline void
+sincos_moderate (double x, int sbit, double *sinx, double *cosx)
 {
-  double xold = x;
-  /* Max ULP is 0.501 if |x| < 0.126, otherwise ULP is 0.518.  */
-  if (fabs (x) < 0.126)
-    return TAYLOR_SIN (x * x, x, dx);
+  double ax = fabs (x);
+  /* |invpi/2^14 - 1/pi| < 2^-55.496.  */
+  static const double invpi = 0x1.45f306dc9c883p+12;
+  double k = roundeven_finite (invpi * ax);
+  /* |2^14*(pih + pil) + pi| < 2^-108.041, and rh is exact.  */
+  double rh = fma (k, pih, ax), rl = k * pil;
 
-  mynumber u;
+  /* |r| < 2^-13.339 (see sin.pdf).  */
+  double r = rh + rl;
+  double r2 = r * r;
+  int64_t j = k;
+  /* Reduction by an odd multiple of pi?  */
+  int cbit = (j >> 14) & 1;
+  sbit ^= cbit;
+  int i1 = (j >> 7) & 0x7f, i2 = j & 0x7f;
 
-  if (x <= 0)
-    dx = -dx;
-  u.x = big + fabs (x);
-  x = fabs (x) - (u.x - big);
+  double s1h = U1[i1][0], s1l = U1[i1][1];
+  double c1h = U1[i1][2], c1l = U1[i1][3];
+  double s2h = U2[i2][0], s2l = U2[i2][1];
+  double c2h = U2[i2][2], c2l = U2[i2][3];
 
-  double xx, s, sn, ssn, c, cs, ccs, cor;
-  xx = x * x;
-  s = x + (dx + x * xx * (sn3 + xx * sn5));
-  c = x * dx + xx * (cs2 + xx * (cs4 + xx * cs6));
-  SINCOS_TABLE_LOOKUP (u, sn, ssn, cs, ccs);
-  cor = (ssn + s * ccs - sn * c) + cs * s;
-  return copysign (sn + cor, xold);
-}
+  /* s12h + s12l approximates sin(t1+t2) = sin(t1)*cos(t2)+cos(t1)*sin(t2)
+     and c12h + c12l approximates cos(t1+t2) = cos(t1)*cos(t2)-sin(t1)*sin(t2),
+     where t1=i1*pi/2^7 and t2=i2*pi/2^14.  */
+  double s12l, s12h = muldd (s1h, s1l, c2h, c2l, &s12l), tl, th;
+  th = muldd (c1h, c1l, s2h, s2l, &tl);
+  s12h = fastsum (s12h, s12l, th, tl, &s12l);
 
-/* Reduce range of x to within PI/2 with abs (x) < 105414350.  The high part
-   is written to *a, the low part to *da.  Range reduction is accurate to 136
-   bits so that when x is large and *a very close to zero, all 53 bits of *a
-   are correct.  */
-static __always_inline int4
-reduce_sincos (double x, double *a, double *da)
-{
-  mynumber v;
+  double c12l, c12h = muldd (c1h, c1l, c2h, c2l, &c12l);
+  th = muldd (s1h, s1l, s2h, s2l, &tl);
+  c12h = fastsum (c12h, c12l, -th, -tl, &c12l);
 
-  double t = (x * hpinv + toint);
-  double xn = t - toint;
-  v.x = t;
-  double y = (x - xn * mp1) - xn * mp2;
-  int4 n = v.i[LOW_HALF] & 3;
+  /* For |r| <= 2^-13.339, the polynomial r - 0x1.55555553068fp-3 * r^3
+     approximates sin(r) with absolute error < 2^-76.494, and the polynomial
+     0.5 * r^2 - 0x1.55555553bfd3p-5 * r^4 approximates 1-cos(r) with
+     absolute error < 2^-92.723 (cf sinmoderate.sollya).  */
+  double sh = r * (1.0 - 0x1.55555553068fp-3 * r2);
+  double ch = r2 * (0.5 - 0x1.55555553bfd3p-5 * r2);
 
-  double b, db, t1, t2;
-  t1 = xn * pp3;
-  t2 = y - t1;
-  db = (y - t2) - t1;
+  s12l -= s12h * ch - c12h * sh;
+  c12l -= c12h * ch + s12h * sh;
+  static const double sgn[] = { 1.0, -1.0 };
+  s12h *= sgn[sbit];
+  s12l *= sgn[sbit];
+  c12h *= sgn[cbit];
+  c12l *= sgn[cbit];
 
-  t1 = xn * pp4;
-  b = t2 - t1;
-  db += (t2 - b) - t1;
-
-  *a = b;
-  *da = db;
-  return n;
-}
-
-/* Compute sin or cos (A + DA) for the given quadrant N.  */
-static __always_inline double
-do_sincos (double a, double da, int4 n)
-{
-  double retval;
-
-  if (n & 1)
-    /* Max ULP is 0.513.  */
-    retval = do_cos (a, da);
+  static const double eps = 0x1.dep-64;
+  double lb = s12h + (s12l - eps), ub = s12h + (s12l + eps);
+  if (__glibc_likely (ub == lb))
+    *sinx = lb;
+  else if (ax < 0x1p-16)
+    *sinx = sin_small_accurate (x);
   else
-    /* Max ULP is 0.501 if xx < 0.01588, otherwise ULP is 0.518.  */
-    retval = do_sin (a, da);
-
-  return (n & 2) ? -retval : retval;
+    sincos_large_accurate (x, sinx, NULL);
+  lb = c12h + (c12l - eps);
+  ub = c12h + (c12l + eps);
+  if (__glibc_likely (ub == lb))
+    *cosx = lb;
+  else
+    sincos_large_accurate (x, NULL, cosx);
 }
 
-void
+/* Fast path for |x| >= 2^31.  */
+static void __attribute__ ((noinline))
+sincos_large (double x, double *sinx, double *cosx)
+{
+  double ax = fabs (x);
+  double r;
+  /* Now x/(2pi) ~ k + j/2^15 + r with 0 <= r < 2^-15.  */
+  uint64_t j = reduce_large (&r, ax);
+  int sbit = (x > 0) ? 0 : 1;
+
+  double r2 = r * r;
+  /* Reduction by an odd multiple of pi?  */
+  int cbit = j >> 14;
+  sbit ^= cbit;
+  int i1 = (j >> 7) & 0x7f, i2 = j & 0x7f;
+
+  double s1h = U1[i1][0], s1l = U1[i1][1];
+  double c1h = U1[i1][2], c1l = U1[i1][3];
+  double s2h = U2[i2][0], s2l = U2[i2][1];
+  double c2h = U2[i2][2], c2l = U2[i2][3];
+
+  double s12l, s12h = muldd (s1h, s1l, c2h, c2l, &s12l), tl, th;
+  th = muldd (c1h, c1l, s2h, s2l, &tl);
+  s12h = fastsum (s12h, s12l, th, tl, &s12l);
+
+  double c12l, c12h = muldd (c1h, c1l, c2h, c2l, &c12l);
+  th = muldd (s1h, s1l, s2h, s2l, &tl);
+  c12h = fastsum (c12h, c12l, -th, -tl, &c12l);
+
+  double sh = r * (0x1.921fb54442d18p2 - 0x1.4abbcdb6b26d1p5 * r2);
+  double ch = r2 * (0x1.3bd3cc9be45dep4 - 0x1.03c1eee483083p6 * r2);
+
+  s12l -= s12h * ch - c12h * sh;
+  c12l -= c12h * ch + s12h * sh;
+  static const double sgn[] = { 1.0, -1.0 };
+  s12h *= sgn[sbit];
+  s12l *= sgn[sbit];
+  c12h *= sgn[cbit];
+  c12l *= sgn[cbit];
+  /* Fails with eps=0x1.7fp-64 and x=0x1.54a9ad28f0a25p+225 (rounding toward
+     zero, no FMA).  */
+  static const double eps = 0x1.01p-63;
+  double lb = s12h + (s12l - eps), ub = s12h + (s12l + eps);
+  if (__glibc_likely (ub == lb))
+    *sinx = lb;
+  else
+    sincos_large_accurate (x, sinx, NULL);
+  lb = c12h + (c12l - eps);
+  ub = c12h + (c12l + eps);
+  if (__glibc_likely (ub == lb))
+    *cosx = lb;
+  else
+    sincos_large_accurate (x, NULL, cosx);
+}
+
 SECTION
+void
 __sincos (double x, double *sinx, double *cosx)
 {
-  mynumber u;
-  int k;
-
-  SET_RESTORE_ROUND_53BIT (FE_TONEAREST);
-
-  u.x = x;
-  k = u.i[HIGH_HALF] & 0x7fffffff;
-
-  if (k < 0x400368fd)
+  uint64_t t = asuint64 (x);
+  int e = (t >> MANTISSA_WIDTH) & 0x7ff;
+  /* For |x| < 2^-27, sin(x) rounds to x and cos(x) rounds to 1 (to
+     nearest).  */
+  if (__glibc_unlikely (e < EXPONENT_BIAS - 27))
     {
-      double a, da, y;
-      /* |x| < 2^-27 => cos (x) = 1, sin (x) = x.  */
-      if (k < 0x3e400000)
+      *cosx = fma (x, -x, 1.0);
+      if ((t << 1) == 0)
 	{
-	  if (k < 0x3e500000)
-	    math_check_force_underflow (x);
 	  *sinx = x;
-	  *cosx = 1.0;
 	  return;
 	}
-      /* |x| < 0.855469.  */
-      else if (k < 0x3feb6000)
-	{
-	  *sinx = do_sin (x, 0);
-	  *cosx = do_cos (x, 0);
-	  return;
-	}
-
-      /* |x| < 2.426265.  */
-      y = hp0 - fabs (x);
-      a = y + hp1;
-      da = (y - a) + hp1;
-      *sinx = copysign (do_cos (a, da), x);
-      *cosx = do_sin (a, da);
+      /* The Taylor expansion of sin(x) is x - x^3/6 around zero.  There is
+	 an underflow when 0 < |x| < 2^-1022 or when |x| = 2^-1022 and
+	 rounding towards zero.  */
+      *sinx = __math_check_uflow_lt (fma (x, -0x1p-54, x), 0x1p-1022);
       return;
     }
-  /* |x| < 2^1024.  */
-  if (k < 0x7ff00000)
+  /* |x| < 2^31.  */
+  if (__glibc_likely (e < EXPONENT_BIAS + 31))
     {
-      double a, da, xx;
-      unsigned int n;
-
-      /* If |x| < 105414350 use simple range reduction.  */
-      if (k < 0x419921FB)
-	n = reduce_sincos (x, &a, &da);
-      else
-	{
-	  double y[2];
-	  n = __ieee754_rem_pio2 (x, y);
-	  a = y[0];
-	  da = y[1];
-	}
-      n = n & 3;
-
-      if (n == 1 || n == 2)
-	{
-	  a = -a;
-	  da = -da;
-	}
-
-      if (n & 1)
-	{
-	  double *temp = cosx;
-	  cosx = sinx;
-	  sinx = temp;
-	}
-
-      *sinx = do_sin (a, da);
-      xx = do_cos (a, da);
-      *cosx = (n & 2) ? -xx : xx;
+      sincos_moderate (x, t >> 63, sinx, cosx);
       return;
     }
-
-  if (isinf (x))
-    __set_errno (EDOM);
-
-  *sinx = *cosx = x / x;
+  /* NaN, +Inf and -Inf.  */
+  if (__glibc_unlikely (e == 0x7ff))
+    {
+      *sinx = *cosx = __math_invalid (x);
+      return;
+    }
+  /* Now |x| >= 2^31.  */
+  sincos_large (x, sinx, cosx);
 }
 #ifndef __sincos
 libm_alias_double (__sincos, sincos)

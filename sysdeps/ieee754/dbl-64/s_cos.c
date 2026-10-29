@@ -48,27 +48,6 @@ SOFTWARE.
 # define SECTION
 #endif
 
-/* Return the correctly rounded cos(x) for the inputs where the accurate
-   path result R is too close to a rounding boundary.  */
-static double
-exceptions (double x, double r)
-{
-  double ax = fabs (x);
-  /* cos(x) has 88 identical bits after round bit.  */
-  if (ax == 0x1.8000000000009p-23)
-    return 0x1.fffffffffff7p-1 + 0x1.b56666666666cp-143;
-  /* cos(x) has 82 identical bits after round bit.  */
-  if (ax == 0x1.8000000000024p-22)
-    return 0x1.ffffffffffdcp-1 + 0x1.b56666666667ep-137;
-  /* cos(x) has 76 identical bits after round bit.  */
-  if (ax == 0x1.800000000009p-21)
-    return 0x1.ffffffffff7p-1 + 0x1.b5666666666c4p-131;
-  /* cos(x) has 72 identical bits after round bit.  */
-  if (ax == 0x1.20000000000f3p-20)
-    return 0x1.fffffffffebcp-1 + 0x1.37642666666fdp-127;
-  return r;
-}
-
 /* Accurate path for x >= 2^-27.  */
 static double __attribute__ ((noinline, cold))
 cos_large_accurate (double x)
@@ -134,7 +113,7 @@ cos_large_accurate (double x)
   double ret = u128_tod (c1u, sbit ^ (i1 >= 32));
   uint64_t d = u128_low (c1u) + 5;
   if (d <= 3)
-    return exceptions (x, ret);
+    return cos_exceptions (x, ret);
   return ret;
 }
 

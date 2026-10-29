@@ -9600,6 +9600,37 @@ sincos 0x6.287cc8749212e72p+0
 sincos -0x1.02e34cp+0
 sincos 0xf.f0274p+4
 sincos 0x3.042d88p+0
+# The following are hard-to-round cases from the CORE-MATH project
+# (src/binary64/sincos/sincos.wc and the exceptional cases of sincos.c),
+# which exercise the accurate paths of the correctly-rounded sincos, along
+# with the path boundaries.
+sincos 0x1.fffffffffff8p-27
+sincos 0x1.76e1ee2edd343p+183
+sincos 0x1.cb5c087ce6ab4p+393
+sincos 0x1.d893a099137d3p+603
+sincos 0x1.2a9627e39fe31p+813
+sincos 0x1.7ef91a51ad9c1p+1023
+sincos 0x1.813e0a4c0ac32p-15
+sincos 0x1.33322fd48b212p+223
+sincos 0x1.5403807969f02p+404
+sincos 0x1.435eccf87bbe8p+603
+sincos 0x1.203863b3edc9p+825
+sincos 0x1.850b665ae41e8p+1023
+sincos 0x1.6a09e667f3c82p-27
+sincos 0x1.8351a953d0b13p-23
+sincos 0x1.8136acfd894d4p-18
+sincos 0x1.841528d58c3eep-14
+sincos 0x1.8035a76b28a0cp-9
+sincos 0x1.d0f79f444185bp+5
+sincos 0x1.e0000000001c2p-20
+sincos 0x1.6ac5b262ca1ffp+849
+sincos 0x1.800000000024p-20
+sincos 0x1.6a09e667f3bccp-27
+sincos 0x1.6a09e667f3bcdp-27
+sincos 0x1.921fb54442d17p+2
+sincos 0x1.921fb54442d18p+2
+sincos 0x1.fffffffffffffp+51
+sincos 0x1p+52
 sincos max
 sincos -max
 sincos min

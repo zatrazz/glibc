@@ -41,6 +41,7 @@ SOFTWARE.
 #include <math.h>
 #include <math_uint128.h>
 #include <stdint.h>
+#include <ddcoremath.h>
 #include "math_config.h"
 #include "s_sincos_data.h"
 
@@ -53,6 +54,51 @@ muldd (double xh, double xl, double ch, double cl, double *l)
   double ahhh = xh * ch;
   *l = (xh * cl + xl * ch) + fma (xh, ch, -ahhh);
   return ahhh;
+}
+
+/* Accurate sin path for |x| < 2^-16.  */
+static inline double
+sin_small_accurate (double x)
+{
+  /* x + (c3h+c3l)*x^3 + c5*x^5 approximates sin(x) on [0,2^-16] with
+     relative error < 2^-112.743, cf sinsmall_acc.sollya, where c3h = c[0],
+     c3l = c[1] and c5 = c[2].  */
+  static const double c[] =
+    {
+      -0x1.5555555555555p-3, -0x1.55554b00de7e8p-57, 0x1.111111110848p-7
+    };
+  double h, l, t, x2h = x * x, x2l = fma (x, x, -x2h);
+  /* Relative error less than ulp(c5*x^4)/ulp(x) ~ 2^-123.  */
+  h = c[2] * x2h;
+  /* Relative error less than ulp(c3l*x^2)/ulp(x) ~ 2^-141.  */
+  h += c[1];
+  h = fasttwosum (c[0], h, &l);
+  h = muldd (h, l, x2h, x2l, &l);
+  h = muldd (h, l, x, 0, &l);
+  h = fasttwosum (x, h, &t);
+  l += t;
+  return h + l;
+}
+
+/* Return the correctly rounded cos(x) for the inputs where the accurate
+   path result R is too close to a rounding boundary.  */
+static inline double
+cos_exceptions (double x, double r)
+{
+  double ax = fabs (x);
+  /* cos(x) has 88 identical bits after round bit.  */
+  if (ax == 0x1.8000000000009p-23)
+    return 0x1.fffffffffff7p-1 + 0x1.b56666666666cp-143;
+  /* cos(x) has 82 identical bits after round bit.  */
+  if (ax == 0x1.8000000000024p-22)
+    return 0x1.ffffffffffdcp-1 + 0x1.b56666666667ep-137;
+  /* cos(x) has 76 identical bits after round bit.  */
+  if (ax == 0x1.800000000009p-21)
+    return 0x1.ffffffffff7p-1 + 0x1.b5666666666c4p-131;
+  /* cos(x) has 72 identical bits after round bit.  */
+  if (ax == 0x1.20000000000f3p-20)
+    return 0x1.fffffffffebcp-1 + 0x1.37642666666fdp-127;
+  return r;
 }
 
 /* Return the 128-bit number stored as { high, low } in A.  */
@@ -191,7 +237,7 @@ static const double pil = -0x1.1a62633145c07p-67;
    x/(2pi) mod 1 = k/2^13 + r/2^128 + eps with |r/2^128| <= 2^-14 and
    0 <= eps < 2^-128 + 2^-139 < 2^-127.999.  NEG is set to 0 if r >= 0,
    and to 1 if r < 0.  */
-static uint64_t
+static inline uint64_t
 reduce_large_acc (u128 *r, int *neg, double x)
 {
   uint64_t t = asuint64 (x);

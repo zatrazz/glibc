@@ -1,4 +1,4 @@
-/* Tables shared by the correctly-rounded binary64 sin and cos.
+/* Tables shared by the correctly-rounded binary64 sin, cos, and sincos.
 
 Copyright (c) 2026 Paul Zimmermann and Alexei Sibidanov.
 

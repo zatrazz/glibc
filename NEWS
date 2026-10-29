@@ -11,7 +11,7 @@ Major new features:
 
 * Additional optimized and correctly rounded mathematical functions have
   been imported from the CORE-MATH project, in particular cbrt, cos,
-  and sin.
+  sin, and sincos.
 
 Deprecated and removed features, and other changes affecting compatibility:
 

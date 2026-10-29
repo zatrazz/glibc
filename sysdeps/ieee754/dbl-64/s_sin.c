@@ -112,30 +112,6 @@ sin_large_accurate (double x)
   return u128_tod (s1u, sbit);
 }
 
-/* Accurate path for |x| < 2^-16.  */
-static inline double
-sin_small_accurate (double x)
-{
-  /* x + (c3h+c3l)*x^3 + c5*x^5 approximates sin(x) on [0,2^-16] with
-     relative error < 2^-112.743, cf sinsmall_acc.sollya, where c3h = c[0],
-     c3l = c[1] and c5 = c[2].  */
-  static const double c[] =
-    {
-      -0x1.5555555555555p-3, -0x1.55554b00de7e8p-57, 0x1.111111110848p-7
-    };
-  double h, l, t, x2h = x * x, x2l = fma (x, x, -x2h);
-  /* Relative error less than ulp(c5*x^4)/ulp(x) ~ 2^-123.  */
-  h = c[2] * x2h;
-  /* Relative error less than ulp(c3l*x^2)/ulp(x) ~ 2^-141.  */
-  h += c[1];
-  h = fasttwosum (c[0], h, &l);
-  h = muldd (h, l, x2h, x2l, &l);
-  h = muldd (h, l, x, 0, &l);
-  h = fasttwosum (x, h, &t);
-  l += t;
-  return h + l;
-}
-
 /* Fast path for 2^-26 < |x| < 2^31, where sbit is the sign bit of x (0 for
    x > 0, 1 for x < 0).  See the proof of correctness in sin.pdf.  */
 static inline double
