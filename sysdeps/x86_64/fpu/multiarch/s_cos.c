@@ -23,7 +23,7 @@
 extern double __redirect_cos (double);
 
 # define SYMBOL_NAME cos
-# include "ifunc-avx-fma4.h"
+# include "ifunc-fma4.h"
 
 libc_ifunc_redirected (__redirect_cos, __cos, IFUNC_SELECTOR ());
 libm_alias_double (__cos, cos)

@@ -93,7 +93,6 @@ libm-sysdep_routines += \
   s_atan-fma \
   s_ceil-sse4_1 \
   s_ceilf-sse4_1 \
-  s_cos-avx \
   s_cos-fma \
   s_cosf-fma \
   s_cosf-sse2 \
@@ -109,9 +108,7 @@ libm-sysdep_routines += \
   s_rintf-sse4_1 \
   s_roundeven-sse4_1 \
   s_roundevenf-sse4_1 \
-  s_sin-avx \
   s_sin-fma \
-  s_sincos-avx \
   s_sincos-fma \
   s_sincosf-fma \
   s_sincosf-sse2 \
@@ -161,10 +158,7 @@ CFLAGS-e_atan2-avx.c = -mavx
 CFLAGS-e_exp-avx.c = -mavx
 CFLAGS-e_log-avx.c = -mavx
 CFLAGS-s_atan-avx.c = -mavx
-CFLAGS-s_cos-avx.c = -mavx
-CFLAGS-s_sin-avx.c = -mavx
 CFLAGS-s_tan-avx.c = -mavx
-CFLAGS-s_sincos-avx.c = -mavx
 
 CFLAGS-s_modf-sse4_1.c = -msse4.1 -fno-builtin-modff32x -fno-builtin-modff64
 CFLAGS-s_modff-sse4_1.c = -msse4.1 -fno-builtin-modff32
