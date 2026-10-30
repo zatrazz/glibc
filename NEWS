@@ -12,6 +12,10 @@ Major new features:
 * Additional optimized and correctly rounded mathematical functions have
   been imported from the CORE-MATH project, in particular cbrt.
 
+* On Linux, the membarrier function has been added, along with the
+  <sys/membarrier.h> header.  It issues memory barriers on a set of
+  threads.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

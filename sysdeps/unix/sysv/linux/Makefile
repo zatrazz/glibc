@@ -179,6 +179,7 @@ sysdep_headers += \
   sys/inotify.h \
   sys/kd.h \
   sys/klog.h \
+  sys/membarrier.h \
   sys/mount.h \
   sys/pci.h \
   sys/personality.h \
@@ -210,6 +211,7 @@ tests += \
   tst-gettid \
   tst-gettid-kill \
   tst-linux-mremap1 \
+  tst-membarrier \
   tst-memfd_create \
   tst-misalign-clone \
   tst-mlock2 \
