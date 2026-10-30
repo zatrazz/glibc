@@ -23,6 +23,10 @@ Major new features:
   It opens a mount tree as open_tree, and also changes the properties of
   the new mount as mount_setattr.
 
+* On Linux, the statmount and listmount functions have been added to
+  <sys/mount.h>.  They retrieve information about a mount and list the
+  mounts of a mount namespace, using the unique 64-bit mount IDs.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

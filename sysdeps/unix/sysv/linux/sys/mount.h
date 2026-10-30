@@ -22,6 +22,7 @@
 #define _SYS_MOUNT_H	1
 
 #include <features.h>
+#include <bits/types.h>
 #include <stdint.h>
 #include <stddef.h>
 #include <sys/ioctl.h>
@@ -279,6 +280,105 @@ enum fsconfig_command
 # define OPEN_TREE_CLOEXEC  O_CLOEXEC /* Close the file on execve() */
 #endif
 
+#ifndef MNT_ID_REQ_SIZE_VER0
+/* Mount and parameters for statmount and listmount.  For statmount, PARAM
+   is the request mask; for listmount, it is the last listed mount ID (or
+   zero).  */
+struct mnt_id_req
+{
+  uint32_t size;
+  __extension__ union
+  {
+    uint32_t mnt_ns_fd;
+    uint32_t mnt_fd;
+  };
+  uint64_t mnt_id;
+  uint64_t param;
+  uint64_t mnt_ns_id;
+};
+
+/* Information returned by statmount.  The [str] fields are offsets of
+   strings in STR.  */
+struct statmount
+{
+  uint32_t size;		/* Total size, including strings.  */
+  uint32_t mnt_opts;		/* [str] Options (comma separated,
+				   escaped).  */
+  uint64_t mask;		/* What results were written.  */
+  uint32_t sb_dev_major;	/* Device ID.  */
+  uint32_t sb_dev_minor;
+  uint64_t sb_magic;		/* ..._SUPER_MAGIC.  */
+  uint32_t sb_flags;		/* SB_{RDONLY,SYNCHRONOUS,DIRSYNC,
+				   LAZYTIME}.  */
+  uint32_t fs_type;		/* [str] Filesystem type.  */
+  uint64_t mnt_id;		/* Unique ID of mount.  */
+  uint64_t mnt_parent_id;	/* Unique ID of parent (for root ==
+				   mnt_id).  */
+  uint32_t mnt_id_old;		/* Reused IDs used in /proc/.../mountinfo.  */
+  uint32_t mnt_parent_id_old;
+  uint64_t mnt_attr;		/* MOUNT_ATTR_...  */
+  uint64_t mnt_propagation;	/* MS_{SHARED,SLAVE,PRIVATE,UNBINDABLE}.  */
+  uint64_t mnt_peer_group;	/* ID of shared peer group.  */
+  uint64_t mnt_master;		/* Mount receives propagation from this ID.  */
+  uint64_t propagate_from;	/* Propagation from in current namespace.  */
+  uint32_t mnt_root;		/* [str] Root of mount relative to root of
+				   fs.  */
+  uint32_t mnt_point;		/* [str] Mountpoint relative to current
+				   root.  */
+  uint64_t mnt_ns_id;		/* ID of the mount namespace.  */
+  uint32_t fs_subtype;		/* [str] Subtype of fs_type (if any).  */
+  uint32_t sb_source;		/* [str] Source string of the mount.  */
+  uint32_t opt_num;		/* Number of fs options.  */
+  uint32_t opt_array;		/* [str] Array of nul terminated fs
+				   options.  */
+  uint32_t opt_sec_num;		/* Number of security options.  */
+  uint32_t opt_sec_array;	/* [str] Array of nul terminated security
+				   options.  */
+  uint64_t supported_mask;	/* Mask flags that this kernel supports.  */
+  uint32_t mnt_uidmap_num;	/* Number of uid mappings.  */
+  uint32_t mnt_uidmap;		/* [str] Array of uid mappings.  */
+  uint32_t mnt_gidmap_num;	/* Number of gid mappings.  */
+  uint32_t mnt_gidmap;		/* [str] Array of gid mappings.  */
+  uint64_t __spare2[43];
+  char str __flexarr;		/* Variable size part containing strings.  */
+};
+#endif
+#define MNT_ID_REQ_SIZE_VER0	24 /* sizeof first published struct */
+#define MNT_ID_REQ_SIZE_VER1	32 /* sizeof second published struct */
+
+/* Request mask bits for statmount.  */
+#define STATMOUNT_SB_BASIC		0x00000001U /* Want/got sb_...  */
+#define STATMOUNT_MNT_BASIC		0x00000002U /* Want/got mnt_...  */
+#define STATMOUNT_PROPAGATE_FROM	0x00000004U /* Want/got
+						       propagate_from.  */
+#define STATMOUNT_MNT_ROOT		0x00000008U /* Want/got mnt_root.  */
+#define STATMOUNT_MNT_POINT		0x00000010U /* Want/got mnt_point.  */
+#define STATMOUNT_FS_TYPE		0x00000020U /* Want/got fs_type.  */
+#define STATMOUNT_MNT_NS_ID		0x00000040U /* Want/got mnt_ns_id.  */
+#define STATMOUNT_MNT_OPTS		0x00000080U /* Want/got mnt_opts.  */
+#define STATMOUNT_FS_SUBTYPE		0x00000100U /* Want/got fs_subtype.  */
+#define STATMOUNT_SB_SOURCE		0x00000200U /* Want/got sb_source.  */
+#define STATMOUNT_OPT_ARRAY		0x00000400U /* Want/got opt_...  */
+#define STATMOUNT_OPT_SEC_ARRAY		0x00000800U /* Want/got opt_sec...  */
+#define STATMOUNT_SUPPORTED_MASK	0x00001000U /* Want/got supported
+						       mask flags.  */
+#define STATMOUNT_MNT_UIDMAP		0x00002000U /* Want/got uidmap...  */
+#define STATMOUNT_MNT_GIDMAP		0x00004000U /* Want/got gidmap...  */
+
+/* statmount flags.  */
+#define STATMOUNT_BY_FD			0x00000001U /* Want mountinfo for given
+						       fd.  */
+
+/* Special mount ID for listmount: the root mount.  */
+#define LSMT_ROOT		0xffffffffffffffff
+/* listmount flags.  */
+#define LISTMOUNT_REVERSE	(1 << 0) /* List later mounts first.  */
+
+#ifndef __ssize_t_defined
+typedef __ssize_t ssize_t;
+# define __ssize_t_defined
+#endif
+
 __BEGIN_DECLS
 
 /* Mount a filesystem.  */
@@ -336,6 +436,19 @@ extern int mount_setattr (int __dfd, const char *__path, unsigned int __flags,
 extern int open_tree_attr (int __dfd, const char *__filename,
 			   unsigned int __flags, struct mount_attr *__uattr,
 			   size_t __usize) __THROW;
+
+/* Store in BUF, of size BUFSIZE, the information selected by the
+   REQ->param mask about the mount REQ->mnt_id.  */
+extern int statmount (const struct mnt_id_req *__req,
+		      struct statmount *__buf, size_t __bufsize,
+		      unsigned int __flags) __THROW;
+
+/* Store in MNT_IDS, with room for NR_MNT_IDS entries, the IDs of the mounts
+   below the mount REQ->mnt_id (or LSMT_ROOT) which come after the mount ID
+   REQ->param (or from the start if it is zero).  Return the number of
+   stored IDs.  */
+extern ssize_t listmount (const struct mnt_id_req *__req, uint64_t *__mnt_ids,
+			  size_t __nr_mnt_ids, unsigned int __flags) __THROW;
 
 __END_DECLS
 

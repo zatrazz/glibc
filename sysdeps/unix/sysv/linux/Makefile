@@ -236,6 +236,7 @@ tests += \
   tst-sched_setattr-thread \
   tst-scm_rights \
   tst-sigtimedwait \
+  tst-statmount \
   tst-sync_file_range \
   tst-syscall-restart \
   tst-sysconf-iov_max \
