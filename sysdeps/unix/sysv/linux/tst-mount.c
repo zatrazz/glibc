@@ -101,6 +101,36 @@ do_test (void)
       }
   }
 
+  {
+    struct mount_attr attr =
+    {
+      .attr_set = MOUNT_ATTR_RDONLY,
+    };
+    int fd = open_tree_attr (AT_FDCWD, "/tmp",
+			     OPEN_TREE_CLONE | OPEN_TREE_CLOEXEC, &attr,
+			     sizeof (attr));
+    /* open_tree_attr was added on 6.15.  */
+    if (fd == -1)
+      TEST_COMPARE (errno, ENOSYS);
+    else
+      {
+	/* The attributes are applied to the new mount.  */
+	TEST_COMPARE (openat (fd, "file", O_WRONLY | O_CREAT, 0600), -1);
+	TEST_COMPARE (errno, EROFS);
+	xclose (fd);
+
+	TEST_COMPARE (open_tree_attr (AT_FDCWD, "/tmp", OPEN_TREE_CLONE, NULL,
+				      sizeof (attr)), -1);
+	TEST_COMPARE (errno, EINVAL);
+
+	/* Without attributes it is equivalent to open_tree.  */
+	fd = open_tree_attr (AT_FDCWD, "/tmp",
+			     OPEN_TREE_CLONE | OPEN_TREE_CLOEXEC, NULL, 0);
+	TEST_VERIFY (fd != -1);
+	xclose (fd);
+      }
+  }
+
   _exit (0);
 }
 

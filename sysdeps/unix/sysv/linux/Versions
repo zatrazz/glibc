@@ -346,6 +346,7 @@ libc {
   GLIBC_2.45 {
     fchroot;
     membarrier;
+    open_tree_attr;
   }
   GLIBC_PRIVATE {
     # functions used in other libraries
