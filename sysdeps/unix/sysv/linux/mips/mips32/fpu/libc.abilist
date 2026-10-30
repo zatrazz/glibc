@@ -2939,6 +2939,8 @@ GLIBC_2.43 mseal F
 GLIBC_2.43 openat2 F
 GLIBC_2.43 umaxabs F
 GLIBC_2.45 fchroot F
+GLIBC_2.45 file_getattr F
+GLIBC_2.45 file_setattr F
 GLIBC_2.45 getxattrat F
 GLIBC_2.45 listmount F
 GLIBC_2.45 listxattrat F

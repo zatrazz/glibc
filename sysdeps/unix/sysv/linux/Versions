@@ -345,6 +345,8 @@ libc {
   }
   GLIBC_2.45 {
     fchroot;
+    file_getattr;
+    file_setattr;
     getxattrat;
     listmount;
     listxattrat;
