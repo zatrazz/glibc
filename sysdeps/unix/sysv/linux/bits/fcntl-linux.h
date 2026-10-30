@@ -97,6 +97,9 @@
 #ifndef __O_TMPFILE
 # define __O_TMPFILE   (020000000 | __O_DIRECTORY)
 #endif
+#ifndef __O_EMPTYPATH
+# define __O_EMPTYPATH 0400000000
+#endif
 
 #ifndef F_GETLK
 # if !defined __USE_FILE_OFFSET64 && __TIMESIZE != 64
@@ -147,6 +150,7 @@
 # define O_NOATIME	__O_NOATIME	/* Do not set atime.  */
 # define O_PATH		__O_PATH	/* Resolve pathname but do not open file.  */
 # define O_TMPFILE	__O_TMPFILE	/* Atomically create nameless file.  */
+# define O_EMPTYPATH	__O_EMPTYPATH	/* Allow empty file name.  */
 #endif
 
 /* For now, Linux has no separate synchronicity options for read
@@ -222,6 +226,7 @@
 #ifdef __USE_GNU
 # define FD_PIDFS_ROOT	-10002	/* Root of the pidfs filesystem */
 # define FD_NSFS_ROOT	-10003	/* Root of the nsfs filesystem */
+# define FD_FAILFS_ROOT	-10004	/* Root of the failfs filesystem */
 #endif
 
 #ifndef F_RDLCK
