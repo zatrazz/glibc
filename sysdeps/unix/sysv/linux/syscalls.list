@@ -10,6 +10,7 @@ epoll_create1	EXTRA	epoll_create1	i:i	epoll_create1
 epoll_ctl	EXTRA	epoll_ctl	i:iiip	epoll_ctl
 eventfd		EXTRA	eventfd2	i:ii	eventfd
 execve		-	execve		i:spp	__execve	execve
+fchroot		EXTRA	fchroot		i:iU	fchroot
 flock		-	flock		i:ii	__flock		flock
 fsconfig	EXTRA	fsconfig	i:iUsNi	fsconfig
 fsmount		EXTRA	fsmount		i:iUU	fsmount

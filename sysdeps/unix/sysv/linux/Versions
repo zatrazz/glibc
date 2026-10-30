@@ -344,6 +344,7 @@ libc {
     openat2;
   }
   GLIBC_2.45 {
+    fchroot;
     membarrier;
   }
   GLIBC_PRIVATE {

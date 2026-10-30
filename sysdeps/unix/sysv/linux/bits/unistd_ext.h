@@ -47,4 +47,10 @@ extern __pid_t gettid (void) __THROW;
 # define CLOSE_RANGE_CLOEXEC (1U << 2)
 #endif
 
+/* Change the root directory of the calling process to the directory
+   referred to by the file descriptor FD.  FD can also be FD_FAILFS_ROOT,
+   in which case all subsequent absolute file name lookups fail.  FLAGS
+   must be zero.  */
+extern int fchroot (int __fd, unsigned int __flags) __THROW;
+
 #endif /* __USE_GNU  */

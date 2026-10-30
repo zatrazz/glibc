@@ -206,6 +206,7 @@ tests += \
   tst-epoll \
   tst-epoll-ioctls \
   tst-fanotify \
+  tst-fchroot \
   tst-fdopendir-o_path \
   tst-getauxval \
   tst-gettid \
