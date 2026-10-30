@@ -4116,6 +4116,19 @@ refers to a symbolic link.  The @code{errno} variable is set to
 @code{ELOOP} for this error condition.
 @end deftypevr
 
+@deftypevr Macro int O_EMPTYPATH
+@standards{Linux, fcntl.h}
+If set, @code{openat} and @code{openat2} accept an empty file name
+@code{""}, and open the file referred to by the descriptor argument
+itself.  This can be used to obtain a regular descriptor for a file
+from a descriptor opened with @code{O_PATH}, with the access mode given
+in the flags.  @xref{Descriptor-Relative Access}.
+
+Kernels older than Linux 7.2 do not support this flag.  @code{openat}
+ignores it and fails with @code{ENOENT} for an empty file name, and
+@code{openat2} fails with @code{EINVAL}.
+@end deftypevr
+
 @deftypevr Macro int O_TMPFILE
 @standards{GNU, fcntl.h}
 If this flag is specified, functions in the @code{open} family create an

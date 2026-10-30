@@ -300,7 +300,8 @@ file name resolution.  On Linux, this allows operations on descriptors
 opened with the @code{O_PATH} flag.  For regular descriptors (opened
 without @code{O_PATH}), the same functionality is also available through
 the plain descriptor-based functions (for example, @code{fstat} instead
-of @code{fstatat}).
+of @code{fstatat}).  The @code{openat} and @code{openat2} functions use
+the @code{O_EMPTYPATH} open flag instead (@pxref{Open-time Flags}).
 
 This is a GNU extension.
 @end itemize
