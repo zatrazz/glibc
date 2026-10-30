@@ -330,6 +330,13 @@ extern int mount_setattr (int __dfd, const char *__path, unsigned int __flags,
 			  struct mount_attr *__uattr, size_t __usize)
   __THROW;
 
+/* Same as open_tree, and also change the properties of the new mount as
+   mount_setattr with UATTR and USIZE.  If UATTR is NULL, USIZE must be
+   zero.  */
+extern int open_tree_attr (int __dfd, const char *__filename,
+			   unsigned int __flags, struct mount_attr *__uattr,
+			   size_t __usize) __THROW;
+
 __END_DECLS
 
 #endif /* _SYS_MOUNT_H */

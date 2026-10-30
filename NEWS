@@ -19,6 +19,10 @@ Major new features:
 * On Linux, the fchroot function has been added.  It changes the root
   directory to the directory referred to by a file descriptor.
 
+* On Linux, the open_tree_attr function has been added to <sys/mount.h>.
+  It opens a mount tree as open_tree, and also changes the properties of
+  the new mount as mount_setattr.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir
