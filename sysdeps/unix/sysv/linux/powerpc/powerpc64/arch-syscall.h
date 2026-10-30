@@ -63,6 +63,7 @@
 #define __NR_fchmodat2 452
 #define __NR_fchown 95
 #define __NR_fchownat 289
+#define __NR_fchroot 472
 #define __NR_fcntl 55
 #define __NR_fdatasync 148
 #define __NR_fgetxattr 214

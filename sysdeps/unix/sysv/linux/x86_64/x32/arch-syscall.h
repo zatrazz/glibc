@@ -58,6 +58,7 @@
 #define __NR_fchmodat2 1073742276
 #define __NR_fchown 1073741917
 #define __NR_fchownat 1073742084
+#define __NR_fchroot 1073742296
 #define __NR_fcntl 1073741896
 #define __NR_fdatasync 1073741899
 #define __NR_fgetxattr 1073742017

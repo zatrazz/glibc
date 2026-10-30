@@ -21,8 +21,8 @@
 # This file can list all potential system calls.  The names are only
 # used if the installed kernel headers also provide them.
 
-# The list of system calls is current as of Linux 7.1.
-kernel 7.1
+# The list of system calls is current as of Linux 7.3.
+kernel 7.3
 
 FAST_atomic_update
 FAST_cmpxchg
@@ -121,6 +121,7 @@ fchmodat2
 fchown
 fchown32
 fchownat
+fchroot
 fcntl
 fcntl64
 fdatasync
