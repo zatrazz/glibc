@@ -98,6 +98,10 @@ flistxattr	-	flistxattr	i:isU	flistxattr
 removexattr	-	removexattr	i:ss	removexattr
 lremovexattr	-	lremovexattr	i:ss	lremovexattr
 fremovexattr	-	fremovexattr	i:is	fremovexattr
+getxattrat	EXTRA	getxattrat	i:iSUspU	getxattrat
+listxattrat	EXTRA	listxattrat	i:iSUBU	listxattrat
+removexattrat	EXTRA	removexattrat	i:iSUs	removexattrat
+setxattrat	EXTRA	setxattrat	i:iSUspU	setxattrat
 
 timerfd_create	EXTRA	timerfd_create	i:ii	timerfd_create
 

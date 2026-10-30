@@ -2809,11 +2809,15 @@ GLIBC_2.43 mseal F
 GLIBC_2.43 openat2 F
 GLIBC_2.43 umaxabs F
 GLIBC_2.45 fchroot F
+GLIBC_2.45 getxattrat F
 GLIBC_2.45 listmount F
+GLIBC_2.45 listxattrat F
 GLIBC_2.45 membarrier F
 GLIBC_2.45 open_tree_attr F
 GLIBC_2.45 posix_spawn_file_actions_addchdir F
 GLIBC_2.45 posix_spawn_file_actions_addfchdir F
+GLIBC_2.45 removexattrat F
+GLIBC_2.45 setxattrat F
 GLIBC_2.45 statmount F
 GLIBC_2.5 __readlinkat_chk F
 GLIBC_2.5 inet6_opt_append F

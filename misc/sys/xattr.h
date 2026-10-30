@@ -104,6 +104,9 @@ extern int lremovexattr (const char *__path, const char *__name) __THROW;
    success, -1 for errors.  */
 extern int fremovexattr (int __fd, const char *__name) __THROW;
 
+/* System-specific extensions.  */
+#include <bits/xattr_ext.h>
+
 __END_DECLS
 
 #endif	/* sys/xattr.h  */

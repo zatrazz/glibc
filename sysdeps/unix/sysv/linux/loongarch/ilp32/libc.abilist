@@ -2288,9 +2288,13 @@ GLIBC_2.44 write F
 GLIBC_2.44 writev F
 GLIBC_2.44 wscanf F
 GLIBC_2.45 fchroot F
+GLIBC_2.45 getxattrat F
 GLIBC_2.45 listmount F
+GLIBC_2.45 listxattrat F
 GLIBC_2.45 membarrier F
 GLIBC_2.45 open_tree_attr F
 GLIBC_2.45 posix_spawn_file_actions_addchdir F
 GLIBC_2.45 posix_spawn_file_actions_addfchdir F
+GLIBC_2.45 removexattrat F
+GLIBC_2.45 setxattrat F
 GLIBC_2.45 statmount F

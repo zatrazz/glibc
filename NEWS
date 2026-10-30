@@ -27,6 +27,11 @@ Major new features:
   <sys/mount.h>.  They retrieve information about a mount and list the
   mounts of a mount namespace, using the unique 64-bit mount IDs.
 
+* On Linux, the setxattrat, getxattrat, listxattrat, and removexattrat
+  functions have been added to <sys/xattr.h>.  They are variants of the
+  extended attribute functions which take a directory file descriptor
+  and AT_* flags, like openat.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

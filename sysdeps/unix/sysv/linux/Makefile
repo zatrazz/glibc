@@ -247,6 +247,7 @@ tests += \
   tst-timerfd \
   tst-ttyname-direct \
   tst-ttyname-namespace \
+  tst-xattrat \
   # tests
 
 # process_madvise requires CAP_SYS_ADMIN.
