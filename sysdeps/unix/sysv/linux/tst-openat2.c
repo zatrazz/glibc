@@ -21,6 +21,7 @@
 #include <fcntl.h>
 #include <libgen.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include <support/check.h>
 #include <support/support.h>
@@ -409,6 +410,90 @@ do_test_resolve (void)
   }
 }
 
+static void
+do_test_regular (void)
+{
+  /* A directory is not a regular file.  Kernels without OPENAT2_REGULAR
+     support reject the unknown flag with EINVAL, and emulators which
+     truncate the flags to 32 bits (such as qemu-user) ignore it.  */
+  int fd = openat2 (dir_fd,
+		    ".",
+		    &(struct open_how)
+		    {
+		      .flags = O_RDONLY | OPENAT2_REGULAR,
+		    },
+		    sizeof (struct open_how));
+  if (fd == -1 && errno == EINVAL)
+    {
+      puts ("info: OPENAT2_REGULAR not supported by the kernel");
+      return;
+    }
+  if (fd != -1)
+    {
+      puts ("info: OPENAT2_REGULAR is ignored, skipping its tests");
+      xclose (fd);
+      return;
+    }
+  TEST_COMPARE (errno, EFTYPE);
+
+  /* Neither is a character device.  */
+  fd = openat2 (AT_FDCWD,
+		"/dev/null",
+		&(struct open_how)
+		{
+		  .flags = O_RDONLY | OPENAT2_REGULAR,
+		},
+		sizeof (struct open_how));
+  TEST_COMPARE (fd, -1);
+  TEST_COMPARE (errno, EFTYPE);
+
+  /* VALID_LINK resolves to a regular file.  */
+  fd = openat2 (dir_fd,
+		VALID_LINK,
+		&(struct open_how)
+		{
+		  .flags = O_RDONLY | OPENAT2_REGULAR,
+		},
+		sizeof (struct open_how));
+  TEST_VERIFY (fd != -1);
+  if (fd != -1)
+    xclose (fd);
+
+  /* OPENAT2_REGULAR cannot be combined with O_DIRECTORY or O_PATH.  */
+  fd = openat2 (dir_fd,
+		VALID_LINK,
+		&(struct open_how)
+		{
+		  .flags = O_RDONLY | O_DIRECTORY | OPENAT2_REGULAR,
+		},
+		sizeof (struct open_how));
+  TEST_COMPARE (fd, -1);
+  TEST_COMPARE (errno, EINVAL);
+
+  fd = openat2 (dir_fd,
+		VALID_LINK,
+		&(struct open_how)
+		{
+		  .flags = O_PATH | OPENAT2_REGULAR,
+		},
+		sizeof (struct open_how));
+  TEST_COMPARE (fd, -1);
+  TEST_COMPARE (errno, EINVAL);
+
+  /* With O_CREAT a new regular file is created.  */
+  fd = openat2 (dir_fd,
+		"regular-file",
+		&(struct open_how)
+		{
+		  .flags = O_CREAT | O_EXCL | O_RDWR | OPENAT2_REGULAR,
+		  .mode = 0600,
+		},
+		sizeof (struct open_how));
+  TEST_VERIFY (fd != -1);
+  add_temp_file (xasprintf ("%s/%s", temp_dir, "regular-file"));
+  xclose (fd);
+}
+
 static int
 do_test_basic (void)
 {
@@ -474,6 +559,7 @@ do_test (void)
   do_test_struct ();
   do_test_flags ();
   do_test_resolve ();
+  do_test_regular ();
   do_test_basic ();
 
   return 0;

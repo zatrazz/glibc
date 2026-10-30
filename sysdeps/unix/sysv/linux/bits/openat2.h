@@ -30,6 +30,12 @@ struct open_how
 };
 #endif
 
+/* how->flags bits exclusive to openat2.  They live in the upper 32 bits,
+   so they cannot be used with open or openat.  */
+#ifndef OPENAT2_REGULAR
+# define OPENAT2_REGULAR	((__uint64_t) 1 << 32) /* Only open regular files.  */
+#endif
+
 /* how->resolve flags for openat2. */
 #ifndef RESOLVE_NO_XDEV
 # define RESOLVE_NO_XDEV	0x01 /* Block mount-point crossings
