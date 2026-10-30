@@ -173,6 +173,7 @@ sysdep_headers += \
   sys/epoll.h \
   sys/eventfd.h \
   sys/fanotify.h \
+  sys/file_attr.h \
   sys/fsuid.h \
   sys/inotify.h \
   sys/kd.h \
@@ -206,6 +207,7 @@ tests += \
   tst-fanotify \
   tst-fchroot \
   tst-fdopendir-o_path \
+  tst-file_attr \
   tst-getauxval \
   tst-gettid \
   tst-gettid-kill \
