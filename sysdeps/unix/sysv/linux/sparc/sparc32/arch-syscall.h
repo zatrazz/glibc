@@ -71,6 +71,7 @@
 #define __NR_fchown 123
 #define __NR_fchown32 32
 #define __NR_fchownat 287
+#define __NR_fchroot 472
 #define __NR_fcntl 92
 #define __NR_fcntl64 155
 #define __NR_fdatasync 253
