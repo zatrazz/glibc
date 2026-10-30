@@ -63,7 +63,11 @@ def main():
         check('MOVE_MOUNT_.*', 'MOVE_MOUNT__MASK'),
         check('OPEN_TREE_*'),
         # MOUNT_ATTR_SIZE_VER0 is used for mount_setattr.
-        check('MOUNT_ATTR_.*', 'MOUNT_ATTR_SIZE_VER0'))
+        check('MOUNT_ATTR_.*', 'MOUNT_ATTR_SIZE_VER0'),
+        check('MNT_ID_REQ_.*'),
+        check('STATMOUNT_.*'),
+        check('LISTMOUNT_.*'),
+        check('LSMT_.*'))
     sys.exit(status)
 
 if __name__ == '__main__':

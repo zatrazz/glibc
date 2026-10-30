@@ -345,8 +345,10 @@ libc {
   }
   GLIBC_2.45 {
     fchroot;
+    listmount;
     membarrier;
     open_tree_attr;
+    statmount;
   }
   GLIBC_PRIVATE {
     # functions used in other libraries
