@@ -1151,6 +1151,8 @@ the standard.
 * Single-Threaded::                       Detecting single-threaded execution.
 * Restartable Sequences::                 Linux-specific restartable sequences
                                           integration.
+* Process-Wide Memory Barriers::          Linux-specific memory barriers
+                                          on sets of threads.
 @end menu
 
 @node Default Thread Attributes
@@ -1546,6 +1548,90 @@ expected to be present in the code before each restartable sequences
 abort handler.  Failure to provide the expected signature may terminate
 the process with a segmentation fault.
 @end deftypevr
+
+@node Process-Wide Memory Barriers
+@subsubsection Process-Wide Memory Barriers
+@cindex membarrier
+
+The @code{membarrier} function is a wrapper around the Linux
+@code{membarrier} system call, which issues memory barriers on a set of
+threads.  It allows a synchronization algorithm to replace the memory
+barrier on a frequently executed path with a compiler barrier, and to
+issue the matching memory barrier only on an infrequently executed path.
+This functionality is only available on Linux.
+
+@deftypefun int membarrier (int @var{cmd}, unsigned int @var{flags}, int @var{cpu_id})
+@standards{Linux, sys/membarrier.h}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{}}
+Issue the memory barrier selected by @var{cmd}, which is one of the
+following commands.  Each command other than @code{MEMBARRIER_CMD_QUERY}
+is a single bit.
+
+@vtable @code
+@item MEMBARRIER_CMD_QUERY
+Return the bit mask of the commands supported by the kernel.
+
+@item MEMBARRIER_CMD_GLOBAL
+Ensure that all the threads in the system pass through a state in which
+all their memory accesses are ordered with respect to the call, before
+it returns.  This command is not supported if the kernel uses
+@code{nohz_full} CPUs.
+
+@item MEMBARRIER_CMD_GLOBAL_EXPEDITED
+@itemx MEMBARRIER_CMD_REGISTER_GLOBAL_EXPEDITED
+Like @code{MEMBARRIER_CMD_GLOBAL}, but only for the threads of the
+processes which have registered with
+@code{MEMBARRIER_CMD_REGISTER_GLOBAL_EXPEDITED}.  This is faster than
+@code{MEMBARRIER_CMD_GLOBAL}.
+
+@item MEMBARRIER_CMD_PRIVATE_EXPEDITED
+@itemx MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED
+Like @code{MEMBARRIER_CMD_GLOBAL}, but only for the threads of the
+calling process.  The process must register first with
+@code{MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED}.
+
+@item MEMBARRIER_CMD_PRIVATE_EXPEDITED_SYNC_CORE
+@itemx MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED_SYNC_CORE
+Like @code{MEMBARRIER_CMD_PRIVATE_EXPEDITED}, and in addition each thread
+executes a core serializing instruction, as required for cross-modifying
+code.  The process must register first with
+@code{MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED_SYNC_CORE}.
+
+@item MEMBARRIER_CMD_PRIVATE_EXPEDITED_RSEQ
+@itemx MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED_RSEQ
+Restart the restartable sequences critical sections being executed by
+the other threads of the calling process (@pxref{Restartable
+Sequences}).  The process must register first with
+@code{MEMBARRIER_CMD_REGISTER_PRIVATE_EXPEDITED_RSEQ}.
+
+@item MEMBARRIER_CMD_GET_REGISTRATIONS
+Return the bit mask of the registration commands issued by the calling
+process.
+@end vtable
+
+The @var{flags} argument must be zero, except for
+@code{MEMBARRIER_CMD_PRIVATE_EXPEDITED_RSEQ}, for which it can also be
+@code{MEMBARRIER_CMD_FLAG_CPU}.  In this case the command only applies
+to the thread running on the CPU @var{cpu_id}.  Otherwise @var{cpu_id}
+is ignored.
+
+The return value is the bit mask described above for
+@code{MEMBARRIER_CMD_QUERY} and @code{MEMBARRIER_CMD_GET_REGISTRATIONS},
+and zero for the other commands.  On failure, @minus{}1 is returned and
+@code{errno} is set to one of the following error codes:
+
+@table @code
+@item EINVAL
+The @var{cmd} command is unknown or not supported by the kernel, or
+@var{flags} is invalid.
+
+@item EPERM
+An expedited command was issued without the corresponding registration.
+
+@item ENOSYS
+The kernel does not implement the @code{membarrier} system call.
+@end table
+@end deftypefun
 
 @c FIXME these are undocumented:
 @c pthread_atfork

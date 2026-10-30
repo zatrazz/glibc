@@ -33,6 +33,7 @@ ioperm		-	ioperm		i:UUi	ioperm
 iopl		-	iopl		i:i	iopl
 klogctl		EXTRA	syslog		i:isi	klogctl
 lchown		-	lchown		i:sii	__lchown	lchown
+membarrier	EXTRA	membarrier	i:iUi	membarrier
 mincore		-	mincore		i:aUV	mincore
 mlock		-	mlock		i:bU	mlock
 mlockall	-	mlockall	i:i	mlockall
