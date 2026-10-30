@@ -62,6 +62,8 @@ const char __dl_hwcap_names[] = {
   "scv\0"
   "arch_3_1\0"
   "mma\0"
+  "arch_3_2\0"
+  "dmf\0"
 };
 
 const struct hwcap_info_t __dl_hwcap_info[] =
@@ -112,6 +114,8 @@ const struct hwcap_info_t __dl_hwcap_info[] =
    { PPC_FEATURE2_SCV,                       AT_HWCAP2 },
    { PPC_FEATURE2_ARCH_3_1,                  AT_HWCAP2 },
    { PPC_FEATURE2_MMA,                       AT_HWCAP2 },
+   { PPC_FEATURE2_ARCH_3_2,                  AT_HWCAP2 },
+   { PPC_FEATURE2_DMF,                       AT_HWCAP2 },
 };
 
 size_t __dl_hwcap_info_size = array_length (__dl_hwcap_info);
