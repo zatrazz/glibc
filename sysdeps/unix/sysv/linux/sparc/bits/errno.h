@@ -50,4 +50,8 @@
 #  define EHWPOISON		135
 # endif
 
+# ifndef EFTYPE
+#  define EFTYPE		136
+# endif
+
 #endif /* bits/errno.h.  */

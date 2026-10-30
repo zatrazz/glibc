@@ -728,9 +728,6 @@ operating system.
 @errno{EFTYPE, 79, Inappropriate file type or format}
 The file was the wrong type for the
 operation, or a data file had the wrong format.
-
-On some systems @code{chmod} returns this error if you try to set the
-sticky bit on a non-directory file; @pxref{Setting Permissions}.
 @end deftypevr
 
 @deftypevr Macro int EAUTH

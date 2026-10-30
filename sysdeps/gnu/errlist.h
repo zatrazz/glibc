@@ -689,10 +689,7 @@ _S(EBADRPC, N_("RPC struct is bad"))
 #ifdef EFTYPE
 /*
 TRANS The file was the wrong type for the
-TRANS operation, or a data file had the wrong format.
-TRANS
-TRANS On some systems @code{chmod} returns this error if you try to set the
-TRANS sticky bit on a non-directory file; @pxref{Setting Permissions}. */
+TRANS operation, or a data file had the wrong format. */
 _S(EFTYPE, N_("Inappropriate file type or format"))
 #endif
 #ifdef EPROCUNAVAIL
