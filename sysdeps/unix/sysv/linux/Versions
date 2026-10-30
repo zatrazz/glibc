@@ -345,9 +345,13 @@ libc {
   }
   GLIBC_2.45 {
     fchroot;
+    getxattrat;
     listmount;
+    listxattrat;
     membarrier;
     open_tree_attr;
+    removexattrat;
+    setxattrat;
     statmount;
   }
   GLIBC_PRIVATE {

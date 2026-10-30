@@ -46,6 +46,7 @@ headers := \
   bits/types/struct_iovec.h \
   bits/uio-ext.h \
   bits/uio_lim.h \
+  bits/xattr_ext.h \
   err.h \
   error.h \
   fstab.h \
