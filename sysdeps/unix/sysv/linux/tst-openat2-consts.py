@@ -39,10 +39,10 @@ def main():
         sys.exit (77)
 
     linux_version_headers = glibcsyscalls.linux_kernel_version(args.cc)
-    # Constants in glibc were updated to match Linux v7.1.  When glibc
+    # Constants in glibc were updated to match Linux v7.3.  When glibc
     # constants are updated this value should be updated to match the
     # released kernel version from which the constants were taken.
-    linux_version_glibc = (7, 1)
+    linux_version_glibc = (7, 3)
     def check(cte, exclude=None):
         return glibcextract.compare_macro_consts(
                 '#define _FCNTL_H\n'
@@ -56,7 +56,7 @@ def main():
                 linux_version_glibc > linux_version_headers,
                 linux_version_headers > linux_version_glibc)
 
-    status = check('RESOLVE.*')
+    status = max(check('RESOLVE.*'), check('OPENAT2_.*'))
     sys.exit(status)
 
 if __name__ == '__main__':

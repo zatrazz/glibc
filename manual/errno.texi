@@ -731,6 +731,10 @@ operation, or a data file had the wrong format.
 
 On some systems @code{chmod} returns this error if you try to set the
 sticky bit on a non-directory file; @pxref{Setting Permissions}.
+
+On Linux, @code{openat2} returns this error if @code{OPENAT2_REGULAR}
+is used and the file is not a regular file; @pxref{Opening and Closing
+Files}.
 @end deftypevr
 
 @deftypevr Macro int EAUTH

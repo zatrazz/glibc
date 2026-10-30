@@ -240,6 +240,16 @@ conflicting values. For example, @code{openat2} rejects a mode that
 exceeds 07777, whereas @code{openat} silently ignores
 excess high-order bits.
 
+In addition, the following flags can only be used with @code{openat2}.
+
+@table @code
+@item OPENAT2_REGULAR
+Only open the file if it is a regular file, and fail with @code{EFTYPE}
+otherwise.  If combined with @code{O_CREAT}, a regular file is created
+if the file does not exist.  This flag cannot be combined with
+@code{O_DIRECTORY}.
+@end table
+
 @item mode
 This field specifies the mode for the new file, similar to @code{mode}
 argument of @code{openat}. It should be in the range 0..07777.
@@ -299,6 +309,10 @@ fail for any of the reasons @code{openat} fails, plus the following reasons:
 @item E2BIG
 @var{size} is too large for any future extension, @code{*@var{how}} contains
 non-zero members that are future extensions not supported by this kernel
+
+@item EFTYPE
+@code{@var{how}->flags} contains @code{OPENAT2_REGULAR} and the file is
+not a regular file.
 
 @item EINVAL
 An unknown flag or invalid value was used on @code{*@var{how}}; or
