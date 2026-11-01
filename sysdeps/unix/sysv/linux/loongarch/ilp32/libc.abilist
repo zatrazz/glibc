@@ -2287,6 +2287,7 @@ GLIBC_2.44 wprintf F
 GLIBC_2.44 write F
 GLIBC_2.44 writev F
 GLIBC_2.44 wscanf F
+GLIBC_2.45 cachestat F
 GLIBC_2.45 fchroot F
 GLIBC_2.45 file_getattr F
 GLIBC_2.45 file_setattr F

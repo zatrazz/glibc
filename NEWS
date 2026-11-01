@@ -60,6 +60,10 @@ Major new features:
   allowed to see, optionally only those of some types or owned by a user
   namespace.
 
+* On Linux, the cachestat function has been added to <sys/mman.h>.  It
+  returns the page cache statistics of a range of a file: the number of
+  cached, dirty, under writeback, and evicted pages.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

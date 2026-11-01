@@ -201,6 +201,7 @@ sysdep_headers += \
 tests += \
   test-errno-linux \
   tst-adjtimex \
+  tst-cachestat \
   tst-clock_adjtime \
   tst-clone \
   tst-clone2 \

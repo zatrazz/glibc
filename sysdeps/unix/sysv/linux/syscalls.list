@@ -2,6 +2,7 @@
 
 alarm		-	alarm		i:i	alarm
 bdflush		EXTRA	bdflush		i:ii	__compat_bdflush	bdflush@GLIBC_2.0:GLIBC_2.23
+cachestat	EXTRA	cachestat	i:ippU	cachestat
 capget		EXTRA	capget		i:pp	capget
 capset		EXTRA	capset		i:pp	capset
 create_module	EXTRA	create_module	3	__compat_create_module	create_module@GLIBC_2.0:GLIBC_2.23
