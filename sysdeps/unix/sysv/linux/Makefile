@@ -183,6 +183,7 @@ sysdep_headers += \
   sys/klog.h \
   sys/membarrier.h \
   sys/mount.h \
+  sys/nsfs.h \
   sys/pci.h \
   sys/personality.h \
   sys/pidfd.h \
@@ -217,6 +218,7 @@ tests += \
   tst-ioprio \
   tst-kcmp \
   tst-linux-mremap1 \
+  tst-listns \
   tst-membarrier \
   tst-memfd_create \
   tst-memfd_secret \

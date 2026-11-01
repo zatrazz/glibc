@@ -55,6 +55,11 @@ Major new features:
   header.  It checks whether two processes share a kernel resource, such
   as an open file description or the address space.
 
+* On Linux, the listns function has been added, along with the
+  <sys/nsfs.h> header.  It lists the IDs of the namespaces the caller is
+  allowed to see, optionally only those of some types or owned by a user
+  namespace.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

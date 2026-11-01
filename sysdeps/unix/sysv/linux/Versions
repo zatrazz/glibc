@@ -352,6 +352,7 @@ libc {
     ioprio_set;
     kcmp;
     listmount;
+    listns;
     listxattrat;
     membarrier;
     memfd_secret;
