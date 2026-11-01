@@ -39,6 +39,7 @@ ioprio_set	EXTRA	ioprio_set	i:iii	ioprio_set
 klogctl		EXTRA	syslog		i:isi	klogctl
 lchown		-	lchown		i:sii	__lchown	lchown
 listmount	EXTRA	listmount	i:ppUU	listmount
+listns		EXTRA	listns		i:ppUU	listns
 membarrier	EXTRA	membarrier	i:iUi	membarrier
 mincore		-	mincore		i:aUV	mincore
 mlock		-	mlock		i:bU	mlock
