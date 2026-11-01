@@ -53,6 +53,11 @@ __BEGIN_DECLS
    FLAGS is a combination of the MFD_* constants.  */
 int memfd_create (const char *__name, unsigned int __flags) __THROW;
 
+/* Create a new memory file descriptor whose memory is only accessible to
+   the processes which map it, and is removed from the kernel direct map.
+   FLAGS is zero or O_CLOEXEC.  */
+int memfd_secret (unsigned int __flags) __THROW;
+
 /* Lock pages from ADDR (inclusive) to ADDR + LENGTH (exclusive) into
    memory.  FLAGS is a combination of the MLOCK_* flags above.  */
 int mlock2 (const void *__addr, size_t __length, unsigned int __flags) __THROW

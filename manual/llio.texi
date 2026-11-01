@@ -2363,6 +2363,54 @@ There is not enough memory for the operation.
 @end table
 @end deftypefun
 
+@deftypefun int memfd_secret (unsigned int @var{flags})
+@standards{Linux, sys/mman.h}
+@safety{@prelim{}@mtsafe{}@assafe{}@acsafe{@acsfd{}}}
+The @code{memfd_secret} function returns a file descriptor for secret
+memory, which can only be accessed through memory mappings of that
+descriptor.  The kernel removes the pages backing it from its own page
+tables, so only the processes which map the descriptor can access the
+memory, and other processes and the kernel itself cannot.
+
+The descriptor initially refers to a zero-length file.  The file size
+needs to be set with the @code{ftruncate} function before the memory can
+be accessed, and it cannot be changed afterwards.  @xref{File Size}.
+The mappings must be created with
+@code{MAP_SHARED}, and they are not included in core dumps.  The
+descriptor does not support the @code{read} and @code{write} functions.
+
+The secret memory counts towards the @code{RLIMIT_MEMLOCK} resource
+limit (@pxref{Limits on Resources}), and while it is in use the system
+cannot hibernate.
+
+The @var{flags} argument is either zero or @code{O_CLOEXEC}, which
+creates the descriptor with the close-on-exec flag set.
+
+@code{memfd_secret} returns a file descriptor on success, and @math{-1}
+on failure.
+
+The following @code{errno} error conditions are defined for this
+function:
+
+@table @code
+@item EINVAL
+The @var{flags} argument contains a flag other than @code{O_CLOEXEC}.
+
+@item ENOSYS
+Secret memory is not supported: the architecture does not provide it,
+or it was disabled when the system was booted.
+
+@item EMFILE
+The operation would exceed the file descriptor limit for this process.
+
+@item ENFILE
+The operation would exceed the system-wide file descriptor limit.
+
+@item ENOMEM
+There is not enough memory for the operation.
+@end table
+@end deftypefun
+
 @node Waiting for I/O
 @section Waiting for Input or Output
 @cindex waiting for input or output

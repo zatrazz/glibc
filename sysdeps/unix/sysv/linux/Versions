@@ -351,6 +351,7 @@ libc {
     listmount;
     listxattrat;
     membarrier;
+    memfd_secret;
     open_tree_attr;
     quotactl_fd;
     removexattrat;
