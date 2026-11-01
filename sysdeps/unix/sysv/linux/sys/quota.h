@@ -130,6 +130,10 @@ __BEGIN_DECLS
 extern int quotactl (int __cmd, const char *__special, int __id,
 		     __caddr_t __addr) __THROW;
 
+/* Same as quotactl, but operate on the filesystem containing the file
+   referred to by FD instead of a block device.  */
+extern int quotactl_fd (int __fd, int __cmd, int __id, void *__addr) __THROW;
+
 __END_DECLS
 
 #endif /* sys/quota.h */

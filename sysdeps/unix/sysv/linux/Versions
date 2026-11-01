@@ -352,6 +352,7 @@ libc {
     listxattrat;
     membarrier;
     open_tree_attr;
+    quotactl_fd;
     removexattrat;
     setxattrat;
     statmount;
