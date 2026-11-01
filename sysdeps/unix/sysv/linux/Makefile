@@ -178,6 +178,7 @@ sysdep_headers += \
   sys/fsuid.h \
   sys/inotify.h \
   sys/ioprio.h \
+  sys/kcmp.h \
   sys/kd.h \
   sys/klog.h \
   sys/membarrier.h \
@@ -214,6 +215,7 @@ tests += \
   tst-gettid \
   tst-gettid-kill \
   tst-ioprio \
+  tst-kcmp \
   tst-linux-mremap1 \
   tst-membarrier \
   tst-memfd_create \

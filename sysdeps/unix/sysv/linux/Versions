@@ -350,6 +350,7 @@ libc {
     getxattrat;
     ioprio_get;
     ioprio_set;
+    kcmp;
     listmount;
     listxattrat;
     membarrier;

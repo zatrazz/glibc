@@ -2828,6 +2828,7 @@ GLIBC_2.45 file_setattr F
 GLIBC_2.45 getxattrat F
 GLIBC_2.45 ioprio_get F
 GLIBC_2.45 ioprio_set F
+GLIBC_2.45 kcmp F
 GLIBC_2.45 listmount F
 GLIBC_2.45 listxattrat F
 GLIBC_2.45 membarrier F

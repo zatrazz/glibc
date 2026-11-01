@@ -51,6 +51,10 @@ Major new features:
   with the <sys/ioprio.h> header.  They retrieve and set the I/O
   scheduling class and priority of processes.
 
+* On Linux, the kcmp function has been added, along with the <sys/kcmp.h>
+  header.  It checks whether two processes share a kernel resource, such
+  as an open file description or the address space.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir
