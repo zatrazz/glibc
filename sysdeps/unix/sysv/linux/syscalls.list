@@ -34,6 +34,8 @@ inotify_init1	EXTRA	inotify_init1	i:I	inotify_init1
 inotify_rm_watch	EXTRA	inotify_rm_watch	i:ii	inotify_rm_watch
 ioperm		-	ioperm		i:UUi	ioperm
 iopl		-	iopl		i:i	iopl
+ioprio_get	EXTRA	ioprio_get	i:ii	ioprio_get
+ioprio_set	EXTRA	ioprio_set	i:iii	ioprio_set
 klogctl		EXTRA	syslog		i:isi	klogctl
 lchown		-	lchown		i:sii	__lchown	lchown
 membarrier	EXTRA	membarrier	i:iUi	membarrier

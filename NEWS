@@ -47,6 +47,10 @@ Major new features:
   creates a memory file descriptor whose memory is only accessible to the
   processes which map it, and is removed from the kernel direct map.
 
+* On Linux, the ioprio_get and ioprio_set functions have been added, along
+  with the <sys/ioprio.h> header.  They retrieve and set the I/O
+  scheduling class and priority of processes.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir
