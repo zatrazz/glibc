@@ -43,6 +43,10 @@ Major new features:
   open file, so it can be used for filesystems without a backing block
   device such as tmpfs.
 
+* On Linux, the memfd_secret function has been added to <sys/mman.h>.  It
+  creates a memory file descriptor whose memory is only accessible to the
+  processes which map it, and is removed from the kernel direct map.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

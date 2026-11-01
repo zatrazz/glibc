@@ -81,6 +81,7 @@ sysdep_routines += \
   inotify_init \
   lxstat \
   lxstat64 \
+  memfd_secret \
   mlock2 \
   mremap \
   open_by_handle_at \
@@ -214,6 +215,7 @@ tests += \
   tst-linux-mremap1 \
   tst-membarrier \
   tst-memfd_create \
+  tst-memfd_secret \
   tst-misalign-clone \
   tst-mlock2 \
   tst-mount \
