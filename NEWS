@@ -38,6 +38,11 @@ Major new features:
   hints) of a file, which were previously only available through the
   FS_IOC_FSGETXATTR and FS_IOC_FSSETXATTR ioctls.
 
+* On Linux, the quotactl_fd function has been added to <sys/quota.h>.  It
+  is a variant of quotactl which operates on the filesystem containing an
+  open file, so it can be used for filesystems without a backing block
+  device such as tmpfs.
+
 Deprecated and removed features, and other changes affecting compatibility:
 
 * The posix_spawn_file_actions_addchdir and posix_spawn_file_actions_addfchdir

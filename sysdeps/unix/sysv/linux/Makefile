@@ -232,6 +232,7 @@ tests += \
   tst-prctl \
   tst-process_mrelease \
   tst-quota \
+  tst-quotactl_fd \
   tst-rlimit-infinity \
   tst-sched-affinity-inheritance \
   tst-sched_setattr \
