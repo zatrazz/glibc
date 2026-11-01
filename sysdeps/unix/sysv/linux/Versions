@@ -348,6 +348,8 @@ libc {
     file_getattr;
     file_setattr;
     getxattrat;
+    ioprio_get;
+    ioprio_set;
     listmount;
     listxattrat;
     membarrier;
