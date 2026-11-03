@@ -27,13 +27,13 @@ __rsqrtf (float x)
 {
   uint32_t ix = asuint (x);
 
-  uint32_t m = ix << 8;
+  uint32_t m = (ix >> 8) & 0xffff;
 
   /* The expression (1.0 / x) * sqrt (x) fails to return correct rounding
      for x=0x1.7bf15p-128*2^(2k) and x=0x1.ab6f7ap-125*2^(2k) with k>=0, for
      rndu (where the returned value is 1 ulp too large).  */
-  if (__glibc_unlikely (ix == 0 || ix >= EXPONENT_MASK || ix == 0x2f7e2au
-			|| m == 0xbdf8a800u || m == 0x55b7bd00u))
+  if (__glibc_unlikely (ix - 0x300000u >= EXPONENT_MASK - 0x300000u
+			|| m == 0xbdf8u || m == 0x55b7u))
     {
       if (islessequal (x, 0.0f))
 	__set_errno (x < 0 ? EDOM : ERANGE);
