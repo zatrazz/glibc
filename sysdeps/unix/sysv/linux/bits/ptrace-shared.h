@@ -52,7 +52,7 @@ enum __ptrace_eventcodes
   PTRACE_EVENT_STOP	= 128
 };
 
-/* Type of stop for PTRACE_GET_SYSCALL_INFO.  */
+/* Type of stop for PTRACE_GET_SYSCALL_INFO and PTRACE_SET_SYSCALL_INFO.  */
 enum __ptrace_get_syscall_info_op
 {
   PTRACE_SYSCALL_INFO_NONE = 0,
@@ -82,12 +82,14 @@ struct __ptrace_seccomp_metadata
   __uint64_t flags;		/* Output: filter's flags.  */
 };
 
-/* Results of PTRACE_GET_SYSCALL_INFO.  */
+/* Argument of PTRACE_GET_SYSCALL_INFO and PTRACE_SET_SYSCALL_INFO.  */
 struct __ptrace_syscall_info
 {
   __uint8_t op;			/* One of the enum
 				   __ptrace_get_syscall_info_op
 				   values.  */
+  __uint8_t reserved;		/* Must be zero.  */
+  __uint16_t flags;		/* Must be zero.  */
   __uint32_t arch __attribute__ ((__aligned__ (4))); /* AUDIT_ARCH_*
 							value.  */
   __uint64_t instruction_pointer; /* Instruction pointer.  */
@@ -116,6 +118,7 @@ struct __ptrace_syscall_info
       __uint64_t nr;
       __uint64_t args[6];
       __uint32_t ret_data;
+      __uint32_t reserved2;	/* Must be zero.  */
     } seccomp;
   };
 };
