@@ -80,6 +80,12 @@
 				       as a cmsg on read.  */
 #define TCP_CM_INQ		 TCP_INQ
 #define TCP_TX_DELAY		 37 /* Delay outgoing packets by XX usec.  */
+#define TCP_AO_ADD_KEY		 38 /* Add or set a TCP-AO master key.  */
+#define TCP_AO_DEL_KEY		 39 /* Delete a TCP-AO master key.  */
+#define TCP_AO_INFO		 40 /* Set or get TCP-AO socket options.  */
+#define TCP_AO_GET_KEYS		 41 /* List TCP-AO master keys.  */
+#define TCP_AO_REPAIR		 42 /* Get or set TCP-AO SNEs and ISNs.  */
+#define TCP_IS_MPTCP		 43 /* Whether MPTCP is in use.  */
 #define TCP_RTO_MAX_MS		 44 /* Max time to retransmit (msec).  */
 #define TCP_RTO_MIN_US		 45 /* Min time to retransmit (usec).  */
 #define TCP_DELACK_MAX_US	 46 /* Max delayed ack time (usec).  */
