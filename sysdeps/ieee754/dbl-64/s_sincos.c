@@ -29,7 +29,7 @@
 #endif
 
 #define IN_SINCOS
-#include "s_sin.c"
+#include "s_cos.c"
 
 void
 SECTION

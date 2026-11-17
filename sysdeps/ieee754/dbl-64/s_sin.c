@@ -21,12 +21,11 @@
 /* MODULE_NAME:usncs.c                                                      */
 /*                                                                          */
 /* FUNCTIONS: usin                                                          */
-/*            ucos                                                          */
 /* FILES NEEDED: dla.h endian.h mpa.h mydefs.h  usncs.h                     */
 /*		 e_rem_pio2.c sincos.tbl				    */
 /*                                                                          */
-/* An ultimate sin and cos routine. Given an IEEE double machine number x   */
-/* it computes sin(x) or cos(x) with ~0.55 ULP.				    */
+/* An ultimate sin routine. Given an IEEE double machine number x it        */
+/* computes sin(x) with ~0.55 ULP.					    */
 /* Assumption: Machine arithmetic operations are performed in               */
 /* round to nearest mode of IEEE 754 standard.                              */
 /*                                                                          */
@@ -192,7 +191,6 @@ do_sincos (double a, double da, int4 n)
 /* An ultimate sin routine. Given an IEEE double machine number x  */
 /* it computes the rounded value of sin(x).			   */
 /*******************************************************************/
-#ifndef IN_SINCOS
 double
 SECTION
 __sin (double x)
@@ -252,77 +250,6 @@ __sin (double x)
   return retval;
 }
 
-
-/*******************************************************************/
-/* An ultimate cos routine. Given an IEEE double machine number x  */
-/* it computes the rounded value of cos(x).			   */
-/*******************************************************************/
-
-double
-SECTION
-__cos (double x)
-{
-  double y, a, da;
-  mynumber u;
-  int4 k, m, n;
-
-  double retval = 0;
-
-  SET_RESTORE_ROUND_53BIT (FE_TONEAREST);
-
-  u.x = x;
-  m = u.i[HIGH_HALF];
-  k = 0x7fffffff & m;
-
-  /* |x|<2^-27 => cos(x)=1 */
-  if (k < 0x3e400000)
-    retval = 1.0;
-
-  else if (k < 0x3feb6000)
-    {				/* 2^-27 < |x| < 0.855469 */
-      /* Max ULP is 0.51.  */
-      retval = do_cos (x, 0);
-    }				/*   else  if (k < 0x3feb6000)    */
-
-  else if (k < 0x400368fd)
-    { /* 0.855469  <|x|<2.426265  */ ;
-      y = hp0 - fabs (x);
-      a = y + hp1;
-      da = (y - a) + hp1;
-      /* Max ULP is 0.501 if xx < 0.01588 or 0.518 otherwise.
-	 Range reduction uses 106 bits here which is sufficient.  */
-      retval = do_sin (a, da);
-    }				/*   else  if (k < 0x400368fd)    */
-
-  else if (k < 0x419921FB)
-    {				/* 2.426265<|x|< 105414350 */
-      n = reduce_sincos (x, &a, &da);
-      retval = do_sincos (a, da, n + 1);
-    }				/*   else  if (k <  0x419921FB )    */
-
-  /* 105414350 <|x| <2^1024 */
-  else if (k < 0x7ff00000)
-    {
-      double y[2];
-      n = __ieee754_rem_pio2 (x, y);
-      retval = do_sincos (y[0], y[1], n + 1);
-    }
-
-  else
-    {
-      if (k == 0x7ff00000 && u.i[LOW_HALF] == 0)
-	__set_errno (EDOM);
-      retval = x / x;		/* |x| > 2^1024 */
-    }
-
-  return retval;
-}
-
-#ifndef __cos
-libm_alias_double (__cos, cos)
-#endif
 #ifndef __sin
 libm_alias_double (__sin, sin)
-#endif
-
 #endif

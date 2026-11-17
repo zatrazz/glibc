@@ -9,6 +9,7 @@ CFLAGS-e_pow-fma.c = -mfma -mavx2
 CFLAGS-e_cosh-fma.c = -mfma -mavx2
 CFLAGS-e_sinh-fma.c = -mfma -mavx2
 CFLAGS-s_atan-fma.c = -mfma -mavx2
+CFLAGS-s_cos-fma.c = -mfma -mavx2
 CFLAGS-s_expm1-fma.c = -mfma -mavx2
 CFLAGS-s_log1p-fma.c = -mfma -mavx2
 CFLAGS-s_sin-fma.c = -mfma -mavx2
@@ -64,6 +65,7 @@ libm-sysdep_routines += \
   e_log-fma4 \
   e_pow-fma4 \
   s_atan-fma4 \
+  s_cos-fma4 \
   s_sin-fma4 \
   s_sincos-fma4 \
   s_tan-fma4 \
@@ -91,6 +93,8 @@ libm-sysdep_routines += \
   s_atan-fma \
   s_ceil-sse4_1 \
   s_ceilf-sse4_1 \
+  s_cos-avx \
+  s_cos-fma \
   s_cosf-fma \
   s_cosf-sse2 \
   s_exp10m1f-fma \
@@ -148,6 +152,7 @@ CFLAGS-e_exp-fma4.c = -mfma4
 CFLAGS-e_log-fma4.c = -mfma4
 CFLAGS-e_pow-fma4.c = -mfma4
 CFLAGS-s_atan-fma4.c = -mfma4
+CFLAGS-s_cos-fma4.c = -mfma4
 CFLAGS-s_sin-fma4.c = -mfma4
 CFLAGS-s_tan-fma4.c = -mfma4
 CFLAGS-s_sincos-fma4.c = -mfma4
@@ -156,6 +161,7 @@ CFLAGS-e_atan2-avx.c = -mavx
 CFLAGS-e_exp-avx.c = -mavx
 CFLAGS-e_log-avx.c = -mavx
 CFLAGS-s_atan-avx.c = -mavx
+CFLAGS-s_cos-avx.c = -mavx
 CFLAGS-s_sin-avx.c = -mavx
 CFLAGS-s_tan-avx.c = -mavx
 CFLAGS-s_sincos-avx.c = -mavx
