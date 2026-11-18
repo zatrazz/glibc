@@ -20,6 +20,7 @@ CFLAGS-s_fma.c += -fexcess-precision=standard
 CFLAGS-s_fmaf.c += -fexcess-precision=standard
 CFLAGS-s_sin.c += -fexcess-precision=standard
 CFLAGS-s_sincos.c += -fexcess-precision=standard
+CFLAGS-s_sincos_accurate.c += -fexcess-precision=standard
 CFLAGS-s_tanh.c += -fexcess-precision=standard
 endif
 

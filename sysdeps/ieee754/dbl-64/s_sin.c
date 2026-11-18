@@ -47,71 +47,6 @@ SOFTWARE.
 # define SECTION
 #endif
 
-/* Accurate path for |x| >= 2^-16.  */
-static double __attribute__ ((noinline, cold))
-sin_large_accurate (double x)
-{
-  u128 r;
-  int neg;
-  uint64_t k = reduce_large_acc (&r, &neg, x);
-
-  /* Replace r by 8*r.  */
-  r = u128_lshift (r, 3);
-  u128 u2 = mhUU (r, r), u4 = mhUU (u2, u2);
-  u128 u2h = u128_rshift (u2, 64);
-
-  /* x/(2*pi) mod 1 = k/2^13 + r + eps with |r| <= 2^-14 and
-     0 <= eps < 2^-127.999 then
-       sin(x) ~ sin(pi*k/2^12 + 2*pi*r)
-	      ~ sin(pi*k/2^12)*cos(2*pi*r) + cos(pi*k/2^12)*sin(2*pi*r)
-     Write k = 2^12*s + 2^6*i1 + i2 and t1=pi*i1/2^6, t2 = pi*i2/2^12
-     then sin(pi*k/2^12) = (-1)^s*[sin(t1)*cos(t2)+cos(t1)*sin(t2)]
-     and  cos(pi*k/2^12) = (-1)^s*[cos(t1)*cos(t2)-sin(t1)*sin(t2)].  */
-  int sbit = (x > 0) ? 0 : 1;
-  sbit = sbit ^ (k >> 12);
-  int i1 = (k >> 6) & 0x3f, i2 = k & 0x3f;
-
-  /* Approximate |sin(z)| in s1u/2^128, using sin(pi-x) = sin(x).  */
-  u128 s1 = u128_load ((i1 <= 32) ? S1u[i1] : S1u[64 - i1]);
-  /* Since cos(x) = sin(x+pi/2), |C1u[i1]| = |S1u[(i1+32) mod 64]|.  */
-  u128 c1 = u128_load ((i1 <= 32) ? S1u[32 - i1] : S1u[i1 - 32]);
-  u128 s1u = mhUU (s1, u128_load (C2u[i2]));
-  u128 t = mhUU (c1, u128_load (S2u[i2]));
-  /* s1u/2^128 approximates sin(t1)*cos(t2), and t/2^128 approximates (up
-     to sign) sin(t2)*cos(t1), thus s1u +/- t approximates sin(z=t1+t2), but
-     since sin(z) >= 0 (0 <= z < pi), s1u +/- t >= 0.  */
-  s1u = (i1 < 32) ? u128_add (s1u, t) : u128_sub (s1u, t);
-
-  /* Approximate cos(z) in c1u/2^128.  */
-  u128 c1u = mhUU (c1, u128_load (C2u[i2]));
-  t = mhUU (s1, u128_load (S2u[i2]));
-  c1u = (i1 < 32) ? u128_sub (c1u, t) : u128_add (c1u, t);
-
-  /* Sr/2^128 approximates |sin(2*pi*r)| and Cr/2^128 approximates
-     cos(2*pi*r).  */
-  u128 Sr = evalPS (r, u2, u2h, u4);
-  u128 Cr = evalPC (u2, u2h, u4);
-
-  /* Now combine: sin(x) ~ s1*C + c1*S.  */
-  s1u = mhUU (s1u, Cr);
-  c1u = mhUU (c1u, Sr);
-
-  /* s1u/2^128 approximates sin(z)*cos(r) which is always >= 0, while
-     c1u/2^128 approximates cos(z)*sin(r), where cos(z) > 0 for i1 < 32,
-     and cos(z) <= 0 for i1 >= 32, and sign(r) has the sign of r.  */
-  if ((i1 < 32) ^ neg)
-    /* cos(z) * r > 0.  */
-    s1u = u128_add (s1u, c1u);
-  else if (u128_lt (s1u, c1u))
-    {
-      s1u = u128_sub (c1u, s1u);
-      sbit ^= 1;
-    }
-  else
-    s1u = u128_sub (s1u, c1u);
-  return u128_tod (s1u, sbit);
-}
-
 /* Fast path for 2^-26 < |x| < 2^31, where sbit is the sign bit of x (0 for
    x > 0, 1 for x < 0).  See the proof of correctness in sin.pdf.  */
 static inline double
@@ -154,7 +89,7 @@ sin_moderate (double x, int sbit)
     return lb;
   if (ax < 0x1p-16)
     return sin_small_accurate (x);
-  return sin_large_accurate (x);
+  return __sin_large_accurate (x);
 }
 
 /* Fast path for |x| >= 2^31.  */
@@ -190,7 +125,7 @@ sin_large (double x)
   double lb = fh + (fl - eps), ub = fh + (fl + eps);
   if (__glibc_likely (lb == ub))
     return lb;
-  return sin_large_accurate (x);
+  return __sin_large_accurate (x);
 }
 
 SECTION

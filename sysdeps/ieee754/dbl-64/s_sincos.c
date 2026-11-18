@@ -38,7 +38,6 @@ SOFTWARE.
 #include <libm-alias-double.h>
 #include <math.h>
 #include <math_uint128.h>
-#include <stddef.h>
 #include <stdint.h>
 #include <ddcoremath.h>
 #include "math_config.h"
@@ -47,100 +46,6 @@ SOFTWARE.
 #ifndef SECTION
 # define SECTION
 #endif
-
-/* Accurate path for |x| >= 2^-16: compute the sine in *S if S is not NULL,
-   and the cosine in *C if C is not NULL.  */
-static void __attribute__ ((noinline, cold))
-sincos_large_accurate (double x, double *s, double *c)
-{
-  u128 r;
-  int neg;
-  uint64_t k = reduce_large_acc (&r, &neg, x);
-
-  /* Replace r by 8*r.  */
-  r = u128_lshift (r, 3);
-  u128 u2 = mhUU (r, r), u4 = mhUU (u2, u2);
-  u128 u2h = u128_rshift (u2, 64);
-
-  /* x/(2*pi) mod 1 = k/2^13 + r + eps with |r| <= 2^-14 and
-     0 <= eps < 2^-127.999 then
-       sin(x) ~ sin(pi*k/2^12 + 2*pi*r)
-	      ~ sin(pi*k/2^12)*cos(2*pi*r) + cos(pi*k/2^12)*sin(2*pi*r)
-     Write k = 2^12*s + 2^6*i1 + i2 and t1=pi*i1/2^6, t2 = pi*i2/2^12
-     then sin(pi*k/2^12) = (-1)^s*[sin(t1)*cos(t2)+cos(t1)*sin(t2)]
-     and  cos(pi*k/2^12) = (-1)^s*[cos(t1)*cos(t2)-sin(t1)*sin(t2)].  */
-  int sbit = (x > 0) ? 0 : 1;
-  int cbit = (k >> 12) & 1;
-  sbit ^= cbit;
-  int i1 = (k >> 6) & 0x3f, i2 = k & 0x3f;
-
-  /* Approximate |sin(z)| in s1u/2^128, using sin(pi-x) = sin(x).  */
-  u128 s1 = u128_load ((i1 <= 32) ? S1u[i1] : S1u[64 - i1]);
-  /* Since cos(x) = sin(x+pi/2), |C1u[i1]| = |S1u[(i1+32) mod 64]|.  */
-  u128 c1 = u128_load ((i1 <= 32) ? S1u[32 - i1] : S1u[i1 - 32]);
-  u128 s1u = mhUU (s1, u128_load (C2u[i2]));
-  u128 t = mhUU (c1, u128_load (S2u[i2]));
-  /* s1u/2^128 approximates sin(t1)*cos(t2), and t/2^128 approximates (up
-     to sign) sin(t2)*cos(t1), thus s1u +/- t approximates sin(z=t1+t2), but
-     since sin(z) >= 0 (0 <= z < pi), s1u +/- t >= 0.  */
-  s1u = (i1 < 32) ? u128_add (s1u, t) : u128_sub (s1u, t);
-
-  /* Approximate cos(z) in c1u/2^128.  */
-  u128 c1u = mhUU (c1, u128_load (C2u[i2]));
-  t = mhUU (s1, u128_load (S2u[i2]));
-  c1u = (i1 < 32) ? u128_sub (c1u, t) : u128_add (c1u, t);
-
-  /* Sr/2^128 approximates |sin(2*pi*r)| and Cr/2^128 approximates
-     cos(2*pi*r).  */
-  u128 Sr = evalPS (r, u2, u2h, u4);
-  u128 Cr = evalPC (u2, u2h, u4);
-
-  if (s != NULL)
-    {
-      /* Now combine: sin(x) ~ s1*C + c1*S.  */
-      u128 a = mhUU (s1u, Cr);
-      u128 b = mhUU (c1u, Sr);
-
-      /* a/2^128 approximates sin(z)*cos(r) which is always >= 0, while
-	 b/2^128 approximates cos(z)*sin(r), where cos(z) > 0 for i1 < 32,
-	 and cos(z) <= 0 for i1 >= 32, and sign(r) has the sign of r.  */
-      if ((i1 < 32) ^ neg)
-	/* cos(z) * r > 0.  */
-	a = u128_add (a, b);
-      else if (u128_lt (a, b))
-	{
-	  a = u128_sub (b, a);
-	  sbit ^= 1;
-	}
-      else
-	a = u128_sub (a, b);
-      *s = u128_tod (a, sbit);
-    }
-  if (c != NULL)
-    {
-      /* Now combine: cos(x) ~ c1*C - s1*S.  */
-      u128 a = mhUU (c1u, Cr);
-      u128 b = mhUU (s1u, Sr);
-
-      /* a/2^128 approximates cos(z)*cos(r) where cos(z) > 0 for i1 < 32,
-	 and cos(z) <= 0 for i1 >= 32; b/2^128 approximates sin(z)*sin(r),
-	 which has the sign of r.  */
-      if ((i1 >= 32) ^ neg)
-	/* cos(z) * r < 0.  */
-	a = u128_add (a, b);
-      else if (!u128_lt (b, a))
-	{
-	  a = u128_sub (b, a);
-	  cbit ^= 1;
-	}
-      else
-	a = u128_sub (a, b);
-      /* If i1 >= 32, cos(z) <= 0 thus the signs should be exchanged.  */
-      double ret = u128_tod (a, cbit ^ (i1 >= 32));
-      uint64_t d = u128_low (a) + 5;
-      *c = (d <= 3) ? cos_exceptions (x, ret) : ret;
-    }
-}
 
 /* Fast path for 2^-27 <= |x| < 2^31, where sbit is the sign bit of x (0
    for x > 0, 1 for x < 0).  See the proof of correctness in sin.pdf.  */
@@ -201,13 +106,13 @@ sincos_moderate (double x, int sbit, double *sinx, double *cosx)
   else if (ax < 0x1p-16)
     *sinx = sin_small_accurate (x);
   else
-    sincos_large_accurate (x, sinx, NULL);
+    *sinx = __sin_large_accurate (x);
   lb = c12h + (c12l - eps);
   ub = c12h + (c12l + eps);
   if (__glibc_likely (ub == lb))
     *cosx = lb;
   else
-    sincos_large_accurate (x, NULL, cosx);
+    *cosx = __cos_large_accurate (x);
 }
 
 /* Fast path for |x| >= 2^31.  */
@@ -256,13 +161,13 @@ sincos_large (double x, double *sinx, double *cosx)
   if (__glibc_likely (ub == lb))
     *sinx = lb;
   else
-    sincos_large_accurate (x, sinx, NULL);
+    *sinx = __sin_large_accurate (x);
   lb = c12h + (c12l - eps);
   ub = c12h + (c12l + eps);
   if (__glibc_likely (ub == lb))
     *cosx = lb;
   else
-    sincos_large_accurate (x, NULL, cosx);
+    *cosx = __cos_large_accurate (x);
 }
 
 SECTION

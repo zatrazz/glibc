@@ -51,4 +51,12 @@ extern const uint64_t __sin_s2u[64][2] attribute_hidden;
 extern const uint64_t __sin_c2u[64][2] attribute_hidden;
 #define C2u __sin_c2u
 
+/* Accurate paths for |x| >= 2^-16 (sin) and |x| >= 2^-27 (cos), defined in
+   s_sincos_accurate.c.  They only use integer arithmetic, so a single copy
+   serves every ifunc variant.  */
+extern double __sin_large_accurate (double) attribute_hidden
+  __attribute__ ((cold));
+extern double __cos_large_accurate (double) attribute_hidden
+  __attribute__ ((cold));
+
 #endif
